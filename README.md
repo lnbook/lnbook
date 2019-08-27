@@ -10,7 +10,7 @@ The book is suitable for technical readers with an understanding of the fundamen
 
 ## Contributing
 
-The authors welcome contributions to this book! A Contributor's Guide will be published by the end of September 2019.
+The authors welcome contributions to this book! Read the [Guide to Contributing](CONTRIBUTING.md)
 
 ## Source and license
 
