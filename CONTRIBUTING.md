@@ -51,22 +51,22 @@ Adjust heading style in each section as follows:
 2. Headings should be all lower case, except for first letter, proper nouns and acronyms. "An introduction to the Lightning Network", "Explaining the physics of fulgurites" etc.
 3. Acronyms are spelled out, capitalized, with the acronym in parentheses (eg. "Hash Time-Locked Contract (HTLC)"). Once you have spelled out an acronym in one heading, we can keep it as an acronym only in subsequent headings.
 4. No period at the end of headings. Question mark if it is a question (generally avoid question headings, unless really appropriate)
-5. Should include a unique anchor all lower case, underscore separated (eg. [intro_to_htlcs])
+5. Should include a unique anchor all lower case, underscore separated, within double square brackets (eg. [[intro_to_htlcs]]).
 6. Headings should be followed by a blank line.
 7. Heading should be followed by a paragraph of text, not a lower-level heading without any text. If you find one like this, add a TODO comment (line of 4 slashes "////", line with "TODO: add paragraph", line of 4 slashes)
 
 Complete Example:
 
 ```
-[intro_to_ln]
+[[intro_to_ln]]
 == Introduction to the Lightning Network
 
 This is the intro paragraph
 
-[htlcs_explained]
+[[htlcs_explained]]
 === All about Hash Time-Locked Contracts (HTLCs)
 
-First paragraph
+As we saw in <<intro_to_ln>>, the intro paragraph is superb!
 
 ```
 
