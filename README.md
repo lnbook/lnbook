@@ -2,7 +2,7 @@
 
 ![Mastering Lightning Cover](images/cover_thumb.png)
 
-Mastering the Lightning Network is an O'Reilly Media book, due for publication in Q4'2020, and announced on August 28th by authors Andreas M. Antonopoulos (@aantonop), Olaoluwa Osuntokun (@roasbeef), Rene Pickhardt (@renepickhardt).
+Mastering the Lightning Network is an O'Reilly Media book, due for publication in Q4'2020, and announced on August 28th by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)).
 
 The book describes the Lightning Network (LN), a Peer-to-Peer protocol running on top of Bitcoin and other blockchains, which provides near-instant, secure, micro-payments.
 
