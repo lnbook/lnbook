@@ -36,6 +36,7 @@ The best way to contribute to this book is by making a pull request:
 5. Edit `preface.asciidoc` and add your own name to the list of contributors under the Acknowledgment section. Use your name, or a GitHub username, or a pseudonym.
 6. Commit your change. Include a commit message describing the correction.
 7. Submit a pull request against the lnbook repository.
+8. We currently use one line per sentence to make reviewing of pull requests and diffs easier. Make sure to follow this style guide and **turn off auto formatting** of your editor.
 
 ## Contributing with an issue
 
