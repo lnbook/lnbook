@@ -30,7 +30,7 @@ Added by: @aantonop
 The best way to contribute to this book is by making a pull request:
 
 1. Login with your GitHub account or create one now
-2. [Fork](https://github.com/lnbook/lnbook#fork-destination-box) the `lnbook` repository. Work on your fork.
+2. [Fork](https://github.com/lnbook/lnbook#fork-destination-box) the `lnbook` repository. Work on your fork. In particular you can clone it to your local computer with `git clone https://github.com/ADD_YOUR_GIT_USER_NAME_HERE/lnbook.git`
 3. Create a new branch on which to make your change, e.g. `git checkout -b my_code_contribution`, or make the change on the `develop` branch.
 4. Please do one pull request PER asciidoc file, to avoid large merges. Edit the asciidoc file where you want to make a change or create a new asciidoc file in the `contrib` directory if you're not sure where your contribution might fit.
 5. Edit `preface.asciidoc` and add your own name to the list of contributors under the Acknowledgment section. Use your name, or a GitHub username, or a pseudonym.
