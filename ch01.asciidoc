@@ -15,10 +15,35 @@ Due to the use of onion routing, which is also used in Tor, even the nodes that 
 
 === History of the Lightning Network
 
-// The following is working draft and suggested mail stones in the history of the Lightning Network.
+// The following is working draft and suggested mile stones in the history of the Lightning Network.
 
-* first response by James A. Donald on the cryptography mailinglist to Satoshi Nakamoto: https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html "We very, very much need such a system, but the way I understand your proposal, it does not seem to scale to the required size"
-* Satoshis nSequence number
+The history of the Lightning Network could be considered to be as old as the history of Bitcoin.
+The first response to Satoshi Nakamotos initial publication of the Bitcoin whitepaper on the metzdowd cryptography mailing list discussed the issue of scale.
+[quote, James A. Donald, https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html ]
+____
+We very, very much need such a system, but the way I understand your proposal, it does not seem to scale to the required size.
+____
+While it seemed as if James A. Donald just refered to keeping the set of unspend transaction outputs (UTXOs) it quickly became clear that also verifying and storing that many transactions would become infeasible for any blockchain.
+
+Already in the first verison of Bitcoin Satoshi Nakamoto introduced the `nSequence` number.
+It was intended to send an updated version of the transaction.
+This could have been used to change the outputs of a transaction which effectivly would have created a payment channel.
+Such a payment channel would be valid as long as the transaction was not mined.
+While this would not have scaled bitcoin as payment channels need to live longer than one blocktime this can be seen as a premature payment channel.
+Satoshi Nakamoto envisioned this construction for the case of high frequency trading.
+It should also be mentioned that the nSequence number introduced by Satoshi Nakamoto could have been ignored by miners making this mechanism effectivley useless.
+The revocable Sequence maturity contracts which form the payment channels in the first version of the Lightning Network have taken part of their name from their property of fixing the nSequence field and making the latest version of the sequence of updates in the payment channel enforcable.
+// find / add sources for some of the claimes
+
+While the Bitcoin network was growing adoption the blocksize and usage has not been an issue in the frist couple years.
+In 2012 Gavin Andresen proposed the Ultra Transaction server on his blog.
+The Ultra Transaction server would have been a trusted partner of a 2-2 multisig wallet that could not steal funds but allowed signing transactions from a 2-2 multisig wallet.
+Andresen observerd that with such a mechanism payments would effectively take place offchain and that this would result in arbitrary throughput of scale.
+Andresen also noted that there might be a better construction which would require less trust in the Ultra Server.
+Though it seems as he was on the right way he wasn't able to solve the problem of constructing a trustless payment channel.
+
+The Work of Andresen lead to discussions on Bicroin talk and later on the bitcoin-development mailinglist resulting in the first construction of a unidirectional payment channel. 
+
 * unidirectional payment channels  
 ** http://web.archive.org/web/20190419103457/https://bitcointalk.org/index.php?topic=91732.0[bitcoin talk discussion]. 
 ** 2012 http://web.archive.org/web/20190730234737/http://gavintech.blogspot.com/web/20150510204329/http://gavintech.blogspot.com/2012/07/off-chain-transactions.html[[Blogpost by Gavin Andresen]]
