@@ -25,13 +25,13 @@ We very, very much need such a system, but the way I understand your proposal, i
 ____
 While it seemed as if James A. Donald just refered to keeping the set of unspend transaction outputs (UTXOs) it quickly became clear that also verifying and storing that many transactions would become infeasible for any blockchain.
 
-Already in the first verison of Bitcoin Satoshi Nakamoto introduced the `nSequence` number.
-It was intended to send an updated version of the transaction.
-This could have been used to change the outputs of a transaction which effectivly would have created a payment channel.
-Such a payment channel would be valid as long as the transaction was not mined.
-While this would not have scaled bitcoin as payment channels need to live longer than one blocktime this can be seen as a premature payment channel.
-Satoshi Nakamoto envisioned this construction for the case of high frequency trading.
-It should also be mentioned that the nSequence number introduced by Satoshi Nakamoto could have been ignored by miners making this mechanism effectivley useless.
+A key requirement for a second layer protocol such as lightning (and as will be decribed in greater depth later in this book) is the ability to sequence transactions external to the blockchain. In the first verisons of Bitcoin, Satoshi Nakamoto recognised this and introduced a data field called `nSequence` into the input transaction data.
+The `nSequence`  was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel. 
+Such a payment channel would then be valid as long as the transaction was not mined.
+Satoshi Nakamoto envisioned this construction for the case of high frequency trading.(ref)
+
+There were however some weaknesses in this initial formulation, which limited its potential. Firstly, the 'payment channel' would only be open until the transaction was mined by the miners, either limiting the duration the payment channel or handing control of the payment channel to the miners.  Secondly, there was no economic incentive for miners to respect the `nSequence` number, making this mechanism effectivley useless.
+
 The revocable Sequence maturity contracts which form the payment channels in the first version of the Lightning Network have taken part of their name from their property of fixing the nSequence field and making the latest version of the sequence of updates in the payment channel enforcable.
 // find / add sources for some of the claimes
 
