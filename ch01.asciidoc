@@ -19,7 +19,7 @@ Due to the use of onion routing, which is also used in Tor, even the nodes that 
 
 The history of the Lightning Network could be considered to be as old as the history of Bitcoin.
 The first response to Satoshi Nakamotos initial publication of the Bitcoin whitepaper on the metzdowd cryptography mailing list discussed the issue of scale.
-[quote, James A. Donald, https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html ]
+[quote, James A. Donald, First Response to the Bitcoin whitepaper https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html ]
 ____
 We very, very much need such a system, but the way I understand your proposal, it does not seem to scale to the required size.
 ____
@@ -28,18 +28,18 @@ While it seemed as if James A. Donald just refered to keeping the set of unspend
 A key requirement for a second layer protocol such as lightning (and as will be decribed in greater depth later in this book) is the ability to sequence transactions external to the blockchain. In the first verisons of Bitcoin, Satoshi Nakamoto recognised this and introduced a data field called `nSequence` into the input transaction data.
 The `nSequence`  was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel. 
 Such a payment channel would then be valid as long as the transaction was not mined.
-Satoshi Nakamoto envisioned this construction for the case of high frequency trading.(ref)
+According to a Mailinglist post in 2013 by early Bitcoin developer Mike Hearn Satoshi Nakamoto envisioned this construction for the case of high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234757/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002433.html.]
 
 There were however some weaknesses in this initial formulation, which limited its potential. Firstly, the payment channel would only be open until the transaction was mined by the miners, either limiting the duration the payment channel or handing control of the payment channel to the miners.  Secondly, there was no economic incentive for miners to respect the `nSequence` number, making this mechanism effectivley useless.
 
-The Revocable Sequence Maturity Contracts (RSMC) which form the payment channels in the first version of the Lightning Network have taken part of their name from their property of fixing the nSequence field.
+The Revocable Sequence Maturity Contracts (RSMC) which form the payment channels in the first version of the Lightning Network have taken part of their name from their property of fixing the `nSequence` field.
 This is achieved by creating an economic incentive via a penalty mechanism if not the most recent transaction in thepayment channel is published to the Bitcoin network.
 Effectively the most recent update of the payment channel (encoded as a bitcoin transaction) becomes enforcable in this way. 
 // find / add sources for some of the claimes
 
-In July of 2011, on the bitcointalk.org forum,  a pseudonomous user by the name of "hashcoin" proposed the usage of Timelocks via the `nLockTime` function of the bitcoin network to solve the custody problem of exchanges.
+In July of 2011, on the bitcointalk.org forum,  a pseudonomous user by the name of _hashcoin_ proposed the usage of Timelocks via the `nLockTime` function of the bitcoin network to solve the custody problem of exchanges.footnote:[Hashcoin on Bitcoin talk on July 4th 2011 - Instant TX for established business relationships (need replacements/nLockTime) http://web.archive.org/web/20190419103503/https://bitcointalk.org/index.php?topic=25786.0]
 The idea was to be able to quickly trade / sell Bitcoin without the necessity to send all the bitcoins to the exchange in the first place.
-Hashcoin effectively proposed what we would today call a unidirectional payment channel.
+Hashcoin effectively proposed what we would call an unidirectional payment channel today.
 With this mechanism a user A could fund a multisig wallet between A and another user B together with a timelocked transaction sending all Bitcoin Back to A.
 The funding tx would not be signed and broadcasted by A before B provided a signature for the spend.
 Hashcoin imagined user B to be an exchange.
@@ -64,7 +64,7 @@ Despite being rather useless in todays world we will study the unidirectional pa
 This setup hat one safety issue as transactions have been malleable without the segwit upgrade.
 A problem that needed to be solved for any payment channel construction that we know up till today and which has been fixed in August 2017.
 
-During the first couple of years, the Bitcoin network was growing and the focus of many enthusiasts was on adoption, rather than the blocksize and scaling.  However, in 2012 Gavin Andresen proposed the Ultra Transaction server on his blog.
+During the first couple of years, the Bitcoin network was growing and the focus of many enthusiasts was on adoption, rather than the blocksize and scaling.  However, in 2012 Gavin Andresen proposed the Ultra Transaction server on his blog.footnote:[Gavin Andresen's blog - July 4th 2012 - Off-the-chain transactions -  http://web.archive.org/web/20190730234737/http://gavintech.blogspot.com/2012/07/off-chain-transactions.html]
 
 The Ultra Transaction server was proposed to be a trusted partner of a 2-2 multisig wallet that could not steal funds but allowed signing transactions from a 2-2 multisig wallet.
 Andresen observed that with such a mechanism, payments would effectively take place offchain, allowing the number of transacations which could be handled by the system to be increased.
@@ -76,20 +76,17 @@ to sum this up: Andresen used a similar construction as the unidirectional chann
 They key difference was that a trusted party would have co-signed the spend of the funding transaction.
 The Ultra Server was not able to steal Bitcoin.
 
-Shortly later Meni Rosenfeld discussed how these ideas could have been combined.
+Only 1 day later and probably in response to Gavin's blogpost Meni Rosenfeld discussed how these ideas could have been combined.footnote:[Meni Rosenfeld on Bitcointalk - July 5th 2012 - Trustless, instant, off-the-chain Bitcoin payments http://web.archive.org/web/20190419103457/https://bitcointalk.org/index.php?topic=91732.0]
 As Hashed Timelocked Contracts have neither been invented nor seen to solve the issue of trustless routing Rosenfeld imagined trusted routing nodes.
 Without mentioning the term network or routing of payments the idea of connecting payment channels and being able to send funds from anyone to anyone else even if there was no direct channel was born.
 In Rosenfelds solution payment providers would be the ultraservers and they would among themselves settle the transactions based on trust.
 It took us another 3 years until the lightning network whitepaper emerged which had solved all the bits and bolts necessary to get rid of the trust in Rosenfelds solution.
 
-It was in 2013 that Bitcoin developer Mike Hearn refered to Meni Rosenfelds proposal and stated that he knew from Satoshi that the `nSequence` field was supposed to be used for high frequency trading.
-Hearn suggested to reactivate the `nSequence` field which Satoshi preiviously had deactivated.
+It was 2013 that Bitcoin developer Mike Hearn refered to Meni Rosenfelds proposal and suggesting to reactivate the `nSequence` field which Satoshi preiviously had deactivated.footnote:HearnBitcoinDev[]
 Also Hearn refered to a section on the contracts article talking about the case of micropayment channels with the help of `nSequence`
 
 Links:
 * https://en.bitcoin.it/w/index.php?title=Contract&oldid=36712#Example_7:_Rapidly-adjusted_.28micro.29payments_to_a_pre-determined_party
-* http://web.archive.org/web/20190419103457/https://bitcointalk.org/index.php?topic=91732.0[bitcoin talk discussion]* (Mike Hearn, Jeremy Spilman 2013 - http://web.archive.org/web/20190501234757/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002433.html. 
-* 2012 http://web.archive.org/web/20190730234737/http://gavintech.blogspot.com/web/20150510204329/http://gavintech.blogspot.com/2012/07/off-chain-transactions.html[[Blogpost by Gavin Andresen]]
 
 
 * Multiple white papers (Joseph Poon, Thaddeus Dryja - https://lightning.network/lightning-network-paper.pdf / Christian Decker, Roger Wattenhoffer -  https://tik-old.ee.ethz.ch/file/716b955c130e6c703fac336ea17b1670/duplex-micropayment-channels.pdf)
