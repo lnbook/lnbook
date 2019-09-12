@@ -10,25 +10,25 @@ Users of the Lightning Network are able to transfer Bitcoin among each other at 
 They are not required to wait for block confirmations for payments.
 Once a payment arrives, it is final and cannot be reversed.
 Like a standard Bitcoin transaction, a payment on the Lightning Network can only be refunded by the recipient.
-While all Bitcoin transactions are stored in the blockchain where they can be tracked, the payments on the Lightning Network are off-chain and offer more privacy than Bitcoin payments.
-Due to the use of onion routing, which is also used in Tor, even the nodes that are involved in forwarding the payment from the sender to the recipient do not know for whom they deliver the payment.
+While all Bitcoin transactions are stored in the blockchain where they can be tracked, the payments on the Lightning Network are off-chain and offer more privacy than on-chain Bitcoin transactions.
+Due to the use of onion routing, which is also implemented in Tor, even the nodes involved in forwarding the payment from sender to recipient do not know for whom they deliver the payment.
 
 === History of the Lightning Network
 
-// The following is working draft and suggested mile stones in the history of the Lightning Network.
+// The following is a working draft and suggested mile stones in the history of the Lightning Network.
 
-The history of the Lightning Network could be considered to be as old as the history of Bitcoin.
-The first response to Satoshi Nakamotos initial publication of the Bitcoin whitepaper on the metzdowd cryptography mailing list discussed the issue of scale.
+The history of the Lightning Network is nearly as old as the history of Bitcoin.
+The first response to Satoshi Nakamoto's initial publication of the Bitcoin whitepaper on the metzdowd cryptography mailing list discussed the issue of scaling.
 [quote, James A. Donald, First Response to the Bitcoin whitepaper https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html ]
 ____
 We very, very much need such a system, but the way I understand your proposal, it does not seem to scale to the required size.
 ____
-While it seemed as if James A. Donald just refered to keeping the set of unspent transaction outputs (UTXOs) it quickly became clear that also verifying and storing that many transactions would become infeasible for any blockchain.
+While James A. Donald was probably referring to maintenance of the unspent transaction outputs (UTXOs) database, it quickly became clear that verifying and storing so many transactions would also become infeasible for any blockchain.
 
-A key requirement for a second layer protocol such as lightning (and as will be described in greater depth later in this book) is the ability to sequence transactions external to the blockchain. In the first verisons of Bitcoin, Satoshi Nakamoto recognised this and introduced a data field called `nSequence` into the input transaction data.
-The `nSequence`  was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel. 
+A key requirement for a second layer protocol such as Lightning (which will be described in greater depth later in this book) is the ability to sequence transactions external to the blockchain. In the first verisons of Bitcoin, Satoshi Nakamoto recognised this and introduced a data field called `nSequence` into the input transaction data.
+The `nSequence` field was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel. 
 Such a payment channel would then be valid as long as the transaction was not mined.
-According to a Mailinglist post in 2013 by early Bitcoin developer Mike Hearn Satoshi Nakamoto envisioned this construction for the case of high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234757/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002433.html.]
+According to a Mailinglist post in 2013 by early Bitcoin developer Mike Hearn, Satoshi Nakamoto envisioned this construction for the use case of high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234757/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002433.html.]
 
 There were however some weaknesses in this initial formulation, which limited its potential. Firstly, the payment channel would only be open until the transaction was mined by the miners, either limiting the duration the payment channel or handing control of the payment channel to the miners.  Secondly, there was no economic incentive for miners to respect the `nSequence` number, making this mechanism effectivley useless.
 
@@ -93,7 +93,12 @@ Links:
 * https://en.bitcoin.it/w/index.php?title=Contract&oldid=36712#Example_7:_Rapidly-adjusted_.28micro.29payments_to_a_pre-determined_party
 
 
-* Multiple white papers (Joseph Poon, Thaddeus Dryja - https://lightning.network/lightning-network-paper.pdf / Christian Decker, Roger Wattenhoffer -  https://tik-old.ee.ethz.ch/file/716b955c130e6c703fac336ea17b1670/duplex-micropayment-channels.pdf)
+* Multiple white papers 
+** Joseph Poon, Thaddeus Dryja - The Bitcoin Lightning Network:
+Scalable Off-Chain Instant Payments https://lightning.network/lightning-network-paper.pdf  
+** Christian Decker, Roger Wattenhoffer - A Fast and Scalable Payment Network with
+Bitcoin Duplex Micropayment Channels
+ https://tik-old.ee.ethz.ch/file/716b955c130e6c703fac336ea17b1670/duplex-micropayment-channels.pdf
 * Milan meeting and creation of BOLTs
 * segwit activation
 * passing of integration tests / mainnet launch
