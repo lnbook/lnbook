@@ -6,18 +6,18 @@
 
 The Lightning Network is a payment system for Bitcoin.
 It is a second layer protocol on top of Bitcoin that defines rules and contracts which enable fast, secure, private, trustless and permissionless transfer of Bitcoin.
-Users of the Lightning Network are able to transfer Bitcoin among each other at virtually no cost and in real time.
+Users of the LN are able to transfer Bitcoin among each other at virtually no cost and in real time.
 They are not required to wait for block confirmations for payments.
 Once a payment arrives, it is final and cannot be reversed.
-Like a standard Bitcoin transaction, a payment on the Lightning Network can only be refunded by the recipient.
-While all Bitcoin transactions are stored in the blockchain where they can be tracked, the payments on the Lightning Network are off-chain and offer more privacy than on-chain Bitcoin transactions.
+Like a standard Bitcoin transaction, a payment on the LN can only be refunded by the recipient.
+While all Bitcoin transactions are stored in the blockchain where they can be tracked, the payments on the LN are off-chain and offer more privacy than on-chain Bitcoin transactions.
 Due to the use of onion routing, which is also implemented in Tor, even the nodes involved in forwarding the payment from sender to recipient do not know for whom they deliver the payment.
 
 === History of the Lightning Network
 
-// The following is a working draft and suggested mile stones in the history of the Lightning Network.
+// The following is a working draft and suggested mile stones in the history of the LN.
 
-The history of the Lightning Network is nearly as old as the history of Bitcoin.
+The history of the LN is nearly as old as the history of Bitcoin.
 The first response to Satoshi Nakamoto's initial publication of the Bitcoin whitepaper on the metzdowd cryptography mailing list discussed the issue of scaling.
 [quote, James A. Donald, First Response to the Bitcoin whitepaper https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html ]
 ____
@@ -32,7 +32,7 @@ According to a Mailinglist post in 2013 by early Bitcoin developer Mike Hearn, S
 
 There were however some weaknesses in this initial formulation, which limited its potential. Firstly, the payment channel would only be open until the transaction was mined by the miners, either limiting the duration the payment channel or handing control of the payment channel to the miners.  Secondly, there was no economic incentive for miners to respect the `nSequence` number, making this mechanism effectivley useless.
 
-The Revocable Sequence Maturity Contracts (RSMC) which form the payment channels in the first version of the Lightning Network have taken part of their name from their property of fixing the `nSequence` field.
+The Revocable Sequence Maturity Contracts (RSMC) which form the payment channels in the first version of the LN have taken part of their name from their property of fixing the `nSequence` field.
 This is achieved by creating an economic incentive via a penalty mechanism if not the most recent transaction in the payment channel is published to the Bitcoin network.
 Effectively the most recent update of the payment channel (encoded as a bitcoin transaction) becomes enforcable in this way. 
 // find / add sources for some of the claimes
@@ -56,14 +56,14 @@ This gives Bob the security to receive more updates as long as the channel would
 
 This mechanism would allow two users to engage into several smaller transactions which all happened outside of the Bitcoin network.
 While this construction of the unidirectional payment channel would have solved the custody problem of exchanges it has never been widely implemented.
-We can only speculate for reasons and guess that the overhead communication would have had to be standardized - as it is nowadays in the Lightning Network specification - which might have been too much overhead in the early days of Bitcoin.
+We can only speculate for reasons and guess that the overhead communication would have had to be standardized - as it is nowadays in the LN specification - which might have been too much overhead in the early days of Bitcoin.
 Also as a payment channel this system was not too useful as the channel could only at total send the total amount of provided Bitcoin in the funding transaction.
 Once the timelock was over or all Bitcoin were sent to B the channel would have to be closed.
 The obvious idea of opening two channels one from A to B and one from B to A would not have helped as each of those channels would have to be closed and reestablished once it ran dry.
-The core breakthrough for the Lightning Network to become a reallity was the ability to create payment channels which technically can live forever and can send money back and forth as often as the peers wish to in combination with routing payments among several channels.
+The core breakthrough for the LN to become a reallity was the ability to create payment channels which technically can live forever and can send money back and forth as often as the peers wish to in combination with routing payments among several channels.
 
 Surprisingly both properties took quite some while until the community figured them out.
-Technically speaking the unidirectional payment channel has all the important ingreedients (funding transaction to a 2-2 multisignature wallet, a transaction spending from the wallet encoding the balance, a timelock to allow refunding if the other side becomes unresponsive, off chain communication and the fact that no additional trust other than the one in the bitcoin network) of modern payment channels which are used in the Lightning Network.
+Technically speaking the unidirectional payment channel has all the important ingreedients (funding transaction to a 2-2 multisignature wallet, a transaction spending from the wallet encoding the balance, a timelock to allow refunding if the other side becomes unresponsive, off chain communication and the fact that no additional trust other than the one in the bitcoin network) of modern payment channels which are used in the LN.
 Despite being rather useless in todays world we will study the unidirectional payment channel in more depth in this book as it is an easy to understand educational example to approach the construction of todays payment channels.
 This setup has one safety issue as transactions have been malleable without the segwit upgrade.
 A problem that needed to be solved for any payment channel construction that we know up till today and which has been fixed in August 2017.
@@ -84,7 +84,7 @@ The next day, probably in response to Gavin's blogpost, Meni Rosenfeld started a
 As Hashed Timelocked Contracts have neither been invented nor seen to solve the issue of trustless routing Rosenfeld imagined trusted routing nodes.
 Without mentioning the term network or routing of payments the idea of connecting payment channels and being able to send funds from anyone to anyone else even if there was no direct channel was born.
 In Rosenfelds solution payment providers would be the ultraservers and they would among themselves settle the transactions based on trust.
-It took us another 3 years until the lightning network whitepaper emerged which had solved all the bits and bolts necessary to get rid of the trust in Rosenfelds solution.
+It took us another 3 years until the LN whitepaper emerged which had solved all the bits and bolts necessary to get rid of the trust in Rosenfelds solution.
 
 It was 2013 that Bitcoin developer Mike Hearn refered to Meni Rosenfelds proposal and suggesting to reactivate the `nSequence` field which Satoshi preiviously had deactivated.footnote:HearnBitcoinDev[]
 Also Hearn refered to a section on the contracts article talking about the case of micropayment channels with the help of `nSequence`
@@ -113,8 +113,8 @@ Bitcoin Duplex Micropayment Channels
 
 As an electronic cash system it preserves the 3 most important properties of money (medium of exchange, store of value, and unit of account).
 The invention of money (and in particular Bitcoin) was primarily made to facilitate trade and enable the exchange of value between people.
-However, without the Lightning Network Bitcoin is hard to be used concurrently by millions of people.
-Therefore, in order to fully understand the uses of the Lightning Network, we'll examine it from the perspective of people using it.
+However, without the LN Bitcoin is hard to be used concurrently by millions of people.
+Therefore, in order to fully understand the uses of the LN, we'll examine it from the perspective of people using it.
 In particular the use cases will come from previous users of Bitcoin as well as people who have not used Bitcoin before.
 Each of the people and their stories, as listed here, illustrates one or more specific use cases.
 We'll be seeing them throughout this book:
@@ -127,7 +127,7 @@ A person or platform offering content on the web.
 They want to install a pay wall or get tipped by their fans and consumers.
 This could even include music or video streaming on demand paying in real time.
 
-John is a 9 year old boy from Australia, who wanted a games console just like his friends. However he was told by his dad that in order to buy it, he had to earn the money by himself.  Now John is an aspiring artist so he knows that while he is still learning, he can't charge much for his artwork.  After learning about Bitcoin, he managed to setup a website to sell his drawings across the internet. By using the Lightning Network, John was able to charge as little as $1 for one of his drawings.  By being able to set a fair price, which would normally be considered a micropayment and as such not possible with other payment methods, and by using a global currency such as Bitcoin, John was able to sell his art work to customers all over the world and in the end buy the games console he so very much wanted. 
+John is a 9 year old boy from Australia, who wanted a games console just like his friends. However he was told by his dad that in order to buy it, he had to earn the money by himself.  Now John is an aspiring artist so he knows that while he is still learning, he can't charge much for his artwork.  After learning about Bitcoin, he managed to setup a website to sell his drawings across the internet. By using the LN, John was able to charge as little as $1 for one of his drawings.  By being able to set a fair price, which would normally be considered a micropayment and as such not possible with other payment methods, and by using a global currency such as Bitcoin, John was able to sell his art work to customers all over the world and in the end buy the games console he so very much wanted. 
 
 gamer::
 Similar to the content creator, a gamer and live streamer would like to be tipped.
@@ -139,8 +139,8 @@ Characteristic for remittance is that the payments usually are cross border and 
 However, they might happen on a monthly base as they are just a fraction of the monthly wage.
 
 professional bitcoiner::
-A person who wants to earn interest on their bitcoin without the risk of lending them to other people could decide to set up routing nodes on the lightning network.
-By providing liquidity to the Lightning Network the routing capacities will be increased offering the chance to earn routing fees on the owned bitcoin.
+A person who wants to earn interest on their bitcoin without the risk of lending them to other people could decide to set up routing nodes on the LN.
+By providing liquidity to the LN the routing capacities will be increased offering the chance to earn routing fees on the owned bitcoin.
 
 merchants::
 Merchants live on the margin of the sold goods.
@@ -151,8 +151,8 @@ A merchant will be happy to get an additional payment method which is virtually 
 An example of a merchant is Silke. 
 Silke runs a small coffee shop in an upmarket street in Berlin. 
 She knows about Bitcoin and wants to accept it in her shop, but has been reluctant to do so because she knows that Bitcoin payments take approx. 10 minutes to be confirmed into her account. 
-However with the Lightning Network, she knows that her regular clients, such as Joerg can pay for their coffee at her shop, quickly and with negligible fees. 
-Additionally, by using the Lightning Network, Silke has all funds deposited instantly to her wallet and with usually smaller fees on her side as well. 
+However with the LN, she knows that her regular clients, such as Joerg can pay for their coffee at her shop, quickly and with negligible fees. 
+Additionally, by using the LN, Silke has all funds deposited instantly to her wallet and with usually smaller fees on her side as well. 
 Ultimately this allows her to provide a better service or to offer better pricing for her products.
 
 
