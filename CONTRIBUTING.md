@@ -55,7 +55,7 @@ Adjust heading style in each section as follows:
 5. Should include a unique anchor all lower case, underscore separated, within double square brackets (eg. [[intro_to_htlcs]]).
 6. Headings should be followed by a blank line.
 7. Heading should be followed by a paragraph of text, not a lower-level heading without any text. If you find one like this, add a TODO comment (line of 4 slashes "////", line with "TODO: add paragraph", line of 4 slashes)
-8. Often it seems useful to link to a webpage / url. Since the research community figured out that every year about 50% of all outstanding url's become invalid we encourage you to use the wayback machine / Web Archive at: http://web.archive.org and provide a link to a saved copy of the web page. 
+8. Often it seems useful to link to a webpage / url. Since the research community figured out that every year about 50% of all outstanding url's become invalid we encourage you to use the wayback machine / Web Archive at: http://web.archive.org and provide a link to a saved copy of the web page.
 
 Complete Example:
 
