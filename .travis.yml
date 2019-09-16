@@ -10,4 +10,5 @@ install:
   - pip3 install --user codespell
 
 script:
+  - git grep $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && false || true
   - codespell --ignore-words-list=que $(git ls-files -- "*.asciidoc" "*.md")
