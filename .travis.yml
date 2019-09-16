@@ -10,8 +10,8 @@ install:
   - pip3 install --user codespell
 
 script:
-  - git grep $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && false || true
-  - git grep ' $' -- "*.asciidoc" "*.md" && echo "^ Trailing space detected at end of line. Please remove." && false || true
-  - git grep $'\t' -- "*.asciidoc" "*.md" && echo "^ Use of tabs detected. Please use space for indentation." && false || true
-  - git grep "[^ ]  [^ ]" -- "*.asciidoc" "*.md" && echo "^ Satoshi style double spacing detected. Sorry Satoshi, please use single spacing." && false || true
+  - git grep $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && exit 1 || true
+  - git grep ' $' -- "*.asciidoc" "*.md" && echo "^ Trailing space detected at end of line. Please remove." && exit 1 || true
+  - git grep $'\t' -- "*.asciidoc" "*.md" && echo "^ Use of tabs detected. Please use space for indentation." && exit 1 || true
+  - git grep "[^ ]  [^ ]" -- "*.asciidoc" "*.md" && echo "^ Satoshi style double spacing detected. Sorry Satoshi, please use single spacing." && exit 1 || true
   - codespell --ignore-words-list=que $(git ls-files -- "*.asciidoc" "*.md")
