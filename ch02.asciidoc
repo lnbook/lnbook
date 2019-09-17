@@ -1,0 +1,96 @@
+[role="pagenumrestart"]
+[[ch02_How_Lightning_Works]]
+== How the Lightning Network Works
+
+=== Payment channels
+
+* trustless between peers
+* operation takes place off chain
+* throughput bound by TCP/IP traffic
+* have capacity which is split into a balance sheet
+* instant payments between peers
+
+==== Multisig address
+* short review of bitcoin transactions
+* review of segwit multisig addresses
+
+==== Funding Transaction
+* opens the payment channel
+* encodes the capacity of the channel
+* not clear who owns what fraction of the capacity
+* visible onchain transaction (even for private channels)
+
+==== Commitment Transaction
+* encodes the balance of the payment channel
+* kept secretly between channel partners
+* everyone has their own set of transactions
+* encumbered with a time lock to give time to penalize protocol breach
+* smart contract inside which gives possability to penalize protocol breach
+
+==== Announcing the channel
+* gossip protocol
+* option to have private channels
+
+==== closing the channel
+* the good way - mutal close
+* the bad way - force close
+* the ugly way - protocol breach
+
+=== Invoices
+
+an alternative structure for the subsections of the invoice section (while covering the same topics) could be: (creating, decoding, paying as 3 sub chapters)
+
+* creating invoices
+* decoding invoices
+* bech32 encoding and human readable part of invoices
+
+==== Payment Hash
+* `pre_image` as proof of payment
+* random numbers and selecting the pre_image
+
+==== Meta Data
+* Description
+* routing hints
+* fallback address
+* expire time
+* signature
+
+=== Delivering the payment
+
+* gossip protocol
+* network of payment channels
+* different scope of the network
+** global path finding (entire knowledge of the network necessary)
+** multihop routing (onion necessary only a subset of nodes involved)
+** locally setting up and setteling htlcs (only peers involved)
+
+==== Finding a path
+
+* trivial case / channel partner as destination with enough funds in the channel
+* topology information from the gossip protocol
+* fees and pathfinding from destination to source
+
+==== Onion routing
+
+* construct an onion using
+** SPHINX
+** payment hash
+** path 
+
+==== Payment Forwarding Algorithm
+
+* receive an incoming HTLC
+* forward an HTLC
+* BOLT 02 channel update protocol
+* sending back errors
+
+=== Comparison with Bitcoin
+
+* select outputs vs select payment channels / finding a path
+* change outputs vs no change on lightning
+* mining fees vs routing fees
+* public transactions on the blockchain vs. secret payments
+* waiting for confirmations vs instant settlement (if everything works smoothly)
+* arbitrary amounts vs capacity restrictions
+* variying fees depending on the traffic vs announced fees (might become dynamic too?)
+* blockchain to save all transactions vs blockchain as a court system 
