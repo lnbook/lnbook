@@ -15,5 +15,6 @@ script:
   - git grep $'\t' -- "*.asciidoc" "*.md" && echo "^ Use of tabs detected. Please use space for indentation." && exit 1 || true
   - git grep "[^ ]  [^ ]" -- "*.asciidoc" "*.md" && echo "^ Satoshi style double spacing detected. Sorry Satoshi, please use single spacing." && exit 1 || true
   - git grep -iE '(^| )(\w+) \2(\.|,|:|;| |$)' -- "*.asciidoc" "*.md" && echo "^ Detected lexical illusion in the form of a duplicated word. Please correct." && exit 1 || true
+  - for FILE in $(git ls-files -- "*.asciidoc" "*.md"); do if [[ $(tail -c1 $FILE) != "" ]]; then echo "File ${FILE} does not end with a newline character (\n)."; exit 1; fi; done
   - git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 1 || true
   - codespell --ignore-words-list=que $(git ls-files -- "*.asciidoc" "*.md")
