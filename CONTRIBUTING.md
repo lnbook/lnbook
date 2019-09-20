@@ -72,7 +72,6 @@ As we saw in <<intro_to_ln>>, the intro paragraph is superb!
 
 ```
 
-
 ## Line endings
 
 All submission should use Unix-like line endings: LF (not CR, not CR/LF). All the postprocessing is done on Unix-like systems. Incorrect line endings, or changes to line endings cause confusion for the diff tools and make the whole file look like it has changed.
