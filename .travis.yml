@@ -8,6 +8,7 @@ addons:
 
 install:
   - pip3 install --user codespell
+  - go get -u github.com/client9/misspell/cmd/misspell
 
 script:
   - git grep $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && exit 1 || true
@@ -18,3 +19,4 @@ script:
   - for FILE in $(git ls-files -- "*.asciidoc" "*.md"); do if [[ $(tail -c1 $FILE) != "" ]]; then echo "File ${FILE} does not end with a newline character (\n)."; exit 1; fi; done
   - git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 1 || true
   - codespell --ignore-words-list=que $(git ls-files -- "*.asciidoc" "*.md")
+  - misspell -error $(git ls-files -- "*.asciidoc" "*.md")
