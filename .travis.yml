@@ -17,4 +17,5 @@ script:
   - git grep -iE '(^| )(\w+) \2(\.|,|:|;| |$)' -- "*.asciidoc" "*.md" && echo "^ Detected lexical illusion in the form of a duplicated word. Please correct." && exit 1 || true
   - for FILE in $(git ls-files -- "*.asciidoc" "*.md"); do if [[ $(tail -c1 $FILE) != "" ]]; then echo "File ${FILE} does not end with a newline character (\n)."; exit 1; fi; done
   - git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 1 || true
+  - git grep '^.* .*[a-zA-Z]$' -- "*.asciidoc" "*.md" | grep -vE '\.(asciidoc|md): *[=*\[_/#0-9]' | grep -vE '(http:|https:|footnote:)' | grep -vE ': [^ ]+$' | grep ":" && echo "^ Lines not properly terminated. Please add proper punctuation." && exit 1 || true
   - codespell --ignore-words-list=que $(git ls-files -- "*.asciidoc" "*.md")
