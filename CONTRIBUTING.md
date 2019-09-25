@@ -63,7 +63,7 @@ Complete Example:
 [[intro_to_ln]]
 == Introduction to the Lightning Network
 
-This is the intro paragraph
+This is the intro paragraph.
 
 [[htlcs_explained]]
 === All about Hash Time-Locked Contracts (HTLCs)
