@@ -17,7 +17,7 @@ Before contributing with a Pull Request, please read the current **PROJECT STATU
 
 All contributions must be properly licensed and attributed. If you are contributing your own original work, then you are offering it under a CC-BY license (Creative Commons Attribution). *You are responsible for adding your own name or pseudonym in the Acknowledgments section in the [Preface](preface.asciidoc), as attribution for your contribution.*
 
-If you are sourcing a contribution from somewhere else, it must carry a compatible license. The book will initially be released under a CC-BY-NC-ND license which means that contributions must be licensed under open licenses such as MIT, CC0, CC-BY, etc. Contributions under a "share-alike" or GPL license are not compatible with the CC-BY-NC-ND license and therefore cannot be accepted.  You need to indicate the original source and original license, by including an asciidoc markup comment above your contribution, like this:
+If you are sourcing a contribution from somewhere else, it must carry a compatible license. The book will initially be released under a CC-BY-NC-ND license which means that contributions must be licensed under open licenses such as MIT, CC0, CC-BY, etc. Contributions under a "share-alike" or GPL license are not compatible with the CC-BY-NC-ND license and therefore cannot be accepted. You need to indicate the original source and original license, by including an asciidoc markup comment above your contribution, like this:
 
 ```
 ////
@@ -55,7 +55,7 @@ Adjust heading style in each section as follows:
 5. Should include a unique anchor all lower case, underscore separated, within double square brackets (eg. [[intro_to_htlcs]]).
 6. Headings should be followed by a blank line.
 7. Heading should be followed by a paragraph of text, not a lower-level heading without any text. If you find one like this, add a TODO comment (line of 4 slashes "////", line with "TODO: add paragraph", line of 4 slashes)
-8. Often it seems useful to link to a webpage / url. Since the research community figured out that every year about 50% of all outstanding url's become invalid we encourage you to use the wayback machine / Web Archive at: http://web.archive.org and provide a link to a saved copy of the web page. 
+8. Often it seems useful to link to a webpage / url. Since the research community figured out that every year about 50% of all outstanding url's become invalid we encourage you to use the wayback machine / Web Archive at: http://web.archive.org and provide a link to a saved copy of the web page.
 
 Complete Example:
 
@@ -71,7 +71,6 @@ This is the intro paragraph
 As we saw in <<intro_to_ln>>, the intro paragraph is superb!
 
 ```
-
 
 ## Line endings
 
