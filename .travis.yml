@@ -8,6 +8,7 @@ addons:
 
 install:
   - pip3 install --user codespell
+  - go get -u github.com/client9/misspell/cmd/misspell
 
 script:
   - git grep $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && exit 1 || true
@@ -19,3 +20,4 @@ script:
   - git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 1 || true
   - git grep -E "^[= ]*[a-z]" -- "*.asciidoc" "*.md" | grep -vE '(:(link|pass):|::$)' | grep -vE ':[= ]*(http|https)' | grep -E "[a-z]" && echo "^ The first letter of the sentence should be capitalized. The end of the sentence should be on the same line as the beginning of the sentence. Please correct." && exit 1 || true
   - codespell --ignore-words-list=que $(git ls-files -- "*.asciidoc" "*.md")
+  - misspell -error $(git ls-files -- "*.asciidoc" "*.md")
