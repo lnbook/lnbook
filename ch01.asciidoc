@@ -33,7 +33,7 @@ According to a Mailinglist post in 2013 by early Bitcoin developer Mike Hearn, S
 However, there were some weaknesses in this initial formulation that limited its potential. Firstly, the payment channel would only be open until the transaction was mined in a block, either limiting the duration the payment channel or handing control of the payment channel to the miners.  Secondly, there was no economic incentive for miners to respect the `nSequence` number, rendering this mechanism effectively useless.
 
 The Revocable Sequence Maturity Contracts (RSMC), which formed payment channels in the first version of the Lightning Network, reference in their name the fact that they fixed this weakness of the `nSequence` field.
-This is achieved by creating an economic incentive via a penalty mechanism; otherwise, the most recent transaction or update in the payment channel is published to the Bitcoin network, and becomes enforcable in this way. 
+This is achieved by creating an economic incentive via a penalty mechanism; otherwise, the most recent transaction or update in the payment channel is published to the Bitcoin network, and becomes enforcable in this way.
 // find / add sources for some of the claims
 
 In July of 2011, on the bitcointalk.org forum, a pseudonymous user by the name of _hashcoin_ suggested using Timelocks via the `nLockTime` function of the Bitcoin network to solve the custody problem of exchanges.footnote:[Hashcoin on Bitcoin talk on July 4th 2011 - Instant TX for established business relationships (need replacements/nLockTime) http://web.archive.org/web/20190419103503/https://bitcointalk.org/index.php?topic=25786.0]
@@ -44,10 +44,10 @@ In their scenario, Hashcoin imagined Bob to represent an exchange.
 The transaction used to fund the multi-signature address, which is controlled by Bob's and Alice's keys, is naturally called the funding transaction.
 
 Alice would send the partially signed transaction to Bob, who would sign it and keep it private.
-Note that keeping it private is crucial. If Bob does not share the fully signed transaction with Alice, she does not have both signatures needed to spend funds from the multi-signature address. Except for the timelocked refund transaction, she can't send an outdated spend of the funding transaction to the Bitcoin network. 
+Note that keeping it private is crucial. If Bob does not share the fully signed transaction with Alice, she does not have both signatures needed to spend funds from the multi-signature address. Except for the timelocked refund transaction, she can't send an outdated spend of the funding transaction to the Bitcoin network.
 Bob, on the other hand, could do so, but he would have no interest in publishing an old channel state. The newer state would provide him with more bitcoin than the older state.
-Alice cannot effectively broadcast the refund transaction to be mined in a block before the timelock expires. 
-Therefore, Bob can securely receive more updates to the channel balance as long as it remains `open`. 
+Alice cannot effectively broadcast the refund transaction to be mined in a block before the timelock expires.
+Therefore, Bob can securely receive more updates to the channel balance as long as it remains `open`.
 
 This mechanism would allow two users to engage into several smaller transactions which all happened outside of the Bitcoin network.
 While this construction of the unidirectional payment channel would have solved the custody problem of exchanges it has never been widely implemented.
