@@ -4,14 +4,14 @@
 
 === What is the Lightning Network?
 
-The Lightning Network (LN) is a payment system for Bitcoin.
+The Lightning Network (LN) is a payment system for Bitcoin and other blockchains that support similar capabilities as Bitcoin.
 It is a second layer protocol on top of Bitcoin that defines rules and contracts which enable fast, secure, private, trustless and permissionless transfer of Bitcoin.
 Users of the LN are able to transfer Bitcoin among each other at virtually no cost and in real time.
-They are not required to wait for block confirmations for payments.
+Users who transact on the LN are not required to wait for block confirmations for payments.
 Once a payment arrives, it is final and cannot be reversed.
 Like a standard Bitcoin transaction, a payment on the LN can only be refunded by the recipient.
 While all Bitcoin transactions are stored in the blockchain where they can be tracked, the payments on the LN are off-chain and offer more privacy than on-chain Bitcoin transactions.
-Due to the use of onion routing, which is also implemented in Tor, even the nodes involved in forwarding the payment from sender to recipient do not know for whom they deliver the payment.
+Due to the use of onion routing, which is also implemented in The Onion Route (TOR) privacy network, not even the nodes forwarding the payment from sender to recipient can know who the sender or recipient are.
 
 === History of the Lightning Network
 
@@ -19,24 +19,29 @@ Due to the use of onion routing, which is also implemented in Tor, even the node
 
 The history of the LN is nearly as old as the history of Bitcoin.
 The first response to Satoshi Nakamoto's initial publication of the Bitcoin whitepaper on the metzdowd cryptography mailing list discussed the issue of scaling.
+
 [quote, James A. Donald, First Response to the Bitcoin whitepaper https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html ]
 ____
 We very, very much need such a system, but the way I understand your proposal, it does not seem to scale to the required size.
 ____
-While James A. Donald was probably referring to maintenance of the unspent transaction outputs (UTXOs) database, it quickly became clear that verifying and storing so many transactions would also become infeasible for any blockchain.
 
-A key requirement for a second layer protocol such as Lightning (which will be described in greater depth later in this book) is the ability to sequence transactions external to the blockchain. In the first versions of Bitcoin, Satoshi Nakamoto recognised this and introduced a data field called `nSequence` into the input transaction data.
+While James A. Donald was probably referring to maintenance of the unspent transaction outputs (UTXOs) database, it quickly became clear that the need for all participants to verify and propagate all transactions in the network would become overly burdensome.
+
+A key requirement for a second layer protocol such as Lightning (which will be described in greater depth later in this book) is the ability to sequence transactions external to the blockchain. In the first versions of Bitcoin, Satoshi Nakamoto recognized this and introduced a data field called `nSequence` into the input transaction data.
 The `nSequence` field was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel.
 Such a payment channel would then be valid as long as the transaction was not mined.
-According to a Mailinglist post in 2013 by early Bitcoin developer Mike Hearn, Satoshi Nakamoto envisioned this construction for the use case of high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234757/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002433.html.]
 
-However, there were some weaknesses in this initial formulation that limited its potential. Firstly, the payment channel would only be open until the transaction was mined in a block, either limiting the duration the payment channel or handing control of the payment channel to the miners. Secondly, there was no economic incentive for miners to respect the `nSequence` number, rendering this mechanism effectively useless.
+According to a mailing list post in 2013, by early Bitcoin developer Mike Hearn, Satoshi Nakamoto envisioned this construct for high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234757/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002433.html.]
+
+However, there were some weaknesses in this initial formulation that limited its potential. Firstly, the payment channel would only be open until the transaction was mined in a block, either limiting the duration the payment channel or handing control of the payment channel to the miners. Secondly, there was no economic incentive for miners to respect the `nSequence` number, reducing the utility of this mechanism.
 
 The Revocable Sequence Maturity Contracts (RSMC), which formed payment channels in the first version of the Lightning Network, reference in their name the fact that they fixed this weakness of the `nSequence` field.
+
 This is achieved by creating an economic incentive via a penalty mechanism; otherwise, the most recent transaction or update in the payment channel is published to the Bitcoin network, and becomes enforceable in this way.
 // find / add sources for some of the claims
 
 In July of 2011, on the bitcointalk.org forum, a pseudonymous user by the name of _hashcoin_ suggested using Timelocks via the `nLockTime` function of the Bitcoin network to solve the custody problem of exchanges.footnote:[Hashcoin on Bitcoin talk on July 4th 2011 - Instant TX for established business relationships (need replacements/nLockTime) http://web.archive.org/web/20190419103503/https://bitcointalk.org/index.php?topic=25786.0]
+
 The goal was to build a conduit for quick trades, without the necessity to send bitcoins to an exchange in the first place.
 What Hashcoin proposed would eventually be termed a unidirectional payment channel.
 With this mechanism, user "Alice" could fund a multi-signature address between herself and another user, "Bob", together with a timelocked transaction that 'refunded' the bitcoin back to Alice.
@@ -153,6 +158,8 @@ Additionally, by using the LN, Silke has all funds deposited instantly to her wa
 Ultimately this allows her to provide a better service or to offer better pricing for her products.
 
 === Getting Started
+
+// TODO intro paragraph - no empty headings!
 
 ==== Choosing a Lightning Network Wallet
 
