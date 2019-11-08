@@ -1,8 +1,60 @@
 [role="pagenumrestart"]
 [[ch02_How_Lightning_Works]]
 == How the Lightning Network Works
+Let us start with a one sentence definition of what the Lightning Network (LN) is and break this down in the remainder of this chapter.
+So please do not get frustrated if this one sentence does not make sense to you right away or if it seems either to sophisiticated or to trivial.
+
+**The Lightning Network (LN) is a network of payment channels on top of the Bitcoin protocol together with a communication protocol**
+
+We will see that payment channels are nothing else than a 2 out of 2 multisignature address on the Bitcoin Network for which you and your channel partner each hold a key.
+This multisignature address comes together with a cryptographic protocol that is established by creating a sequence of transactions that spend from this address.
+Those transactions will be negotiated between you and your partner in secret and are attempts to double spend from that multisig address.
+The latest transaction of that sequence encodes the balance of your channel and defines how the funds of the multisig address are to be divided between you and your partner.
+The transactions in this sequence make use of the scripting language in Bitcoin.
+They design will discourage you and your channel partner from publishing old (outdated) state about your channel.
+Thus collaboratively adding a new transaction to this sequence is equivalent to moving ownership of funds without the bitcoin network being aware of it.
+Since this construction or protocol is an agreement between you and your partner you could call it a contract.
+As it is a rather smart construction people might call it a smart contract.
+
+Additionally these contracts have the option to connect channels in a way that one can forward payments from one channel to another.
+So Alice can send money to Bob if Alice had a channel with Mallory and Mallory had a channel with Bob.
+Surprisingly it is possible to extend the smart contracts that create the channel so that Mallory has no way of stealing the funds that are being routed through her from Alice to Bob.
+So not only the construction of the payment channel works for the partners without the neccessity to trust each other but also the entire network works without the neccessity to trust any other participant.
+Since the channels are funds on a multisig addresses and as the contracts are unpublished but presigned bitcoin transactions all the trust that is needed to operate the Lightning network comes from the trust in the decentralized bitcoin network!
+
+The afore mentioned innovations are certainly the major breakthrough that lead to the the LN protocol.
+However the LN is so much more than the cryptographic protocols on top of the Bitcoin scripting language.
+It is a full communication protocol which consists of a peer protocol that defines how peers communicate with each other via lightning Messages to achieve the payment of bitcoin.
+The communication protocol also defines how Lightning Messages are being encrypted and exchanged.
+The protocol also defines a gossip protocol that shares some public information about the topology of the network with the other participants.
+This information is needed for alice to be aware of the fact that Mallory has a channel with Bob so that she can decide to send a payment via Mallory to Bob. 
+
+Last but not least it is important to understand that the LN is nothing else than Bitcoin.
+We emphasize this as you might find people who will try to spread misinformation and create an artificial barrier between the "real" Bitcoin and the Lightning Network or even use terms like the Lightning Network coin.
+We hope that as soon as you have studied the rest of this book you do not need to believe what we just mentioned.
+We rather hope that this book enables you to critically do your own research so that you are able to understand and verify the following (instead of trusting us):
+Besides all the technical primitives the LN protocol is a creative way to get most use out of Bitcoin by allowing an arbitrary amount of instant payments with instant settlements without the necessity to trust anyone else but the Bitcoin network.
 
 === Payment channels
+
+As you have seen in the last chapter in order to use the LN you had to ask your wallet software to establish a payment channel with at least one other participant of the network.
+From a computer science perspective a payment channel is cryptographic communication protocol between you and your channel partner.
+It allows the both of you to send funds back and forth as often as you wish.
+The channel is only limited by two things:
+First, the time it takes for the internet to transfer the few bytes of data that the protocol requires to make a payment between you and your partner.
+Second, the capacity of the channel, which is the term for the funds that have been assigned to the channel.
+Payment channels have a couple of very interesting and useful properties.
+* If the channel is open making a payment does not require the confirmation of bitcoin blocks. In fact - as long as you and your channel partner follow the protocol - it does not require any interaction with the Bitcoin network or anyone else other than your channel partner.
+* The cryptographic protocol is constructed in a way that there is little to no trust involved to your channel partner. If your partner becomes unresponsive or tries to cheat on you, you can ask the bitcoin network to act as a court system resolving the conflict and issue according to the rules that you and your partner have agreed previously agreed upon.
+* The capacity of the channel will be split between you and your partner. In that sense you will already at that level gain more privacy as in comparison to the Bitcoin Network where every transaction is public. Within a payment channels the amount an values of payments are kept secretely between you and your partner. Only the final balance which is the agreegate of all payments in that channel might become visible on the Bitcoin blockchain if the payment channel is closed.
+* As the time to update the channel is only bound by the time it takes to transmite a couple Bytes making a payment within a payment channel is almost instant. 
+
+Bitcoin had be about 5 years old until talented developers figured out how payment channels could be constructed and by know there are at least 3 differnt constructions known.
+This chapter will only focus on the "Poon, Drayja" - Construction since it is actually being used in the Lightning Network and was first described in the Lightning Network whitepaper.
+The other two constructions are the Duplex Micropayment channels which have been introduced by Christian Decker around the same time as the "Poon, Drayja" - channels and the "eltoo" - channels which have been introduced in 2018.
+The later seem much easier to implement and to have a couple of nicer properties.
+However they need a new OP_CODE to the Bitcoin scripting language and can currently not be implemented.
+
 
 * trustless between peers
 * operation takes place off chain
@@ -83,6 +135,10 @@ An alternative structure for the subsections of the invoice section (while cover
 * forward an HTLC
 * BOLT 02 channel update protocol
 * sending back errors
+
+=== Missing bits
+* Noise_XK
+* Lightning Messages
 
 === Comparison with Bitcoin
 
