@@ -55,16 +55,49 @@ The other two constructions are the Duplex Micropayment channels which have been
 The later seem much easier to implement and to have a couple of nicer properties.
 However they need a new OP_CODE to the Bitcoin scripting language and can currently not be implemented.
 
+==== Multisig address and Segwit Transactions
+Payment channels are a smart contract that builds on top of a 2-2 multisig addresses which will by spent by Segwit transactions.
+Thus we will now provide a summary of Multisig and Segwit.
+If you know Bitcoin so well that you are familiar with those topics feel free to skip this section.
 
-* trustless between peers
-* operation takes place off chain
-* throughput bound by TCP/IP traffic
-* have capacity which is split into a balance sheet
-* instant payments between peers
+[TIP]
+====
+The section is just a quick summary of the content presented in chapter 7 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc.
+In case you are not familiar with P2PKH addresses and the basic format and scripting language of Bitcoin we encourage you to study chapter 6 of Mastering Bitcoin.
+There is also a video on Rene's youtube channel which disects the Bits and Bytes of a transaction spending from a P2PKH output at: https://youtu.be/1n4g3eYX1UI
+==== 
 
-==== Multisig address
-* short review of bitcoin transactions
-* review of segwit multisig addresses
+To allow escrow services and complex ownership constalations between several stakeholders the bitcoin scripting language provided more ways of transfering bitcoin than the standard P2PKH scripts.
+The first example of a more complex scripting system are multisig addresses.
+The general form of a locking script setting an M-of-N multisignature condition is:
+
+----
+M <Public Key 1> <Public Key 2> ... <Public Key N> N CHECKMULTISIG
+----
+
+where N is the total number of listed public keys and M is the threshold of required signatures to spend the output.
+
+A special case which is particularly interesting for us is a locking script setting a 2-of-2 multisignature condition.
+It would look like this:
+
+----
+2 <Public Key A> <Public Key B> 2 CHECKMULTISIG
+----
+
+The preceding locking script can be satisfied with an unlocking script containing pairs of signatures:
+
+----
+0 <Signature A> <Signature B>
+----
+The two scripts together would form the combined validation script:
+
+----
+0 <Signature A> <Signature B> 2 <Public Key A> <Public Key B> 2 CHECKMULTISIG
+----
+
+A second form of transaction type is the P2SH transaction.
+
+Finally we can now create P2WSH transaction utilizing Segwit.
 
 ==== Funding Transaction
 * opens the payment channel
