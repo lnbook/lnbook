@@ -41,9 +41,18 @@ According to a mailing list post in 2013, by early Bitcoin developer Mike Hearn,
 
 However, there were some weaknesses in this initial formulation that limited its potential. Firstly, the payment channel would only be open until the transaction was mined in a block, either limiting the duration of the payment channel or handing control of the payment channel to the miners. Secondly, there was no economic incentive for miners to respect the `nSequence` number (to replace the state of the channel in the mempool), reducing the utility of this mechanism.
 
-The Revocable Sequence Maturity Contracts (RSMC), which formed payment channels in the first version of the Lightning Network, reference in their name the fact that they fixed this weakness of the `nSequence` field.
+The Revocable Sequence Maturity Contracts (RSMC), which formed payment channels in the first version of the Lightning Network, reference in their name the fact that they leveraged a new upgrade to Bitcoin that re-purposed the `nSequence` number to enforce a delay before an output could be spent.
 
-This is achieved by creating an economic incentive via a penalty mechanism; otherwise, the most recent transaction or update in the payment channel is published to the Bitcoin network, and becomes enforceable in this way.
+Using this new feature of the `nSequence` number, the RSMC was able to enforce a novel penalty mechanism: each time a party goes to claim a state on chain (which may or may not be the latest), the other party is given a period of time to challenge that claim (enforced by the `nSequence` number of `OP_CHECKSEQUENCEVERIFY`). 
+
+If a participant of the channel is able to present evidence to the blockchain of an intent to claim a revoked state, then the honest party s rewarded with all the funds of the cheating party.
+
+This enforcement of prior revoked states (only the latest channel state is valid) created a very strong economic incentive via the penalty mechanism: if a party attempts to renegade a signed contract, they lose all their funds!
+
+This "challenge period" enforced by the `nSequence` was one of the novel contributions of the RSMC to the payment channel design space: the blockchain was used as a court wherein disputes could be handled objectively. 
+
+In the common case, both parties can update their channels off-chain and never need to touch the blockchain. In the rare case the blockchain becomes a court which will objectively pay out funds based on witnesses provided during the challenge period.
+
 // find / add sources for some of the claims
 
 In July of 2011, on the bitcointalk.org forum, a pseudonymous user by the name of _hashcoin_ suggested using Timelocks via the `nLockTime` function of the Bitcoin network to solve the custody problem of exchanges.footnote:[Hashcoin on Bitcoin talk on July 4th 2011 - Instant TX for established business relationships (need replacements/nLockTime) http://web.archive.org/web/20190419103503/https://bitcointalk.org/index.php?topic=25786.0]
