@@ -71,7 +71,11 @@ Therefore, Bob can securely receive more updates to the channel balance as long 
 
 This mechanism would allow two users to engage in several smaller transactions which all happened outside of the Bitcoin network.
 While this construction of the unidirectional payment channel would have solved the custody problem of exchanges it has never been widely implemented.
-We can only speculate for reasons and guess that the overhead communication would have had to be standardized - as it is nowadays in the LN specification - which might have been too much overhead in the early days of Bitcoin.
+
+A fundamental blocker to deploying payment channels in production was the issue of transaction malleability. 
+
+In the worst case, this could be exploited by an attacker to prevent a party from closing the channel on-chain as their settlement transaction had a chance to become invalidated if the funding transaction has it's transaction ID inadvertently changed.
+
 Also as a payment channel this system was not too useful as the channel could only at total send the total amount of provided Bitcoin in the funding transaction.
 Once the timelock was over or all Bitcoin were sent to B the channel would have to be closed.
 The obvious idea of opening two channels one from A to B and one from B to A would not have helped as each of those channels would have to be closed and reestablished once it ran dry.
