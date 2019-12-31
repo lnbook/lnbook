@@ -34,16 +34,13 @@ ____
 While James A. Donald was probably referring to maintenance of the unspent transaction outputs (UTXOs) database, it quickly became clear that the need for all participants to verify and propagate all transactions in the network would become overly burdensome.
 
 A key requirement for a second layer protocol such as Lightning (which will be described in greater depth later in this book) is the ability to sequence transactions external to the blockchain. In the first versions of Bitcoin, Satoshi Nakamoto recognized this and introduced a data field called `nSequence` into the input transaction data.
-The `nSequence` field was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel.
-Such a payment channel would then be valid as long as the transaction was not mined.
+The `nSequence` field was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, so that only the finalized payment would be recorded in the blockchain.
 
 According to a mailing list post in 2013, by early Bitcoin developer Mike Hearn, Satoshi Nakamoto envisioned this construct for high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234757/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002433.html.]
 
-However, there were some weaknesses in this initial formulation that limited its potential. Firstly, the payment channel would only be open until the transaction was mined in a block, either limiting the duration of the payment channel or handing control of the payment channel to the miners. Secondly, there was no economic incentive for miners to respect the `nSequence` number, reducing the utility of this mechanism.
+However, there were some weaknesses in this initial formulation of off-chain payment updates. Firstly, the transaction updates would only be open until the transaction was mined in a block, either limiting the duration of the transaction update period or handing control of the series of payments to the miners. Secondly, there was no economic incentive for miners to respect the `nSequence` number, allowing miners to publish an outdated transaction as the final payment, reducing the utility of this mechanism.
 
-The Revocable Sequence Maturity Contracts (RSMC), which formed payment channels in the first version of the Lightning Network, reference in their name the fact that they fixed this weakness of the `nSequence` field.
-
-This is achieved by creating an economic incentive via a penalty mechanism; otherwise, the most recent transaction or update in the payment channel is published to the Bitcoin network, and becomes enforceable in this way.
+The Revocable Sequence Maturity Contracts (RSMC), which allowed participants in a multi-signature payment "channel" to invalidate outdated transactions in the first version of the Lightning Network, resolving the weakness in the 'nSequence' field. With RSMC, a penalty mechanism is introduced where the entire transaction output can be claimed by a participant if the other participant publishes an outdated transaction.
 // find / add sources for some of the claims
 
 In July of 2011, on the bitcointalk.org forum, a pseudonymous user by the name of _hashcoin_ suggested using Timelocks via the `nLockTime` function of the Bitcoin network to solve the custody problem of exchanges.footnote:[Hashcoin on Bitcoin talk on July 4th 2011 - Instant TX for established business relationships (need replacements/nLockTime) http://web.archive.org/web/20190419103503/https://bitcointalk.org/index.php?topic=25786.0]
