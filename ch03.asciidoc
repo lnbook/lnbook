@@ -15,77 +15,77 @@ Please do not get frustrated if this one sentence does not make sense to you rig
 
 **The Lightning Network (LN) is a network of payment channels on top of the Bitcoin protocol together with a communication protocol that defines how participants set up and execute the smart contracts that enable the Lightning Network**
 
-We will see that payment channels are nothing else than a 2 out of 2 multisignature address on the Bitcoin Network for which you hold a key and your channel partner holds the other key.
-This multisignature address comes together with a cryptographic protocol that is established by creating a sequence of transactions that spend from this address.
+Payment channels are nothing else than a 2 out of 2 multisignature address on the Bitcoin Network for which you hold a key and your channel partner holds the other key.
+This multisignature address comes with a cryptographic protocol that is established by creating a sequence of transactions that spend from this address.
 Those transactions will be negotiated between you and your partner in secret and any attempts to double spend from that multisignature address.
 The latest transaction of that sequence encodes the balance of your channel and defines how the funds of the multisignature address are to be divided between you and your partner.
 The transactions in this sequence make use of the scripting language in Bitcoin.
-The design will discourage you and your channel partner from publishing an old (outdated) state about your channel.
-Thus collaboratively adding a new transaction to this sequence is equivalent to moving ownership of funds without the Bitcoin network being aware of it.
-Since this construction or protocol is an agreement between you and your partner you could call it a contract.
-As it is a rather smart construction people might call it a smart contract.
+The design will discourage you and your channel partner from publishing an old (outdated) state of your channel.
+Thus, collaboratively adding a new transaction to this sequence is equivalent to moving ownership of funds without the Bitcoin network being aware of it.
+Since this construction or protocol is an agreement between you and your partner, you could call it a contract.
+As it is a rather smart construction, one might call it a smart contract.
 
 [NOTE]
 ====
 When someone says they own bitcoin they would usually mean that they know the private key of a bitcoin address that has some unspent transaction outputs (UTXOs).
 The private key allows the owner to produce a signature for a transaction that spends the bitcoin by sending it to a different address.
-Thus one can define ownership of bitcoin as the ability to spend them.
-If you have an unpublished but signed transaction from a 2-2 multisignature address where some outputs are send to an address that you control and additionally you own one of the private keys of the 2-2 multisignature address you effectively own the bitcoin of that output.
-Without your help no other transaction from the 2-2 multisignature address can be produced.
-However without the help of anybody else you can transfer the funds to an address which you control.
-On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-2 multisignature address.
+Thus, one can define ownership of bitcoin as the ability to spend them.
+If you have an unpublished (but signed) transaction from a 2-2 multisignature address where some outputs are sent to an address that you control and additionally you own one of the private keys of the 2-2 multisignature address you effectively own the bitcoin of that output.
+Without your help, no other transaction from the 2-2 multisignature address can be produced.
+However, without the help of anybody else you can transfer the funds to an address which you control.
+On the Lightning Network, ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-of-2 multisignature address.
 ====
 
-Additionally these contracts have the option to connect channels in a way that one can forward payments from one channel to another.
-So Alice can send money to Bob if Alice had a channel with Mallory and Mallory had a channel with Bob.
+Additionally, these contracts have the option to connect channels in a way that one can forward payments from one channel to another.
+So, Alice can send money to Bob if Alice had a channel with Mallory and Mallory had a channel with Bob.
 Surprisingly, it is possible to extend the smart contracts which operate the channel so that Mallory has no way of stealing the funds that are being routed through her.
 Not only does the construction of the payment channel work for the partners without the necessity to trust each other but the entire network works without the necessity to trust any other participant.
 Since the channels are funds on a multisignature addresses and as the contracts are unpublished but presigned bitcoin transactions all the trust that is needed to operate the Lightning Network comes from the trust in the decentralized Bitcoin network!
 
 The aforementioned innovations are certainly the major breakthrough that lead to the the LN protocol.
-However the LN is so much more than the cryptographic protocols on top of the Bitcoin scripting language.
+However, the LN is so much more than the cryptographic protocols on top of the Bitcoin scripting language.
 It is a full communication protocol which consists of a peer protocol that defines how peers communicate with each other via Lightning messages to achieve the transfer of bitcoin.
 The communication protocol also defines how Lightning messages are being encrypted and exchanged.
 A Gossip protocol is part of the specification that is used to share public information about the topology of the network with the other participants.
 This information is needed for Alice to be aware of the fact that Mallory has a channel with Bob so that she can decide to send a payment via Mallory to Bob.
 
-Last but not least it is important to understand that the LN is nothing else than Bitcoin.
+Last, but not least, it is important to understand that the LN is nothing else but Bitcoin.
 We emphasize this as you might find people who will try to spread misinformation and create an artificial barrier between the "real" Bitcoin and the Lightning Network or even use terms like the Lightning Network coin.
 We hope that as soon as you have studied the remainder of this book you do not need to believe what we just mentioned.
 We rather hope that this book enables you to critically do your own research so that you are able to understand and verify the following (instead of trusting us):
-Besides all the technical primitives, the LN protocol is a creative way to get most use out of Bitcoin by allowing an arbitrary amount of instant payments with instant settlements without the necessity to trust anyone else but the Bitcoin network.
+Besides all the technical primitives, the LN protocol is a creative way to get the most use out of Bitcoin by allowing an arbitrary amount of instant payments with instant settlements without the necessity to trust anyone else but the Bitcoin network.
 
 === Payment channels
 
 As you have seen in the last chapter, in order to use the LN you had to ask your wallet software to establish a payment channel with at least one other participant of the network.
-From a computer science perspective a payment channel is a cryptographic communication protocol between you and your channel partner.
+From a computer science perspective, a payment channel is a cryptographic communication protocol between you and your channel partner.
 It allows the both of you to send funds back and forth as often as you wish.
 The channel is only limited by two things:
 First, the time it takes for the internet to transfer the few bytes of data that the protocol requires to make a payment between you and your partner.
 Second, the capacity of the channel, which is the term for the funds that have been assigned to the channel.
-Payment channels have a couple of very interesting and useful properties.
+Payment channels have a couple of very interesting and useful properties:
 
 * If the channel is open, making a payment does not require the confirmation of Bitcoin blocks. In fact - as long as you and your channel partner follow the protocol - it does not require any interaction with the Bitcoin network or anyone else other than your channel partner.
-* The cryptographic protocol is constructed in a way that there is little to no trust involved between you and your channel partner. If your partner becomes unresponsive or tries to cheat on you, you can ask the Bitcoin network to act as a court system resolving the conflict according to the rules that you and your partner have agreed previously agreed upon.
-* The capacity of the channel will be split between you and your partner. In that sense at that level you will have already gained more privacy as in comparison to the Bitcoin Network where every transaction is public. Within payment channels the amount and values of payments are secretely kept between you and your partner. Only the final balance which is the aggregate of all payments in that channel will become visible on the Bitcoin blockchain if the payment channel is closed.
-* As the time to update the channel is the only bound, making a payment within a payment channel is almost instant.
+* The cryptographic protocol is constructed in a way that there is little to no trust involved between you and your channel partner. If your partner becomes unresponsive or tries to cheat on you, you can ask the Bitcoin network to act as a court system resolving the conflict according to the rules that you and your partner have previously agreed upon.
+* The capacity of the channel will be split between you and your partner. In that sense, you will have already gained more privacy as in comparison to the Bitcoin Network where every transaction is public. Within payment channels, the amount and values of payments are secretely kept between you and your partner. Only the final balance which is the aggregate of all payments in that channel will become visible on the Bitcoin blockchain when the payment channel is closed.
+* As the time to update the channel is the only bound, making a payment within a payment channel is nearly instantaneous.
 
-Bitcoin had to be about 5 years old until talented developers figured out how payment channels could be constructed and by now there are at least 3 different constructions known.
+Bitcoin had to be about 5 years old until talented developers figured out how payment channels could be constructed and now there are at least 3 different constructions known.
 This chapter will only focus on the "Poon, Drayja" - Construction since it is actually being used in the Lightning Network and was first described in the Lightning Network whitepaper.
 The other two constructions are the Duplex Micropayment channels which have been introduced by Christian Decker around the same time as the "Poon, Drayja" - channels and the "eltoo" - channels which have been introduced in 2018 by Christian Decker, Rusty Russel and our co-author Olaoluwa Osuntokun.
-The later seem much easier to implement and to have a couple of nicer properties.
-However they need a new OP_CODE to the Bitcoin scripting language and can currently not be implemented on top of the bitcoin mainnet.
+The latter seem much easier to implement and have a couple of desirable properties.
+However, they require a new OP_CODE be added to the Bitcoin scripting language and can't currently be implemented on bitcoin mainnet.
 
 ==== Multisig addresses
-Payment channels are smart contracts that build on top of 2-2 multisignature addresses which will be spent by Segwit transactions.
-By knowing the properties of multisignature addresses you will be able to understand the exact construction of payment channels.
-Thus at this point we will not review all the technical details about multisignature addresses and Segwit but just stick to the properties.
-If you know Bitcoin so well that you are familiar with those topics feel free to skip this section.
+Payment channels are smart contracts that build on top of 2-of-2 multisignature addresses which will be spent by Segwit transactions.
+By knowing the properties of multisignature addresses, you will be able to understand the exact construction of payment channels.
+Thus, we will not review all the technical details about multisignature addresses and Segwit but just stick to the properties.
+If you know Bitcoin so well that you are familiar with those topics, feel free to skip this section.
 
 [TIP]
 ====
-A deep dive into the topic discussed here is presented in chapter 7 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch07.asciidoc.
-Also, in case you are not familiar with P2PKH addresses and the basic format and scripting language of Bitcoin we encourage you to study chapter 6 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc.
+A deep dive into the topics discussed here is presented in chapter 7 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch07.asciidoc.
+Also, in case you are not familiar with P2PKH addresses and the basic format and scripting language of Bitcoin, we encourage you to study chapter 6 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc.
 There is also a video on Rene's youtube channel which dissects the Bits and Bytes of a transaction spending from a P2PKH output at: https://youtu.be/1n4g3eYX1UI
 ====
 
