@@ -19,116 +19,6 @@ The LN uses onion routing, similar to the protocol used by The Onion Router (TOR
 
 // TODO Introduce and briefly explain the basic concepts of the LN
 
-=== History of the Lightning Network
-
-// The following is a working draft and suggested mile stones in the history of the LN.
-
-The history of the LN is nearly as old as the history of Bitcoin.
-The first response to Satoshi Nakamoto's initial publication of the Bitcoin whitepaper on the metzdowd cryptography mailing list discussed the issue of scaling.
-
-[quote, James A. Donald, First Response to the Bitcoin whitepaper https://www.metzdowd.com/pipermail/cryptography/2008-November/014814.html ]
-____
-We very, very much need such a system, but the way I understand your proposal, it does not seem to scale to the required size.
-____
-
-While James A. Donald was probably referring to maintenance of the unspent transaction outputs (UTXOs) database, it quickly became clear that the need for all participants to verify and propagate all transactions in the network would become overly burdensome.
-
-A key requirement for a second layer protocol such as Lightning (which will be described in greater depth later in this book) is the ability to sequence transactions external to the blockchain (for deferred settlement). In the first versions of Bitcoin, Satoshi Nakamoto recognized this and introduced a data field called `nSequence` into the input transaction data.
-The `nSequence` field was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel.
-Such a payment channel would then be valid as long as the transaction was not mined.
-
-According to a mailing list post in 2013, by early Bitcoin developer Mike Hearn, Satoshi Nakamoto envisioned this construct for high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234813/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002417.html.]
-
-However, there were some weaknesses in this initial formulation that limited its potential. Firstly, the payment channel would only be open until the transaction was mined in a block, either limiting the duration of the payment channel or handing control of the payment channel to the miners. Secondly, there was no economic incentive for miners to respect the `nSequence` number (to replace the state of the channel in the mempool), reducing the utility of this mechanism.
-
-The Revocable Sequence Maturity Contracts (RSMC), which formed payment channels in the first version of the Lightning Network, reference in their name the fact that they leveraged a new upgrade to Bitcoin that re-purposed the `nSequence` number to enforce a delay before an output could be spent.
-
-Using this new feature of the `nSequence` number, the RSMC was able to enforce a novel penalty mechanism: each time a party goes to claim a state on chain (which may or may not be the latest), the other party is given a period of time to challenge that claim (enforced by the `nSequence` number of `OP_CHECKSEQUENCEVERIFY`). 
-
-If a participant of the channel is able to present evidence to the blockchain of an intent to claim a revoked state, then the honest party s rewarded with all the funds of the cheating party.
-
-This enforcement of prior revoked states (only the latest channel state is valid) created a very strong economic incentive via the penalty mechanism: if a party attempts to renegade a signed contract, they lose all their funds!
-
-This "challenge period" enforced by the `nSequence` was one of the novel contributions of the RSMC to the payment channel design space: the blockchain was used as a court wherein disputes could be handled objectively. 
-
-In the common case, both parties can update their channels off-chain and never need to touch the blockchain. In the rare case the blockchain becomes a court which will objectively pay out funds based on witnesses provided during the challenge period.
-
-// find / add sources for some of the claims
-
-In July of 2011, on the bitcointalk.org forum, a pseudonymous user by the name of _hashcoin_ suggested using Timelocks via the `nLockTime` function of the Bitcoin network to solve the custody problem of exchanges.footnote:[Hashcoin on Bitcoin talk on July 4th 2011 - Instant TX for established business relationships (need replacements/nLockTime) http://web.archive.org/web/20190419103503/https://bitcointalk.org/index.php?topic=25786.0]
-
-The goal was to build a conduit for quick trades, without the necessity to send bitcoins to an exchange in the first place.
-What Hashcoin proposed would eventually be termed a unidirectional payment channel.
-With this mechanism, user "Alice" could fund a multi-signature address between herself and another user, "Bob", together with a timelocked transaction that 'refunded' the bitcoin back to Alice.
-In their scenario, Hashcoin imagined Bob to represent an exchange.
-The transaction used to fund the multi-signature address, which is controlled by Bob's and Alice's keys, is naturally called the funding transaction.
-
-Alice would send the partially signed transaction to Bob, who would sign it and keep it private.
-Note that keeping it private is crucial. If Bob does not share the fully signed transaction with Alice, she does not have both signatures needed to spend funds from the multi-signature address. Except for the timelocked refund transaction, she can't send an outdated spend of the funding transaction to the Bitcoin network.
-Bob, on the other hand, could do so, but he would have no interest in publishing an old channel state. The newer state would provide him with more bitcoin than the older state.
-Alice cannot effectively broadcast the refund transaction to be mined in a block before the timelock expires.
-Therefore, Bob can securely receive more updates to the channel balance as long as it remains `open`.
-
-This mechanism would allow two users to engage in several smaller transactions which all happened outside of the Bitcoin network.
-While this construction of the unidirectional payment channel would have solved the custody problem of exchanges it has never been widely implemented.
-
-A fundamental blocker to deploying payment channels in production was the issue of transaction malleability. 
-
-In the worst case, this could be exploited by an attacker to prevent a party from closing the channel on-chain as their settlement transaction had a chance to become invalidated if the funding transaction has it's transaction ID inadvertently changed.
-
-Also as a payment channel this system was not too useful as the channel could only at total send the total amount of provided Bitcoin in the funding transaction.
-Once the timelock was over or all Bitcoin were sent to B the channel would have to be closed.
-The obvious idea of opening two channels one from A to B and one from B to A would not have helped as each of those channels would have to be closed and reestablished once it ran dry.
-The core breakthrough for the LN to become a reality was the ability to create payment channels which technically can live forever and can send money back and forth as often as the peers wish to in combination with routing payments among several channels.
-
-[TIP]
-====
-You can watch a video explaining the construction and operation of unidirectional payment channels online at: https://youtu.be/AcP3czefanM
-====
-
-Surprisingly both properties took quite some while until the community figured them out.
-Technically speaking the unidirectional payment channel has all the important ingredients (funding transaction to a 2-2 multisignature wallet, a transaction spending from the wallet encoding the balance, a timelock to allow refunding if the other side becomes unresponsive, off chain communication and the fact that no additional trust other than the one in the bitcoin network) of modern payment channels which are used in the LN.
-Despite being widely used in today's world, we will study the unidirectional payment channel in more depth in this book as it is an easy to understand educational example to approach the construction of today's payment channels.
-This setup has one safety issue as transactions have been malleable without the segwit upgrade.
-A problem that needed to be solved for any payment channel construction that we know up till today and which has been fixed in August 2017.
-
-During the first couple of years, the Bitcoin network was growing and the focus of many enthusiasts was on adoption, rather than the blocksize and scaling. However, in 2012 Gavin Andresen proposed the Ultra Transaction server on his blog.footnote:[Gavin Andresen's blog - July 4th 2012 - Off-the-chain transactions - http://web.archive.org/web/20190730234737/http://gavintech.blogspot.com/2012/07/off-chain-transactions.html]
-
-The Ultra Transaction server was proposed to be a trusted partner of a 2-2 multisig wallet that could not steal funds but allowed signing transactions from a 2-2 multisig wallet.
-Andresen observed that with such a mechanism, payments would effectively take place off chain, allowing the number of transactions which could be handled by the system to be increased.
-Andresen noted that there might be a better construction which would require less trust in the Ultra Server, and while his proposal was a step in the right direction, a few issues remained to be solved before the design of fully trustless payment channels was complete.
-
-Andresen's work led to many discussions on Bitcointalk forum, and later on the bitcoin-development mailing list. These discussions resulted in the first construction of the first unidirectional payment channels.
-
-To sum this up: Andresen used a similar construction as the unidirectional channel.
-The key difference was that a trusted party would have co-signed the spend of the funding transaction.
-The Ultra Server was not able to steal Bitcoin.
-
-The next day, probably in response to Gavin's blogpost, Meni Rosenfeld started a discussion related to how these ideas could be combined.footnote:[Meni Rosenfeld on Bitcointalk - July 5th 2012 - Trustless, instant, off-the-chain Bitcoin payments http://web.archive.org/web/20190419103457/https://bitcointalk.org/index.php?topic=91732.0]
-As Hashed Timelocked Contracts have neither been invented nor seen to solve the issue of trustless routing, Rosenfeld imagined trusted routing nodes.
-Without mentioning the term network or routing of payments the idea of connecting payment channels and being able to send funds from anyone to anyone else even if there was no direct channel was born.
-In Rosenfelds solution payment providers would be the ultraservers and they would settle the transactions among themselves based on trust.
-It took us another 3 years until the LN whitepaper emerged which had solved all the bits and bolts necessary to get rid of the trust in Rosenfelds solution.
-
-It was 2013 that Bitcoin developer Mike Hearn referred to Meni Rosenfelds proposal and suggesting to reactivate the `nSequence` field which Satoshi previously had deactivated.footnote:HearnBitcoinDev[]
-Also Hearn referred to a section on the contracts article talking about the case of micropayment channels with the help of `nSequence`.
-
-Links:
-* https://en.bitcoin.it/w/index.php?title=Contract&oldid=36712#Example_7:_Rapidly-adjusted_.28micro.29payments_to_a_pre-determined_party
-
-* Multiple white papers
-** Joseph Poon, Thaddeus Dryja - The Bitcoin Lightning Network:
-Scalable Off-Chain Instant Payments https://lightning.network/lightning-network-paper.pdf
-** Christian Decker, Roger Wattenhoffer - A Fast and Scalable Payment Network with Bitcoin Duplex Micropayment Channels https://tik-old.ee.ethz.ch/file/716b955c130e6c703fac336ea17b1670/duplex-micropayment-channels.pdf
-* Milan meeting and creation of BOLTs
-* segwit activation
-* passing of integration tests / mainnet launch
-* Australia Meeting and BOLT 1.1
-* Initial nodes/wallets - eclair, c-lightning etc
-* Reckless - Testing on mainchain.
-* satoshis.place / The lightning torch
-* today
-
 [[user-stories]]
 === Lightning Network Uses, Users, and Their Stories
 
@@ -171,13 +61,13 @@ A merchant will be happy to get an additional payment method which is virtually 
 
 === Getting Started
 
-In this section we will start by choosing the right software to demonstrate the LN and learn by example. We will examine the choices of two users who represent a common use-case for the LN. Alice, a coffee shop customer will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payment over the LN. 
+In this section we will start by choosing the right software to demonstrate the LN and learn by example. We will examine the choices of two users who represent a common use-case for the LN. Alice, a coffee shop customer will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payment over the LN.
 
 ==== Lightning Nodes
 
 The Lightning Network is accessed via software applications that can speak the Lightning Network protocol. A _Lightning Network Node_ (or simply "node") is a software application that communicates on a peer-to-peer basis with other LN nodes, forming the Lightning _Network_ itself. Nodes also include "wallet" functionality, so they can send and receive payments over the LN and on the Bitcoin network.
 
-Lightning network nodes also need access to the Bitcoin blockchain, or another blockchain such as Litecoin. Users have the highest degree of control by running their own authoritative Bitcoin node and LN node. 
+Lightning network nodes also need access to the Bitcoin blockchain, or another blockchain such as Litecoin. Users have the highest degree of control by running their own authoritative Bitcoin node and LN node.
 
 However, LN nodes can also use a lightweight Bitcoin client (commonly referred to as Simplified Payment Verification (SPV)) to partially validate the correctness of their blockchain.
 
