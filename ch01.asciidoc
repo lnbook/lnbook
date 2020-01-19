@@ -68,9 +68,26 @@ However, LN nodes can also use a lightweight Bitcoin client (commonly referred t
 
 ==== Lightning Wallets
 
-A fully functional lightning wallet contains a LN node and communicates as a peer on the LN. However, some lightning wallets do not contain an LN node, but rely on an LN node operated by a third making it _custodial_, meaning that their funds are in the custody of a third party.
+The term "Lightning Wallet" is somewhat ambiguous, as it can describe a broad variety of components, combined together with some user interface. The most constituent components of anything called a "Lightning Wallet" may include:
 
-Every user must consider their own technical skills before deciding what type of lightning wallet to use. Those with strong technical skills should run their own LN node. Those with less technical skill but a desire to control their funds without any third party custody, should choose a _non-custodial_ lightning wallet which relies on a third-party LN node. Finally, those seeking simplicity and convenience, even at the expense of control and security, may choose a custodial lightning wallet.
+* A keystore that securely holds secrets, such as private keys.
+* A Lightning Network node that communicates on the Peer-to-Peer network, as described previously.
+* A blockchain node (such as a Bitcoin node), that stores blockchain data and communicates with other blockchain nodes.
+* A channel data store with data about channels on the Lightning Network
+* A channel manager that can open and close Lightning Network channels
+* A path-finding system that can make a path from payment source to payment destination, by connecting channels together.
+
+A Lightning Wallet may contain all of these functions, acting as a "full" wallet, with no reliance on any third party services. Or, one or more of these components may rely (partially or completely) on third party servers that mediate those functions.
+
+A key distinction (pun intended), is whether the keystore function is internal or outsourced. In blockchains, control of keys determines custody of funds, as memorialized by the phrase "your keys, your coins; not your keys, not your coins". Any wallet that outsources management of keys, is called a "custodial" wallet, because a third party (custodian) has control of the user's funds, not the user themselves. A "non-custodial" or "self-custody" wallet by comparison is one where the keystore is part of the wallet and keys are controlled directly by the user.
+
+Blockchains, especially open blockchains like Bitcoin, attempt to minimize or eliminate trust in third parties and empower users. This is often called a "trustless" model, though "trust-minimized" is a better term. In such systems, the user trusts the software rules, not third parties. Therefore, the issue of control over keys is a principal consideration when choosing a Lightning Wallet.
+
+Every other component of a Lightning Wallet brings similar considerations of trust. If all the components are under the control of the user, then the amount of trust in third parties is minimized, bringing maximum power to the user. Of course, this is a direct tradeoff, as with that power comes the responsibility to manage complex software.
+
+Every user must consider their own technical skills before deciding what type of lightning wallet to use. Those with strong technical skills should use a Lightning Wallet that puts all of the components under the direct control of the user. Those with less technical skill but a desire to control their funds, should choose a _non-custodial_ lightning wallet, even if some of the components (other than the keystore) rely on some trusted third parties.
+
+Finally, those seeking simplicity and convenience, even at the expense of control and security, may choose a custodial lightning wallet. This is the least challenging option, but it _undermines the trust model of cryptocurrency_ and should therefore be considered only as a stepping stone towards more control and self-reliance. 
 
 Here are the three broad categories of lightning wallets and the relative degree of control they offer to the user:
 
