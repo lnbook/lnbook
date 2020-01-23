@@ -14,10 +14,44 @@ The LN uses onion routing, similar to the protocol used by The Onion Router (TOR
 
 === Motivation for the Lightning Network
 
+The Lightning Network was first proposed in February 2015 by Joseph Poon and Thaddeus Dryja as a possible solution to the Bitcoin Scalability Problem.
+As Bitcoin grows, and the demand for transactions grows, block sizes will increase until eventually hitting the block size limit, leaving excess transactions to wait in a queue.
+Simply increasing block sizes has the undesirable effect of centralizing the network.
+Blockchains are gossip protocols, and each node is required to know and validate every single transaction that occurs on the network.
+As such, the greater the block sizes, the greater the processing and storage requirements for each individual node.
+The greater the requirements, the fewer the nodes that will ultimately be run.
+
+In the Lightning Network whitepaper, Poon and Dryja estimate that in order for Bitcoin to reach the 47,000 transactions per second processed at peak by Visa, it would require 8GB blocks.
+This would make running a node completely untenable for anyone but large scale enterprises and industrial grade operations.
+The result would be a network in which only a few users can actually validate the state of the ledger, which ultimately breaks the trust model of Bitcoin.
+
+The Lightning Network proposes a new network, a "second layer", where users can transact with each other peer-to-peer, without publishing every transaction to the Bitcoin blockchain.
+Users may transact on the Lightning Network as many times with as many users as they want, making use of the Bitcoin blockchain only in order to load Bitcoin onto the network initially and to "settle", that is: remove Bitcoin from the Lightning Network.
+The result is that many more Bitcoin transactions can take place "off-chain", with only the initial loading and final settlement transactions needing to be validated and stored by Bitcoin nodes.
+Aside from reducing the burden on nodes, these transactions will be cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published to all participants of the network.
+
+While the Lightning Network was initially conceived for Bitcoin, it is able to be implemented on any blockchain that meets its technical requirements.
 
 // TODO
 
 === Lightning Network Basic Concepts
+
+* Blockchain: a single distributed ledger agreed upon by a network of participating nodes. The Lightning Network does not use a blockchain to transact, but requires transactions recorded in a blockchain in order for Bitcoin to enter and leave the network.
+* Channel: a channel is a financial relationship between two nodes on the Lightning Network. Two users can open a channel with each other using a Bitcoin transaction, and transact with each other by moving Bitcoin from one side of the channel to the other.
+* Capacity: channels require Bitcoin to be pre-loaded into them before they can be used. This becomes the maximum amount of Bitcoin that can be transacted using this channel i.e. it's capacity.
+** In-Bound Capacity: the maximum amount of Bitcoin that can be received using a channel. Your in-bound capacity is increased when a user opens a channel with you, or you make a payment to another user.
+** Out-Bound Capacity: the maximum amount of Bitcoin that can be sent using a channel. Your out-bound capacity is increased when you open a channel with another user, or you receive a payment from another user.
+* Invoice: a request for payment from another user that can take the form of a text string or a QR code. Lightning Invoices can be specified with a description and an amount the invoicer is requesting.
+* Node: a node is a participant on the Lightning Network. Nodes can open and close channels with each other, route payments from other nodes, and manage their own wallets. Typically a Lightning Network node user will also run a Bitcoin Node to keep track of the status of on-chain payments
+* On-Chain/Off-Chain: a payment is considered "on-chain" if it is included in the Bitcoin (or other underlying) blockchain where it is publicly visible to all nodes. Payments that are not visible in the underlying blockchain are "off-chain"
+* Route: when making a payment from one user to another, the payment will move along many intermediary nodes before reaching the receiver. This path from the sender to the receiver forms a route on the network.
+** Routing fees: each intermediary node will request a fee for transmitting the payment. The sum of these are the routing fees paid by the sender
+* Transaction: a payment from one user to another. Lightning Network transactions are Bitcoin transactions not yet recorded on the Bitcoin blockchain.
+** Funding Transaction: a transaction that locks Bitcoin into a smart contract to open a channel.
+** Settlement Transaction: a transaction that closes a channel, and allocates the locked Bitcoin to the channel owners according to the final balance of the channel.
+** Penalty Transaction: if one user tries to "cheat" by claiming a prior state of the channel, the other user can publish a penalty transaction to the Bitcoin blockchain, which allocates all Bitcoin in that channel to them.
+* Wallet: an application that manages private keys in order to send and receive Bitcoins. Lightning Wallets have additional features over and above Bitcoin Wallets in that they can open and close channels, and send and receive lightning payments.
+
 
 // TODO Introduce and briefly explain the basic concepts of the LN
 
@@ -87,7 +121,7 @@ Every other component of a Lightning Wallet brings similar considerations of tru
 
 Every user must consider their own technical skills before deciding what type of lightning wallet to use. Those with strong technical skills should use a Lightning Wallet that puts all of the components under the direct control of the user. Those with less technical skill but a desire to control their funds, should choose a _non-custodial_ lightning wallet, even if some of the components (other than the keystore) rely on some trusted third parties.
 
-Finally, those seeking simplicity and convenience, even at the expense of control and security, may choose a custodial lightning wallet. This is the least challenging option, but it _undermines the trust model of cryptocurrency_ and should therefore be considered only as a stepping stone towards more control and self-reliance. 
+Finally, those seeking simplicity and convenience, even at the expense of control and security, may choose a custodial lightning wallet. This is the least challenging option, but it _undermines the trust model of cryptocurrency_ and should therefore be considered only as a stepping stone towards more control and self-reliance.
 
 Here are the three broad categories of lightning wallets and the relative degree of control they offer to the user:
 
