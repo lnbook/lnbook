@@ -18,7 +18,8 @@ the Lightning Network uses onion routing, similar to the protocol used by The On
 
 === Motivation for the Lightning Network
 
-The Lightning Network was first proposed in February 2015 by Joseph Poon and Thaddeus Dryja as a possible solution to the Bitcoin Scalability Problem.
+The Lightning Network was first proposed in February 2015 by Joseph Poon and Thaddeus Dryja as a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_ footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network:
+Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-network-paper.pdf).]
 As Bitcoin grows, and the demand for transactions grows, block sizes will increase until eventually hitting the block size limit, leaving excess transactions to wait in a queue.
 Simply increasing block sizes has the undesirable effect of centralizing the network.
 Blockchains are gossip protocols, and each node is required to know and validate every single transaction that occurs on the network.
@@ -38,22 +39,19 @@ While the Lightning Network was initially conceived for Bitcoin, it is able to b
 
 === Lightning Network Basic Concepts
 
-* Blockchain: a single distributed ledger agreed upon by a network of participating nodes. The Lightning Network does not use a blockchain to transact, but requires transactions recorded in a blockchain in order for bitcoin to enter and leave the network.
-* Channel: a channel is a financial relationship between two nodes on the Lightning Network. Two users can open a channel with each other using a Bitcoin transaction, and transact with each other by moving bitcoin from one side of the channel to the other.
-* Capacity: channels require bitcoin to be pre-loaded into them before they can be used. This becomes the maximum amount of bitcoin that can be transacted using this channel i.e. it's capacity.
-** In-Bound Capacity: the maximum amount of bitcoin that can be received using a channel. Your in-bound capacity is increased when a user opens a channel with you, or you make a payment to another user.
-** Out-Bound Capacity: the maximum amount of bitcoin that can be sent using a channel. Your out-bound capacity is increased when you open a channel with another user, or you receive a payment from another user.
-* Invoice: a request for payment from another user that can take the form of a text string or a QR code. Lightning Invoices can be specified with a description and an amount the invoicer is requesting.
-* Node: a node is a participant on the Lightning Network. Nodes can open and close channels with each other, route payments from other nodes, and manage their own wallets. Typically a Lightning Network node user will also run a Bitcoin Node to keep track of the status of on-chain payments
-* On-Chain/Off-Chain: a payment is considered "on-chain" if it is included in the Bitcoin (or other underlying) blockchain where it is publicly visible to all nodes. Payments that are not visible in the underlying blockchain are "off-chain"
-* Route: when making a payment from one user to another, the payment will move along many intermediary nodes before reaching the receiver. This path from the sender to the receiver forms a route on the network.
-** Routing fees: each intermediary node will request a fee for transmitting the payment. The sum of these are the routing fees paid by the sender
-* Transaction: a payment from one user to another. Lightning Network transactions are Bitcoin transactions not yet recorded on the Bitcoin blockchain.
-** Funding Transaction: a transaction that locks bitcoin into a smart contract to open a channel.
-** Settlement Transaction: a transaction that closes a channel, and allocates the locked bitcoin to the channel owners according to the final balance of the channel.
-** Penalty Transaction: if one user tries to "cheat" by claiming a prior state of the channel, the other user can publish a penalty transaction to the Bitcoin blockchain, which allocates all bitcoin in that channel to them.
-* Wallet: an application that manages private keys in order to send and receive bitcoin. Lightning Wallets have additional features over and above Bitcoin Wallets in that they can open and close channels, and send and receive lightning payments.
+As we start exploring the Lightning Network, we will encounter some technical terminology that will, at first, be confusing and difficult to understand. While all these concepts and terms will be explained in detail as we progress through the book, and are defined in the glossary, we need some basic explanations to get started. Here are some of the concepts you will encounter in the first two chapters of this book:
 
+Node:: A computer that participates in a network. An LN node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run an LN node and a Bitcoin node.
+
+Blockchain:: A distributed transaction ledger, produced by a network of computers. Bitcoin, for example, is a system that produces a blockchain. The Lightning Network does is not itself a blockchain, nor does it produce a blockchain, it is a network that relies on existing blockchains for its security.
+
+Transaction:: A data structure that records the transfer of control over some funds (eg. some bitcoin). The Lightning Network relies on Bitcoin transactions (or those of another blockchain), to track control of funds.
+
+Payment Channel:: a payment channel is a _financial relationship_ between two nodes on the Lightning Network, typically implemented by multi-signature Bitcoin transactions that share control over bitcoin between the two LN nodes.
+
+On-Chain/Off-Chain:: a payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between LN nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments.
+
+More detailed definitions of these and many other terms can be found in the <<gloassary>>. Throughout this book we will explain what these concepts mean and how these technologies actually work.
 
 [[user-stories]]
 === Lightning Network Use Cases, Users, and Their Stories
