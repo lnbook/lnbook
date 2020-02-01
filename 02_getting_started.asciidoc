@@ -214,44 +214,127 @@ Finally, if Alice bought bitcoin from a crypto-currency exchange, she could (and
 
 Alice's bitcoin is now controlled by her Eclair wallet and has been recorded on the Bitcoin Blockchain. At this point, Alice's bitcoin is "on-chain", meaning that she has completed a regular Bitcoin transaction, broadcast to the entire Bitcoin network, verified by all Bitcoin nodes and "mined" (recorded) onto the Bitcoin blockchain.
 
-So far, the Eclair Mobile wallet has behaved only as a Bitcoin wallet and Alice hasn't used the Lightning Network features of Eclair. As is the case with many LN wallets, Eclair "straddles" Bitcoin and the Lightning Network by acting as both a Bitcoin wallet and a Lightning wallet.
+So far, the Eclair Mobile wallet has behaved only as a Bitcoin wallet and Alice hasn't used the Lightning Network features of Eclair. As is the case with many LN wallets, Eclair bridges Bitcoin and the Lightning Network by acting as both a Bitcoin wallet and a Lightning wallet.
 
 Now, Alice is ready to start using the Lightning Network by taking her bitcoin "off-chain", so she can take advantage of the fast, cheap and private payments that LN offers.
 
-==== Opening a Lightning Network Channel
+==== Lightning Network Channels
 
 Swiping right, Alice accesses the "LIGHTNING CHANNELS" section of Eclair. Here she can manage the LN channels that will connect her wallet to the Lightning Network.
 
+Let's review the definition of a "Lightning Network Channel" at this point, to make things a bit more clear. Firstly, the word "channel" is a metaphor for a _financial relationship_ between Alice's LN wallet and another LN wallet. We call it a channel because it is a means for Alice's wallet and this other wallet to exchange many payments with each other on the Lightning Network (off-chain), without committing transactions to the Bitcoin Blockchain (on-chain).
+
+The wallet or _node_ that Alice opens a channel to, is called her _channel peer_. Once "opened", a channel can be used to send many payments back and forth between Alice's wallet and her channel peer.
+
+Furthermore, Alice's channel peer can _forward_ payments via other channels further into the Lightning Network. This way, Alice can _route_ a payment to any wallet (eg. Bob's LN wallet) as long as Alice's wallet can find a _path_ made by hoping from channel to channel, all the way to Bob's wallet.
+
+All this to say: Alice needs one or more channels that connect her to one or more other nodes on the Lightning Network. She doesn't need a channel to connect her wallet directly to Bob's Cafe in order to send Bob a payment, though she can choose to open a direct channel too. Any well-connected node in the Lightning Network can be used for Alice's first channel. In this example, since we want to also demonstrate payment routing, we won't have Alice open a channel directly to Bob's wallet. Instead we will have Alice open a channel to a well-connected node and then later use that node to forward her payment, routing it through any other nodes, as necessary to reach Bob.
+
+At first, there are no open channel, so as we see in <<eclair-tutorial2.png>>, the "LIGHTNING CHANNELS" tab displays an empty list. If you notice, on the bottom right corner there is a plus symbol (+), which is a button to open a new channel.
+
+[[eclair-channels]]
+.Lightning Channels Tab
+image:images/eclair-tutorial2.png["Lightning Channels Tab"]
+
+Alice presses the plus symbol and is presented with four possible ways to open a channel:
+
+* Paste a node URI
+* Scan a node URI
+* Random node
+* ACINQ node
+
+A "node URI" is a Universal Resource Identifier (URI) that identifies a specific LN node. Alice can either paste such a URI from her clipboard, or scan a QR code containing that same information. An example of a node URI is shown as a QR code in <<node-URI-QR>> and below it as a text string:
 
 
+[[node-URI-QR]]
+.node URI as a QR code
+image:images/node-URI-QR.png[width=120]
 
+[[node-URI-example]]
+.node URI
+++++
+0237fefbe8626bf888de0cad8c73630e32746a22a2c4faa91c1d9877a3826e1174@1.ln.aantonop.com:9735
+++++
 
+While Alice could select a specific LN node, or use the "Random node" option to have the Eclair wallet select a node at random, she will select the "ACINQ Node" option to connect to one of ACINQ's well-connected LN nodes.
 
-////
-[[getting_first_bitcoin]]
-=== Getting Your First bitcoin on the Lightning Network
+Choosing the ACINQ node will slightly reduce Alice's privacy, as it will give ACINQ the ability to see all of Alice's transactions. It will also create a Single Point of Failure, since Alice will only have one channel and if the ACINQ node is not available, Alice will not be able to make payments. To keep things simple at first, we will accept these trade-offs. In subsequent chapters will will gradually learn how to gain more independence and make fewer trade-offs!
 
-* Trade fiat for bitcoin (as in Mastering Bitcoin)
+Alice touches "ACINQ Node" and is ready to open her first LN channel.
 
-[[using_own_bitcoin]]
-=== Process for people who already own bitcoin ====
+==== Opening an LN Channel
 
-* send bitcoin to lightning wallet (1 onchain transaction - soon nodes / wallets may support funding a channel directly without sending bitcoin to the lightning network wallet first)
-* find a node to open a channel with (Node explorer / Autopilots / ...)
-* open a connection
-* open a channel
-* wait confirmations for the channel to become operational
+When Alice selects a node to open a new channel, she is asked to select how much money she wants allocated to this channel. In subsequent chapters we will discuss the implications of these choices, but for now Alice will allocate almost all her funds to the channel. Since she will have to pay transaction fees to open the channel, she will select an amount a few dollars (or a few thousandths of a bitcoin) less than her total balance.
 
+Alice allocates 0.018BTC of her 0.020 total to her channel and accepts the default fee rate, as shown in <<eclair-open-channel>>.
 
-[[sending_receiving]]
-=== Sending and Receiving Bitcoin on the Lightning Network
-* have the person who helps onbording open a payment channel (As complex as a bitcoin transaction)
-* showcase how the funds now can be send back and forth
-** create invoice
-** decode invoice (do always before paying!)
-** pay an invoice
-* showcase how an arbitrary invoice can be paid e.g. https://voting.ln.rene-pickhardt.de
+[[eclair-open-channel]]
+.Opening an LN Channel
+image:images/eclair-open-channel-detail.png[]
 
-////
+Once she clicks "OPEN", her wallet constructs the special Bitcoin transaction that opens an LN channel, known as the _funding transaction_. The funding transaction is sent to the Bitcoin Network for confirmation.
 
-== Conclusion
+Alice now has to wait, again (see <<eclair-channel-waiting>>), for the transaction to be recorded in the Bitcoin Blockchain. As with the initial Bitcoin transaction that she used to acquire her bitcoin, she has to wait for six or more confirmations (approximately one hour).
+
+[[eclair-channel-waiting]]
+.Waiting for the Funding Transaction to Open the Channel
+image:images/eclair-channel-waiting.png["Waiting for the Funding Transaction to Open the Channel"]
+
+Once the funding transaction is confirmed, Alice's channel to the ACINQ node is open and ready, as shown in <<eclair-channel-open>>:
+
+[[eclair-channel-open]]
+.Channel is Open
+image:images/eclair-channel-open.png["Channel is Open"]
+
+[TIP]
+====
+Did you notice that the channel amount seems to have changed? It hasn't: the channel contains 0.018 BTC, but in the time between screenshots the BTC exchange rate changed, so the USD value is different. You can choose to show balances in BTC or USD, but keep in mind that USD values are calculated in real time and may change!
+====
+
+=== Buying a Cup of Coffee
+
+Alice now has everything ready to start using the Lightning Network. As you can see it took a bit of work and a bit of waiting for confirmations. But now things get very fast and easy. The Lightning Network enables payments with having to wait for confirmations, as funds are settled in seconds.
+
+Alice grabs her mobile device and runs to Bob's Cafe in her neighborhood. She is excited to try her new LN wallet and use it to buy something!
+
+==== Bob's Cafe
+
+Bob has a simple Point-of-Sale (PoS) application for the use of any customer who wants to pay with bitcoin over the Lightning Network. As we will see in the next chapter, Bob uses the popular open source platform _BTCPay Server_ which contains all the necessary components for an e-commerce or retail solution, such as:
+
+* A Bitcoin Node using the Bitcoin Core software
+* A Lightning Node using the c-lightning software
+* A simple PoS application for a tablet
+
+BTCPay Server makes it very simple to install all the necessary software, upload pictures and product prices and launch a store very quickly.
+
+On the counter at Bob's Cafe, there is a tablet device showing <<bob-cafe-posapp>>:
+
+[[bob-cafe-posapp]]
+.Bob's Point-of-Sale Application
+image:images/bob-cafe-posapp.png[]
+
+==== A Lightning Invoice
+
+Alice selects the "Cafe Latte" option from the screen and is presented with a _Lightning Invoice_, as shown in <<bob-cafe-invoice>>
+
+[[bob-cafe-invoice]]
+.LN Invoice for Alice's latte
+image:images/bob-cafe-invoice.png[]
+
+To pay the invoice, Alice opens her Eclair wallet and selects the "Send" button (which looks like a right facing arrow) under the "TRANSACTION HISTORY" tab, as shown in <<alice-send-start>>.
+
+[[alice-send-start]]
+.Alice Send
+image:images/alice-send-start.png[width=300]
+
+Alice selects the option to "scan a payment request" and scans the QR code displayed on the screen of the tablet (see <<bob-cafe-invoice>>), and is prompted to confirm her payment, as shown in <<alice-send-detail>>:
+
+[[alice-send-detail]]
+.Alice's Send Confirmation
+image:images/alice-send-detail.png[width=300]
+
+Alice presses "PAY", and a second later, Bob's tablet shows a successful payment. Alice has completed her first Lightning Network payment. It was fast, inexpensive and easy! Now she can enjoy her latte, which was purchased using the most advanced payment technology in the world.
+
+=== Conclusion
+
+In this chapter, we followed Alice as she downloaded and installed her first LN wallet, acquired and transferred some bitcoin, opened her first LN channel and bought a cup of coffee by making her first payment on the Lightning Network. In the following chapters will we look "under the covers" at how each component in the Lightning Network works, and how Alice's payment reached Bob's Cafe.
