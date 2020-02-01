@@ -1,17 +1,17 @@
 [[getting-started]]
 == Getting Started
 
-In this chapter, we will choose software to demonstrate the Lightning Network and learn by example. We will examine the choices of two users who represent a common use-case for the Lightning Network.
-
-Alice, a coffee shop customer, will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payment over the Lightning Network.
+In this chapter, we will start where most people start when encountering the Lightning Network for the first time - choosing software. We will examine the choices of two users who represent a common use-case for the Lightning Network and learn by example. Alice, a coffee shop customer, will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payment over the Lightning Network.
 
 === Lightning Nodes
 
-The Lightning Network is accessed via software applications that can speak the Lightning Network protocol. A _Lightning Network Node_ (or simply "node") is a software application that communicates on a peer-to-peer basis with other LN nodes, forming the Lightning _Network_ itself. Nodes also include "wallet" functionality, so they can send and receive payments over the Lightning Network and on the Bitcoin network.
+The Lightning Network is accessed via software applications that can speak the Lightning Network protocol. A _Lightning Network Node_ (or simply "node") is a software application that has three important characteristics. First, nodes must communicate on a peer-to-peer basis with other LN nodes. This communication forms the Lightning _Network_ itself. Nodes also include "wallet" functionality, so they can send and receive payments over the Lightning Network and on the Bitcoin network. Finally, LN nodes also need access to the Bitcoin blockchain (or other blockchains for other cryptocurrencies).
 
-Lightning network nodes also need access to the Bitcoin blockchain (or other blockchains for other cryptocurrencies). Users have the highest degree of control by running their own Bitcoin node and LN node.
+Users have the highest degree of control by running their own Bitcoin node and LN node. However, LN nodes can also use a lightweight Bitcoin client (commonly referred to as Simplified Payment Verification (SPV)) to partially validate the correctness of their blockchain.
 
-However, LN nodes can also use a lightweight Bitcoin client (commonly referred to as Simplified Payment Verification (SPV)) to partially validate the correctness of their blockchain.
+////
+but there is no "SPV" functionality in the LN peer to peer communication right? they have to have full funcionality?
+////
 
 === Lightning Wallets
 
@@ -30,7 +30,7 @@ A key distinction (pun intended), is whether the keystore function is internal o
 
 Blockchains, especially open blockchains like Bitcoin, attempt to minimize or eliminate trust in third parties and empower users. This is often called a "trustless" model, though "trust-minimized" is a better term. In such systems, the user trusts the software rules, not third parties. Therefore, the issue of control over keys is a principal consideration when choosing a lightning wallet.
 
-Every other component of a lightning wallet brings similar considerations of trust. If all the components are under the control of the user, then the amount of trust in third parties is minimized, bringing maximum power to the user. Of course, this is a direct tradeoff, as with that power comes the responsibility to manage complex software.
+Every other component of a lightning wallet brings similar considerations of trust. If all the components are under the control of the user, then the amount of trust in third parties is minimized, bringing maximum power to the user. Of course, this is a direct trade-off, as with that power comes the responsibility to manage complex software.
 
 Every user must consider their own technical skills before deciding what type of lightning wallet to use. Those with strong technical skills should use a lightning wallet that puts all of the components under the direct control of the user. Those with less technical skill but a desire to control their funds, should choose a _non-custodial_ lightning wallet, even if some of the components (other than the keystore) rely on some trusted third parties.
 
@@ -73,7 +73,7 @@ Lightning wallets have to strike a careful balance between complexity and user c
 
 When selecting a wallet keep in mind that even if you don't see these trade-offs they still exist. For example, many wallets are attempting to remove the burden of channel management from users. To do so, they are introducing central "hub" nodes that their wallets all connect to automatically. While this trade-off simplifies the user interface and user experience, it introduces a Single Point of Failure (SPoF) and a potential privacy compromise, as these "hub nodes" become both indispensable and can see all the user's transactions.
 
-In the next section we will introduce our first user and walk through their first LN wallet setup. We have chosen a wallet that is not as easy to use as some others currently available. This is because we want to show some of the underlying complexity and introduce some of the inner workings of the wallet during our example. You may find that your ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own LN and Bitcoin nodes as part of your wallet solution.
+In the next section we will introduce our first user and walk through their first LN wallet setup. We have chosen a wallet that not the easier to use custodial wallet model. This is because we want to show some of the underlying complexity and introduce some of the inner workings of the wallet during our example. You may find that your first ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own LN and Bitcoin nodes as part of your wallet solution.
 
 === Alice's First LN Wallet
 
@@ -83,24 +83,22 @@ Alice does not want to entrust custody of her bitcoin to third parties. She has 
 
 ==== Downloading and Installing an LN Wallet
 
-When looking for a new cryptocurrency wallet, you must be careful to select a secure source for the software.
+When looking for a new cryptocurrency wallet, you must be very careful to select a secure source for the software.
 
-There are many fake wallet applications that steal your money, and some of these even find their way onto reputable and supposedly vetted software sites, like the Apple and Google application stores. Whether you are installing your first or your tenth wallet, always exercise extreme caution. A rogue app can not only steal money any money you entrust it with, it might also be able to steal keys and passwords from other applications by compromising your mobile device operating system.
+Unfortunately, there are many fake wallet applications that will steal your money, and some of these even find their way onto reputable and supposedly vetted software sites, like the Apple and Google application stores. Whether you are installing your first or your tenth wallet, always exercise extreme caution. A rogue app can not only steal money any money you entrust it with, it might also be able to steal keys and passwords from other applications by compromising your mobile device operating system.
 
-[WARNING]
-====
-Always exercise great care when installing software on any device. There are many fake cryptocurrency wallets that will not only steal your money but might also compromise all other applications on your device.
-====
-
-Alice uses an Android device, and will use the Google Play Store to download and install the Eclair wallet.
-
-Searching on Google Play, she finds an entry for "Eclair Mobile", as shown in <<eclair-playstore>>.
+Alice uses an Android device, and will use the Google Play Store to download and install the Eclair wallet. Searching on Google Play, she finds an entry for "Eclair Mobile", as shown in <<eclair-playstore>>.
 
 [[eclair-playstore]]
 .Eclair Mobile in the Google Play Store
 image:images/eclair-playstore.png["Eclair wallet in the Google Play Store"]
 
 Alice notices a few different elements on this page, that help her ascertain that this is, most likely, the correct "Eclair Mobile" wallet she is looking for. Firstly, the organization "ACINQ" footnote:[ACINQ: Developers of the Eclair Mobile LN wallet  (https://acinq.io/).] is listed as the developer of this mobile wallet, which Alice knows from her research is the correct developer. Secondly, the wallet has been installed "10,000+" times and has more than 320 positive reviews. It is unlikely this is a rogue app that has snuck into the Play Store. Satisfied by these findings, Alice installs the Eclair app on her mobile device.
+
+[WARNING]
+====
+Always exercise great care when installing software on any device. There are many fake cryptocurrency wallets that will not only steal your money but might also compromise all other applications on your device.
+====
 
 === Creating a New Wallet
 
@@ -139,14 +137,14 @@ Alice needs to be careful to store the mnemonic phrase in a way that balances th
 
 Once Alice has recorded the mnemonic phrase, after touching "OK GOT IT" on her screen she will be presented with a _quiz_ to make sure that she correctly recorded the mnemonic. The quiz will ask for three or four of the words at random. Alice wasn't expecting a quiz, but since she recorded the mnemonic correctly she passes without any difficulty.
 
-Once Alice has recorded the mnemonic phrase, and passed the "quiz", she should store each copy in a separate secure location such as a locked desk drawer, or a fireproof safe.
+Once Alice has recorded the mnemonic phrase, and passed the quiz, she should store each copy in a separate secure location such as a locked desk drawer, or a fireproof safe.
 
 [WARNING]
 ====
 Never attempt a "DIY" security scheme that deviates in any way from the best practice recommendation in <<mnemonic-storage>>. Do not cut your mnemonic in half, make screenshots, store on USB drives or cloud drives, encrypt it, or try any other non-standard method. You will tip the balance in such a way as to risk permanent loss or theft. Many people have lost funds, not from theft, but because they tried a non-standard solution without having the expertise to balance the risks involved. The best practice recommendation is carefully balanced by experts and suitable for the vast majority of users.
 ====
 
-After Alice initializes her Eclair Mobile wallet, she will see a brief tutorial which highlights the various elements of the user interface. We won't replicate the tutorial here, but we will explore all those elements as we follow Alice's attempt to buy a cup of coffee!
+After Alice initializes her Eclair Mobile wallet, she will see a brief tutorial which highlights the various elements of the user interface. We won't replicate the tutorial here, but we will explore all of those elements as we follow Alice's attempt to buy a cup of coffee!
 
 === Loading Bitcoin Into the Wallet
 
@@ -163,13 +161,11 @@ There are several ways Alice can acquire bitcoin:
 * She can offer her skills or a product she sells and accept payment in bitcoin
 * She can ask her employer or clients to pay her in bitcoin
 
-All these methods have varying degrees of difficulty and many will involve paying a fee. Some will also require Alice to provide identification documents to comply with local banking regulations.
-
-However, with all these methods, Alice will be able to receive bitcoin directly into her Eclair wallet.
+All of these methods have varying degrees of difficulty and many will involve paying a fee. Some will also require Alice to provide identification documents to comply with local banking regulations. However, with all these methods, Alice will be able to receive bitcoin directly into her Eclair wallet.
 
 ==== Receiving Bitcoin
 
-For the purpose of our example, let's assume Alice has found a local Bitcoin ATM and has decided to buy some bitcoin in exchange for cash. An example of a Bitcoin ATM, one built by the Lamassu company, is shown in <<bitcoin-atm>>. A Bitcoin ATM like this one accepts national currency (cash) through a cash slot and send bitcoin to a Bitcoin Address scanned from a user's wallet using a built-in camera.
+Let's assume Alice has found a local Bitcoin ATM and has decided to buy some bitcoin in exchange for cash. An example of a Bitcoin ATM, one built by the Lamassu company, is shown in <<bitcoin-atm>>. A Bitcoin ATM like this one accepts national currency (cash) through a cash slot and send bitcoin to a Bitcoin Address scanned from a user's wallet using a built-in camera.
 
 [[bitcoin-atm]]
 .A Lamassu Bitcoin ATM
@@ -206,7 +202,7 @@ While in this example Alice used an ATM to acquire her first bitcoin, the same b
 
 Similarly, if she billed a client for a service offered over the Internet, Alice could send an email or instant message with the Bitcoin Address or the QR code (or both) to her client and they could scan or paste the information into a Bitcoin wallet to pay her.
 
-Alice could even print the QR code and affix it to a sign and display it to receive tips. An singer who receives bitcoin tips has a QR code printed and affixed to their guitar while performing!
+Alice could even print the QR code and affix it to a sign and display it to receive tips. A singer who receives bitcoin tips has a QR code printed and affixed to their guitar while performing!
 
 Finally, if Alice bought bitcoin from a crypto-currency exchange, she could (and should!) then "withdraw" the bitcoin by pasting her Bitcoin Address into the exchange website. The exchange will then send the bitcoin to her address directly.
 
