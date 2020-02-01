@@ -114,32 +114,44 @@ Every user must consider their own technical skills before deciding what type of
 
 Finally, those seeking simplicity and convenience, even at the expense of control and security, may choose a custodial lightning wallet. This is the least challenging option, but it _undermines the trust model of cryptocurrency_ and should, therefore, be considered only as a stepping stone towards more control and self-reliance.
 
-Here are the three broad categories of lightning wallets and the relative degree of control they offer to the user:
+In <<lnwallet-categories>> we see the three broad categories of lightning wallets and the relative degree of control they offer to the user.
 
+[[lnwallet-categories]]
+.Broad Categories of "LN Wallets"
 |===
-| Wallet Type          | LN Node        | Keystore/Custody | Technical Skill |
-| Full Node & Wallet   | Full Node      | Non-Custodial | High   |
-| Non-Custodial Wallet | 3rd-party node | Non-Custodial | Medium |
-| Custodial Wallet     | 3rd-party node | Custodial     | Low    |
+| Wallet Type          | LN Node        | Keystore/Custody | Technical Skill
+| Full Node & Wallet   | Full Node      | Non-Custodial | High
+| Non-Custodial Wallet | 3rd-party node | Non-Custodial | Medium
+| Custodial Wallet     | 3rd-party node | Custodial     | Low
 |===
 
 
 Lightning wallets can be installed on a variety of devices, including laptops, servers, and mobile devices. To run an LN node and a Bitcoin node, you will need to use a server or desktop computer, as mobile devices and laptops are usually not powerful enough in terms of capacity, processing, battery life, and connectivity.
 
-Here are some current examples of LN node and wallet applications for different types of devices:
+In <<lnwallet-examples>> we see some examples of currently popular LN node and wallet applications for different types of devices.
 
 // TODO: Add a lot more wallet/node examples, confirm the details for correctness
+[[lnwallet-examples]]
+.Examples of Popular LN Wallets
 |===
-| Application   | Device  | LN Node     | Bitcoin Node          | Keystore  |
-| lnd           | Server  | Full Node   | Bitcoin Core/btcd     | User Control |
-| c-lightning   | Server  | Full Node   | Bitcoin Core          | User Control |
-| Eclair Server | Server  | Full Node   | Bitcoin Core/Electrum | User Control |
-| Zap Desktop   | Desktop | Full Node   | Bitcoin Core/btcd     | User Control |
-| Eclair Mobile | Mobile  | Lightweight | Electrum              | User Control |
-| Breez Wallet | Mobile   | Full Node   | Bitcoin Core/btcd    | User Control  |
-| Phoenix Wallet | Mobile | ??  | ??  | User Control  |
-| Blue Wallet | Mobile | None | None | Custodial |
+| Application   | Device  | LN Node     | Bitcoin Node          | Keystore
+| lnd           | Server  | Full Node   | Bitcoin Core/btcd     | User Control
+| c-lightning   | Server  | Full Node   | Bitcoin Core          | User Control
+| Eclair Server | Server  | Full Node   | Bitcoin Core/Electrum | User Control
+| Zap Desktop   | Desktop | Full Node   | Bitcoin Core/btcd     | User Control
+| Eclair Mobile | Mobile  | Lightweight | Electrum              | User Control
+| Breez Wallet | Mobile   | Full Node   | Bitcoin Core/btcd    | User Control
+| Phoenix Wallet | Mobile | ??  | ??  | User Control
+| Blue Wallet | Mobile | None | None | Custodial
 |===
+
+==== Balancing complexity and control
+
+Lightning wallets have to strike a careful balance between complexity and user control. Those that give the user the most control over their funds, the highest degree of privacy and the greatest independence from third party services are necessarily more complex and difficult to operate. As the technology advances, some of these trade-offs will become less stark and users may be able to get more control without more complexity. However, for now, different companies and projects are exploring different positions along this control-complexity spectrum and hoping to find the "sweet spot" for the users they are targeting.
+
+When selecting a wallet keep in mind that even if you don't see these trade-offs they still exist. For example, many wallets are attempting to remove the burden of channel management from users. To do so, they are introducing central "hub" nodes that their wallets all connect to automatically. While this trade-off simplifies the user interface and user experience, it introduces a Single Point of Failure (SPoF) and a potential privacy compromise, as these "hub nodes" become both indispensable and can see all the user's transactions.
+
+In the next section we will introduce our first user and walk through their first LN wallet setup. We have chosen a wallet that is not as easy to use as some others currently available. This is because we want to show some of the underlying complexity and introduce some of the inner workings of the wallet during our example. You may find that your ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own LN and Bitcoin nodes as part of your wallet solution.
 
 === Alice's First LN Wallet
 
@@ -147,13 +159,73 @@ Alice is a long time Bitcoin user. We first met Alice in Chapter 1 of _"Masterin
 
 Alice does not want to entrust custody of her bitcoin to third parties. She has learned enough about cryptocurrency to know how to use a wallet. She also wants a mobile wallet so that she can use it for small payments on-the-go, so she chooses the _Eclair_ wallet, a popular non-custodial mobile LN wallet.
 
+==== Downloading and Installing an LN Wallet
+
+When looking for a new cryptocurrency wallet, you must be careful to select a secure source for the software.
+
+There are many fake wallet applications that steal your money, and some of these even find their way onto reputable and supposedly vetted software sites, like the Apple and Google application stores. Whether you are installing your first or your tenth wallet, always exercise extreme caution. A rogue app can not only steal money any money you entrust it with, it might also be able to steal keys and passwords from other applications by compromising your mobile device operating system.
+
+[WARNING]
+====
+Always exercise great care when installing software on any device. There are many fake cryptocurrency wallets that will not only steal your money but might also compromise all other applications on your device.
+====
+
+Alice uses an Android device, and will use the Google Play Store to download and install the Eclair wallet.
+
+Searching on Google Play, she finds an entry for "Eclair Mobile", as shown in <<eclair-playstore>>.
+
+[[eclair-playstore]]
+.Eclair Mobile in the Google Play Store
+image:images/eclair-playstore.png["Eclair wallet in the Google Play Store"]
+
+Alice notices a few different elements on this page, that help her ascertain that this is, most likely, the correct "Eclair Mobile" wallet she is looking for. Firstly, the organization "ACINQ" footnote:[ACINQ: Developers of the Eclair Mobile LN wallet  (https://acinq.io/).] is listed as the developer of this mobile wallet, which Alice knows from her research is the correct developer. Secondly, the wallet has been installed "10,000+" times and has more than 320 positive reviews. It is unlikely this is a rogue app that has snuck into the Play Store. Satisfied by these findings, Alice installs the Eclair app on her mobile device.
+
+==== Creating a New Wallet
+
+When Alice opens the Eclair Mobile app for the first time, she is presented with a choice, to "Create a New Wallet" or to "Import an Existing Wallet". Alice will create a new wallet, but let's first discuss why these options are presented here and what it means to "import an existing wallet".
+
+===== Responsibility with Key Custody
+
+As we mentioned in the beginning of this section, Eclair is a _non-custodial_ wallet, meaning that Alice has sole custody of the keys used to control her bitcoin. This also means that Alice is responsible for protecting and backing up those keys. If Alice loses the keys, no one can help her recover the bitcoin and it will be lost forever.
+
+[WARNING]
+====
+With the Eclair Mobile wallet, Alice has custody and control of the keys and therefore full responsibility to keep the keys safe and backed up. If she loses the keys, she loses the bitcoin and no one can help her recover from that loss!
+====
+
+===== Mnemonic Words
+
+Similar to most Bitcoin wallets, Eclair Mobile provides a _mnemonic phrase_ for Alice to back up. The mnemonic phrase consists of 24 English words, selected randomly by the software, and used as the basis for the keys that are generated by the wallet. The mnemonic phrase can be used by Alice to restore all the transactions and funds in the Eclair Mobile wallet in the case of a loss, for example because of a lost mobile device, software bug, or memory corruption.
+
+[TIP]
+====
+The _mnemonic phrase_ is often mistakenly called a "seed". In fact, a seed is constructed _from the mnemonic_ and is something different.
+====
+
+When Alice chooses to "Create a New Wallet", she will be shown a screen with her mnemonic phrase, which looks like the screenshot in <<eclair-mnemonic>>.
+
+[[eclair-mnemonic]]
+.Eclair Mobile: New Mnemonic Phrase
+image:images/eclair-mnemonic.png["Eclair Mobile: New Mnemonic Phrase"]
+
+In <<eclair-mnemonic>> we have purposely obscured part of the mnemonic phrase to prevent readers of this book from reusing the mnemonic.
+
+[[mnemonic-storage]]
+==== Storing the Mnemonic Safely
+
+Alice needs to be careful to store the mnemonic phrase in a way that balances the need to prevent theft and accidental loss. The recommended way to properly balance these risks is to write two copies of the mnemonic phrase on paper, with each of the words numbered (the order matters!).
+
+Once Alice has recorded the mnemonic phrase, after touching "OK GOT IT" on her screen she will be presented with a _quiz_ to make sure that she correctly recorded the mnemonic. The quiz will ask for three or four of the words at random. Alice wasn't expecting a quiz, but since she recorded the mnemonic correctly she passes without any difficulty.
+
+Once Alice has recorded the mnemonic phrase, and passed the "quiz", she should store each copy in a separate secure location such as a locked desk drawer, or a fireproof safe.
+
+[WARNING]
+====
+Never attempt a "DIY" security scheme that deviates in any way from the best practice recommendation in <<mnemonic-storage>>. Do not cut your mnemonic in half, make screenshots, store on USB drives or cloud drives, encrypt it, or try any other non-standard method. You will tip the balance in such a way as to risk permanent loss or theft. Many people have lost funds, not from theft, but because they tried a non-standard solution without having the expertise to balance the risks involved. The best practice recommendation is carefully balanced by experts and suitable for the vast majority of users.
+====
+
+
 ////
-* We start with a mobile wallet like eclair
-* Verify the authenticity of the software (e.g. App store / Acinq website / github)
-** discuss that a general phising scheme might consist of tricking you to download a similar looking software
-
-
-
 [[getting_first_bitcoin]]
 ==== Getting Your First bitcoin on the Lightning Network
 
