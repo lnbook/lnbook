@@ -1,89 +1,11 @@
-[role="pagenumrestart"]
-[[ch01_intro_what_is_the_lightning_network]]
-== Introduction
+[[getting-started]]
+== Getting Started
 
-Welcome to Mastering the Lightning Network (LN)! This second layer technology is changing the way people exchange value online and it's one of the most exciting advancements to happen to the Bitcoin network over the past few years. Right now, LN is in its infancy. In concept it's about 5 years old, in implementation about 3 years old. We're only beginning to see the opportunities LN provides including improved privacy, speed, and scale. With core knowledge of LN, you can help shape the future of the network while building opportunities for yourself as well. Some basic knowledge about Bitcoin is assumed but can be readily acquired by reading the first two chapters of _Mastering Bitcoin_ which are available for free, online.
+In this chapter, we will choose software to demonstrate the Lightning Network and learn by example. We will examine the choices of two users who represent a common use-case for the Lightning Network.
 
-While the bulk of this book is written for programmers, the first two chapters are written to be approachable by anyone regardless of technical experience. In order to better understand how the technology actually works, and why people use it, we'll be following a number of users and their stories. In this chapter, you'll meet Alice and walk through her thought process as she selects an LN wallet and prepares to make her first LN transaction, to buy a cup of coffee from Bob's Cafe. But first, we'll introduce some of the key concepts in LN. Let's get started with why the Lightning Network was proposed in the first place.
+Alice, a coffee shop customer, will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payment over the Lightning Network.
 
-=== Motivation for the Lightning Network
-
-As Bitcoin grows, and the demand for transactions grows, the number of transactions in each block will increase until eventually hitting the block size limit. When blocks are full, excess transactions are left to wait in a queue and many users increase the fees they're willing to pay in order to buy space for their transaction in the next block. However, simply increasing block size does not solve the problem because it has the undesirable effect of centralizing the network. Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. As such, the greater the block size, the greater the processing and storage requirements for each individual node. The greater the requirements, the fewer the nodes that will ultimately be run. But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?
-
-In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_ footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network:
-Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-network-paper.pdf).] In the whitepaper, Poon and Dryja estimate that in order for Bitcoin to reach the 47,000 transactions per second processed at peak by Visa, it would require 8GB blocks. This would make running a node completely untenable for anyone but large scale enterprises and industrial grade operations. The result would be a network in which only a few users can actually validate the state of the ledger, which ultimately breaks the trust model of Bitcoin.
-
-The Lightning Network proposes a new network, a "second layer", where users can transact with each other peer-to-peer, without publishing every transaction to the Bitcoin blockchain.
-Users may transact on the Lightning Network as many times with as many users as they want, making use of the Bitcoin blockchain only in order to load bitcoin onto the network initially and to "settle", that is: remove bitcoin from the Lightning Network.
-The result is that many more Bitcoin transactions can take place "off-chain", with only the initial loading and final settlement transactions needing to be validated and stored by Bitcoin nodes.
-Aside from reducing the burden on nodes, these transactions will be cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published to all participants of the network.
-
-While the Lightning Network was initially conceived for Bitcoin, it is able to be implemented on any blockchain that meets its technical requirements.
-
-=== Lightning Network Basic Concepts
-
-As we start exploring the Lightning Network, we will encounter some technical terminology that might, at first, be confusing and a bit difficult to understand. While all of these concepts and terms will be explained in detail as we progress through the book, and are defined in the glossary, we need some basic explanations to get started. Here are some of the concepts you will encounter in the first two chapters of this book:
-
-Node:: A computer that participates in a network. An LN node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run an LN node and a Bitcoin node.
-
-Blockchain:: A distributed transaction ledger, produced by a network of computers. Bitcoin, for example, is a system that produces a blockchain. The Lightning Network does is not itself a blockchain, nor does it produce a blockchain, it is a network that relies on existing blockchains for its security.
-
-Transaction:: A data structure that records the transfer of control over some funds (eg. some bitcoin). The Lightning Network relies on Bitcoin transactions (or those of another blockchain), to track control of funds.
-
-Payment Channel:: a payment channel is a _financial relationship_ between two nodes on the Lightning Network, typically implemented by multi-signature Bitcoin transactions that share control over bitcoin between the two LN nodes.
-
-On-Chain/Off-Chain:: a payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between LN nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments.
-
-More detailed definitions of these and many other terms can be found in the <<gloassary>>. Throughout this book we will explain what these concepts mean and how these technologies actually work.
-
-=== What is the Lightning Network?
-
-The Lightning Network is a network that operates as "second layer" protocol on top of Bitcoin and other blockchains. The Lightning Network enables fast, secure, private, trustless, and permissionless payments. Here are some of the features of the LN:
-
- * Users of the Lightning Network can route payments to each other for very low cost and in real time.
- * Users who transact on the Lightning Network do not need to wait for block confirmations for payments.
- * Once a payment on the Lightning Network has completed, usually within a few seconds, it is final and cannot be reversed: like a  Bitcoin transaction, a payment on the Lightning Network can only be refunded by the recipient.
- * While "on-chain" Bitcoin transactions are broadcast and verified by all nodes in the network, transactions routed on the Lightning Network are transmitted between pairs of nodes and are not visible to everyone, resulting in much greater privacy.
- * The Lightning Network uses onion routing, similar to the protocol used by The Onion Router (TOR) privacy network, so that even the nodes involved in routing a transaction are only directly aware of their predecessor and successor en route.
-
-[[user-stories]]
-=== Lightning Network Use Cases, Users, and Their Stories
-
-As an electronic cash system, Bitcoin preserves the three most important properties of money (medium of exchange, store of value, and unit of account).
-The invention of money (and in particular Bitcoin) was primarily made to facilitate trade and enable the exchange of value between people.
-However, without the Lightning Network, it would be infeasible for millions of people to concurrently use Bitcoin as a medium of exchange.
-Therefore, in order to fully understand the uses of the Lightning Network, we'll examine it from the perspective of people using it.
-In particular, the use cases will come from previous users of Bitcoin as well as people who have not used Bitcoin before.
-Each of the people and their stories, as listed here, illustrates one or more specific use cases.
-We'll be seeing them throughout this book:
-
-consumer::
-Alice is a bitcoin user who wants to make fast, secure, cheap, and private payments for small retail purchases. She buys coffee with bitcoin, using the Lightning Network.
-
-merchant::
-Bob owns a coffee shop, "Bob's Cafe". "On-chain" bitcoin payments don't scale for small amounts like a cup of coffee, so he uses the Lightning Network to accept bitcoin payments almost instantaneously and for very low fees.
-
-web designer::
-Saanvi is a web designer and developer in Bangalore India. She accepts bitcoin for her work, but would prefer to get paid more frequently and so uses the Lightning Network to get paid for each small milestone she completes. With the Lightning Network, she can do more small jobs for more clients without worrying about fees or delays.
-
-content creator / curator::
-John is a 9-year-old boy from New Zealand, who wanted a games console just like his friends. However, his dad told him that in order to buy it, he had to earn the money by himself. Now John is an aspiring artist, so he knows that while he is still improving, he can't charge much for his artwork. After learning about Bitcoin, he managed to set up a website to sell his drawings across the internet. By using the Lightning Network, John was able to charge as little as $1 for one of his drawings, which would normally be considered a micro-payment and, as such, not possible with other payment methods. Furthermore, by using a global currency such as Bitcoin, John was able to sell his artwork to customers all over the world and, in the end, buy the games console he so desperately wanted.
-
-gamer::
-Gloria is a teenage gamer from the Philippines. She plays many different computer games, but her favorite ones are those that have an "in-game economy" based on real money. As she plays games, she also earns money by acquiring and selling virtual in-game items. The Lightning Network allows her to transact in small amounts for in-game items as well as earn small amounts for completing quests.
-
-migrant::
-Farel is an immigrant who works in the Middle East and sends money home to his family in Indonesia. Remittance companies and banks charge very high fees, and Farel prefers to send smaller amounts more often. Using the Lightning Network, Farel can send bitcoin as often as he wants, with negligible fees.
-
-software service business::
-Wei is an entrepreneur who sells information services related to the Lightning Network, as well as Bitcoin and other cryptocurrencies. Wei is monetizing his API endpoints by implementing micro-payments over the Lightning Network. Additionally, Wei has implemented a liquidity provider service that rents inbound channel capacity on the Lightning Network, charging a small bitcoin fee for each rental period.
-
-
-=== Getting Started
-
-In this section, we will start by choosing software to demonstrate the Lightning Network and learn by example. We will examine the choices of two users who represent a common use-case for the Lightning Network. Alice, a coffee shop customer, will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payment over the Lightning Network.
-
-==== Lightning Nodes
+=== Lightning Nodes
 
 The Lightning Network is accessed via software applications that can speak the Lightning Network protocol. A _Lightning Network Node_ (or simply "node") is a software application that communicates on a peer-to-peer basis with other LN nodes, forming the Lightning _Network_ itself. Nodes also include "wallet" functionality, so they can send and receive payments over the Lightning Network and on the Bitcoin network.
 
@@ -91,7 +13,7 @@ Lightning network nodes also need access to the Bitcoin blockchain (or other blo
 
 However, LN nodes can also use a lightweight Bitcoin client (commonly referred to as Simplified Payment Verification (SPV)) to partially validate the correctness of their blockchain.
 
-==== Lightning Wallets
+=== Lightning Wallets
 
 The term "Lightning Wallet" is somewhat ambiguous, as it can describe a broad variety of components combined with some user interface. The most common components of lightning wallet software include:
 
@@ -145,7 +67,7 @@ In <<lnwallet-examples>> we see some examples of currently popular LN node and w
 | Blue Wallet | Mobile | None | None | Custodial
 |===
 
-==== Balancing complexity and control
+=== Balancing complexity and control
 
 Lightning wallets have to strike a careful balance between complexity and user control. Those that give the user the most control over their funds, the highest degree of privacy and the greatest independence from third party services are necessarily more complex and difficult to operate. As the technology advances, some of these trade-offs will become less stark and users may be able to get more control without more complexity. However, for now, different companies and projects are exploring different positions along this control-complexity spectrum and hoping to find the "sweet spot" for the users they are targeting.
 
@@ -153,13 +75,13 @@ When selecting a wallet keep in mind that even if you don't see these trade-offs
 
 In the next section we will introduce our first user and walk through their first LN wallet setup. We have chosen a wallet that is not as easy to use as some others currently available. This is because we want to show some of the underlying complexity and introduce some of the inner workings of the wallet during our example. You may find that your ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own LN and Bitcoin nodes as part of your wallet solution.
 
-=== Alice's First LN Wallet
+== Alice's First LN Wallet
 
 Alice is a long time Bitcoin user. We first met Alice in Chapter 1 of _"Mastering Bitcoin"_ footnote:["Mastering Bitcoin 2nd Edition, Chapter 1" Andreas M. Antonopoulos (https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch01.asciidoc).], when she bought a cup of coffee from Bob's cafe, using a bitcoin transaction. Now, Alice is eager to learn about and experiment with the Lightning Network. First, she has to select an LN wallet that meets her needs.
 
 Alice does not want to entrust custody of her bitcoin to third parties. She has learned enough about cryptocurrency to know how to use a wallet. She also wants a mobile wallet so that she can use it for small payments on-the-go, so she chooses the _Eclair_ wallet, a popular non-custodial mobile LN wallet.
 
-==== Downloading and Installing an LN Wallet
+=== Downloading and Installing an LN Wallet
 
 When looking for a new cryptocurrency wallet, you must be careful to select a secure source for the software.
 
@@ -180,11 +102,11 @@ image:images/eclair-playstore.png["Eclair wallet in the Google Play Store"]
 
 Alice notices a few different elements on this page, that help her ascertain that this is, most likely, the correct "Eclair Mobile" wallet she is looking for. Firstly, the organization "ACINQ" footnote:[ACINQ: Developers of the Eclair Mobile LN wallet  (https://acinq.io/).] is listed as the developer of this mobile wallet, which Alice knows from her research is the correct developer. Secondly, the wallet has been installed "10,000+" times and has more than 320 positive reviews. It is unlikely this is a rogue app that has snuck into the Play Store. Satisfied by these findings, Alice installs the Eclair app on her mobile device.
 
-==== Creating a New Wallet
+=== Creating a New Wallet
 
 When Alice opens the Eclair Mobile app for the first time, she is presented with a choice, to "Create a New Wallet" or to "Import an Existing Wallet". Alice will create a new wallet, but let's first discuss why these options are presented here and what it means to "import an existing wallet".
 
-===== Responsibility with Key Custody
+==== Responsibility with Key Custody
 
 As we mentioned in the beginning of this section, Eclair is a _non-custodial_ wallet, meaning that Alice has sole custody of the keys used to control her bitcoin. This also means that Alice is responsible for protecting and backing up those keys. If Alice loses the keys, no one can help her recover the bitcoin and it will be lost forever.
 
@@ -193,7 +115,7 @@ As we mentioned in the beginning of this section, Eclair is a _non-custodial_ wa
 With the Eclair Mobile wallet, Alice has custody and control of the keys and therefore full responsibility to keep the keys safe and backed up. If she loses the keys, she loses the bitcoin and no one can help her recover from that loss!
 ====
 
-===== Mnemonic Words
+==== Mnemonic Words
 
 Similar to most Bitcoin wallets, Eclair Mobile provides a _mnemonic phrase_ for Alice to back up. The mnemonic phrase consists of 24 English words, selected randomly by the software, and used as the basis for the keys that are generated by the wallet. The mnemonic phrase can be used by Alice to restore all the transactions and funds in the Eclair Mobile wallet in the case of a loss, for example because of a lost mobile device, software bug, or memory corruption.
 
@@ -211,7 +133,7 @@ image:images/eclair-mnemonic.png["Eclair Mobile: New Mnemonic Phrase"]
 In <<eclair-mnemonic>> we have purposely obscured part of the mnemonic phrase to prevent readers of this book from reusing the mnemonic.
 
 [[mnemonic-storage]]
-==== Storing the Mnemonic Safely
+=== Storing the Mnemonic Safely
 
 Alice needs to be careful to store the mnemonic phrase in a way that balances the need to prevent theft and accidental loss. The recommended way to properly balance these risks is to write two copies of the mnemonic phrase on paper, with each of the words numbered (the order matters!).
 
@@ -224,21 +146,102 @@ Once Alice has recorded the mnemonic phrase, and passed the "quiz", she should s
 Never attempt a "DIY" security scheme that deviates in any way from the best practice recommendation in <<mnemonic-storage>>. Do not cut your mnemonic in half, make screenshots, store on USB drives or cloud drives, encrypt it, or try any other non-standard method. You will tip the balance in such a way as to risk permanent loss or theft. Many people have lost funds, not from theft, but because they tried a non-standard solution without having the expertise to balance the risks involved. The best practice recommendation is carefully balanced by experts and suitable for the vast majority of users.
 ====
 
+After Alice initializes her Eclair Mobile wallet, she will see a brief tutorial which highlights the various elements of the user interface. We won't replicate the tutorial here, but we will explore all those elements as we follow Alice's attempt to buy a cup of coffee!
+
+=== Loading Bitcoin Into the Wallet
+
+Alice now has an LN wallet. But, it's empty! She now faces one of the more challenging aspects of this experiment: she has to find a way to acquire some bitcoin and load it onto her Eclair wallet.
+
+==== Acquiring Bitcoin
+
+There are several ways Alice can acquire bitcoin:
+
+* She can exchange some of her national currency (eg. USD) at a crypto-currency exchange
+* She can buy some from a friend, or an acquaintance from a Bitcoin Meetup, in exchange for cash
+* She can find a _Bitcoin ATM_ in her area, which acts as a vending machine, selling bitcoin for cash
+* She can offer her skills or a product she sells and accept payment in bitcoin
+* She can ask her employer or clients to pay her in bitcoin
+
+All these methods have varying degrees of difficulty and many will involve paying a fee. Some will also require Alice to provide identification documents to comply with local banking regulations.
+
+However, with all these methods, Alice will be able to receive bitcoin directly into her Eclair wallet.
+
+==== Receiving Bitcoin
+
+For the purpose of our example, let's assume Alice has found a local Bitcoin ATM and has decided to buy some bitcoin in exchange for cash. An example of a Bitcoin ATM, one built by the Lamassu company, is shown in <<bitcoin-atm>>. A Bitcoin ATM like this one accepts national currency (cash) through a cash slot and send bitcoin to a Bitcoin Address scanned from a user's wallet using a built-in camera.
+
+[[bitcoin-atm]]
+.A Lamassu Bitcoin ATM
+image:images/bitcoin-atm.png[]
+
+To receive the bitcoin in her Eclair LN wallet, Alice will need to present a _Bitcoin Address_ from the Eclair LN wallet to the ATM. The ATM can then send Alice's newly acquired bitcoin to this bitcoin address.
+
+On the Eclair wallet, to see a Bitcoin Address Alice must swipe to the left column titled "YOUR BITCOIN ADDRESS" (see <<eclair-receive>>), where she will see a square bardcode (called a _QR code_) and a string of letters and numbers below.
+
+[[eclair-receive]]
+.Alice's bitcoin address, shown in Eclair
+image:images/eclair-receive.png[]
+
+The QR code contains the same string of letters and numbers as shown below it, in an easy to scan format. This way, Alice doesn't have to type the Bitcoin Address. In the screenshot <<eclair-receive>>, we have purposely blurred both, to prevent readers from inadvertently sending bitcoin to this address.
+
+[NOTE]
+====
+Both Bitcoin addresses and QR codes contain error detection information that prevents any typing or scanning errors from producing a "wrong" Bitcoin address. If there is a mistake in the address, any Bitcoin wallet will notice the error and refuse to accept the Bitcoin Address as valid.
+====
+
+Alice can take her mobile device to the ATM and show it to the built-in camera, as shown in <<bitcoin-atm-receive>>. After inserting some cash into the slot, she will receive bitcoin in Eclair!
+
+[[bitcoin-atm-receive]]
+.Bitcoin ATM scans the QR code
+image:images/bitcoin-atm-receive.png[]
+
+Alice will see the transaction from the ATM in the "TRANSACTION HISTORY" tab of the Eclair wallet. While the bitcoin transaction will be detected by Eclair in just a few seconds, it will take approximately one hour for the bitcoin transaction to be "confirmed" on the Bitcoin Blockchain. As you can see in <<eclair-tx1>>, Alice's Eclair wallet shows "6+ conf" below the transaction, indicating that the transaction has received the required six confirmations and her funds are ready to use.
+
+[[eclair-tx1]]
+.Alice receives bitcoin
+image:images/eclair-tx1-btc.png[]
+
+=== From Bitcoin to Lightning Network
+
+Alice's bitcoin is now controlled by her Eclair wallet and has been recorded on the Bitcoin Blockchain. At this point, Alice's bitcoin is "on-chain", meaning that she has completed a regular Bitcoin transaction, broadcast to the entire Bitcoin network, verified by all Bitcoin nodes and "mined" (recorded) onto the Bitcoin blockchain.
+
+So far, the Eclair Mobile wallet has behaved only as a Bitcoin wallet and Alice hasn't used the Lightning Network features of Eclair. As is the case with many LN wallets, Eclair "straddles" Bitcoin and the Lightning Network by acting as both a Bitcoin wallet and a Lightning wallet.
+
+Now, Alice is ready to start using the Lightning Network by taking her bitcoin "off-chain", so she can take advantage of the fast, cheap and private payments that LN offers.
+
+==== Opening a Lightning Network Channel
+
+Swiping right, Alice accesses the "LIGHTNING CHANNELS" section of Eclair. Here she can manage the LN channels that will connect her wallet to the Lightning Network.
+
+
+
+
+
 
 ////
 [[getting_first_bitcoin]]
-==== Getting Your First bitcoin on the Lightning Network
+=== Getting Your First bitcoin on the Lightning Network
 
 * Trade fiat for bitcoin (as in Mastering Bitcoin)
 
 [[using_own_bitcoin]]
-==== Process for people who already own bitcoin ====
+=== Process for people who already own bitcoin ====
 
 * send bitcoin to lightning wallet (1 onchain transaction - soon nodes / wallets may support funding a channel directly without sending bitcoin to the lightning network wallet first)
 * find a node to open a channel with (Node explorer / Autopilots / ...)
 * open a connection
 * open a channel
 * wait confirmations for the channel to become operational
+
+
+[[sending_receiving]]
+=== Sending and Receiving Bitcoin on the Lightning Network
+* have the person who helps onbording open a payment channel (As complex as a bitcoin transaction)
+* showcase how the funds now can be send back and forth
+** create invoice
+** decode invoice (do always before paying!)
+** pay an invoice
+* showcase how an arbitrary invoice can be paid e.g. https://voting.ln.rene-pickhardt.de
 
 ////
 
