@@ -16,7 +16,7 @@ We'll start with a one sentence definition of what the Lightning Network (LN) is
 
 **The Lightning Network (LN) is a network of _payment channels_ on top of the _Bitcoin protocol_, as well as a communication protocol that defines how participants set up and execute the smart contracts on the network**
 
-We will see that a payment channel is simply a 2-out-of-2 multisignature addresses on the Bitcoin Network for which you hold one key and your channel partner holds the other key.
+We will see that a payment channel is simply a 2-out-of-2 multisignature address on the Bitcoin Network for which you hold one key and your channel partner holds the other key.
 This multisignature address comes with a cryptographic protocol that is established by creating a sequence of transactions that spend from this address.
 Each new transaction is negotiated between you and your channel partners and are attempts to spend from the multisignature address.
 The latest transaction in the sequence encodes the balance of the channel and defines how the funds locked into the multisignature address are to be divided between you and your channel partner.
@@ -344,7 +344,7 @@ Since Bob can directly close the channel, which costs fees paid by Alice, she wi
 
 === Comparison with Bitcoin
 
-While the Lightning Network is built on top of Bitcoin and inherits many of it's features and properties, there are important differences that users of both need to be aware of.
+While the Lightning Network is built on top of Bitcoin, and inherits many of it's features and properties, there are important differences that users of both need to be aware of.
 
 ==== Selecting Outputs vs Finding a Path
 
@@ -369,7 +369,7 @@ This is because the channel partners simply update the channel balance, and only
 ==== Mining Fees vs Routing Fees
 
 On the Bitcoin Network, users pay fees to miners to have their transactions included in a block.
-These fees are paid to the miners who mine that particular block, and are based on the _size_ of the transaction in _bytes_ that the transaction is using in a particular block, as well as how quickly the user wants that transaction mined.
+These fees are paid to the miners who mine that particular block, and are based on the _size_ of the transaction in _bytes_ that the transaction is using in a block, as well as how quickly the user wants that transaction mined.
 As miners will typically mine the most profitable transactions first, a user who wants their transaction mined immediately will pay a _higher_ fee-per-byte, while a user who is not in a hurry will pay a _lower_ fee-per-byte.
 
 On the Lightning Network, users pay fees to other users to route payments through their channels.
@@ -379,10 +379,10 @@ Higher value payments will thus cost more to route, and a market for capacity wi
 
 ==== Varying Fees Depending Traffic vs Announced Fees
 
-On the Bitcoin Network, miners are profit-seeking, and so will typically include as many transactions in a block as they can, until they reach the block size limit (actually, a modified form called the block weight limit).
-If there are more transactions in the queue (called the mempool) than they can fit in a block, they will begin by mining the transactions that pay the highest fees per byte used (highest fee per weight).
-Thus, if there are many transactions in queue, users will have to pay a higher fee to be included in the next block or wait until there are fewer transactions in the queue.
-This naturally leads to the concept of 'traffic' and the creation of a fee market where users pay based on high urgently they wish their transaction included in the next block.
+On the Bitcoin Network, miners are profit-seeking, and so will typically include as many transactions in a block as possible, while staying within the block size limit (actually, a modified form called the block weight limit).
+If there are more transactions in the queue (called the mempool) than they can fit in a block, they will begin by mining the transactions that pay the highest fees per byte (highest fee per weight).
+Thus, if there are many transactions in the queue, users will have to pay a higher fee to be included in the next block, or they will have to wait until there are fewer transactions in the queue.
+This naturally leads to the concept of 'traffic' and the creation of a fee market where users pay based on how urgently they need their transaction included in the next block.
 
 On the Lightning Network, traffic does not exist since users are not competing for block space outside of the Funding or Closing transactions.
 Instead, they are paying fees to the users routing their payments, and different routers will charge different fees for routing through their channels.
@@ -392,19 +392,19 @@ Thus a fee market exists where routers are in competition with each other over t
 ==== Public Transactions on the Blockchain vs Secret payments
 
 On the Bitcoin Network, every payment is publicly visible on the ledger.
-While the addresses involved are pseudonymous and are not typically tied to identity, they will still be collected and validated by every single other user on the network.
+While the addresses involved are pseudonymous and are not typically tied to identity, they will still be collected and validated by every other user on the network.
 
 Lightning Network payments, on the other hand, are completely private.
-Typically, only the sender and the receiver will be fully aware of the source, destination, and amount of bitcoin transacted in a particular transaction.
+Typically only the sender and the receiver will be fully aware of the source, destination, and amount of bitcoin transacted in a particular transaction.
 However, it is not required for the receiver to even know the source of the payment.
-As payments are onion-routed, the users who route the payment will typically only be aware of the amount of the payment, but not the source or the destination.
+As payments are onion-routed, the users who route the payment will only be aware of the amount of the payment, but not the source or the destination.
 This is because the security model of Lightning only requires users to be aware of the balances in their channels.
 They are not required to be aware of the state of the entire network.
 
 ==== Waiting for Confirmations vs Instant settlement
 
-On the Bitcoin network, transactions are only 'settled' once they have been included in a block, in which case they are considered 'confirmed' in that block.
-As more blocks are mined on the Bitcoin network after this, the transaction becomes more secure and is considered to have more 'confirmations'.
+On the Bitcoin network, transactions are only 'settled' once they have been included in a block, in which case they are 'confirmed' in that block.
+As more blocks are mined on the Bitcoin network after this, the transaction acquires more 'confirmations' and is considered more secure.
 
 On the Lightning Network, confirmation only matters for opening and closing channels.
 Once a Funding Transaction has reached a suitable number of confirmations (e.g. 3), the channel partners consider the channel open.
@@ -416,14 +416,14 @@ When the channel is closed, a transaction will be made on the Bitcoin network an
 On the Bitcoin network, a user can send any amount of bitcoin that they own to another user, without capacity restrictions.
 
 On the Lightning Network, a user can only send as much bitcoin as currently exists on their side of a particular channel.
-For instance, if a user owns one channel with 0.4 BTC on their side, and another channel with 0.2 BTC on their side, then the maximum they can send with one payment is 0.2 BTC.
+For instance, if a user owns one channel with 0.4 BTC on their side, and another channel with 0.2 BTC on their side, then the maximum they can send with one payment is 0.4 BTC.
 This is true regardless of how much bitcoin the user currently has in their Bitcoin wallet.
-At the time of writing, Atomic Multi-Path Payments (AMPs) are in development, which, in the above example, would allow the user to combine their 0.4 BTC and 0.2 BTC channels to be able to send a maximum of 0.6 BTC.
+At the time of writing, Atomic Multi-Path Payments (AMPs) are in development, which, in the above example, would allow the user to combine their 0.4 BTC and 0.2 BTC channels to be able to send a maximum of 0.6 BTC with one payment.
 
 ==== Using the Blockchain as a Ledger vs Using the Blockchain as a Court system
 
 On the Bitcoin Network, every transaction is eventually recorded in a block on the blockchain.
-The blockchain thus forms of a complete history of every transaction since Bitcoin's creation, and a complete way to fully audit every Bitcoin in existence.
+The blockchain thus forms of a complete history of every transaction since Bitcoin's creation, and a way to fully audit every bitcoin in existence.
 Once a transaction is included in the blockchain it is final.
 Thus no disputes can arise and it is unambiguous how much bitcoin is controlled by a particular address at a particular point in the blockchain.
 (The only possible dispute is if the blockchain forks into two or more different blockchains)
