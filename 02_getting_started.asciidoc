@@ -1,7 +1,7 @@
 [[getting-started]]
 == Getting Started
 
-In this chapter, we will begin where most people start when encountering the Lightning Network for the first time - choosing software. We will examine the choices of two users who represent a common use-case for the Lightning Network and learn by example. Alice, a coffee shop customer, will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payment over the Lightning Network.
+In this chapter, we will begin where most people start when encountering the Lightning Network for the first time - choosing software. We will examine the choices of two users who represent a common use-case for the Lightning Network and learn by example. Alice, a coffee shop customer, will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payments over the Lightning Network.
 
 === Lightning Nodes
 
@@ -9,8 +9,11 @@ The Lightning Network is accessed via software applications that can speak the L
 
 Users have the highest degree of control by running their own Bitcoin node and LN node. However, LN nodes can also use a lightweight Bitcoin client (commonly referred to as Simplified Payment Verification (SPV)) to partially validate the correctness of their blockchain.
 
+While Bitcoin nodes need quite some hardware to be able to operate smoothly LN nodes can run with tiny hardware requirements on cellphones or on a Rhaspberry pi.
+
 ////
 but there is no "SPV" functionality in the LN peer to peer communication right? they have to have full funcionality?
+c.f.: https://github.com/lnbook/lnbook/issues/135
 ////
 
 === Lightning Wallets
@@ -20,7 +23,7 @@ The term "Lightning Wallet" is somewhat ambiguous, as it can describe a broad va
 * A keystore that securely holds secrets, such as private keys.
 * A Lightning Network node that communicates on the Peer-to-Peer network, as described previously.
 * A Bitcoin node that stores blockchain data and communicates with other Bitcoin nodes.
-* A channel data store with data about channels on the Lightning Network.
+* A channel data store containing state about channels on the Lightning Network as well as signatures to settle them.
 * A channel manager that can open and close Lightning Network channels.
 * A path-finding system that can identify a path of connected channels from payment source to payment destination.
 
@@ -32,7 +35,9 @@ Blockchains, especially open blockchains like Bitcoin, attempt to minimize or el
 
 Every other component of a lightning wallet brings similar considerations of trust. If all the components are under the control of the user, then the amount of trust in third parties is minimized, bringing maximum power to the user. Of course, this is a direct trade-off, as with that power comes the responsibility to manage complex software.
 
-Every user must consider their own technical skills before deciding what type of lightning wallet to use. Those with strong technical skills should use a lightning wallet that puts all of the components under the direct control of the user. Those with less technical skill but a desire to control their funds, should choose a _non-custodial_ lightning wallet, even if some of the components (other than the keystore) rely on some trusted third parties.
+Every user must consider their own technical skills before deciding what type of lightning wallet to use. Those with strong technical skills should use a lightning wallet that puts all of the components under the direct control of the user. Those with less technical skill but a desire to control their funds, should choose a _non-custodial_ lightning wallet, even if some of the components (other than the keystore) rely on some trusted third parties. 
+Ofter the trust in those cases relates to privacy. 
+If users decides to outsource some functionality to a thrid party they usually give up some privacy as the third party will learn some information.
 
 Finally, those seeking simplicity and convenience, even at the expense of control and security, may choose a custodial lightning wallet. This is the least challenging option, but it _undermines the trust model of cryptocurrency_ and should, therefore, be considered only as a stepping stone towards more control and self-reliance.
 
@@ -62,7 +67,7 @@ In <<lnwallet-examples>> we see some examples of currently popular LN node and w
 | Zap Desktop   | Desktop | Full Node   | Bitcoin Core/btcd     | User Control
 | Eclair Mobile | Mobile  | Lightweight | Electrum              | User Control
 | Breez Wallet | Mobile   | Full Node   | Bitcoin Core/btcd    | User Control
-| Phoenix Wallet | Mobile | ??  | ??  | User Control
+| Phoenix Wallet | Mobile | Lightweight  | Electrum  | User Control
 | Blue Wallet | Mobile | None | None | Custodial
 |===
 
