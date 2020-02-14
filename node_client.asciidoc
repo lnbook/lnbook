@@ -30,7 +30,140 @@ In most of the examples here, we will be building the software directly from the
 ((("$ symbol")))((("shell commands")))((("terminal applications")))In many of the examples in this chapter we will be using the operating system's command-line interface (also known as a "shell"), accessed via a "terminal" application. The shell will display a prompt; you type a command; and the shell responds with some text and a new prompt for your next command. The prompt may look different on your system, but in the following examples it is denoted by a +$+ symbol. In the examples, when you see text after a +$+ symbol, don't type the +$+ symbol but type the command immediately following it, then press Enter to execute the command. In the examples, the lines below each command are the operating system's responses to that command. When you see the next +$+ prefix, you'll know it's a new command and you should repeat the process.
 ====
 
+==== Installing a Bitcoin node
+
+Most of the Lightning node implementations need access to a full Bitcoin node in order to work. This Bitcoin node can be installed on the same computer (will require an additional 250+ GB of disk) or run on a different computer that can authorize connections from the Lightning node over the Internet.
+
+Installing a full Bitcoin node is outside the scope of this book and is a relatively complex endeavor in itself. If you want to try it, refer to _Mastering Bitcoin_ (https://github.com/bitcoinbook/bitcoinbook), "Chapter 3: Bitcoin Core: The Reference Implementation" which discusses the installation and operation of a Bitcoin node.
+
+In the following examples we will be using a Bitcoin node that has already been installed and fully synched to the Bitcoin blockchain on another computer, and connecting to it over the Internet.
+
 === c-lightning
+
+C-lightning is a lightweight, highly customizable and standard-compliant implementation of the Lightning Network protocol, developed by Blockstream as part of the Elements project. The project is open source and developed collaboratively on Github:
+
+https://github.com/ElementsProject/lightning
+
+==== Installing c-lightning from source code
+
+The c-lightning developers have provided detailed instructions for building c-lightning from source code. We will be following the instructions here:
+
+https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md
+
+==== Installing prerequisite libraries and packages
+
+The first step, as is often the case, is the installation of pre-requisite libraries. We use the +apt+ package manager to install these:
+
+----
+$ sudo apt-get update
+
+Get:1 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]
+Hit:2 http://eu-north-1b.clouds.archive.ubuntu.com/ubuntu bionic InRelease
+Get:3 http://eu-north-1b.clouds.archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]
+
+[...]
+
+Fetched 18.3 MB in 8s (2,180 kB/s)
+Reading package lists... Done
+
+$ sudo apt-get install -y \
+  autoconf automake build-essential git libtool libgmp-dev \
+  libsqlite3-dev python python3 python3-mako net-tools zlib1g-dev libsodium-dev \
+  gettext
+
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following additional packages will be installed:
+  autotools-dev binutils binutils-common binutils-x86-64-linux-gnu cpp cpp-7 dpkg-dev fakeroot g++ g++-7 gcc gcc-7 gcc-7-base libalgorithm-diff-perl
+
+ [...]
+
+Setting up libgcc-7-dev:amd64 (7.4.0-1ubuntu1~18.04.1) ...
+Setting up cpp-7 (7.4.0-1ubuntu1~18.04.1) ...
+Setting up libsodium-dev:amd64 (1.0.16-2) ...
+Setting up libstdc++-7-dev:amd64 (7.4.0-1ubuntu1~18.04.1) ...
+
+[...]
+$
+----
+
+After a few minutes and a lot of on-screen activity, you will have installed all the necessary packages and libraries. Many of these libraries are also used by other Lightning packages and for software development in general.
+
+==== Copying the c-lightning source code
+
+Next, we will copy the latest version of c-lightning from the source code repository. To do this, we will use the +git clone+ command, which clones a version-controlled copy onto your local machine, allowing you to keep it synchronized with subsequent changes without having to download the whole thing again:
+
+----
+$ git clone https://github.com/ElementsProject/lightning.git
+Cloning into 'lightning'...
+remote: Enumerating objects: 24, done.
+remote: Counting objects: 100% (24/24), done.
+remote: Compressing objects: 100% (22/22), done.
+remote: Total 53192 (delta 5), reused 5 (delta 2), pack-reused 53168
+Receiving objects: 100% (53192/53192), 29.59 MiB | 19.30 MiB/s, done.
+Resolving deltas: 100% (39834/39834), done.
+
+$ cd lightning
+
+----
+
+We now have a copy of c-lightning, cloned into the +lightning+ subfolder, and we have used the +cd+ (change directory) command to enter that subfolder.
+
+Next, we use a set of _build scripts_ that are commonly available on many open source projects. These are +configure+ and +make+, and they allow us to:
+* Select the build options and check necessary dependencies (+configure+).
+* Build and install the executables and libraries (+make+).
+
+Running the +configure+ with the +help+ option will show us all the options that we can set:
+
+----
+$ ./configure --help
+Usage: ./configure [--reconfigure] [setting=value] [options]
+
+Options include:
+  --prefix= (default /usr/local)
+    Prefix for make install
+  --enable/disable-developer (default disable)
+    Developer mode, good for testing
+  --enable/disable-experimental-features (default disable)
+    Enable experimental features
+  --enable/disable-compat (default enable)
+    Compatibility mode, good to disable to see if your software breaks
+  --enable/disable-valgrind (default (autodetect))
+    Run tests with Valgrind
+  --enable/disable-static (default disable)
+    Static link sqlite3, gmp and zlib libraries
+  --enable/disable-address-sanitizer (default disable)
+    Compile with address-sanitizer
+----
+
+We don't need to change any of the defaults for this example, so we run +configure+ again, without any options, to set the defaults:
+
+----
+$ ./configure
+
+Compiling ccan/tools/configurator/configurator...done
+checking for python3-mako... found
+Making autoconf users comfortable... yes
+checking for off_t is 32 bits... no
+checking for __alignof__ support... yes
+
+[...]
+
+Setting COMPAT... 1
+PYTEST not found
+Setting STATIC... 0
+Setting ASAN... 0
+Setting TEST_NETWORK... regtest
+$
+----
+
+Next, we use the +make+ command to build the libraries, components and executables of the c-lightning project. This part will take several minutes to complete and will use your computers CPU and disk aggressively, so expect some noise from the fans! Running make:
+
+----
+$ make
+----
+
 
 === eclair
 === lightning network daemon (lnd)
