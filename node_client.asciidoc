@@ -162,7 +162,43 @@ Next, we use the +make+ command to build the libraries, components and executabl
 
 ----
 $ make
+
+cc -DBINTOPKGLIBEXECDIR="\"../libexec/c-lightning\"" -Wall -Wundef -Wmis...
+
+[...]
+
+cc   -Og  ccan-asort.o ccan-autodata.o ccan-bitmap.o ccan-bitops.o ccan-...
+
 ----
+
+If all goes well, you will see no +ERROR+ message stopping the execution of the above command. The c-lightning software pakcage has been compiled from source and we are now ready to install the executable packages:
+
+----
+$ sudo make install
+
+mkdir -p /usr/local/bin
+mkdir -p /usr/local/libexec/c-lightning
+mkdir -p /usr/local/libexec/c-lightning/plugins
+mkdir -p /usr/local/share/man/man1
+mkdir -p /usr/local/share/man/man5
+mkdir -p /usr/local/share/man/man7
+mkdir -p /usr/local/share/man/man8
+mkdir -p /usr/local/share/doc/c-lightning
+install cli/lightning-cli lightningd/lightningd /usr/local/bin
+[...]
+----
+
+Let's check and see if the +lightningd+ and +lightning-cli+ commands have been installed correctly, asking each for their version information:
+
+----
+$ lightningd --version
+v0.8.1rc2
+$ lightning-cli --version
+v0.8.1rc2
+----
+
+You may see a different version from above, as the software evolves long after this book is printed. However, no matter what version you see, the fact that the commands execute and show you version information means that you have succeeded in building the c-lightning software.
+
 
 
 === eclair
