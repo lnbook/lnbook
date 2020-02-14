@@ -318,14 +318,65 @@ Invoiceses also have an expiry time so that the payee can delete the preimage af
 
 === Delivering the payment
 
-* gossip protocol
-* network of payment channels
-* different scope of the network
-** global path finding (entire knowledge of the network necessary)
-** multihop routing (onion necessary only a subset of nodes involved)
-** locally setting up and setteling htlcs (only peers involved)
+You have already learnt that payments start with the payee creating an invoice which includes a Payment Hash to make sure that payments are atomic and that noone on the path of payment channels can withold the transfered money to their benefit.
+In this section we will dive into the ideas and methods that are being used to deliver a payment over the lightning network and utilizie everything that we have used so far.
+We need to introduce one missing protocol of the Lightning Network which is the gossip protocol.
+
+==== The peer 2 peer gossip protocol
+
+As mentioned payment channels can be announced to the network after they are established.
+This is happening via a peer to peer gossip protocol.
+After opening a channel a node will send out an announcement of the channel via the `channel_announcement` message to its peers.
+Every peer can validate the information from the `channel announcement` message and verify that the funding transaction was indeed confirmed by the Bitcoin Network.
+Upon verification the node will forward the gossip message to its peers.
+In order to avoid SPAM this will of course only be done if the message was not forwarded by that node yet.
+Similarly nodes can be announced via the gossip protocol with the `node_announcment` message.
+For this message to be forwarded a node has to have at least one public channel that was announced on the gossip protocol.
+This again is a SPAM messure of the gossip protocol.
+Payment channels have various meta data that are useful for other participants of the network to know.
+This meta data is mainly used for making routing decisions.
+As nodes might want to change the meta data of their channel once in a while this information is shared in a `channel_update` message.
+These messages will only be forwarded about 4 times per day for every channel to prevent SPAM.
+The gossip protocol also comes with a variety of queries and tools to initially synchronize a node with the view of the network or to update the nodes view after being offline for a time.
+We will investigate the details of the gossip protocol in a later chapter.
+For now it is only important to know that it exists and that it is used to share topology information of the Lightning Network with its participants.
+This topology information is crucually needed for delivering payments through the network of payment channels.
+
+[NOTE]
+====
+A major challange for the participants of the lightning network is that the topology information that is being shared by the gossip protocol is only partial.
+For example the capacity of the payment channels is shared on the gossip protocol via the `channel_announcement` message.
+However this information is not as useful as the actual distribution of the capacity into a local balance between the two channel partners.
+This is obvious as a node can only forward the amount of bitcoin via a particular payment channel that it actually owns within that channel.
+While Lightning could have been designed to share balance information of channels and a precise topology this has not been down for two reasons:
+1. To protect the privacy of the users and not shout out every financial transaction and payment that is being conducted.
+2. To be able to scale the amount of payments that can be conducted with the Lightning Network. Remember the Lightning Network was created in the first place because notifying every participant about every payment does not scale well. Thus for simple technical reasons the Lightning Network cannot be designed in a way that the current balance updates of channels are being shared among participants.
+====
 
 ==== Finding a path
+
+Payments on the Lightning Network are forwarded a long a path of channels from one participant to another one.
+Thus a path of payment channels has to be selected.
+If we would know the exact channel balances of every channel we could easily compute one of the standard path finding algorithms from computer science to choose a path.
+This could even be down in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly foward the payment.
+However as discussed the balance information of all channels is and cannot be available to all participants of the network.
+Thus we need to have some path finding strategy.
+This strategy relates closely to the routing algorithm hat is used.
+As we will see in the next section on the Lightning Network we use a source based onion routing protocol for routing payments.
+This means in particular that the sender of the payment has to find a path through the network.
+As mentioned before with only partial information about the network topology this is a real challange and active research is still being conducted into optimizing this part of the Lightning Network implementations.
+The fact that the pathfinding problem is not fully solved for the case of the Lightning Network is a major point of criticism towards the technology. 
+On the good side we emphasize that the certainly not optimal strategy - that is currently being used - of probing paths until one has enough liquidity to forward the payment works still rather well. 
+
+[NOTE]
+====
+On the Internet we use the internet protocol and the IP forwading algorithm to forward internet packages from the sender to the destination.
+While the TCP/IP protocol stack allows reliable communication by resending packages that are not acknowledged this mechanism could not be reused directly in the lightning network.
+A payment that is not being forwarded would effectivly mean that the money was stolen by a router and the sender cannot just send out another payment.
+While the routing protocol that is used for data and infrmation transport on the internet has the really nice property of allowing the internet hosts to collaboratively finding a path for the information through the internet we cannot reuse and adopt this protocol for forwarding payments on the Lightnin network.
+====
+
+
 
 * trivial case / channel partner as destination with enough funds in the channel
 * topology information from the gossip protocol
@@ -348,6 +399,14 @@ Invoiceses also have an expiry time so that the payee can delete the preimage af
 === Missing bits
 * Noise_XK
 * Lightning Messages
+
+=== some thoughts that where supposed to be at other places but didn't make it to the text yet
+* network of payment channels
+* different scope of the network
+** global path finding (entire knowledge of the network necessary)
+** multihop routing (onion necessary only a subset of nodes involved)
+** locally setting up and setteling htlcs (only peers involved)
+
 
 === Thoughts about Trust
 As long as a person follows the protocol and has their node secured, there is no principle risk of losing funds when participating with the Lightning Network.
