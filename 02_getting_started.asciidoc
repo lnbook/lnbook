@@ -1,28 +1,23 @@
 [[getting-started]]
 == Getting Started
 
-In this chapter, we will begin where most people start when encountering the Lightning Network for the first time - choosing software. We will examine the choices of two users who represent a common use-case for the Lightning Network and learn by example. Alice, a coffee shop customer, will be using a LN wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a LN node and wallet to run a point-of-sale system at his cafe so he can accept payments over the Lightning Network.
+In this chapter, we will begin where most people start when encountering the Lightning Network for the first time - choosing software. We will examine the choices of two users who represent a common use-case for the Lightning Network and learn by example. Alice, a coffee shop customer, will be using a Lightning wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a Lightning node and wallet to run a point-of-sale system at his cafe so he can accept payments over the Lightning Network.
 
 === Lightning Nodes
 
-The Lightning Network is accessed via software applications that can speak the Lightning Network protocol. A _Lightning Network Node_ (or simply "node") is a software application that has three important characteristics. First, nodes must communicate on a peer-to-peer basis with other LN nodes. This communication forms the Lightning _Network_ itself. Nodes also include "wallet" functionality, so they can send and receive payments over the Lightning Network and on the Bitcoin network. Finally, LN nodes also need access to the Bitcoin blockchain (or other blockchains for other cryptocurrencies).
+The Lightning Network is accessed via software applications that can speak the Lightning Network protocol. A _Lightning Network Node_ (or simply "node") is a software application that has three important characteristics. First, nodes must communicate on a peer-to-peer basis with other Lightning nodes. Nodes also include "wallet" functionality, so they can send and receive payments over the Lightning Network and on the Bitcoin network. Finally, Lightning nodes also need access to the Bitcoin blockchain (or other blockchains for other cryptocurrencies).
 
-Users have the highest degree of control by running their own Bitcoin node and LN node. However, LN nodes can also use a lightweight Bitcoin client (commonly referred to as Simplified Payment Verification (SPV)) to partially validate the correctness of their blockchain.
-
-While Bitcoin nodes need quite some hardware to be able to operate smoothly LN nodes can run with tiny hardware requirements on cellphones or on a Raspberry Pi.
-
-////
-but there is no "SPV" functionality in the LN peer to peer communication right? they have to have full funcionality?
-c.f.: https://github.com/lnbook/lnbook/issues/135
-////
+Users have the highest degree of control by running their own Bitcoin node and Lightning node. However, Lightning nodes can also use a lightweight Bitcoin client (commonly referred to as Simplified Payment Verification (SPV)) to partially validate the correctness of their blockchain.
 
 === Lightning Wallets
 
 The term "Lightning Wallet" is somewhat ambiguous, as it can describe a broad variety of components combined with some user interface. The most common components of lightning wallet software include:
 
 * A keystore that holds secrets, such as private keys.
-* A Lightning Network node that communicates on the Peer-to-Peer network, as described previously.
+* A Lightning Network node (Lightning node) that communicates on the Peer-to-Peer network, as described previously.
 * A Bitcoin node that stores blockchain data and communicates with other Bitcoin nodes.
+* A database "map" of nodes and channels that are announced on the Lightning network
+* A "gossip" participant that learns about nodes and channels on the network to construct the "map" of the network.
 * A channel data store containing state about channels on the Lightning Network as well as signatures to settle them.
 * A channel manager that can open and close Lightning Network channels.
 * A path-finding system that can identify a path of connected channels from payment source to payment destination.
@@ -52,9 +47,9 @@ In <<lnwallet-categories>> we see the three broad categories of lightning wallet
 | Custodial Wallet     | 3rd-party node | Custodial     | Low
 |===
 
-Lightning wallets can be installed on a variety of devices, including laptops, servers, and mobile devices. To run an LN node and a Bitcoin node, you will need to use a server or desktop computer, as mobile devices and laptops are usually not powerful enough in terms of capacity, processing, battery life, and connectivity.
+Lightning wallets can be installed on a variety of devices, including laptops, servers, and mobile devices. To run an full Lightning node (one that participates in "gossip" and creates its own map of the network for path finding and routing) you will need to use a server or desktop computer, as mobile devices and laptops are usually not powerful enough in terms of capacity, processing, battery life, and connectivity.
 
-In <<lnwallet-examples>> we see some examples of currently popular LN node and wallet applications for different types of devices.
+In <<lnwallet-examples>> we see some examples of currently popular Lightning node and wallet applications for different types of devices.
 
 // TODO: Add a lot more wallet/node examples, confirm the details for correctness
 [[lnwallet-examples]]
@@ -75,15 +70,15 @@ In <<lnwallet-examples>> we see some examples of currently popular LN node and w
 
 Lightning wallets have to strike a careful balance between complexity and user control. Those that give the user the most control over their funds, the highest degree of privacy, and the greatest independence from third party services are necessarily more complex and difficult to operate. As the technology advances, some of these trade-offs will become less stark, and users may be able to get more control without more complexity. However, for now, different companies and projects are exploring different positions along this control-complexity spectrum and hoping to find the "sweet spot" for the users they are targeting.
 
-When selecting a wallet, keep in mind that even if you don't see these trade-offs, they still exist. For example, many wallets will attempt to remove the burden of channel management from its users. To do so, they introduce central "hub" nodes that their wallets all connect to automatically. While this trade-off simplifies the user interface and user experience, it introduces a Single Point of Failure (SPoF) and a potential privacy compromise, as these "hub nodes" become indispensable and can see all the user's transactions.
+When selecting a wallet, keep in mind that even if you don't see these trade-offs, they still exist. For example, many wallets will attempt to remove the burden of channel management from its users. To do so, they introduce central "hub" nodes that their wallets all connect to automatically. While this trade-off simplifies the user interface and user experience, it introduces a Single Point of Failure (SPoF) as these "hub nodes" become indispensable for the wallet operation. Furthermore, relying on a "hub" like this can reduce user privacy, since the hub knows the sender and potentially (if constructing the payment route on behalf of the user) also the recipient of each payment made by the user's wallet.
 
-In the next section, we will introduce our first user and walk through their first LN wallet setup. We have chosen a wallet that is more sophisticated than the easier custodial wallets. This is because we want to show some of the underlying complexity and introduce some of the inner workings of the wallet during our example. You may find that your first ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own LN and Bitcoin nodes as part of your wallet solution.
+In the next section, we will introduce our first user and walk through their first Lightning wallet setup. We have chosen a wallet that is more sophisticated than the easier custodial wallets. This is because we want to show some of the underlying complexity and introduce some of the inner workings of the wallet during our example. You may find that your first ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own LN and Bitcoin nodes as part of your wallet solution.
 
 === Alice's First LN Wallet
 
-Alice is a long time Bitcoin user. We first met Alice in Chapter 1 of _"Mastering Bitcoin"_ footnote:["Mastering Bitcoin 2nd Edition, Chapter 1" Andreas M. Antonopoulos (https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch01.asciidoc).], when she bought a cup of coffee from Bob's cafe, using a bitcoin transaction. Now, Alice is eager to learn about and experiment with the Lightning Network. First, she has to select a LN wallet that meets her needs.
+Alice is a long time Bitcoin user. We first met Alice in Chapter 1 of _"Mastering Bitcoin"_ footnote:["Mastering Bitcoin 2nd Edition, Chapter 1" Andreas M. Antonopoulos (https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch01.asciidoc).], when she bought a cup of coffee from Bob's cafe, using a bitcoin transaction. Now, Alice is eager to learn about and experiment with the Lightning Network. First, she has to select a Lightning wallet that meets her needs.
 
-Alice does not want to entrust custody of her bitcoin to third parties. She has learned enough about cryptocurrency to know how to use a wallet. She also wants a mobile wallet so that she can use it for small payments on-the-go, so she chooses the _Eclair_ wallet, a popular non-custodial mobile LN wallet.
+Alice does not want to entrust custody of her bitcoin to third parties. She has learned enough about cryptocurrency to know how to use a wallet. She also wants a mobile wallet so that she can use it for small payments on-the-go, so she chooses the _Eclair_ wallet, a popular non-custodial mobile Lightning wallet.
 
 ==== Downloading and Installing a LN Wallet
 
@@ -97,7 +92,7 @@ Alice uses an Android device and will use the Google Play Store to download and 
 .Eclair Mobile in the Google Play Store
 image:images/eclair-playstore.png["Eclair wallet in the Google Play Store"]
 
-Alice notices a few different elements on this page, that help her ascertain that this is, most likely, the correct "Eclair Mobile" wallet she is looking for. Firstly, the organization "ACINQ" footnote:[ACINQ: Developers of the Eclair Mobile LN wallet (https://acinq.io/).] is listed as the developer of this mobile wallet, which Alice knows from her research is the correct developer. Secondly, the wallet has been installed "10,000+" times and has more than 320 positive reviews. It is unlikely this is a rogue app that has snuck into the Play Store. Satisfied by these findings, Alice installs the Eclair app on her mobile device.
+Alice notices a few different elements on this page, that help her ascertain that this is, most likely, the correct "Eclair Mobile" wallet she is looking for. Firstly, the organization "ACINQ" footnote:[ACINQ: Developers of the Eclair Mobile Lightning wallet (https://acinq.io/).] is listed as the developer of this mobile wallet, which Alice knows from her research is the correct developer. Secondly, the wallet has been installed "10,000+" times and has more than 320 positive reviews. It is unlikely this is a rogue app that has snuck into the Play Store. Satisfied by these findings, Alice installs the Eclair app on her mobile device.
 
 [WARNING]
 ====
@@ -152,7 +147,7 @@ After Alice initializes her Eclair Mobile wallet, she will see a brief tutorial 
 
 === Loading Bitcoin Into the Wallet
 
-Alice now has a LN wallet. But, it's empty! She now faces one of the more challenging aspects of this experiment: she has to find a way to acquire some bitcoin and load it onto her Eclair wallet.
+Alice now has a Lightning wallet. But, it's empty! She now faces one of the more challenging aspects of this experiment: she has to find a way to acquire some bitcoin and load it onto her Eclair wallet.
 
 [[acquiring-bitcoin]]
 ==== Acquiring Bitcoin
@@ -175,7 +170,7 @@ Let's assume Alice has found a local Bitcoin ATM and has decided to buy some bit
 .A Lamassu Bitcoin ATM
 image:images/bitcoin-atm.png[]
 
-To receive the bitcoin in her Eclair LN wallet, Alice will need to present a _Bitcoin Address_ from the Eclair LN wallet to the ATM. The ATM can then send Alice's newly acquired bitcoin to this bitcoin address.
+To receive the bitcoin in her Eclair Lightning wallet, Alice will need to present a _Bitcoin Address_ from the Eclair Lightning wallet to the ATM. The ATM can then send Alice's newly acquired bitcoin to this bitcoin address.
 
 To see a Bitcoin Address on the Eclair wallet, Alice must swipe to the left column titled "YOUR BITCOIN ADDRESS" (see <<eclair-receive>>), where she will see a square barcode (called a _QR code_) and a string of letters and numbers below.
 
@@ -214,19 +209,19 @@ Finally, if Alice bought bitcoin from a crypto-currency exchange, she could (and
 
 Alice's bitcoin is now controlled by her Eclair wallet and has been recorded on the Bitcoin Blockchain. At this point, Alice's bitcoin is "on-chain," meaning that the transaction has been broadcast to the entire Bitcoin network, verified by all Bitcoin nodes, and "mined" (recorded) onto the Bitcoin blockchain.
 
-So far, the Eclair Mobile wallet has behaved only as a Bitcoin wallet, and Alice hasn't used the Lightning Network features of Eclair. As is the case with many LN wallets, Eclair bridges Bitcoin and the Lightning Network by acting as both a Bitcoin wallet and a Lightning wallet.
+So far, the Eclair Mobile wallet has behaved only as a Bitcoin wallet, and Alice hasn't used the Lightning Network features of Eclair. As is the case with many Lightning wallets, Eclair bridges Bitcoin and the Lightning Network by acting as both a Bitcoin wallet and a Lightning wallet.
 
 Now, Alice is ready to start using the Lightning Network by taking her bitcoin "off-chain," so she can take advantage of the fast, cheap, and private payments that the Lightning Network offers.
 
 ==== Lightning Network Channels
 
-Swiping right, Alice accesses the "LIGHTNING CHANNELS" section of Eclair. Here she can manage the LN channels that will connect her wallet to the Lightning Network.
+Swiping right, Alice accesses the "LIGHTNING CHANNELS" section of Eclair. Here she can manage the channels that will connect her wallet to the Lightning Network.
 
-Let's review the definition of a "Lightning Network Channel" at this point, to make things a bit clearer. Firstly, the word "channel" is a metaphor for a _financial relationship_ between Alice's LN wallet and another LN wallet. We call it a channel because it is a means for Alice's wallet and this other wallet to exchange many payments with each other on the Lightning Network (off-chain), without committing transactions to the Bitcoin Blockchain (on-chain).
+Let's review the definition of a "Lightning Network Channel" at this point, to make things a bit clearer. Firstly, the word "channel" is a metaphor for a _financial relationship_ between Alice's Lightning wallet and another Lightning wallet. We call it a channel because it is a means for Alice's wallet and this other wallet to exchange many payments with each other on the Lightning Network (off-chain), without committing transactions to the Bitcoin Blockchain (on-chain).
 
 The wallet or _node_ that Alice opens a channel to is called her _channel peer_. Once "opened," a channel can be used to send many payments back and forth between Alice's wallet and her channel peer.
 
-Furthermore, Alice's channel peer can _forward_ payments via other channels further into the Lightning Network. This way, Alice can _route_ a payment to any wallet (e.g. Bob's LN wallet) as long as Alice's wallet can find a _path_ made by hopping from channel to channel, all the way to Bob's wallet.
+Furthermore, Alice's channel peer can _forward_ payments via other channels further into the Lightning Network. This way, Alice can _route_ a payment to any wallet (e.g. Bob's Lightning wallet) as long as Alice's wallet can find a _path_ made by hopping from channel to channel, all the way to Bob's wallet.
 
 All this to say: Alice needs one or more channels that connects her to one or more other nodes on the Lightning Network. She doesn't need a channel to connect her wallet directly to Bob's Cafe in order to send Bob a payment, though she can choose to open a direct channel too. Any well-connected node in the Lightning Network can be used for Alice's first channel. In this example, since we want to also demonstrate payment routing, we won't have Alice open a channel directly to Bob's wallet. Instead, we will have Alice open a channel to a well-connected node and then later use that node to forward her payment, routing it through any other nodes as necessary to reach Bob.
 
@@ -243,7 +238,7 @@ Alice presses the plus symbol and is presented with four possible ways to open a
 * Random node
 * ACINQ node
 
-A "node URI" is a Universal Resource Identifier (URI) that identifies a specific LN node. Alice can either paste such a URI from her clipboard or scan a QR code containing that same information. An example of a node URI is shown as a QR code in <<node-URI-QR>> and below it as a text string:
+A "node URI" is a Universal Resource Identifier (URI) that identifies a specific Lightning node. Alice can either paste such a URI from her clipboard or scan a QR code containing that same information. An example of a node URI is shown as a QR code in <<node-URI-QR>> and below it as a text string:
 
 [[node-URI-QR]]
 .node URI as a QR code
@@ -255,7 +250,7 @@ image:images/node-URI-QR.png[width=120]
 0237fefbe8626bf888de0cad8c73630e32746a22a2c4faa91c1d9877a3826e1174@1.ln.aantonop.com:9735
 ++++
 
-While Alice could select a specific LN node, or use the "Random node" option to have the Eclair wallet select a node at random, she will select the "ACINQ Node" option to connect to one of ACINQ's well-connected LN nodes.
+While Alice could select a specific Lightning node, or use the "Random node" option to have the Eclair wallet select a node at random, she will select the "ACINQ Node" option to connect to one of ACINQ's well-connected Lightning nodes.
 
 Choosing the ACINQ node will slightly reduce Alice's privacy, as it will give ACINQ the ability to see all of Alice's transactions. It will also create a Single Point of Failure, since Alice will only have one channel, and if the ACINQ node is not available, Alice will not be able to make payments. To keep things simple at first, we will accept these trade-offs. In subsequent chapters we will gradually learn how to gain more independence and make fewer trade-offs!
 
@@ -294,7 +289,7 @@ Did you notice that the channel amount seems to have changed? It hasn't: the cha
 
 Alice now has everything ready to start using the Lightning Network. As you can see, it took a bit of work and a bit of time waiting for confirmations. However, now things get very fast and easy. The Lightning Network enables payments without having to wait for confirmations, as funds get settled in seconds.
 
-Alice grabs her mobile device and runs to Bob's Cafe in her neighborhood. She is excited to try her new LN wallet and use it to buy something!
+Alice grabs her mobile device and runs to Bob's Cafe in her neighborhood. She is excited to try her new Lightning wallet and use it to buy something!
 
 ==== Bob's Cafe
 
@@ -336,4 +331,4 @@ Alice presses "PAY," and a second later, Bob's tablet shows a successful payment
 
 === Conclusion
 
-In this chapter, we followed Alice as she downloaded and installed her first LN wallet, acquired and transferred some bitcoin, opened her first LN channel, and bought a cup of coffee by making her first payment on the Lightning Network. In the following chapters, we will look "under the covers" at how each component in the Lightning Network works, and how Alice's payment reached Bob's Cafe.
+In this chapter, we followed Alice as she downloaded and installed her first Lightning wallet, acquired and transferred some bitcoin, opened her first LN channel, and bought a cup of coffee by making her first payment on the Lightning Network. In the following chapters, we will look "under the covers" at how each component in the Lightning Network works, and how Alice's payment reached Bob's Cafe.

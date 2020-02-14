@@ -2,8 +2,9 @@
 [[intro_what_is_the_lightning_network]]
 == Introduction
 
-Welcome to Mastering the Lightning Network or "LN" as we'll call it throughout the book!
-The LN is a protocol for using Bitcoin in a smart and non obvious way.
+Welcome to Mastering the Lightning Network (LN)!
+
+The Lightning Network is a protocol for using Bitcoin in a smart and non obvious way.
 Thus it is a second layer technology on top of Bitcoin.
 It is changing the way people exchange value online and it's one of the most exciting advancements to happen to the Bitcoin network over the past few years. Right now, LN is in its infancy. In concept it's about 5 years old, in implementation about 3 years old. We're only beginning to see the opportunities LN provides including improved privacy, speed, and scale. With core knowledge of LN, you can help shape the future of the network while building opportunities for yourself as well. Some basic knowledge about Bitcoin is assumed but can be readily acquired by reading the first two chapters of _Mastering Bitcoin_ which are available for free online.
 
@@ -11,7 +12,11 @@ While the bulk of this book is written for programmers, the first two chapters a
 
 === Motivation for the Lightning Network
 
-As Bitcoin grows, and the demand for transactions grows, the number of transactions in each block will increase until eventually hitting the block size limit. When blocks are full, excess transactions are left to wait in a queue. Many users increase the fees they're willing to pay in order to buy space for their transaction in the next block. At the same time an increasing number of users are left behind. Their transactions, e.g. microtransactions such as common small spendings, are not economically qualified to be on the network. However, simply increasing block size does not solve the problem because it has the undesirable effect of centralizing the network. Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. As such, the greater the block size, the greater the processing and storage requirements for each individual node. The greater the requirements, the fewer the nodes that will ultimately be run. But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?
+As Bitcoin grows, and the demand for transactions grows, the number of transactions in each block will increase until eventually hitting the block size limit. When blocks are full, excess transactions are left to wait in a queue. Many users increase the fees they're willing to pay in order to buy space for their transaction in the next block. At the same time an increasing number of users are left behind. Their transactions, e.g. microtransactions such as common small spendings, are not economically qualified to be on the network. However, increasing block size simply shifts the problem to node operators, where each increase is multiplied by an order of magnitude.
+
+Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. Furthermore, once validated, each transaction and block must be propagated to the node's "neighbors", multiplying the bandwidth requirements. As such, the greater the block size, the greater the bandwidth, processing, and storage requirements for each individual nodes, effectively limiting the amount of scaling that can be done this way. Furthermore, scaling in this way has an undesirable side effect of centralizing the network by reducing the number of nodes and node operators. Since node operators are not compensated for running nodes, if nodes are very expensive to run, only a few well funded node operators will continue to run nodes.
+
+But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?
 
 In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_ footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network:
 Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-network-paper.pdf).] In the meanwhile outdated whitepaper, Poon and Dryja estimate that in order for Bitcoin to reach the 47,000 transactions per second processed at peak by Visa, it would require 8 GB blocks. This would make running a node completely untenable for anyone but large scale enterprises and industrial grade operations. The result would be a network in which only a few users can actually validate the state of the ledger, which ultimately breaks the trust model of Bitcoin.
@@ -19,7 +24,7 @@ Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-networ
 The Lightning Network proposes a new network, a "second layer", where users can make payments to each other peer-to-peer, without the necessity to publish a transaction to the Bitcoin blockchain every time.
 Users may pay each other on the Lightning Network as many times as they want, making use of the Bitcoin blockchain only in order to load bitcoin onto the network initially and to "settle", that is: remove bitcoin from the Lightning Network.
 The result is that many more Bitcoin payments can take place "off-chain", with only the initial loading and final settlement transactions needing to be validated and stored by Bitcoin nodes.
-Aside from reducing the burden on nodes, payments on the LN will be cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published to all participants of the network.
+Aside from reducing the burden on nodes, payments on the Lightning Network will be cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published to all participants of the network.
 
 While the Lightning Network was initially conceived for Bitcoin, it can be implemented on any blockchain that meets its technical requirements.
 
@@ -27,17 +32,17 @@ While the Lightning Network was initially conceived for Bitcoin, it can be imple
 
 As we start exploring the Lightning Network, we will encounter some technical terminology that might, at first, be confusing and a bit difficult to understand. While all of these concepts and terms will be explained in detail as we progress through the book, and are defined in the glossary, we need some basic explanations to get started. Here are some of the concepts you will encounter in the first two chapters of this book:
 
-Node:: A computer that participates in a network. A LN node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run a LN node and a Bitcoin node.
+Node:: A computer that participates in a network. A Lightning node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run a Lightning node and a Bitcoin node.
 
-Blockchain:: A distributed transaction ledger, produced by a network of computers. Bitcoin, for example, is a system that produces a blockchain. The Lightning Network is not itself a blockchain, nor does it produce a blockchain, it is a network that relies on existing blockchains for its security.
+Blockchain:: A distributed transaction ledger, produced by a network of computers. Bitcoin, for example, is a system that produces a blockchain. The Lightning Network is not itself a blockchain, nor does it produce a blockchain, it is a network that relies on an existing blockchain for its security.
 
 Transaction:: A data structure that records the transfer of control over some funds (e.g. some bitcoin). The Lightning Network relies on Bitcoin transactions (or those of another blockchain), to track control of funds.
 
-Payment:: When value is exchanged on the LN we call this a payment as the term Transaction is the technical term for entries on the Bitcoin Blockchain.
+Payment:: When value is exchanged on the Lightning Network we call this a payment as the term Transaction is the technical term for entries on the Bitcoin Blockchain.
 
-Payment Channel:: A _financial relationship_ between two nodes on the Lightning Network, typically implemented by multi-signature Bitcoin transactions that share control over bitcoin between the two LN nodes.
+Payment Channel:: A _financial relationship_ between two nodes on the Lightning Network, typically implemented by multi-signature Bitcoin transactions that share control over bitcoin between the two Lightning nodes.
 
-On-Chain/Off-Chain:: A payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between LN nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments.
+On-Chain/Off-Chain:: A payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between Lightning nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments.
 
 More detailed definitions of these and many other terms can be found in the <<glossary>>. Throughout this book we will explain what these concepts mean and how these technologies actually work.
 
@@ -87,4 +92,4 @@ Wei is an entrepreneur who sells information services related to the Lightning N
 
 === Chapter Summary
 
-In this chapter we looked at the history of the Lightning Network and the motivations behind second layer scaling solutions for Bitcoin and other blockchain based networks. We learned basic terminology including node, payment channel, on-chain transactions and off-chain payments. Finally, we met Alice, Bob, Saanvi, John, Gloria, Farel, and Wei who we'll be following throughout the rest of the book. In the next chapter we'll meet Alice and walk through her thought process as she selects an LN wallet and prepares to make her first LN payment, to buy a cup of coffee from Bob's Cafe.
+In this chapter we looked at the history of the Lightning Network and the motivations behind second layer scaling solutions for Bitcoin and other blockchain based networks. We learned basic terminology including node, payment channel, on-chain transactions and off-chain payments. Finally, we met Alice, Bob, Saanvi, John, Gloria, Farel, and Wei who we'll be following throughout the rest of the book. In the next chapter we'll meet Alice and walk through her thought process as she selects a Lightning wallet and prepares to make her first LN payment, to buy a cup of coffee from Bob's Cafe.
