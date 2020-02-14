@@ -140,9 +140,8 @@ Due to the potentially high fees and confirmation times, bitcoin on the Bitcoin 
 Alice wants to open a payment channel with Mallory but she is not yet fully aware of the Lightning Network Protocol.
 She creates a new private and corresponding public key and talks to Mallory who does the same and sends her public key to Alice.
 Now Alice prepares a Bitcoin Transaction sending a few mBTC to the multisignature address that was created from Alice's and Mallory's key.
-As Alice wasn't aware of the protocol to open the channel she now has to trust Mallory.
-Mallory on the other side has the chance to execute a blackmail attack on Alice.
-Alice needs a signature from Mallory to send Alice's funds from the multisignature address back to an address controlled by Alice.
+As Alice wasn't aware of the protocol to open the channel she now has to trust that Mallory will provide her signature if Alice wants to spend from the multisignature address.
+Mallory on the other side has the chance to execute a blackmail attack on Alice by holding back her signature and denying Alice access to her funds.
 
 In order to prevent Mallory from committing such an attack Alice will need to create a spend transaction from the funding transaction and have that transaction signed from Mallory before she broadcasts her funding transaction to the Bitcoin network.
 The transaction protecting Alice is called Commitment transaction and we will study it now.
@@ -159,17 +158,19 @@ Let us assume Alice opens a channel with a capacity of 10 mBTC with Bob.
 Naturally one would assume that Alice should still be in the possession of the 10 mBTC.
 This can actually be easily achieved with the following construction:
 
-. Alice creates a new private / public key pair and informs Bob that she wishes to open a channel.
-. Bob also creates a new private / public key pair and agrees to Alice to accept a channel from Alice while sending his public key to Alice.
+. Alice creates a new private / public key pair and informs Bob that she wishes to open a channel via the `open_channel` message.
+. Bob also creates a new private / public key pair and agrees to Alice to accept a channel from Alice while sending his public key to Alice via the `accept_channel` message.
 . Alice now creates a funding transaction from her wallet that sends 10 mBTC to the multisignature address with a locking script `2 <Public Key A> <Public Key B> 2 CHECKMULTISIG`.
-. Alice does not broadcast the funding transaction but informs Bob about the transaction id of the funding transaction.
+. Alice does not broadcast the funding transaction but informs Bob about the transaction id of the funding transaction by sending a `funding_created` message.
 . Both Alice and Bob create their version of a commitment transaction. This Transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
-. Alice provides a signature for Bob's Commitment Transaction and Bob provides a signature for Alice's Commitment Transaction.
+. Alice provides a signature for Bob's Commitment Transaction. This signature was already included to the `funding_created` message.
+. Bob provides a signature for Alice's Commitment Transaction and sends this back to Alice via the `funding_signed` message.
 . Only after signatures have been exchanged Alice will broadcast the funding transaction to the bitcoin network.
 
 With this protocol Alice did not give up ownership of her 10 mBTC even though the funds have been sent to a 2-2 multisignature wallet for which Alice controls only one key.
 If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
-She will only have lost the fees for the two on chain transactions. As long as she follows the protocol and has her node secured this is her only risk when opening a channel.
+She will only have lost the fees for the two on chain transactions.
+As long as she follows the protocol and has her node secured this is her only risk when opening a channel.
 
 The commitment transactions will not only serve the purpose of allowing Alice to withdraw her funds directly after opening the channel in case Bob does not answer.
 More commitment transactions are created during the lifetime of the channel to encode the balance between Alice and Bob.
@@ -207,11 +208,16 @@ Luckily the secrets are rather small and it is only the channel partners who nee
 Still managing the revocation secrets is one of the more tricky parts of Lightning nodes that hinders node operators to maintain backups.
 Watchtower services or switching to the aforementioned eltoo channels might be future strategies to mitigate these problems.
 
+With the timelocks in place Alice can close the channel at any time if Bob does not respond.
+She has to wait for the time lock until she can spend her funds from the commitment transaction after the commitment transaction has a confirmation.
+Other than that and the fees for opening and closing a channel there comes no additional burden with maintaining a payment channel.
+
 ==== Announcing the channel
 Channel partners can agree to publicly announce the channel over the gossip protocol that comes with the Lightning Network.
 This is useful as other nodes will then be able to utilize this channel to route payments to other participants of the network.
 Note that even for private channels which are not announced over the gossip protocol, the funding transaction is always publicly stored in the Bitcoin blockchain.
 However as it is just a regular transaction to a 2-2 multisignature address, participants of the Bitcoin Network do not know if this particular transaction is used to maintain a payment channel.
+Private channel can still be used in routing payments but only by the subset of nodes who are aware of their existence.
 If a channel and its capacity is publicly announced on the gossip protocol, the channel partners will also be able to announce some meta data about the channel.
 This meta data includes the routing fees a node charges to forward payments on that channel, information about what kind and how many Hash Time-Locked Contracts (HTLCs) will be accepted.
 As we have not discussed HTLCs yet we will just mention that they are additional conditional outputs in the commitment transactions used for routing payments and for updating the channel balance.
@@ -228,6 +234,7 @@ However sometimes there is the necessity that you have to close a channel. For e
 * You have become aware of the fact that your computer got compromised and you want to secure your funds by sending them to cold storage.
 * Your channel partner might be offline for too much time so that you cannot utilize the funds in that channel.
 * After analyzing your routing statistics, as well as the network topology, you might have come to the conclusion that it might be better to close some channels and open some new ones.
+* Your channel partner might have breached the protocol - due to a software bug or on purpose and you have to protect your funds.
 
 There are 3 ways to close a payment channel:
 
@@ -239,7 +246,7 @@ Not all ways could be chosen for each of the above mentioned reasons.
 For example if your channel partner is offline you will not be able to engage in the good way to do a mutual close.
 The good news for you is that you Lightning Network software will most likely automatically select the best closing mechanism that can currently be used if you ask the software to close the channel or if the software discovers an issue with your channel partner and follows the protocol specification which in most of such cases state that the channel shall be closed.
 
-===== Examining the mutual close
+===== Examining the god way - mutual close
 The preferred and good way to close a channel is the mutual close.
 When you decide that you want to close the channel, your Lightning Network node will inform your channel partner about your intention.
 Now the channel will be prepared for shutting down.
@@ -252,50 +259,62 @@ The on chain transaction fees of the shutdown transaction for closing the channe
 As both nodes sign the shutdown transaction they have the chance to pay small fees for the Bitcoin transaction by using their on-chain fee estimator.
 Even though there is a potential waiting time this type of channel close is usually faster than the bad way.
 
-===== Examining the force close
+===== Examining the bad way - force close
 In case your node cannot engage to a mutual close (most likely because your channel partner is either offline or not responding) you will have to do a force close.
 This is done by publishing the latest commitment transaction that your node has.
 As discussed before the Bitcoin network has no way of knowing if this was the most recent commitment transaction or an old one which you might have published for a financial gain.
 Thus after that transaction was mined you will have to wait for the timelock of your output to expire until you can spend your own funds.
-Also the on-chain fees will be much higher for several reasons.
-The most obvious reason is that when the commitment transaction was negotiated you and your channel partner would not know how high the on chain fees might be at the time the force close is taking place.
-As the fees cannot be changed without reasigning outputs of the commitment transaction which needs to signatures and as the force close usually should happen in an urgent situation the protocol developer decided to be very generouse with the fee rate for the commitment transactions.
-It can be up to 5 times higher than the fee estimators would suggest at the time the commitment transaction is negotiated.
-There are more reasons for the more expensive fees.
-The pending routing attempts in the commitment transaction are encoded as additional outputs which take up more space and will also hit the chain.
-In particular those routing attempts will have to be resolved on chain by additional spends.
-These additional spends don't have to overestimate the fees but it still adds to the bill.
+The output of your channel partner is not encumbered with a time lock and can be spent directly.
+The on-chain fees will be much higher than in the good way of the mutual close for several reasons:
+
+* The most obvious reason is that when the commitment transaction was negotiated you and your channel partner would not know how high the on chain fees might be at the time the force close is taking place.
+As the fees cannot be changed without reasigning outputs of the commitment transaction which needs to signatures and as the force close usually should happen in an urgent situation the protocol developer decided to be very generouse with the fee rate for the commitment transactions. It can be up to 5 times higher than the fee estimators would suggest at the time the commitment transaction is negotiated.
+* The pending routing attempts in the commitment transaction are encoded as additional outputs which take up more space and will also hit the chain.
+* In particular those routing attempts will have to be resolved on chain by additional spends. These additional spends don't have to overestimate the fees but it still adds to the bill.
+
 In general you should not do a force close unless it is absolutely necessary.
 Your funds will be locked for a longer time and the person who opened the channel will have to pay higher fees. Also you might have to pay on-chain fees to abort or settle routing attempts - even if you haven't opened the channel.
 
-===== Examining the ugly way to close a channel
-In case you channel partner tries to cheat you - weather deliberate or not - by publishing an outdated state, you will be able to catch this cheating attempt and collect on the outputs by using the revocation secret you had previously received to negotiate a newer state of the channel.
+===== Examining the ugly way - protocol breach
+In case your channel partner tries to cheat you - weather deliberate or not - by publishing an outdated commitment transaction, you will be able to use the timelock to catch this cheating attempt and collect on the outputs by using the revocation secret you had previously received to negotiate a newer state of the channel.
 This close can actually go in two ways.
 First if you catch your partner in time you will claim their funds. In that case the closing will be rather fast. Also you will have to pay the on chain fees which could be really high if there is a lot of demand for transactions going on at that time.
 This should not bother you as you just gained the entire channel capacity.
 Second if you did not catch the cheating attempt then your channel partner will be able to collect their outputs after the time lock expired.
-In that case the fees of the commitment transaction are again paid by the partner who opened the channel and the fees for collecting the outputs are paid by the person who committed the closing operation.
+In that case the fees of the commitment transaction are again paid by the partner who opened the channel and the fees for collecting the outputs are paid by the person controlling the output that is being collected.
 Also all the routing attempts will have to be resolved just as in the force close.
 While this method could be fully executed faster than the good and the bad way to close the channel, it is obviously never recommended to engage in this channel closing protocol.
 
 === Invoices
 
-An alternative structure for the subsections of the invoice section (while covering the same topics) could be: (creating, decoding, paying as 3 sub chapters)
-
-* creating invoices
-* decoding invoices
-* bech32 encoding and human readable part of invoices
+Every payment on the Lightning Network starts with a person who wants to receive Bitcoins issuing an invoice.
+The main reason for this process is that it helps to make the payment process over a path of payement channels atomic.
+Atomic means that no node on the path can decide to take the money that is being routed and stop the routing process.
+The payment will either scuccessfully be transfered through the path of nodes or will not have been delivered.
+There are no such things as a partial payment or half successfull payment.
+While Lightning Nodes usually use the encrypted communication channels over the peer to peernetwork to exchange information invoices are being transfered via a second communication channel.
+This could be via a Webservice or Email.
+Invoices are usually encoded either as long bech32 strings or as QR codes which makes them easy to be scanned by smartphones.
+Obviously the invoices contains the amount of bitcoin that is requested and a signature of the payee.
+The later is used to extract the address of the payee so that the payer knows whom to send the money.
+Besides some other meta data the most important but not quite obvious data in the invoice is a Payment Hash.
 
 ==== Payment Hash
-* `pre_image` as proof of payment
-* random numbers and selecting the pre_image
+The payee will choose a truely random number `r` and produces the `sha256` of that number which we call the Payment Hash `H(r)`.
+Note that an adversary should have no means of guessing or predicting `r`.
+Using a customer id or the hash of entries of the shopping cart together with a timestamp is not truely random and yields a security risk.
+The payment process of the lightning network is only secure if `r` is choosen completely randomly and is not predictable and as long as the Hash function cannot be inverted.
+We note that this is not an additional security assumption to Bitcoin as the security of the Hash function is currently what Bitcoin mining is building upon. 
 
-==== Meta Data
-* Description
-* routing hints
-* fallback address
-* expire time
-* signature
+==== Additional Meta Data
+Invoices can encode some other useful meta data.
+For example a short discription.
+In case a user has several invoices to pay the user can read the description and make sure what the invoice was about.
+As payment channel do not need to be publically announced the payee can also provide some private channels as routing hints to the invoice.
+These hints can also be used for public channels to point to those channels on which the payee has enough inbound liquidity to actually receive the amount.
+In case the payers lightning node is not able to send the payment over the lightning network invoices can also include a fallback address.
+We would however always recomend to open a new payment channel instead of doing an on chain transaction that does not add an additional payment channel
+Invoiceses also have an expiry time so that the payee can delete the preimage after some time to free up space. 
 
 === Delivering the payment
 
