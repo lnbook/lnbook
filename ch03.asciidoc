@@ -290,9 +290,9 @@ While this method could be fully executed faster than the good and the bad way t
 Every payment on the Lightning Network starts with a person who wants to receive Bitcoins issuing an invoice.
 The main reason for this process is that it helps to make the payment process over a path of payement channels atomic.
 Atomic means that no node on the path can decide to take the money that is being routed and stop the routing process.
-The payment will either scuccessfully be transfered through the path of nodes or will not have been delivered.
-There are no such things as a partial payment or half successfull payment.
-While Lightning Nodes usually use the encrypted communication channels over the peer to peernetwork to exchange information invoices are being transfered via a second communication channel.
+The payment will either scuccessfully be transferred through the path of nodes or will not have been delivered.
+There are no such things as a partial payment or half successful payment.
+While Lightning Nodes usually use the encrypted communication channels over the peer to peernetwork to exchange information invoices are being transferred via a second communication channel.
 This could be via a Webservice or Email.
 Invoices are usually encoded either as long bech32 strings or as QR codes which makes them easy to be scanned by smartphones.
 Obviously the invoices contains the amount of bitcoin that is requested and a signature of the payee.
@@ -300,10 +300,10 @@ The later is used to extract the address of the payee so that the payer knows wh
 Besides some other meta data the most important but not quite obvious data in the invoice is a Payment Hash.
 
 ==== Payment Hash
-The payee will choose a truely random number `r` and produces the `sha256` of that number which we call the Payment Hash `H(r)`.
+The payee will choose a truly random number `r` and produces the `sha256` of that number which we call the Payment Hash `H(r)`.
 Note that an adversary should have no means of guessing or predicting `r`.
-Using a customer id or the hash of entries of the shopping cart together with a timestamp is not truely random and yields a security risk.
-The payment process of the lightning network is only secure if `r` is choosen completely randomly and is not predictable and as long as the Hash function cannot be inverted.
+Using a customer id or the hash of entries of the shopping cart together with a timestamp is not truly random and yields a security risk.
+The payment process of the lightning network is only secure if `r` is chosen completely randomly and is not predictable and as long as the Hash function cannot be inverted.
 We note that this is not an additional security assumption to Bitcoin as the security of the Hash function is currently what Bitcoin mining is building upon.
 
 ==== Additional Meta Data
@@ -313,12 +313,12 @@ In case a user has several invoices to pay the user can read the description and
 As payment channel do not need to be publically announced the payee can also provide some private channels as routing hints to the invoice.
 These hints can also be used for public channels to point to those channels on which the payee has enough inbound liquidity to actually receive the amount.
 In case the payers lightning node is not able to send the payment over the lightning network invoices can also include a fallback address.
-We would however always recomend to open a new payment channel instead of doing an on chain transaction that does not add an additional payment channel
+We would however always recommend to open a new payment channel instead of doing an on chain transaction that does not add an additional payment channel
 Invoiceses also have an expiry time so that the payee can delete the preimage after some time to free up space.
 
 === Delivering the payment
 
-You have already learnt that payments start with the payee creating an invoice which includes a Payment Hash to make sure that payments are atomic and that noone on the path of payment channels can withold the transfered money to their benefit.
+You have already learnt that payments start with the payee creating an invoice which includes a Payment Hash to make sure that payments are atomic and that noone on the path of payment channels can withold the transferred money to their benefit.
 In this section we will dive into the ideas and methods that are being used to deliver a payment over the lightning network and utilizie everything that we have used so far.
 We need to introduce one missing protocol of the Lightning Network which is the gossip protocol.
 
@@ -344,7 +344,7 @@ This topology information is crucually needed for delivering payments through th
 
 [NOTE]
 ====
-A major challange for the participants of the lightning network is that the topology information that is being shared by the gossip protocol is only partial.
+A major challenge for the participants of the lightning network is that the topology information that is being shared by the gossip protocol is only partial.
 For example the capacity of the payment channels is shared on the gossip protocol via the `channel_announcement` message.
 However this information is not as useful as the actual distribution of the capacity into a local balance between the two channel partners.
 This is obvious as a node can only forward the amount of bitcoin via a particular payment channel that it actually owns within that channel.
@@ -358,13 +358,13 @@ While Lightning could have been designed to share balance information of channel
 Payments on the Lightning Network are forwarded a long a path of channels from one participant to another one.
 Thus a path of payment channels has to be selected.
 If we knew the exact channel balances of every channel we would easily be able to compute one of the standard path finding algorithms taught in any computer science program to choose a path for the payment.
-This could even be down in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly foward the payment.
+This could even be down in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
 However as discussed the balance information of all channels is and cannot be available to all participants of the network.
 Thus we need to have some path finding strategy.
 This strategy relates closely to the routing algorithm hat is used.
 As we will see in the next section on the Lightning Network we use a source based onion routing protocol for routing payments.
 This means in particular that the sender of the payment has to find a path through the network.
-As mentioned before with only partial information about the network topology this is a real challange and active research is still being conducted into optimizing this part of the Lightning Network implementations.
+As mentioned before with only partial information about the network topology this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
 The fact that the pathfinding problem is not fully solved for the case of the Lightning Network is a major point of criticism towards the technology.
 On the good side we emphasize that the certainly not optimal strategy - that is currently being used - of probing paths until one has enough liquidity to forward the payment works still rather well.
 Also it is worthwhile to note that this probing is done by the LN node or wallet and is not directly seen by the user of the software.
@@ -374,7 +374,7 @@ The user might only realize that probing is taking place if the payment is not g
 ====
 On the Internet we use the internet protocol and the IP forwading algorithm to forward internet packages from the sender to the destination.
 While the TCP/IP protocol stack allows reliable communication by resending packages that are not acknowledged this mechanism could not be reused directly in the lightning network.
-A payment that is not being forwarded would effectivly mean that the money was stolen by a router and the sender cannot just send out another payment.
+A payment that is not being forwarded would effectively mean that the money was stolen by a router and the sender cannot just send out another payment.
 While the routing protocol together with the border gateway protocol which are used for data and infrmation transport on the internet have the really nice property of allowing the internet hosts to collaboratively finding a path for the information through the internet we cannot reuse and adopt this protocol for forwarding payments on the Lightninh network.
 ====
 
