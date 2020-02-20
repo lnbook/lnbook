@@ -391,9 +391,9 @@ For now we want to focus on its properties for the transport of payments which w
 1. The most important property is that a routing node can only see on which channels it received an onion and on which channel to set up an HTLCs and thus to which peer to forward the onion. This means that no routing node can know who initiated the payment and for whom the payment is supposed to be. The exception of course would be if the node is the recipient. In that case it would know that it was the final destination.
 2. The onions are small enough to fit into a single TCP/IP package and actually even a link layer frame. This will make traffic analysis for intruding the privacy of the payments almost impossible
 3. The Onions are constructed in a way that they will always have the same length independent of the position of the processing node along the path.
-4. Onions can have up to 20 hops included allowing for sufficient long paths.
-5. The encryption of the onion for every hope uses different ephemeral encryption keys with every single onion. Should a key (in particular the private key of the public node key) leak at some point in time an attacker who collected onions cannot decrypt the other onions that have been stored.
-6. Errors can be send back from the erring node in an encrypted way to the original sender. This is particular useful as we have seen that Lightning nodes who initiate the Onions select a path without knowing weather every node has enough liquidity along their channels to forward the payment.
+4. Onions can have up to 20 hops included allowing for sufficiently long paths.
+5. The encryption of the onion for every hop uses different ephemeral encryption keys with every single onion. Should a key (in particular the private key of the public node key) leak at some point in time an attacker who collected onions cannot decrypt the other onions that have been stored.
+6. Errors can be sent back from the erring node in an encrypted way to the original sender. This is particularly useful as we have seen that Lightning nodes who initiate the Onions select a path without knowing whether every node has enough liquidity along their channels to forward the payment.
 
 As mentioned we will discuss the details of the Onion Format later but we note already that the `Payment Hash` while needed to set up the HTLCs for the payment is not transported within the onions.
 The `Payment Hash` is rather included to the Lightning Message that also transports the onion.
