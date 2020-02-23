@@ -347,12 +347,13 @@ Proof-of-Work::
     A piece of data that requires significant computation to find. In Bitcoin, miners must find a numeric solution to the SHA256 algorithm that meets a network-wide target, the difficulty target.
 
 Relative Timelock::
-    TBD.
+    Relative Timelock is a kind of timelock that allows an input to specify the earliest time it can be added to a block based on how long ago (which is relative) the output refered by that input was included in a block. Such a feature is jointly achieved by nSequence field and CheckSequenceVerify opcode, which are introduced by BIP68/112/113. 
 
 Revocable Sequence Maturity Contract::
     This contract is used to construct a payment channel between two Bitcoin or Lightning Network users who do not need to trust each other.
     The name comes from a sequence of states which are encoded as commitment transactions and can be revoked if wrongfully published and mined by the Bitcoin network.
     These contracts are commonly referred to as RSMCs.
+    Unlike a HTLC, whose timeout is to make a HTLC temporary, and therefore should be absolute; a RSMC timeout is meant to only start when a commitment transaction is mined, and therefore should be using a Relative Timelock.
 
 Revocation Key::
     Each Revocable Sequence Maturity Contract contains two revocation keys.
