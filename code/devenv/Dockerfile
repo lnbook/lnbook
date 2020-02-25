@@ -45,22 +45,20 @@ RUN apt-get install -y \
 RUN curl -SL https://dl.google.com/go/go1.13.linux-amd64.tar.gz \
 	| tar -xzC /usr/local
 ENV PATH $PATH:/usr/local/go/bin
-ENV GOPATH /root/gocode
+ENV GOPATH /gocode
+RUN mkdir -p $GOPATH
 ENV PATH $PATH:$GOPATH/bin
 
 # LND
 RUN go get -d github.com/lightningnetwork/lnd
 WORKDIR $GOPATH/src/github.com/lightningnetwork/lnd
 RUN make && make install
-#
-# # OpenJDK11 for eclair
-# RUN mkdir -p /usr/src/openjdk \
-# 	&& curl -SL https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.6%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.6_10.tar.gz \
-# 	| tar -xzC /usr/local
-# ENV PATH $PATH:/usr/local/jdk-11.0.6+10/bin/
-#
-# # eclair-node
-# RUN mkdir -p /usr/src/eclair
-# WORKDIR /usr/src/eclair
-# RUN curl -SL https://github.com/ACINQ/eclair/releases/download/v0.3.3/eclair-node-0.3.3-12ac145.jar -o eclair-node.zip
-# RUN unzip eclair-node.zip
+
+# OpenJDK11 for eclair
+RUN apt install -y \
+	openjdk-11-jdk
+
+# eclair-node
+RUN mkdir -p /usr/src/eclair
+WORKDIR /usr/src/eclair
+RUN curl -SLO https://github.com/ACINQ/eclair/releases/download/v0.3.3/eclair-node-0.3.3-12ac145.jar
