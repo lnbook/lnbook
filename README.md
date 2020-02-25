@@ -14,6 +14,27 @@ The book is suitable for technical readers with an understanding of the fundamen
 
 The authors welcome contributions to this book! Read the [Guide to Contributing](CONTRIBUTING.md)
 
+## Building
+
+This book is written using the open source asciidoctor mark up language.
+To build the book locally you can install asciidoctor package following the steps found at
+
+    https://asciidoctor.org/
+
+
+On a command line you can type
+
+```    asciidoctor *.asciidoc -D output```
+
+and copy the image files in with
+
+```    cp images/ output/```
+
+The generated files will now be found in the 'output' folder and can be opened in a browser.
+
+Please note, it is part of the license agreement that you do not make or share a generated version beyond your own personal use for previewing changes.
+
+
 ## Source and license
 
 Mastering the Lightning Network is released under the Creative Commons CC-BY-NC-ND license, which allows sharing the source code for personal use only. You may read this book for free. You may not create derivatives (such as PDF copies), or distribute the book commercially. The full terms of the license can be found here:
