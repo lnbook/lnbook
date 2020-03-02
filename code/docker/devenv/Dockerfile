@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:1.0-experimental
 FROM ubuntu:18.04
 
 # Install development tools prerequisites
