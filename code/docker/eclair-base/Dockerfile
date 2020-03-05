@@ -1,21 +1,4 @@
-FROM ubuntu:18.04
-
-# Install development tools prerequisites
-RUN apt-get update && apt-get install -y \
-    build-essential \
-	libtool \
-	autotools-dev \
-	automake \
-	pkg-config \
-	python3 \
-	wget \
-	git \
-	curl \
-	unzip
-
-# OpenJDK11 for eclair
-RUN apt install -y \
-	openjdk-11-jdk
+FROM openjdk:11
 
 # eclair-node
 RUN mkdir -p /usr/src/eclair
