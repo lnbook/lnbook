@@ -169,7 +169,7 @@ This can actually be easily achieved with the following construction:
 
 With this protocol Alice did not give up ownership of her 10 mBTC even though the funds have been sent to a 2-2 multisignature wallet for which Alice controls only one key.
 If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
-She will only have lost the fees for the two on chain transactions.
+She will only have lost the fees for the two on-chain transactions.
 As long as she follows the protocol and has her node secured this is her only risk when opening a channel.
 
 The commitment transactions will not only serve the purpose of allowing Alice to withdraw her funds directly after opening the channel in case Bob does not answer.
@@ -255,7 +255,7 @@ Once no further routing attempts are pending, the closing transaction is prepare
 This transaction is similar to the commitment transaction.
 It has the same balance as the commitment transaction but no outputs are encumbered with a time lock.
 As the finish up of the routing attempts could take some time, a mutual close can also take some time.
-The on chain transaction fees of the shutdown transaction for closing the channel in a mutual way are being paid by the party who opened the channel and not as many people think by the person who initiated the closing procedure.
+The on-chain transaction fees of the shutdown transaction for closing the channel in a mutual way are being paid by the party who opened the channel and not as many people think by the person who initiated the closing procedure.
 As both nodes sign the shutdown transaction they have the chance to pay small fees for the Bitcoin transaction by using their on-chain fee estimator.
 Even though there is a potential waiting time this type of channel close is usually faster than the bad way.
 
@@ -267,10 +267,10 @@ Thus after that transaction was mined you will have to wait for the timelock of 
 The output of your channel partner is not encumbered with a time lock and can be spent directly.
 The on-chain fees will be much higher than in the good way of the mutual close for several reasons:
 
-* The most obvious reason is that when the commitment transaction was negotiated you and your channel partner didn't know how high the on chain fees might be at the time the force close is taking place.
+* The most obvious reason is that when the commitment transaction was negotiated you and your channel partner didn't know how high the on-chain fees might be at the time the force close is taking place.
 As the fees cannot be changed without reasigning outputs of the commitment transaction which needs two signatures and as the force close usually should happen in an urgent situation the protocol developers decided to be very generous with the fee rate for the commitment transactions. It can be up to 5 times higher than the fee estimators would suggest at the time the commitment transaction is negotiated.
 * The pending routing attempts in the commitment transaction are encoded as additional outputs which take up more space and will also hit the chain.
-* In particular those routing attempts will have to be resolved on chain by additional spends. These additional spends don't have to overestimate the fees but it still adds to the bill.
+* In particular those routing attempts will have to be resolved on-chain by additional spends. These additional spends don't have to overestimate the fees but it still adds to the bill.
 
 In general you should not do a force close unless it is absolutely necessary.
 Your funds will be locked for a longer time and the person who opened the channel will have to pay higher fees. Also you might have to pay on-chain fees to abort or settle routing attempts - even if you haven't opened the channel.
@@ -278,7 +278,7 @@ Your funds will be locked for a longer time and the person who opened the channe
 ===== Examining the ugly way - protocol breach
 In case your channel partner tries to cheat you - weather deliberate or not - by publishing an outdated commitment transaction, you will be able to use the timelock to catch this cheating attempt and collect on the outputs by using the revocation secret you had previously received to negotiate a newer state of the channel.
 This close can actually go in two ways.
-First if you catch your partner in time you will claim their funds. In that case the closing will be rather fast. Also you will have to pay the on chain fees which could be really high if there is a lot of demand for transactions at that time.
+First if you catch your partner in time you will claim their funds. In that case the closing will be rather fast. Also you will have to pay the on-chain fees which could be really high if there is a lot of demand for transactions at that time.
 This should not bother you as you just gained the entire channel capacity.
 Second if you did not catch the cheating attempt then your channel partner will be able to collect their outputs after the time lock expired.
 In that case the fees of the commitment transaction are again paid by the partner who opened the channel and the fees for collecting the outputs are paid by the person controlling the output that is being collected.
@@ -313,7 +313,7 @@ In case a user has several invoices to pay, the user can read the description an
 As payment channels do not need to be publicly announced, the payee can also provide some private channels as routing hints to the invoice.
 These hints can also be used for public channels to point to those channels on which the payee has enough inbound liquidity to actually receive the amount.
 In case the payer's Lightning node is not able to send the payment over the Lightning Network, invoices can also include a fallback address.
-We would however always recommend to open a new payment channel instead of doing an on chain transaction that does not add an additional payment channel.
+We would however always recommend to open a new payment channel instead of doing an on-chain transaction that does not add an additional payment channel.
 Invoices also have an expiry time so that the payee can delete the preimage after some time to free up space.
 
 === Delivering the payment
