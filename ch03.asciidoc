@@ -77,20 +77,20 @@ The later seem much easier to implement and have a couple of nicer properties.
 However, these "eltoo" channels require a new OP_CODE in the Bitcoin scripting language and can therefore currently not be implemented on top of the Bitcoin mainnet.
 
 ==== Multisig addresses
-Payment channels are smart contracts that build on top of 2-2 multisignature addresses which will be spent by Segwit transactions.
+Payment channels are smart contracts that build on top of 2-out-of-2 multisignature addresses which will be spent by Segwit transactions.
 By knowing the properties of multisignature addresses you will be able to understand the exact construction of payment channels.
-Thus at this point we will not review all the technical details about multisignature addresses and Segwit but just stick to the properties.
-If you know Bitcoin so well that you are familiar with those topics feel free to skip this section.
+However, at this point we will not review all the technical details about multisignature addresses and Segwit but just stick to the basic properties.
+If you know Bitcoin well enough to be familiar with those topics feel free to skip this section.
 
 [TIP]
 ====
 A deep dive into the topic discussed here is presented in chapter 7 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch07.asciidoc.
 Also, in case you are not familiar with P2PKH addresses and the basic format and scripting language of Bitcoin we encourage you to study chapter 6 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc.
-There is also a video on Rene's youtube channel which dissects the Bits and Bytes of a transaction spending from a P2PKH output at: https://youtu.be/1n4g3eYX1UI
+There is also a video on Rene's YouTube channel which dissects the bits and bytes of a transaction spending from a P2PKH output at: https://youtu.be/1n4g3eYX1UI
 ====
 
 To allow escrow services and complex ownership configurations between several stakeholders, the Bitcoin scripting language provides multisignature addresses.
-The general form of a locking script setting an M-of-N multisignature condition is:
+The general form of a locking script setting an M--out-of-N multisignature condition is:
 
 ----
 M <Public Key 1> <Public Key 2> ... <Public Key N> N CHECKMULTISIG
@@ -98,7 +98,7 @@ M <Public Key 1> <Public Key 2> ... <Public Key N> N CHECKMULTISIG
 
 where N is the total number of listed public keys and M is the threshold of required signatures to spend the output.
 
-A special case which is particularly interesting for us is a locking script setting a 2-of-2 multisignature condition.
+A special case which is particularly interesting for us is a locking script setting a 2-out-of-2 multisignature condition.
 It would look like this:
 
 ----
