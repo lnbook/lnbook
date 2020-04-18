@@ -16,6 +16,17 @@ As Bitcoin and the demand for transactions grows, the number of transactions in 
 
 Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. Furthermore, once validated, each transaction and block must be propagated to the node's "neighbors", multiplying the bandwidth requirements. As such, the greater the block size, the greater the bandwidth, processing, and storage requirements for each individual node, effectively limiting the amount of scaling that can be done this way. Furthermore, scaling in this fashion has an undesirable side effect of centralizing the network by reducing the number of nodes and node operators. Since node operators are not compensated for running nodes, if nodes are very expensive to run, only a few well funded node operators will continue to run nodes.
 
+[NOTE]
+====
+The side effects of increasing the block size or the decreasing the block time with respect to centralization of the network are severe as a few calculations with the numbers show. 
+Let us assume the usage of Bitcoin grows so that the network has to process 40.000 transactions per second.
+Assuming 250 Bytes on average per transaction this would result in a data stream of 10 Megabyte per second or 80 Mbit/s just to be able to receive all the transactions.
+This is does not include the traffic overhead of forwarding the transaction inormation to other peers.
+While single hosts on the internet could handle such a load of traffic our current internet would not be able to support this traffic for a large fraction of hosts.
+Also storing this information locally would result in 864000 Megabyte per day. This is roughly 1 Terrabyte of data or the size of a hard drive.
+While verifying 40.000 ECDSA signatures per second seems barely feasable (c.f.: https://bitcoin.stackexchange.com/questions/95339/how-many-bitcoin-transactions-can-be-verified-per-second) nodes could hardly catch up initial sync of the blockchain. 
+====
+
 But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?
 
 In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_ footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network:
