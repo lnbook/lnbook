@@ -11,7 +11,34 @@ This protocol framework is also used by Whatsapp and Wireguard and is very well 
 If you want to learn more we suggest you check out http://www.noiseprotocol.org/
 ====
 
-=== Ligtning Messages
+=== Lightning Messages
+
+Each Lightning Message contains 2 bytes indicating the *type* of message, and a variable-length *payload*.
+A *payload* needs to be interpreted according the *type*.
+
+A Lightning Message falls into one of the following groups:
+
+[cols="3,3,10",options="header"]
+|=======
+| Group           | Type        | Description
+| Setup & Control | 0~31        | Messages related to connection setup, control, supported features, and error reporting
+| Channel         | 32~127      | Messages related to setup and close channels
+| Commitment      | 128~255     | Messages related to updating the current commitment transaction
+| Routing         | 256~511     | Messages related to node and channel announcements, or active route explorations
+| Custom          | 32768~65535 | Experimental or custom messages
+|=======
+
+Lightning Messages follows two forethoughtful rules: "it's OK to be odd" rule and "ignore additional data" rule. Both of them allow for future extension of Lightning Messages.
+
+==== "It's OK to be odd" rule
+
+Lightning Message type follows the _it's ok to be odd_ rule. A node is allowed to send a message of an _odd_-numbered type, but not _even_-numbered type without prior negotiation. Once a node receives an _oddly_-but-unknown-typed message, it should ignore it. However, if it receives an _evenly_-but-unknown-typed message, it is expected to fail the channels.
+
+==== "Ignore additional data" rule
+
+The length of a Lightning Message is a 2-byte unsigned int, so the maximum message size is 65535 bytes.
+
+If a node receives a message with additional data longer than it expects for the corresponding type, the exceeding part will be discarded. On the contrary, if a node receives a message shorter than it expects, it fails the channels.
 
 === Opening a Payment channel
 
