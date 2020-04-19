@@ -1,26 +1,16 @@
 version: "3.3"
 services:
-  bitcoind-base:
-    container_name: bitcoind-base
+  bitcoind-regtest:
+    container_name: bitcoind-regtest
     build:
-      context: ../bitcoind-base/.
+      context: ../bitcoind-regtest/.
       dockerfile: ./Dockerfile
-    image: lnbook/bitcoind_base:latest
-  c-lightning-base:
-    container_name: c-lightning-base
+    image: lnbook/bitcoind_regtest:latest
+    ports:
+    - "12001:12001"
+  lnd-run:
+    container_name: lnd-run
     build:
-      context: ../c-lightning-base
+      context: ../lnd-run
       dockerfile: ./Dockerfile
-    image: lnbook/c-lightning_base:latest
-  lnd-base:
-    container_name: lnd-base
-    build:
-      context: ../lnd-base
-      dockerfile: ./Dockerfile
-    image: lnbook/lnd_base:latest
-  eclair-base:
-    container_name: eclair-base
-    build:
-      context: ../eclair-base
-      dockerfile: ./Dockerfile
-    image: lnbook/eclair_base:latest
+    image: lnbook/lnd_run:latest
