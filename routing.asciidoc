@@ -1,82 +1,108 @@
 [[routing_on_a_network_of_payment_channels]]
 == Routing on a Network of Payment channels
-In this section you will finally understand how paymet channels can be connected to a network of payment channels.
-This allows our gamer Gloria to receive funds from her viewers without being required to maintain a sperate channel with every of her viewrs who want to tip her.
+In this section you will finally understand how payment channels can be connected to a network of payment channels.
+This allows our gamer Gloria to receive funds from her viewers without being required to maintain a separate channel with every of her viewers who want to tip her.
 As long as there exists a path of well funded payment channels from a fan to Gloria she will be able to receive money.
-Despite the fact that the nodes along the path forward the money to Gloria they are not able to steal the money and run.
+Despite the fact that the nodes along the path forward the money to Gloria they are not able to steal the money and run with it.
+Similarly they cannot loose money while participating in the routing process.
 They are however entitled to charge a routing fee for their service.
-Being able to connect payment channels yields the real value proposition behind the lightning network.
-While a single channel between two users already takes load from the Bitcoin network if those users wher to financially interact often a network as described allows off chain payments between arbitrary participants without the need of opening and maintaining a direct payment channel.
+In particular due to the used Onion routing intermediary nodes will not know who is the initiator of the payment and who is the final recipient. 
+Being able to connect payment channels yields the main value proposition behind the lightning network.
+While a single channel between two users already takes load from the Bitcoin network if those users were to financially interact often a network as described allows off chain payments between arbitrary participants without the need of opening and maintaining a direct payment channel between them.
 In this chapter you will first learn in a non technical way how the Bitcoin Network changes its role of being a transaction settlement layer to being a contract settlement layer.
-Afterwards the technical Hashed Time Locked Contracts are introduced and explained so that finally you can learn about the SPHINX mix Format that enables onion routing and privacy of payments so that intermediary nodes do not even learn that a fan of Gloria tips her.
+Afterwards the technical Hashed Time Locked Contracts are introduced and explained.
+You will lear how they are included into the commitment transactions and how neighboring nodes communicate with each other to set the HTLCs up and settle them.
+Finally you will learn about the SPHINX mix Format that enables onion routing which grants payments with a high degree of privacy.
 
 
 === Creating a Network of payment channels
 While technically a few challanges have to be addressed the core idea behind a network of payment channels is quite easy.
-Let us Assume after Alice bought her coffee at Bobs coffee shop whith which she had opened a channel she enjoys the live stream of Gloria who accepts donations via the Lightning Network from her viewers.
-Luckily Bob has an open channel with his the software developer Wei who helps him with technical issues on his point of sale system.
+Let us Assume after Alice bought her coffee at Bobs coffee shop whith which she had opened a channel she enjoys the live stream of our gamer Gloria who accepts donations via the Lightning Network from her viewers.
+Alice and Gloria are not owning a mutual payment channel and do not wish to do so.
+However they are connected via the network of payment channels in the following way.
+Bob has an open channel with his the software developer Wei who helps him with technical issues of the point of sale system he uses in his coffee shop.
 Wei is actually the owner of a large software company which also develops the game that Gloria plays so that she had opened a channel with the company to pay for the games license, access to the server and in game items.
-Now it is easy to understand that Alice could send a tip of a few thousand satoshis to Bob and ask him to forward the money via Wei to Gloria.
+Now it is easy to understand that Alice could use this path of channels to send a tip of a few thousand satoshis to Bob and ask him to forward the money via Wei to Gloria.
 
 [[routing-network]]
-.The Network of payment channels of our friends can be seen here:
+.The network of payment channels of our friends can be seen here:
 image:images/routing-network.png[]
 
-The main challange is to prevent Bob and Wei from stealing the money that Alice wants to be deliverd to Gloria.
-To understand how the Lightning Network protects the payment packages that are being routed through the network we compare the situation of indirect payments with physical payments in the offline world.
-So let us assume Alice wanted to give 10 gold coins to Gloria and decides to ask Bob and Wei for help.
+The main challange is to do this in a way that prevents Bob and Wei from stealing the money that Alice wants to be deliverd to Gloria.
+To understand how the Lightning Network protects the payment packages that are being routed through the network we compare the situation of indirect payments with physical payments with gold coins in the offline world.
+Let us assume Alice wanted to give 10 gold coins to Gloria and decides to ask Bob and Wei for help.
 How could Alice make sure that Bob and Alice do not run with the gold coins after receiving them?
 In the physical world contracts could be used for safely doing such a cascade of payments.
-Alice could negotiate a contract with Bob which says:
+Alice could negotiate a contract with Bob which reads:
 
 _I (Alice) will give you (Bob) 10 golden coins if you pass them on to Wei_ 
 
 While this contract is nice in the real world Alice yields the issue that Bob might just breach the contract and hope not to get caught by law enforcement.
-Even if Bob got caught by law enforcement he might be bankrupt and the money would be gone.
-Let us assume these issues are solved it would still be unclear to from a contract point of view that Wei also has to have a contract with Gloria to deliver the coins.
+Even if Bob got caught by law enforcement Alice faces the risk that he might be bankrupt and her 10 golden coins would be gone anyway.
+Assuming these issues are magically solved it would still be unclear to from a contract point of view that Wei also has to have a contract with Gloria to deliver the coins.
 Thus we improove our contract:
 
 _I (Alice) will reimburse you (Bob) with 10 golden coins if you can proof to me (for example via a receipt) that you already have deliverd 10 golden coins to Wei_
 
-Now you might ask yourself why should Bob sign such a Contract as Bob now has the risk of getting reimbursed. But this issue could be resolved by having an escrow service which Bob and Alice both trust. Alice could already provide the coins and the escrow service would only release them to Bob if Bob shows the proof of delivering the coins to Wei.
+Now you might ask yourself why should Bob sign such a contract as Bob now has the risk of getting reimbursed?
+In economics a risk can usually be priced so Alice could offer a routing fee of 1 Golden coin to Bob and another one to Wei. Thus the contract will be altered onces more:
 
-In fact this proof could include a secret that only Gloria knows but the contract could be commited to this secret for example by includin the hash of the secret to the contract.
-We call this Hash the Payment hash.
+_I (Alice) will reimburse you (Bob) with 12 golden coins if you can proof to me (for example via a receipt) that you already have deliverd 11 golden coins to Wei_
 
-In reality Glory would come up with a large random number as a secret to be really secure and prevent others from guessing the secret.
-But let us assume that in our case the Glorias secret take reads `*Glorias secret*`.
-She would commit to the secret by computing the sha256 hash which - as everyone can verify by using a linux command line - reads `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`
+Alice now promises Bob 12 golden coins.
+10 to be delivered to Gloria and two for the fees.
+She promises 12 to Bob if he shows proof that he has forwarded 11.
+The difference of 1 golden coin is the fee that Bob will earn for helping out with this particular payment process.
+
+As there is still the issue of trust and that even law inforcement does not protect Alice and Bob from mallicous behavior they decide to add an escrow service.
+Of course Alice and Bob both have to trust this escrow service.
+Having such an escrow Alice could already provide the 12 golden coins to that service which would only release them to Bob if Bob shows the proof of delivering 11 golden coins to Wei.
+
+In fact this proof could include a secret that only Gloria knows but the contract could be commited to this secret for example by including the sha256 hash of the secret to the contract.
+We call this hash the payment hash.
+
+In reality Gloria would come up with a large random number as a secret.
+This is to be really secure and prevent others from guessing it.
+But let us assume that in our case Glorias secret take reads `*Glorias secret*`.
+She would commit to the secret by computing the sha256 hash which reads `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`.
+You can verify this by typing `echo "Glorias secret | sha256sum"` to your linux command line.
 
 As Alice wants to send 10 golden coins to Gloria she is told by Gloria to use this payment hash to receive a proof of payment.
 Alice now sets up a contract that reads:
 
-_I (Alice) will reimburse you (Bob) with 10 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. You can aquire this message by setting up a similar Contract with Wei who has to set up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 10 Golden coins to an trusted escrow before you set up your next contract._
+_I (Alice) will reimburse you (Bob) with 12 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. You can aquire this message by setting up a similar Contract with Wei who has to set up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 12 Golden coins to an trusted escrow before you set up your next contract._
 
-After Bob and Alice agree to the contract and Bob receives the message from the escrow that Alice has deposited the 10 golden coins Bob negotiates a very similar contract with Wei.
+After Bob and Alice agree to the contract and Bob receives the message from the escrow that Alice has deposited the 12 golden coins Bob negotiates a very similar contract with Wei.
+Note that due to the service fees he will only forward 11 golden coins to Wei and demand from Wei who also wants to earn a fee of 1 golden coin to show proof that 10 golden coins have been delivered to Gloria.
 
-_I (Bob) will reimburse you (Wei) with 10 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. You can aquire this message by setting up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 10 Golden coins to an trusted escrow before you set up your next contract._
+_I (Bob) will reimburse you (Wei) with 11 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. You can aquire this message by setting up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 11 Golden coins to an trusted escrow before you set up your next contract._
+
 
 As Wei gets message from the escrow that Bob has deposited the 10 golden coins Wei sets up a similar contract with Gloria:
 
 _I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 Golden coins to an trusted escrow._
 
-As Gloria learns from the escrow that the coins where deposited she reveals the secret preimage to Wei which she obviously knows as she created it and commited to it in form of the payment hash.
+As Gloria learns from the escrow that the coins where deposited she reveals the secret preimage to Wei.
+Since she initially came up with the secret and commited to it in form of the payment hash she obviously is able to provide the secrete to Wei and their escrow service.
 Wei takes the preimage as a proof of payment and shows it to Bob.
 The escrow service releases the money so that Wei is reimbursed.
 Now Bob repeats the process by fulfilling the contract between Alice and him with the help of the secret preimage.
 
 With such a chain of contracts Bob and Wei have not been able to run with the money as they actually deposied money first.
-However if Gloria or anyone along this chain does not release the secrete preimage everone has already send golden coins to the escrow service but will never get reimbursed.
-So while noone could steal money people could still loose money.
+However if Gloria or anyone along this chain does not release the secrete preimage everone has already send golden coins to their escrow service but will never get reimbursed.
+So while noone could steal money from Alice everyone could still loose money.
 This is obviously not desireable.
-However this can be resolved by including a deadline to the contract by which it has to be fulfilled or otherwise the contract would be invalidated and the escrow service would return the money to the person who made the original deposit.
-This deadline is also called a time lock as the deposit is locked with the escrow service for a certain amount of time and then released even if no proof of payment was provided.
+Luckily this can be resolved by including a deadline to the contract.
+Reaching the deadline the contract has to be fulfilled or otherwise it would be invalidated and the escrow service would return the money to the person who made the original deposit.
+We call this deadline a time lock as the deposit is locked with the escrow service for a certain amount of time and then released even if no proof of payment was provided.
 
 The Contract between Alice and Bob is appended by the following statement:
 
-_Bob has 24 hours to show the secrete after the contract was signed. If the time has passed Alice will get her deposit back from the escrow service and the contract becomes invalid._
+_Bob has 24 hours to show the secret after the contract was signed. If the time has passed Alice will get her deposit back from the escrow service and the contract becomes invalid._
 
-Bob Of course now has to make sure to get reimbursed more quickly than 24 hours so after he signed the contract he alters the original contract btween him and Wei in the following way:
+Bob of course now has to make sure to get receive the proof of payment faster than in 24 hours.
+If he would receive a later proof the contract between him and Alice would already be nullified and Bob would not get reimbursed.
+After he signed the contract with Alice he alters the original contract btween him and Wei in the following way:
 
 _Wei has 22 hours to show the secrete after the contract was signed. If the time has passed Bob will get his deposit back from the escrow service and the contract becomes invalid._
 
@@ -84,20 +110,201 @@ As you have guessed Wei is now incentiviced to also alter his contract with Glor
 
 _Gloria has 20 hours to show the secrete after the contract was signed. If the time has passed Wei will get his deposit back from the escrow service and the contract becomes invalid._
 
-With such a chain of contracts we can be sure after 24 hours of setting up the first contract that the payment was either successfully delivered from Alice via Bob and Wei to Gloria or that the payment has failed and was not conducted.
+With such a chain of contracts we can be sure that after 24 hours of setting up the first contract that the payment was either successfully delivered from Alice via Bob and Wei to Gloria or that the payment has failed and was not conducted at all.
 It cannot be stuck in the middle of the road.
-Also neither party could have stolen or lost money.
+Also - as long as the escrow service is trustworthy - neither party could have stolen or lost the golden coins in the process.
 There is only the necessity that everyone along this path already had to have some money to be able to provide deposits.
+While this seems like a minor necessity we will see in a later chapter about pathfinding that this requirement is actually one of the harder issues for Lightning Network nodes.
 Also the parties cannot utilize this money while being locked otherwise.
-However they could get their opportunity cost reimbursed by taking a routing fee for forwarding the payment and locking their funds.
-This fee could also be negotiated as part of the contract. 
+However as discussed their opportunity cost is reimbursed by taking a routing fee for forwarding the payment.
 
 In the following two sections you will learn that the bitcoin scripting language is able to set up such contracts which we call hashed time locked contracts.
-You will see that the bitcoin network acts as the trusted third party or escrow for those htlcs as they are created as outputs in this commitment transactions of the payment channels which would be enforced by the bitcoin network in case some party becomes unresponsive.
+You will see that the bitcoin network acts as the trusted third party or escrow for those htlcs.
+This is true as the htlcs are created as outputs in this commitment transactions of the payment channels which would be enforced by the bitcoin network in case some party becomes unresponsive or tries to act in a fraudulent way.
 Finally in the last section you will learn how the path of intermediaries is encrypted and hidden from the intermediaries so that they will only know their next hop with whom they shoul set up an HTLC and deliver the encrtypted message that has more forwarding instructions.
 This process is called onion routing.
 
 === Forwarding payments with HTLCs
+In previous chapters we have seen that payment channels are maintained by two nodes by keeping two disjoint sequences of commitment transactions.
+The pair of latest commitment transactions in both sequences encodes the current, agreed upon balance in the channel.
+We have stated that two channel partners negotiate a new commitment transaction in order to change the balance and conduct a payment from one to another.
+We are finally at the point to explain the communications protocol via Lightning messages and the usage of htlcs that is executed within a payment channel to change the balance.
+The same protocol will be executed along a path of channels if the network of channels is being utilized to make a payment between two participants without requiring them to have a didicated payment channel connecting them directly.
+
+Let us start with the payment channel with a capacity of 100 mBTC between Alice and Bob.
+at its current state Alice and Bob have agreed that 20 mBTC belong to Bob and 80 mBTC belong to Alice.
+As Alice bought a coffee flatrate for the week she has to pay 15 mBTC to Bob and wants to use this channel.
+Just creating a new pair of commitment transactions and signing them is not so easy as the old ones have to be invalidated by sharing the revocation secret.
+This process should be executed in a way that it is atomic meaning the nodes will either be able to negotiate a new state without giving the other side the chance to play tricks or it should fail.
+
+[[routing-setup-htlc-0]]
+.Let us look at the initial pair of most recent commitment transactions for Alice and Bob:
+image:images/routing-setup-htlc-0.png[]
+
+Alice sends the `update_add_htlc` Lightning message to Bob.
+The message type is 128 and has the following data fields: 
+
+* [`channel_id`:`channel_id`]
+* [`u64`:`id`]
+* [`u64`:`amount_msat`]
+* [`sha256`:`payment_hash`]
+* [`u32`:`cltv_expiry`]
+* [`1366*byte`:`onion_routing_packet`]
+
+As Bob and Alice might have more than one channel thus the `channel_id` is included to the message.
+The `id` counter counts starts with 0 for the first htlc that Alice offers to Bob and is increased by 1 with every subsequent offer.
+The id of the htlc is used to compute the derrivation path of the bitcoin key that is used for the output of this particular htlc.
+In this way addresses changes with every payment and cannot be monitored by a third party.
+Next the amount that Alice wants to send to Bob is entered to the `amount_msat` field.
+As the name suggests the amount is depicted in millisatoshi even those cannot be enforced within the commitment transaction and within bitcoin.
+Still Lightning nodes keep track of subsatoshi amounts to avoid rounding issues.
+As in the offline example Alice includes the `payment_hash` in the next data field.
+This was told to Alice by Bob in case she wants to just send money to him.
+If Alice was to send Money to Gloria the Payment hash would have been given to Alice by Gloria.
+We discussed the potential of time lock or deadline of the contract.
+This is encoded in the `cltv_expiry`.
+cltv stands for OP_CHECKTIMELOCKVERIFY and is the OP_CODE that will be used in the htlc output and serve as the deadline in which the contract is valid.
+Finally in the last data field there are 1336 Bytes of data included which is an `onion routing packet`.
+The format of this packet will be discussed in the last section of this chapter.
+For now it is important to note that it includes encrypted routing hints and information of the payment path that can only be partially decrypted by the recipient of the onion routing packet to extract information to whom to forward the payment or to learn that one as the final recipient.
+In any case the onion roting packet is always of the same size preventing the possability to guess the position of an intermediary node within a path.
+In our particular case Bob will be able to decrypt the first couple bytes of the onion routing packet and learn that the payment is not to be forwored but intendet to be for him.
+
+The received information is enough for Bob to create a new commitment transaction.
+This commitment transaction now has not only 2 outputs encoding the balance between Alice and Bob but a third output which encodes the hashed time locked contract.
+
+[[routing-setup-htlc-1]]
+.Lets look at the newly created commitment transaction for Bob:
+image:images/routing-setup-htlc-1.png[]
+
+We can see that Bob Assumes that Alice will agree to lock 15 mBTC of her previous balance and assign it to the htlc output.
+Creating this htlc output can be compared to giving Alices golden coins to the escrow service.
+In our situation the bitcoin network can enforce the htlc as Bob and Alice have agreed upon.
+Bob's Balance has not changed yet.
+In Bitcoin outpus are mainly described by scripts.
+The received htlc in Bob's commitment transaction will use the following bitcoin script to define the output:
+
+
+   # To remote node with revocation key
+    OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
+    OP_IF
+        OP_CHECKSIG
+    OP_ELSE
+        <remote_htlcpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
+        OP_IF
+            # To local node via HTLC-success transaction.
+            OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
+            2 OP_SWAP <local_htlcpubkey> 2 OP_CHECKMULTISIG
+        OP_ELSE
+            # To remote node after timeout.
+            OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
+            OP_CHECKSIG
+        OP_ENDIF
+    OP_ENDIF
+
+We can see that there are basically three conditions to claim the output.
+
+1. Directly if a revocation key is known. This would happen if at a later state Bob fraudulently publishes this particular commitment transaction. As a newer state could only be agreed upon if Alice has learnt Bob's half of the revocation secret she could directly claim the funds and keep them even if Bob was later able to provide a proof of payment. This is mainly described in this line `OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL` and can be down by using `<revocation_sig> <revocationpubkey> as a witness script.
+2. If Bob has successfully delivered the payment and learnt the preimage he can spend the htlc output with the help of the preimage and his `local_htlc_secret`. This is to make sure that only Bob can spend this output if the commitment transaction hits the chain and not any other third party who might know the preimage because they had been included in the routing process. Claiming this output requires an htlc-success transaction whih we describe later.
+3. Finally Alice can use her `remote_htlc_secret` to spend the htlc output after the timeoput of `cltv_expiry` was passed by using the following witness script `<remotehtlcsig> 0`
+
+As the commitment transaction spends the 2 out of 2 multisig fundin transaction Bob needs two signatures after he constructed this commitment transaction.
+He can obviosly compute his own signature but he needs also the signature from Alice.
+As Alice initiated the payment and wanted the htlc to be set up she will be reluctant to provide a signature.
+
+
+[[routing-setup-htlc-2]]
+.Alice sends the `commitment_signed` Lightning Message to Bob:
+image:images/routing-setup-htlc-2.png[]
+
+We can see in the diagram that Bob now has two valid commitment transactions.
+Let us have a quick look at the `commitment_signed` Lightning message which has the type 132.
+It has 4 data fields:
+
+* [`channel_id`:`channel_id`]
+* [`signature`:`signature`]
+* [`u16`:`num_htlcs`]
+* [`num_htlcs*signature`:`htlc_signature`]
+
+First it again states which for which of the channels between Alice and Bob this message is intended.
+Then it has included a signature for the entire commitment transaction.
+As commitment transactions can have several htlcs and htlc success transactions need signatures which might not be provided at the time when they are needed those signatures are all already send over to Bob. 
+If all signatures are valid Bob has a new commitment transaction.
+At this time he would be able to publish either the old one or the new one without getting a penality as the old one is not yet revoked and invalidated.
+However this is save for Alice as Bob has less money in this old state and is economically not incentivised to publish the old commitment transaction.
+Alice on the other side has no problem if Bob publishes the new commitment transaction as she wanted to send him money.
+If Bob can provide the preimage he is by their agreement and expectation entitled to claim the htlc output.
+Should Bob decide to sabotatge to future steps of the protocol Alice can either publish her commitment transaction without Bob being able to punish her.
+He will just not have received the funds from Alice.
+This is important!
+Despitethe fact that Bob has a new commitment transaction with two valid signatures and an htlc output inside he cannot seen his htlc as being set up successfully.
+He first needs to have Alice invalidate her old state. 
+That is why - in the case that he is not the final recipient of the funds - he should not forward the htlc yet by setting up a new htlc on the next channel with Wei.
+Alice will not invalidate her commitment transaction yet as she has to first get her new commitment transaction and she wants Bob to invalidate his old commitment transaction which he can safely do at this time. 
+
+[[routing-setup-htlc-3]]
+.Bob sends a `revoke_and_ack` Lighting message to Alice:
+image:images/routing-setup-htlc-3.png[]
+
+The `revoke_and_ack` Lightning message contains three data fields. 
+* [`channel_id`:`channel_id`]
+* [`32*byte`:`per_commitment_secret`]
+* [`point`:`next_per_commitment_point`]
+
+While it is really simple and straight forward it is very crucial.
+Bob shares the the `per_commitment_secret` of the old commitment transaction which serves as the revocation key and would allow Alice in future to penalize Bob if he publishes the old commitment transactio without the htlc output.
+As in a future Alice and Bob might want to negotiate additional commitment transactions he already shares back the `next_per_commitment_point` that he will use in his next commitment transaction. 
+
+Alice checks that the `per_commitment_secret` produces the last `per_commitment_point` and constructs her new commitment transaction with the htlc output.
+Alice's version of the htlc output is slightly different to the one that Bob had.
+The reason is the asymmetrie of the pentalty based payment channel construction protocol.
+Alice is offering in her commitment transaction an htlc to the `remote` partner of the channl while Bob as accepting and offered htlc to himself the `local` partner of the channel.
+Thus the Bitcoin script is adopted slightly.
+It is a very good exercise to go through both scripts and see where they differ.
+You could also try to use Bob's htlc output script to come up with Alice's and vice versa and check your result with the following script.
+
+    # To remote node with revocation key
+    OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
+    OP_IF
+        OP_CHECKSIG
+    OP_ELSE
+        <remote_htlcpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
+        OP_NOTIF
+            # To local node via HTLC-timeout transaction (timelocked).
+            OP_DROP 2 OP_SWAP <local_htlcpubkey> 2 OP_CHECKMULTISIG
+        OP_ELSE
+            # To remote node with preimage.
+            OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
+            OP_CHECKSIG
+        OP_ENDIF
+    OP_ENDIF
+
+Bob can redeem the HTLC with `<remotehtlcsig> <payment_preimage>` as the whitness script and in case the commitment tranaction is revoked but published by alice Bob can trigger the penality by spending this output immediately with the following witness script `<revocation_sig> <revocationpubkey>`. 
+
+[[routing-setup-htlc-4]]
+.Bob knows how Alice's commitment transaction will look like and sends over the necessary signatures.
+image:images/routing-setup-htlc-4.png[]
+
+This process is completely symmetrical to the one where Alice sent her signatures for Bob's new commitment transaction.
+Now Alice is the one having two valid commitment transactions.
+Technically she can still abort the payment by publishing her old commitment transaction to the bitcon network.
+Noone would loose anything as Bob knows that the contract is still being set up and not fully set up yet.
+This is a little bit different than how the situation would look like in a real world scenario.
+Recall Alice and Bob both have set up a new commitment transaction and have exchanged signatures.
+In the real world one would argue that this contract is now valid.
+
+[[routing-setup-htlc-5]]
+.However Bob knows that Alice has to invalidate her previous commitment transaction which she does
+image:images/routing-setup-htlc-5.png[]
+
+Now Bob and Alice both have a new commitment transaction with and additional HTLC output and we have achieved a major step towards updating a payment channel.
+The new Balance of Alice and Bob does not reflect yet that Alice has succesfully send 15 mBTC to Bob.
+However the hashed time locked contracts are now set up in a way that secure settlement in exchange for the proof of payment will be possible.
+This yields another round of communication with lightning messages and setting up additional Commitment transactions which in case of good cooperation remove the outstanding htlcs. 
+
+==== todo: explain how to fulfill / fail htlcs
+
+
 Explain fee and time-lock considerations 
 The “HTLC Switch” analogy compared to regular network switch 
 Circuit map concept, how to handle forwarding 
