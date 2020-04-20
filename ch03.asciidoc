@@ -149,45 +149,53 @@ This transaction that protects Alice is called Commitment transaction and we wil
 
 ==== Commitment Transaction
 
-You have just learnt that a payment channel needs to be opened by preparing a funding transaction which sends the capacity of the payment channel to a 2-2 multisignature address.
+You have just learnt that a payment channel needs to be opened by preparing a funding transaction which sends the funds of the payment channel to a 2-out-of-2 multisignature address.
 From the example in the last section you learnt that more ingredients are necessary to open and operate a payment channel that does not rely on trusting the channel partner.
 These ingredients are the commitment transactions.
-They are used to make sure that everyone on the channel is able to get their own funds back in case the channel partner becomes unresponsive or, even worse, if the channel partner deliberately or by accident tries to cheat with the execution of the protocol.
+They are used to make sure that everyone connected to a channel is able to get its own funds back in case the channel partner becomes unresponsive or, even worse, if the channel partner deliberately or by accident tries to cheat during the execution of the protocol.
 The commitment transactions also encode the balance of the payment channel.
-The balance of the payment channel is an agreement of the channel partners about how the capacity is split among the partners.
+The balance of the payment channel is an agreement by the channel partners about how the funds, i.e. capacity, are split among the partners.
 Let us assume Alice opens a channel with a capacity of 10 mBTC with Bob.
-Naturally one would assume that Alice should still be in the possession of the 10 mBTC.
+Naturally, initially Alice should still be in the possession of the 10 mBTC.
 This can actually be easily achieved with the following construction:
 
 . Alice creates a new private / public key pair and informs Bob that she wishes to open a channel via the `open_channel` message.
 . Bob also creates a new private / public key pair and agrees to accept a channel from Alice while sending his public key to Alice via the `accept_channel` message.
 . Alice now creates a funding transaction from her wallet that sends 10 mBTC to the multisignature address with a locking script `2 <Public Key A> <Public Key B> 2 CHECKMULTISIG`.
 . Alice does not broadcast the funding transaction but informs Bob about the transaction id of the funding transaction by sending a `funding_created` message.
-. Both Alice and Bob create their version of a commitment transaction. This Transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
+. Both Alice and Bob create their version of a commitment transaction. This transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
 . Alice provides a signature for Bob's Commitment Transaction. This signature was already included in the `funding_created` message.
 . Bob provides a signature for Alice's Commitment Transaction and sends this back to Alice via the `funding_signed` message.
 . Only after signatures have been exchanged Alice will broadcast the funding transaction to the Bitcoin network.
 
-With this protocol Alice did not give up ownership of her 10 mBTC even though the funds have been sent to a 2-2 multisignature wallet for which Alice controls only one key.
+By following this protocol Alice did not give up ownership of her 10 mBTC even though the funds have been sent to a 2-out-of-2 multisignature address for which Alice controls only one key.
 If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
 She will only have lost the fees for the two on-chain transactions.
 As long as she follows the protocol and has her node secured this is her only risk when opening a channel.
 
-The commitment transactions will not only serve the purpose of allowing Alice to withdraw her funds directly after opening the channel in case Bob does not answer.
-More commitment transactions are created during the lifetime of the channel to encode the balance between Alice and Bob.
-If Alice wanted to send 3 mBTC to Bob to pay him for a service he offered, both would create a new version of their commitment transaction which would now send 7mBTC to Alice and 3 mBTC to Bob and share signatures with each other.
-However you will probably have realized that there is a major flaw with this particular design.
+At channel opening time, the commitment transactions serve the purpose of allowing Alice to withdraw her funds directly after opening the channel in case Bob does not answer. However, commitment transactions are created each time the channel balance changes. In other words, each time bitcoin is sent between Alice and Bob new commitment transactions are created. Each commitment transaction encodes the latest balance between Alice and Bob.
+If Alice wanted to send 3 mBTC to Bob to pay him for a service he offered, both would create a new version of their commitment transactions which would now send 7mBTC to Alice and 3 mBTC to Bob and share signatures with each other.
+However, there is still a piece missing in the design presented so far.
 
 **Do you see any way how Alice could cheat on Bob?**
 
-We hope you recognize that with the so far described system nothing could stop Alice from publishing her old or even initial commitment transaction which grants her 10 mBTC.
+How many commitment transactions does Alice hold after her payment of 3mBTC to Bob? She holds two, the original one giving her 10 mBTC and the last one giving her 7mBTC. As you see, in the design presented so far nothing could stop Alice from publishing an old or even initial commitment transaction. A crooked Alice could publish the commitment transaction which grants her 10 mBTC.
 Since that commitment transaction has previously been signed by Bob he can't prevent Alice from doing so.
-Obviously Alice could tell Bob that she has deleted the old commitment transaction but as we mentioned several times the Lightning Network does operate without trust so a smarter mechanism is needed to prevent Alice from publishing an old commitment transaction.
+A smarter mechanism is needed to prevent Alice from publishing an old commitment transaction. 
+Let us now find out how this can be achieved and how an improved mechanism enables the Lightning Network to operate without trust.
 As Bitcoin is censorship resistant no one can prevent a participant from the Lightning Network to publish an old commitment transaction.
-However the commitment transactions can be slightly modified so that publishing an outdated commitment transaction is discouraged by a rather high punishment.
-The penalty for broadcasting an old commitment transaction is to give the other channel partner the ability to claim the funds that belonged to the broadcaster of the transaction.
-This means that Bob would have the ability to claim 10 mBTC from the output that belonged to Alice in her original Commitment transaction if she publishes it after she has agreed to a second commitment transaction in which she would only own 7 mBTC and Bob would own 3 mBTC.
-With such a strong penalty mechanism in place Alice should never purposely publish an old state as she would almost always lose her remaining funds in the channel.
+Imagine, the commitment transactions can be slightly modified so that publishing an outdated commitment transaction can be punished. 
+A high punishment will discourage cheating.
+The penalty for broadcasting an old commitment transaction is to give the cheated channel partner the ability to claim the funds that belonged to the cheater, i.e. the broadcaster of the outdated transaction.
+With this modification in in place, let us go through this scenario again. 
+Alice creates a channel with Bob and put 10 mBTC into it. 
+Alice send 3 mBTC to Bob. 
+Alice now tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the original 10 mBTC for herself. 
+With the modification, Bob can now detect the fraud and he is enabled to punish Alice for the fraud by claiming the full 10 mBTC for himself. 
+Bob ends up with 10 mBTC gaining 7 mBTC for catching Alice cheat. 
+Alice ends up with 0 mBTC. 
+For cheating she lost the 7 mBTC she still had. 
+With such a strong penalty mechanism in place Alice will not be tempted to cheat by publishing an old state as she would almost always loose all her remaining funds in the channel.
 
 [Note]
 ====
