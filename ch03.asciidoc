@@ -228,14 +228,17 @@ Peers can only omit messages but as every message is signed by the node that ori
 
 ==== Closing the channel
 The main goal of people using the Lightning Network is to keep their channels open as long as possible.
-Opening and closing payment channels will result in bitcoin fees and in transactions that need to be stored in the Bitcoin Blockchain.
-An open channel on the other side allows you to make an arbitrary amount of payments on the Lightning Network (as long as you have funds and they are liquid).
-However sometimes there is the necessity that you have to close a channel. For example:
+Opening and closing payment channels will result in Bitcoin fees and in on-chain transactions that need to be stored in the Bitcoin Blockchain.
+Hence, creating and closing a Lightning channel for a single payment is inefficient. 
+The longer a channel remains open and the more payments are made on it, the more efficient it will become in terms of fees and on-chain storage.
+An open channel allows you to make an arbitrary amount of payments on the Lightning Network (as long as you have funds and they are liquid).
+An open channel even allows a casi infinite number of payments if you consider the situation where two payment partners pay each other back and forth different amounts over time.
+However, sometimes closing a channel is desirable or necessary. For example:
 
 * You have become aware of the fact that your computer got compromised and you want to secure your funds by sending them to cold storage.
-* Your channel partner might be offline for too much time so that you cannot utilize the funds in that channel.
-* After analyzing your routing statistics, as well as the network topology, you might have come to the conclusion that it might be better to close some channels and open some new ones.
-* Your channel partner might have breached the protocol - due to a software bug or on purpose and you have to protect your funds.
+* Your channel partner might be offline for too much time preventing you from utilizing the funds in that channel.
+* After analyzing your routing statistics, as well as the network topology, you might have come to the conclusion that it might be better to close some underutilized channels and open some new ones to better connected channel partners.
+* Your channel partner might have breached the protocol either due to a software bug or on purpose forcing you to protect your funds.
 
 There are 3 ways to close a payment channel:
 
@@ -243,9 +246,10 @@ There are 3 ways to close a payment channel:
 * the bad way - force close
 * the ugly way - protocol breach
 
-Not all ways could be chosen for each of the above mentioned reasons.
-For example if your channel partner is offline you will not be able to engage in the good way to do a mutual close.
-The good news for you is that your Lightning Network software will most likely automatically select the best closing mechanism that can currently be used if you ask the software to close the channel or if the software discovers an issue with your channel partner and follows the protocol specification which in most of such cases state that the channel shall be closed.
+Different conditions require one or the other way to close a channel.
+For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
+The good news is that your Lightning Network software will most likely automatically select the best closing mechanism available to you under your specific conditions. 
+Whether you as a user implicitely close a channel or the Lightning Network software automatically closes a channel for you due to a detected anormality (e.g. cheating partner), it is usually the Lightning Network software that choses the appropriate way to close.
 
 ===== Examining the good way - mutual close
 The preferred and good way to close a channel is the mutual close.
