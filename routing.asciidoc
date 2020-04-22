@@ -137,9 +137,9 @@ As Alice bought a coffee flatrate for the week she has to pay 15 mBTC to Bob and
 Just creating a new pair of commitment transactions and signing them is not so easy as the old ones have to be invalidated by sharing the revocation secret.
 This process should be executed in a way that it is atomic meaning the nodes will either be able to negotiate a new state without giving the other side the chance to play tricks or it should fail.
 
-[[routing-setup-HTLC-0]]
+[[routing-setup-htlc-0]]
 .Let us look at the initial pair of most recent commitment transactions for Alice and Bob:
-image:images/routing-setup-HTLC-0.png[]
+image:images/routing-setup-htlc-0.png[]
 
 Alice sends the `update_add_HTLC` Lightning message to Bob.
 The message type is 128 and has the following data fields: 
@@ -173,9 +173,9 @@ In our particular case Bob will be able to decrypt the first couple bytes of the
 The received information is enough for Bob to create a new commitment transaction.
 This commitment transaction now has not only 2 outputs encoding the balance between Alice and Bob but a third output which encodes the hashed time locked contract.
 
-[[routing-setup-HTLC-1]]
+[[routing-setup-htlc-1]]
 .Lets look at the newly created commitment transaction for Bob:
-image:images/routing-setup-HTLC-1.png[]
+image:images/routing-setup-htlc-1.png[]
 
 We can see that Bob Assumes that Alice will agree to lock 15 mBTC of her previous balance and assign it to the HTLC output.
 Creating this HTLC output can be compared to giving Alices golden coins to the escrow service.
@@ -213,9 +213,9 @@ He can obviosly compute his own signature but he needs also the signature from A
 As Alice initiated the payment and wanted the HTLC to be set up she will be reluctant to provide a signature.
 
 
-[[routing-setup-HTLC-2]]
+[[routing-setup-htlc-2]]
 .Alice sends the `commitment_signed` Lightning Message to Bob:
-image:images/routing-setup-HTLC-2.png[]
+image:images/routing-setup-htlc-2.png[]
 
 We can see in the diagram that Bob now has two valid commitment transactions.
 Let us have a quick look at the `commitment_signed` Lightning message which has the type 132.
@@ -242,9 +242,9 @@ He first needs to have Alice invalidate her old state.
 That is why - in the case that he is not the final recipient of the funds - he should not forward the HTLC yet by setting up a new HTLC on the next channel with Wei.
 Alice will not invalidate her commitment transaction yet as she has to first get her new commitment transaction and she wants Bob to invalidate his old commitment transaction which he can safely do at this time. 
 
-[[routing-setup-HTLC-3]]
+[[routing-setup-htlc-3]]
 .Bob sends a `revoke_and_ack` Lighting message to Alice:
-image:images/routing-setup-HTLC-3.png[]
+image:images/routing-setup-htlc-3.png[]
 
 The `revoke_and_ack` Lightning message contains three data fields. 
 * [`channel_id`:`channel_id`]
@@ -281,9 +281,9 @@ You could also try to use Bob's HTLC output script to come up with Alice's and v
 
 Bob can redeem the HTLC with `<remoteHTLCsig> <payment_preimage>` as the whitness script and in case the commitment tranaction is revoked but published by alice Bob can trigger the penality by spending this output immediately with the following witness script `<revocation_sig> <revocationpubkey>`. 
 
-[[routing-setup-HTLC-4]]
+[[routing-setup-htlc-4]]
 .Bob knows how Alice's commitment transaction will look like and sends over the necessary signatures.
-image:images/routing-setup-HTLC-4.png[]
+image:images/routing-setup-htlc-4.png[]
 
 This process is completely symmetrical to the one where Alice sent her signatures for Bob's new commitment transaction.
 Now Alice is the one having two valid commitment transactions.
@@ -293,9 +293,9 @@ This is a little bit different than how the situation would look like in a real 
 Recall Alice and Bob both have set up a new commitment transaction and have exchanged signatures.
 In the real world one would argue that this contract is now valid.
 
-[[routing-setup-HTLC-5]]
+[[routing-setup-htlc-5]]
 .However Bob knows that Alice has to invalidate her previous commitment transaction which she does
-image:images/routing-setup-HTLC-5.png[]
+image:images/routing-setup-htlc-5.png[]
 
 Now Bob and Alice both have a new commitment transaction with and additional HTLC output and we have achieved a major step towards updating a payment channel.
 The new Balance of Alice and Bob does not reflect yet that Alice has succesfully send 15 mBTC to Bob.
@@ -331,7 +331,7 @@ If the signatures for the new commitment transaction are exchanged Bob has recei
 
 [NOTE]
 ====
-Isn't it remarkable that even though the process of exhanging funds for an preimage seems to be happening concurrently at the same moment in time in reality it is actually happening one step after another but in the right order. 
+Isn't it remarkable that even though the process of exchanging funds for an preimage seems to be happening concurrently at the same moment in time in reality it is actually happening one step after another but in the right order. 
 ====
 
 
