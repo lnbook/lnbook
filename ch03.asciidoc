@@ -356,32 +356,34 @@ While Lightning could have been designed to share balance information of channel
 
 ==== Finding a path
 
-Payments on the Lightning Network are forwarded along a path of channels from one participant to another one.
-Thus a path of payment channels has to be selected.
-If we knew the exact channel balances of every channel we would easily be able to compute one of the standard path finding algorithms taught in any computer science program to choose a path for the payment.
+Payments on the Lightning Network are forwarded along a path of channels from one participant to another.
+Thus, a path of payment channels has to be selected.
+If we knew the exact channel balances of every channel we could easily compute a payment path using any of the standard path finding algorithms taught in any computer science program.
 This could even be done in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
-However as discussed the balance information of all channels is and cannot be available to all participants of the network.
-Thus we need to have some path finding strategy.
-This strategy relates closely to the routing algorithm that is used.
-As we will see in the next section on the Lightning Network we use a source based onion routing protocol for routing payments.
+However, as discussed the balance information of all channels is and cannot be available to all participants of the network.
+Thus, we need to have one or more innovative path finding strategy.
+These strategies must relate closely to the routing algorithm that is used.
+As we will see in the next section, the Lightning Network uses a source based onion routing protocol for routing payments.
 This means in particular that the sender of the payment has to find a path through the network.
-As mentioned before with only partial information about the network topology this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
-The fact that the pathfinding problem is not fully solved for the case of the Lightning Network is a major point of criticism towards the technology.
-On the good side we emphasize that the certainly not optimal strategy - that is currently being used - of probing paths until one has enough liquidity to forward the payment works still rather well.
-Also it is worthwhile to note that this probing is done by the LN node or wallet and is not directly seen by the user of the software.
-The user might only realize that probing is taking place if the payment is not going though instantly as it usually would.
+With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
+The fact that the path finding problem is not fully solved for the case of the Lightning Network is a major point of criticism towards the technology.
+The path finding strategy currently implemented in Lightning nodes is to probe paths until one is found that has enough liquidity to forward the payment.
+While this is not optimal and certainly can be improved, it should be noted that even this simplistic strategy works well.
+This probing is done by the Lightning node or wallet and is not directly seen by the user of the software.
+The user might only realize that probing is taking place if the payment is not going though instantly.
+The algorithm currently also does not necessarily result in the path with the lowest fees.
 
 [NOTE]
 ====
 On the Internet we use the internet protocol and the IP forwarding algorithm to forward internet packages from the sender to the destination.
 While the TCP/IP protocol stack allows reliable communication by resending packages that are not acknowledged this mechanism could not be reused directly in the Lightning Network.
 A payment that is not being forwarded would effectively mean that the money was stolen by a router and the sender cannot just send out another payment.
-While the routing protocol together with the Border Gateway Protocol which are used for data and information transport on the internet have the really nice property of allowing the internet hosts to collaboratively find a path for the information through the internet, we cannot reuse and adopt this protocol for forwarding payments on the Lightning Network.
+While the routing protocol together with the Border Gateway Protocol which are used for data and information transport on the internet have the nice property of allowing the internet hosts to collaboratively find a path for the information flow through the internet, we cannot reuse and adopt this protocol for forwarding payments on the Lightning Network.
 ====
 
-Of course path finding is trivial if we want to pay our direct channel partner and we have enough balance on our side of the channel to do so.
+Of course, path finding is trivial if we want to pay our direct channel partner and we have enough balance on our side of the channel to do so.
 In all other cases information from the gossip protocol is used to help with path finding.
-This includes which public payment channels are connecting nodes, which capacity the channels have and what fee policies the owners require.
+This includes currently known public payment channels, known nodes, known topology (how known nodes are connected), known channel capacities, and known fee policies set by the node owners.
 
 ==== Onion routing
 
