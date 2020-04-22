@@ -279,20 +279,23 @@ As both channel partners sign the on-chain transaction they have the chance to p
 Even though there is a potential waiting time, this type of channel close is usually faster than closing the bad way.
 
 ===== Examining the bad way - force close
-In case your node cannot engage in a mutual close (most likely because your channel partner is either offline or not responding) you will have to do a force close.
-This is done by publishing the latest commitment transaction that your node has.
+In case your node cannot engage in a "mutual close" you will have to do a "force close".
+The most likely reason for this to happen is because your channel partner is either offline or not responding.
+The force close is done by publishing the latest commitment transaction that your node has.
 As discussed before the Bitcoin network has no way of knowing if this was the most recent commitment transaction or an old one which you might have published for a financial gain.
-Thus after that transaction was mined you will have to wait for the timelock of your output to expire until you can spend your own funds.
-The output of your channel partner is not encumbered with a time lock and can be spent directly.
-The on-chain fees will be much higher than in the good way of the mutual close for several reasons:
+Thus, after the commitment transaction was mined you will have to wait for the timelock of your output to expire until you can spend your own funds.
+The output of your channel partner is not encumbered with a time lock and can be spent immediately.
+The on-chain fees will be higher than in "the good way" of the mutual close for several reasons:
 
-* The most obvious reason is that when the commitment transaction was negotiated you and your channel partner didn't know how high the on-chain fees might be at the time the force close is taking place.
-As the fees cannot be changed without reasigning outputs of the commitment transaction which needs two signatures and as the force close usually should happen in an urgent situation the protocol developers decided to be very generous with the fee rate for the commitment transactions. It can be up to 5 times higher than the fee estimators would suggest at the time the commitment transaction is negotiated.
-* The pending routing attempts in the commitment transaction are encoded as additional outputs which take up more space and will also hit the chain.
-* In particular those routing attempts will have to be resolved on-chain by additional spends. These additional spends don't have to overestimate the fees but it still adds to the bill.
+* The most obvious reason is that when the commitment transaction was negotiated you and your channel partner didn't know how high the on-chain fees will be at the future time the "force close" is taking place.
+As the fees cannot be changed without reasigning outputs of the commitment transaction which needs two signatures and as the force close usually happens in an urgent situation, the protocol developers decided to be very generous with the fee rate included in the commitment transactions. It can be up to 5 times higher than the fee estimators suggest at the time the commitment transaction is negotiated.
+* The pending routing attempts in the commitment transaction are encoded as additional outputs which take up additional on-chain transaction space.
+* The pending routing attempts will have to be resolved on-chain causing additional on-chain spend transactions. These additional spend transactions don't have to overestimate the fees but they nonetheless incur costs.
 
-In general you should not do a force close unless it is absolutely necessary.
-Your funds will be locked for a longer time and the person who opened the channel will have to pay higher fees. Also you might have to pay on-chain fees to abort or settle routing attempts - even if you haven't opened the channel.
+In general, you should not do a "force close" unless absolutely necessary.
+Your funds will be locked for a longer time and the person who opened the channel will have to pay higher fees. Furthermore, you might have to pay on-chain fees to abort or settle routing attempts even if you haven't opened the channel.
+
+If the channel partner is known to you, maybe it is even a friend of yours, you might consider contacting that individual or company and inquire why his or her Lightning Node is down and request that they re-start it so that you can come to a preferred "mutual close" of the channel. If that is not an option as last resort perform the more costly "force close".
 
 ===== Examining the ugly way - protocol breach
 In case your channel partner tries to cheat you - whether deliberate or not - by publishing an outdated commitment transaction, you will be able to use the timelock to catch this cheating attempt and collect on the outputs by using the revocation secret you had previously received to negotiate a newer state of the channel.
