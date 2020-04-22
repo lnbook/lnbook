@@ -556,3 +556,18 @@ When the channel is closed, the final balance of the channel is submitted to the
 For instance: if the opening balance was 1 BTC to Alice, and Alice made a payment of 0.3 BTC to Bob, then the final balance of the channel is 0.7 BTC to Alice and 0.3 BTC to Bob.
 If Alice tries to cheat by submitting the opening state of the channel to the Bitcoin blockchain, with 1 BTC to Alice and 0 BTC to Bob, then Bob can retaliate by submitting the true final state of the channel, as well as penalty transaction that gives him all Bitcoin in the channel.
 In this context, the Bitcoin blockchain acts as a court system; recording the initial and final balances of each channel, and approving penalties if one of the parties tries to cheat.
+
+==== Offline vs Online, Asynchronous vs Synchronous
+
+Whens a Bitcoin user sends funds to a destination address he does not need to know anything about the recipient.
+The recipient could be logically speaking "online" (e.g. run a node) or could be "offline" (e.g. does not run a node, does not use any wallet currently). 
+The transaction is registered in the blockchain, and at any later point in time the recipient can have a look at it and see that has has received funds in the past. 
+In Bitcoin, the recipient can be "offline" and the interaction is asynchronous, sender and receiver do not need to synchronize in any way.
+
+In Lightning, this is different. 
+The node that represents the payee must be "online" during the transaction. 
+The payee must run a node or have someone that runs a node for him.  
+That node must be "online" at the time of the payment.
+To be precise, both nodes, the payer's and the payee's must be online at the time of payment.
+The payer and payee must cooperate, i.e. in some fashion one could say "synchronize" , during the payment. 
+If the payee's node is down the payer cannot make the payment.
