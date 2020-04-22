@@ -298,14 +298,23 @@ Your funds will be locked for a longer time and the person who opened the channe
 If the channel partner is known to you, maybe it is even a friend of yours, you might consider contacting that individual or company and inquire why his or her Lightning Node is down and request that they re-start it so that you can come to a preferred "mutual close" of the channel. If that is not an option as last resort perform the more costly "force close".
 
 ===== Examining the ugly way - protocol breach
-In case your channel partner tries to cheat you - whether deliberate or not - by publishing an outdated commitment transaction, you will be able to use the timelock to catch this cheating attempt and collect on the outputs by using the revocation secret you had previously received to negotiate a newer state of the channel.
-This close can actually go in two ways.
-First if you catch your partner in time you will claim their funds. In that case the closing will be rather fast. Also you will have to pay the on-chain fees which could be really high if there is a lot of demand for transactions at that time.
-This should not bother you as you just gained the entire channel capacity.
-Second if you did not catch the cheating attempt then your channel partner will be able to collect their outputs after the time lock expired.
-In that case the fees of the commitment transaction are again paid by the partner who opened the channel and the fees for collecting the outputs are paid by the person controlling the output that is being collected.
-Also all the routing attempts will have to be resolved just as during the force close.
-While this method could be fully executed faster than the good and the bad way to close the channel, it is obviously never recommended to engage in this channel closing protocol.
+In case your channel partner tries to cheat you - whether deliberately or not - by publishing an outdated commitment transaction, you will be able to use the timelock to detect this attempt to cheat.
+If you are watchful you will detect the protocol breach, i.e. the attempt to cheat, and as reward you will take the funds from the cheater. 
+On the contrary, if you are not vigilant you will not look out for the pubicly visible protocol breach and the cheater will steal funds from you.
+
+If you are watchful, you observe the breach and following the protocol you are permitted to collect on the outputs by using the revocation secret you had previously received to negotiate a newer state of the channel.
+That means you can claim the funds from the cheating channel partner. 
+In this case the closing will be rather fast. You as publisher of the transaction will have to pay the corresponding on-chain fees.
+This should not bother you as you just claimed the entire channel capacity and by doing so gained the funds from the cheating channel partner.
+
+If you are not vigilant, you will not notice the breach and thereby empowering your channel partner to collect their outputs after the time lock expired.
+In this case the fees of the commitment transaction are again paid by the partner who opened the channel and the fees for collecting the outputs are paid by the person controlling the output that is being collected. 
+
+Also all the routing attempts will have to be resolved just as explained during the "force close". 
+The "ugly way" can be executed faster than the "good" and the "bad way" to close a channel. 
+
+Game theory predicts that cheating is not a successful strategy because it is easy to detect a cheater and as penalty the cheater will loose all funds. 
+Hence, we do not recommend to attempt to cheat. We do, however, recommend that anyone catching a cheater punish him to the fullest by taking his funds.
 
 === Invoices
 
