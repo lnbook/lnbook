@@ -467,7 +467,7 @@ Since Bob can directly close the channel, which costs fees paid by Alice, she wi
 
 === Comparison with Bitcoin
 
-While the Lightning Network is built on top of Bitcoin, and inherits many of its features and properties, there are important differences that users of both need to be aware of.
+While the Lightning Network is built on top of Bitcoin and inherits many of its features and properties, there are important differences that users of both networks need to be aware of.
 
 ==== Selecting Outputs vs Finding a Path
 
@@ -482,35 +482,42 @@ As many paths may exist, the choice of path to the Lightning Network payer is so
 ==== Change Outputs on Bitcoin vs No Change on Lightning
 
 In order to make a payment on the Bitcoin network, a sender needs to consume one or more Unspent Transaction Outputs (UTXOs).
-The entire UTXO needs to be spent, so if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, then they need to send 0.8 BTC to the receiver, and 0.2 BTC back to themselves.
+The entire UTXO needs to be spent, so if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, then they need to send 0.8 BTC to the receiver, and 0.2 BTC back to themselves as change.
 This 0.2 BTC creates a new UTXO called a 'change output'.
 
 On Lightning, the UTXO is consumed during the Funding Transaction, which leads to the creation of a channel.
 Once the bitcoin is locked within that channel, portions of it can be sent back and forth within the channel, without the need to create any change.
-This is because the channel partners simply update the channel balance, and only create a new UTXO when the channel is eventually closed using the Bitcoin network.
+This is because the channel partners simply update the channel balance and only create a new UTXO when the channel is eventually closed using the Bitcoin network.
 
 ==== Mining Fees vs Routing Fees
 
 On the Bitcoin network, users pay fees to miners to have their transactions included in a block.
-These fees are paid to the miners who mine that particular block, and are based on the _size_ of the transaction in _bytes_ that the transaction is using in a block, as well as how quickly the user wants that transaction mined.
+These fees are paid to the miner who mines that particular block.
+The amount of the fee is based on the _size_ of the transaction in _bytes_ that the transaction is using in a block, as well as how quickly the user wants that transaction mined.
 As miners will typically mine the most profitable transactions first, a user who wants their transaction mined immediately will pay a _higher_ fee-per-byte, while a user who is not in a hurry will pay a _lower_ fee-per-byte.
 
 On the Lightning Network, users pay fees to other users to route payments through their channels.
 In order to route a payment, a routing user will have to move the funds in two or more channels they own, as well as transmit the data for the sender's payment.
-Typically, the routing user will charge the sender based on the _value_ of the payment, as well as setting their own fees they require to route the payment.
-Higher value payments will thus cost more to route, and a market for capacity will exist, where different users will charge different fees for routing through their channels.
+Typically, the routing user will charge the sender based on the _value_ of the payment, as well as setting their own fees they established to route the payment.
+Higher value payments will thus cost more to route, and a market for capacity will exist where different users will charge different fees for routing through their channels.
 
 ==== Varying Fees Depending Traffic vs Announced Fees
 
-On the Bitcoin network, miners are profit-seeking, and so will typically include as many transactions in a block as possible, while staying within the block size limit (actually, a modified form called the block weight limit).
+On the Bitcoin network, miners are profit-seeking and will typically include as many transactions in a block as possible, while staying within the block size limit (actually, a modified form called the block weight limit).
 If there are more transactions in the queue (called the mempool) than can fit in a block, they will begin by mining the transactions that pay the highest fees per byte (highest fee per weight).
 Thus, if there are many transactions in the queue, users will have to pay a higher fee to be included in the next block, or they will have to wait until there are fewer transactions in the queue.
-This naturally leads to the concept of 'traffic' and the creation of a fee market where users pay based on how urgently they need their transaction included in the next block.
+This naturally leads to the creation of a fee market where users pay based on how urgently they need their transaction included in the next block.
 
-On the Lightning Network, traffic does not exist since users are not competing for block space outside of the Funding or Closing transactions.
-Instead, they are paying fees to the users routing their payments, and different routers will charge different fees for routing through their channels.
+The scarce resource on the Bitcoin network is the space in the blocks. Bitcoin users compete for block space. And the Bitcoin fee market is based on available block space. The scarce resource in the Lightning netowrk is the capacities on the channels and channel connectivity. Lightning users compete for capacity and connectivity. The Lightning fee market is driven by capacity and connectivity.
+
+On the Lightning Network, users are paying fees to the users routing their payments. Routing a payment in economic terms is nothing else than providing and assigning capacity to the payer.
+Different routers will charge different fees for routing through their channels.
 Naturally, routers who are charging lower fees for the same capacity will be more attractive to route through.
 Thus a fee market exists where routers are in competition with each other over the fees they charge to route payments through their channels.
+Following general economic principles, the more capacity and connectivity is provided the more competition there will be and as a result the lower the fees will be.
+
+The growth of the Lightning Network might lead to lower Lightning fees, while the growth in the Bitcoin Network likely leads to higher Bitcoin fees.
+
 
 ==== Public Transactions on the Blockchain vs Secret payments
 
