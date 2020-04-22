@@ -205,21 +205,24 @@ A key characteristic of bitcoin is that once a transaction is valid, it remains 
 
 We will now see how such a penalty mechanism can be included to the above construction of the commitment transactions.
 Usually the commitment transaction has at least two outputs, one for each partner.
-However a channel partner will encumber their own output with a timelock and a revocation secret.
-The timelock prevents the owner of the output to spend it directly once the commitment transaction was included in a block.
-The timelock is usually measured in blocktime and can be up to 2016 which is statistically speaking two weeks (assuming a blocktime of 10 minutes which is the target for the Bitcoin network).
-Within the timelock anyone who knows the revocation secret can spend the output even well before the timelock was over.
-Alice and Bob know only one half of the revocation secret but if they share their half with the other party, the other party knows the full secret.
+As new addition, a channel partner will encumber their own output with a timelock and a revocation secret.
+The timelock prevents the owner of the output to spend it immediately once the commitment transaction was included in a block.
+The timelock is usually measured in blocktime and can be up to 2016.
+On average, 2016 blocks represent or last two weeks (assuming a blocktime of 10 minutes as in the Bitcoin network).
+Within the timelock anyone who knows the revocation secret can spend the output even before the timelock is over.
+Alice and Bob know only one half each of the revocation secret.
+But if they share their half with the other channel partner, theh the other partner knows the full secret.
 In order to update the balance and receive a signature from Bob, Alice will have to share her half of the revocation secret of the current commitment transaction with Bob.
 
-Obviously for every new update of the channel balance new revocation secrets have to be created and the old ones all need to be saved.
-Luckily the secrets are rather small and it is only the channel partners who need to do that, not the entire network.
-Still managing the revocation secrets is one of the more tricky parts of Lightning nodes that hinders node operators to maintain backups.
-Watchtower services or switching to the aforementioned eltoo channels might be future strategies to mitigate these problems.
+Obviously, for every new update of the channel balance new revocation secrets have to be created and saved. 
+As long as a channel remains open, all revocation secrets ever created for this specific channel need to be keep as they might be needed in the future.
+Luckily, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network.
+Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of Lightning nodes that require node operators to maintain backups.
+Other technologies such as Watchtower services or switching to the aforementioned "eltoo" channels might be future strategies to mitigate these issues.
 
-With the timelocks in place Alice can close the channel at any time if Bob does not respond.
-She has to wait for the time lock until she can spend her funds from the commitment transaction after the commitment transaction has a confirmation.
-Other than that and the fees for opening and closing a channel there comes no additional burden with maintaining a payment channel.
+With the timelocks in place Alice can close the channel at any time if Bob does not respond, claiming her fair share of the balance.
+After publishing the commitment transaction "on-chain" Alice has to wait for the time lock to expire before she can spend her funds from the commitment transaction.
+Other than that and the "on-chain" fees for opening and closing a channel there comes no additional burden with maintaining a payment channel.
 
 ==== Announcing the channel
 Channel partners can agree to publicly announce the channel over the gossip protocol that comes with the Lightning Network.
