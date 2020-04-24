@@ -36,18 +36,33 @@ If users decide to outsource some functionality to a third party they usually gi
 
 Finally, those seeking simplicity and convenience, even at the expense of control and security, may choose a custodial Lightning wallet. This is the least technically challenging option, but it _undermines the trust model of cryptocurrency_ and should therefore be considered only as a stepping stone towards more control and self-reliance.
 
-In <<lnwallet-categories>> we see the three broad categories of lightning wallets and the relative degree of control they offer to the user.
+There are many ways wallets can be characterized or categorized. 
+From all features the two most important criteria are LN Node use and fund custody. Correspondingly the two most important questions to ask about a specific wallet are:
+
+- Does this Lightning wallet have a full LN Node or does it use a third-party LN Node?
+- Does this Lightning wallet store its own keys under user control (self-custody) or are the keys held be a third-party custodian?
+
+From these two questions we can derive four possible categories. We can place these four categories into a quadrant as seen in Table <<lnwallet-categories>>. 
+But remember that this is just one way of categorizing Lightning wallets.
 
 [[lnwallet-categories]]
-.Broad Categories of "Lightning Wallets"
+.Lightning Wallets Quadrant
 |===
-| Wallet Type          | LN Node        | Keystore/Custody | Technical Skill
-| Full Node & Wallet   | Full Node      | Non-Custodial    | High
-| Non-Custodial Wallet | 3rd-party node | Non-Custodial    | Medium
-| Custodial Wallet     | 3rd-party node | Custodial        | Low
+|                        | *Full LN Node*      | *3rd-party LN Node*    
+| *Self-Custody*         | Q1: High technical skill | Q2: Medium technical skills 
+| *Custodial*            | Q3: not a common wallet type | Q4: Low technical skills 
 |===
 
+Q3, quadrant 3, where a full LN node is used but the keys are held by a custodian is not common. A user who goes through the effort of running a Ligtning Node will most likely also put in the additional efffort to store his own keys. 
+
 Lightning wallets can be installed on a variety of devices, including laptops, servers, and mobile devices. To run a full Lightning node (one that participates in "gossip" and creates its own map of the network for path finding and routing) you will need to use a server or desktop computer, as mobile devices and laptops are usually not powerful enough in terms of capacity, processing, battery life, and connectivity.
+
+The category "Third-party Ligntning Nodes" can again be subdivided into:
+
+- Lightweight: means that the Lightning Node is operated by a third party and that the wallet obtains the required information through an API that connects wallet and third-party LN node.
+- None: means that not only is the Lightning Node operated by a third party but most of the wallet is operated by a third party in the cloud such that the wallet does not even need to make calls on a Lightning node API.
+
+These subcategories are used in Table <<lnwallet-examples>>.
 
 In <<lnwallet-examples>> we see some examples of currently popular Lightning node and wallet applications for different types of devices.
 
@@ -56,13 +71,13 @@ In <<lnwallet-examples>> we see some examples of currently popular Lightning nod
 .Examples of Popular LN Wallets
 |===
 | Application    | Device  | LN Node     | Bitcoin Node          | Keystore
-| lnd            | Server  | Full Node   | Bitcoin Core/btcd     | User Control
-| c-lightning    | Server  | Full Node   | Bitcoin Core          | User Control
-| Eclair Server  | Server  | Full Node   | Bitcoin Core/Electrum | User Control
-| Zap Desktop    | Desktop | Full Node   | Bitcoin Core/btcd     | User Control
-| Eclair Mobile  | Mobile  | Lightweight | Electrum              | User Control
-| Breez Wallet   | Mobile  | Full Node   | Bitcoin Core/btcd     | User Control
-| Phoenix Wallet | Mobile  | Lightweight | Electrum              | User Control
+| lnd            | Server  | Full Node   | Bitcoin Core/btcd     | Self-Custody
+| c-lightning    | Server  | Full Node   | Bitcoin Core          | Self-Custody
+| Eclair Server  | Server  | Full Node   | Bitcoin Core/Electrum | Self-Custody
+| Zap Desktop    | Desktop | Full Node   | Bitcoin Core/btcd     | Self-Custody
+| Eclair Mobile  | Mobile  | Lightweight | Electrum              | Self-Custody
+| Breez Wallet   | Mobile  | Full Node   | Bitcoin Core/btcd     | Self-Custody
+| Phoenix Wallet | Mobile  | Lightweight | Electrum              | Self-Custody
 | Blue Wallet    | Mobile  | None        | None                  | Custodial
 |===
 
