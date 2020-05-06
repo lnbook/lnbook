@@ -440,15 +440,14 @@ The `Payment Hash` is rather included in the Lightning Message that also transpo
 * sending back errors
 
 === Missing bits
-From a computer science perspective the Lightning Network protocol is mainly a peer-to-peer protocol between its participants.
+From a computer science perspective the Lightning Network protocol is mainly a peer to peer protocol between its participants.
 All communication between participants is sent via so called Lightning Messages.
 Most importantly communication is needed to open and close payment channels, to send and receive onions, to set up and settle or fail HTLCs and for exchanging gossip information.
-All Lightning messages are sent encrypted after a connection between two peers has been established.
-Establishing the peer connection starts out with a cryptographic handshake following the Noise Protocol Framework.
+The Lightning messages are sent in an encrypted way after a peer connection has been established.
+Establishing the peer connection follows a cryptographic handshake following the Noise Protocol Framework.
 The Noise Protocol Framework is a collection of templates for cryptographic handshakes and is also used by WhatsApp and Wireguard.
 Using the Noise Protocol Framework makes sure that every message that is sent via Lightning is encrypted and authenticated.
-This assures privacy.
-On the other hand, this makes development more difficult as one cannot easily monitor one's own traffic on a tool like Wireshark for debugging. footnote:[Luckily tools exist to make developers' lives easier: https://github.com/nayutaco/lightning-dissector]
+This makes development a little bit tricky as one cannot easily monitor one's own traffic on a tool like wireshark for debugging. footnote:[Luckily tools exist to make developer's lives easier: https://github.com/nayutaco/lightning-dissector]
 
 === some thoughts that were supposed to be at other places but didn't make it to the text yet
 * network of payment channels
@@ -458,16 +457,20 @@ On the other hand, this makes development more difficult as one cannot easily mo
 ** locally setting up and settling HTLCs (only peers involved)
 
 === Thoughts about Trust
-As long as a person follows the protocol and has their node secured, there is no principle risk of losing funds when participating in the Lightning Network.
-However there is the risk of paying fees when opening a channel.
-Any risk should come with a potential reward.
-In our case the reward is that she can send and receive payments of bitcoin on the Lightning Network at any time and that she can earn bitcoin by forwarding other payments.
-Alice decides that the reward is enough for her to take on the fee risk.
-Since Bob can directly close the channel, which costs fees paid by Alice, she will need to have a little trust in Bob.
+As long as a person follows the protocol and has their node secured, there is no major risk of losing funds when participating in the Lightning Network.
+However, there is the cost of paying on-chain fees when opening a channel.
+Any cost should come with a corresponding benefit.
+In our case the reward for Alice for bearing the cost of opening a chennel is that Alice can send and receive payments of bitcoin on the Lightning Network at any time and that she can earn fees in bitcoin by forwarding payments for other people.
+Alice knows that in theory Bob can close the channel immediately after opening resulting in on-chain closing fees for Alice. 
+Alice will need to have a small amount of trust in Bob. 
+Alice has been to Bob's Cafe and clearly Bob is interested in selling her coffee, so Alice can trust Bob in this sense. 
+There are mutual benefits to both Alice and Bob.
+Alice decides that the reward is enough for her to take on the cost of the on-chain fee for creating a channel to Bob. 
+In contrast, Alice will not open a channel to someone unknown in a foreign country who just sent her an uninvitedly email asking her to open a channel to him. 
 
 === Comparison with Bitcoin
 
-While the Lightning Network is built on top of Bitcoin, and inherits many of its features and properties, there are important differences that users of both need to be aware of.
+While the Lightning Network is built on top of Bitcoin and inherits many of its features and properties, there are important differences that users of both networks need to be aware of.
 
 ==== Selecting Outputs vs Finding a Path
 
@@ -482,47 +485,58 @@ As many paths may exist, the choice of path to the Lightning Network payer is so
 ==== Change Outputs on Bitcoin vs No Change on Lightning
 
 In order to make a payment on the Bitcoin network, a sender needs to consume one or more Unspent Transaction Outputs (UTXOs).
-The entire UTXO needs to be spent, so if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, then they need to send 0.8 BTC to the receiver, and 0.2 BTC back to themselves.
+The entire UTXO needs to be spent, so if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, then they need to send 0.8 BTC to the receiver, and 0.2 BTC back to themselves as change.
 This 0.2 BTC creates a new UTXO called a 'change output'.
 
 On Lightning, the UTXO is consumed during the Funding Transaction, which leads to the creation of a channel.
 Once the bitcoin is locked within that channel, portions of it can be sent back and forth within the channel, without the need to create any change.
-This is because the channel partners simply update the channel balance, and only create a new UTXO when the channel is eventually closed using the Bitcoin network.
+This is because the channel partners simply update the channel balance and only create a new UTXO when the channel is eventually closed using the Bitcoin network.
 
 ==== Mining Fees vs Routing Fees
 
 On the Bitcoin network, users pay fees to miners to have their transactions included in a block.
-These fees are paid to the miners who mine that particular block, and are based on the _size_ of the transaction in _bytes_ that the transaction is using in a block, as well as how quickly the user wants that transaction mined.
+These fees are paid to the miner who mines that particular block.
+The amount of the fee is based on the _size_ of the transaction in _bytes_ that the transaction is using in a block, as well as how quickly the user wants that transaction mined.
 As miners will typically mine the most profitable transactions first, a user who wants their transaction mined immediately will pay a _higher_ fee-per-byte, while a user who is not in a hurry will pay a _lower_ fee-per-byte.
 
 On the Lightning Network, users pay fees to other users to route payments through their channels.
 In order to route a payment, a routing user will have to move the funds in two or more channels they own, as well as transmit the data for the sender's payment.
-Typically, the routing user will charge the sender based on the _value_ of the payment, as well as setting their own fees they require to route the payment.
-Higher value payments will thus cost more to route, and a market for capacity will exist, where different users will charge different fees for routing through their channels.
+Typically, the routing user will charge the sender based on the _value_ of the payment, as well as setting their own fees they established to route the payment.
+Higher value payments will thus cost more to route, and a market for capacity will exist where different users will charge different fees for routing through their channels.
 
 ==== Varying Fees Depending Traffic vs Announced Fees
 
-On the Bitcoin network, miners are profit-seeking, and so will typically include as many transactions in a block as possible, while staying within the block size limit (actually, a modified form called the block weight limit).
+On the Bitcoin network, miners are profit-seeking and will typically include as many transactions in a block as possible, while staying within the block size limit (actually, a modified form called the block weight limit).
 If there are more transactions in the queue (called the mempool) than can fit in a block, they will begin by mining the transactions that pay the highest fees per byte (highest fee per weight).
 Thus, if there are many transactions in the queue, users will have to pay a higher fee to be included in the next block, or they will have to wait until there are fewer transactions in the queue.
-This naturally leads to the concept of 'traffic' and the creation of a fee market where users pay based on how urgently they need their transaction included in the next block.
+This naturally leads to the creation of a fee market where users pay based on how urgently they need their transaction included in the next block.
 
-On the Lightning Network, traffic does not exist since users are not competing for block space outside of the Funding or Closing transactions.
-Instead, they are paying fees to the users routing their payments, and different routers will charge different fees for routing through their channels.
+The scarce resource on the Bitcoin network is the space in the blocks. Bitcoin users compete for block space. And the Bitcoin fee market is based on available block space. The scarce resource in the Lightning netowrk is the capacities on the channels and channel connectivity. Lightning users compete for capacity and connectivity. The Lightning fee market is driven by capacity and connectivity.
+
+On the Lightning Network, users are paying fees to the users routing their payments. Routing a payment in economic terms is nothing else than providing and assigning capacity to the payer.
+Different routers will charge different fees for routing through their channels.
 Naturally, routers who are charging lower fees for the same capacity will be more attractive to route through.
 Thus a fee market exists where routers are in competition with each other over the fees they charge to route payments through their channels.
+Following general economic principles, the more capacity and connectivity is provided the more competition there will be and as a result the lower the fees will be.
 
-==== Public Transactions on the Blockchain vs Secret payments
+The growth of the Lightning Network might lead to lower Lightning fees, while the growth in the Bitcoin Network likely leads to higher Bitcoin fees.
 
-On the Bitcoin network, every payment is publicly visible on the ledger.
+
+==== Public Transactions on the Blockchain vs Secret Payments
+
+On the Bitcoin network, every payment is publicly visible on the ledger, i.e. the blockchain.
 While the addresses involved are pseudonymous and are not typically tied to identity, they will still be collected and validated by every other user on the network.
+Professional companies collect and analyse this data en-masse and sell it to interested parties such as exchanges or governments. 
 
 Lightning Network payments, on the other hand, are completely private.
-Typically only the sender and the receiver will be fully aware of the source, destination, and amount of bitcoin transacted in a particular transaction.
+Typically only the sender and the receiver will be fully aware of the source, destination, and amount of bitcoin transacted in a particular payment.
 However, it is not required for the receiver to even know the source of the payment.
-As payments are onion-routed, the users who route the payment will only be aware of the amount of the payment, but not the source or the destination.
-This is because the security model of Lightning only requires users to be aware of the balances in their channels.
-They are not required to be aware of the state of the entire network.
+As payments are onion-routed, the users who route the payment will only be aware of the amount of the payment, but neither the source nor the destination.
+This is because the security model of Lightning only requires users to control the balances in their channels.
+They are not required to be aware of the state of the entire network. 
+
+In summary, Bitcoin transactions are broadcasted publicly and stored forever. Lightning payments are executed between a few selected peers and information about is privately stored and only until the channel is closed. 
+Creating en-masse analysis tools equivalent to the ones on the Bitcoin network will be impossible on Lightning. 
 
 ==== Waiting for Confirmations vs Instant settlement
 
@@ -557,6 +571,21 @@ For instance: if the opening balance was 1 BTC to Alice, and Alice made a paymen
 If Alice tries to cheat by submitting the opening state of the channel to the Bitcoin blockchain, with 1 BTC to Alice and 0 BTC to Bob, then Bob can retaliate by submitting the true final state of the channel, as well as penalty transaction that gives him all Bitcoin in the channel.
 In this context, the Bitcoin blockchain acts as a court system; recording the initial and final balances of each channel, and approving penalties if one of the parties tries to cheat.
 
+==== Offline vs Online, Asynchronous vs Synchronous
+
+Whens a Bitcoin user sends funds to a destination address he does not need to know anything about the recipient.
+The recipient could be logically speaking "online" (e.g. run a node) or could be "offline" (e.g. does not run a node, does not use any wallet currently). 
+The transaction is registered in the blockchain, and at any later point in time the recipient can have a look at it and see that has has received funds in the past. 
+In Bitcoin, the recipient can be "offline" and the interaction is asynchronous, sender and receiver do not need to synchronize in any way.
+
+In Lightning, this is different. 
+The node that represents the payee must be "online" during the transaction. 
+The payee must run a node or have someone that runs a node for him.  
+That node must be "online" at the time of the payment.
+To be precise, both nodes, the payer's and the payee's must be online at the time of payment.
+The payer and payee must cooperate, i.e. in some fashion one could say "synchronize" , during the payment. 
+If the payee's node is down the payer cannot make the payment.
+
 ==== Satoshis vs. Milli-Satoshis
 On Bitcoin the smallest amount is a "satoshi" which cannot be divided any further.
 Lightning can be more flexible. 
@@ -577,20 +606,20 @@ Both, Bitcoin transactions and Lightning payments are irrevocable.
 There is no "undo" operation for either one. 
 As a user of either one you have to act responsibly.
 
-=== Trustlessness
+==== Trustlessness
 
 Just as Bitcoin, Lightning requires the user only to trust mathematics, encryption and that the Lightning code does not have any critical bugs.
 Neither Bitcoin nor Lightning require the user to trust a person, a company, an institution or a government.
 Since Lightning sits on top of Bitcoin and relies on Bitcoin as its underlying base layer, it is clear that the security model of Lightning reduces to the security of the base blockchain. 
 In other words, Lightning can never be more trustless than Bitcoin.
 
-=== Permissionlessness
+==== Permissionlessness
 
 Both Bitcoin and Lightning can be used by anybody with access to the Internet and to the appropriate software, e.g. node and wallet. 
 The user of neither network requires permission from third-party persons, companies, institutions or a government.
 The user does not need permission from anybody as long as he has access to Internet and can run his node or wallet.
 Governments can only outlaw Bitcoin or Lightning locally in their jurisdiction, but they cannot prevent their global use.
 
-=== Open Source
+==== Open Source
 
 Both, Bitcoin and Lightning are open source software and are built by a decentralized global community on open source principles.
