@@ -10,11 +10,35 @@ The book describes the Lightning Network (LN), a Peer-to-Peer protocol running o
 
 The book is suitable for technical readers with an understanding of the fundamentals of Bitcoin and other open blockchains.
 
-## Contributing
+# Status
+
+The current status of the book is "IN PROGRESS". See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
+
+| Section | Wordcount |  Status |
+|-------|------|:------:|
+| [Preface](preface.asciidoc) | # ||
+| [Glossary](glossary.asciidoc) | # ||
+| [Introduction](01_introduction.asciidoc) | # ||
+| [Getting Started](02_getting_started.asciidoc) | # ||
+| [LN Basics (How LN Works)](ch03.asciidoc) | # ||
+| [Intro to LN Routing (HTLCs)](routing.asciidoc) | # ||
+| [Nodes (LN Clients)](node_client.asciidoc) | # ||
+| [Operating a Node](node_operations.asciidoc) | # ||
+| [P2P Communication](p2p.asciidoc) | # ||
+| [Channel Construction in Detail (Link Level Channel Operation)](channel-construction.asciidoc) | # ||
+| [Onion Routing and HTLC forwarding](onion-routing-htlc-forwarding.asciidoc) | # ||
+| [Channel Graph and Gossip Layer](channel-graph.asciidoc) | # ||
+| [Payment Path Finding](path-finding.asciidoc) | # ||
+| [End-to-End Payement Presentation Layer](e2e0presentation-layer.asciidoc) | # ||
+| [Lightning Applications (LApps)]() | # ||
+| [LN's Future]() | # ||
+
+
+# Contributing
 
 The authors welcome contributions to this book! Read the [Guide to Contributing](CONTRIBUTING.md)
 
-## Source and license
+# Source and license
 
 Mastering the Lightning Network is released under the Creative Commons CC-BY-NC-ND license, which allows sharing the source code for personal use only. You may read this book for free. You may not create derivatives (such as PDF copies), or distribute the book commercially. The full terms of the license can be found here:
 
