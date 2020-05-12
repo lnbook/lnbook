@@ -346,6 +346,91 @@ Pipeline styles for HTLCs
 Error handling and encryption for HTLCs
 
 === Source based Onion Routing
+
+So far you have learnt that payment channels can be connected to a network which can be utilized to send payment from one participant to another one through a path of payment channels.
+You have seen that with the use of HTLCs the intemediary nodes along the path are not able to steal any funds that they are supposed to forward and you have also learnt how a node can set up and settle an HTLC.
+While this is all great it leaves a 2big questions open:
+
+- How is it decided which path is selected to route a payment?
+- Who choses the path and which nodes will know about the path?
+
+The first question is still not answered in an optimal way and became a serious research topic.
+However there is an approach that currently works fair enough and we will explain it, with its up and downsides and potential different approaches and enhancements in the next chapter about pathfinding.
+Here we will focus on the seconds question.
+
+The short answer to the question is that only the sender decides which path to choose and no other node in the network learns about this path.
+We exepect you to be surprised that this is actually possible which is why we devote the remainder of this chapter to talk about source based onion routing.
+This is a technique which is fundamentally different to the best effort routing approach implemented on the internet protocol and can be to a first approximation best be compared with Onion routing that is well known from the TOR network.
+
+So lets stick with our example that Alice still wants to tip Gloria and has decided to use the path via Bob and Wei.
+We note that there might have been alternative paths from Alice to Gloria but for now we will just assume it is this path that Alice has decided to use.
+You have already learnt that Alice needs to set up an HTLC with Bob via and `update_add_htlc` message.
+If you recall the `update_add_htlc` message you will remember that it containes a data field of 1366 Bytes in length that is the Onion Package.
+This onion cointains all the information about the path that Alice intends to use to send the paymen to Gloria.
+However Bob who receives the Onion cannot read all the information about the path as most of the onion is hidden from him through a sequence of encryptions. 
+The name onion comes from the analogy to an onion that consits of several layers where in our example every layer corresponds to an encryption.
+The encryption keys are chosen in a way that the recipient can only peel (decrypt) the top layer of the onion.
+Bob will only see the information that he is supposed to Forward the payment to Wei.
+After Boab saw this he will modify the onion a little bit to remove his information from it and pass it a long to Wei.
+Wei in turn is only able to see that he is supposed to forwad the package to Gloria.
+In this way every participant can peel of one layer of the onion by encrypting it and only learn the information it has to learn to fullfil the routing request.
+For example Bob will only know that Alice offered him an HTLC and send him an onion and that he is supposed to offer an HTLC to Wei and forward a slightly modified onion.
+Bob does not know if Alice is the originator of this payment as she could also just have forwarded the payment to him.
+Due to the layered encryption he cannot see th inside of Weis, and Glorias Layer and can thus not know that Gloria is the final destination of the payment.
+The only thing Bob knows is that he was involved in a path that involved Alice, him and Wei. 
+
+Interestingly enough Alice can construct the onion with different encryption keys for Bob, Wei and Gloria without the necessity to estable a peer connection with them.
+She only needs a Public key from each participant which is the public `node_id` of the lightning node and known to Alice.
+As other nodes she has learnt about the existance of public payment cannels and the public `node_id` of other participants via the gossip protocol which we described in its own chapter.
+
+Let us now look at the construction of the Onion that Alice has to follow and at the exact information that is being put inside each layer of the onion.
+
+Onions are being constructed from the inside to the outside.
+As the inside of the onion is decrypted last it has to correspond to the recipient which in our case is Gloria.
+As every layer of the Onion is encrypted by Alice in such a way that only the respective recpient can decrypt their layer Alice needs to come up with a sequence of encryption keys that she will use for each and every hop.
+The main concept that is being used is the shared secret computation via an elliptic Courve Diffie Helmann Key exchange (ECDH) between Alice and each of the hops.
+However for the recipients to be able to to compute their shared secrete they have to know a public key which they can use.
+If Alice used the same private key for the computation of each of the shared secrets Alice would have to send the same public key with the onion.
+
+the different payments could be linked together by an attacker that is why 
+
+Every layer of the onion has 32 Bytes of `per_hop` data.
+This data is split into 4 data filds
+
+- The 8 Byte `short_channel_id` indicates on which channel the onion should be forwarded next
+- The 8 Bytes `amt_to_forward` is a 64 Bit unsigned integer that encodes an amount in millisatoshi and indicates the amount that is supposed to be forwarded
+- The 4 Bytes `cltv_delta` is a 32 Bit unsigned integer that is used for the time locks in the HTLCs.
+- Finally there are 12 Byte left for padding and future versions and updates of the onion package format.
+
+
+
+For easier readability we have used shorts as `short_channel_ids` in the following example and graphics.
+
+[[routing-onion-1]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-1.png[]
+
+[[routing-onion-2]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-2.png[]
+
+[[routing-onion-3]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-3.png[]
+
+[[routing-onion-4]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-4.png[]
+
+[[routing-onion-5]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-5.png[]
+
+
+
+the sender of a payment has decided on a path along which 
+
+
 Explain onion routing in the abstract (desirable features, etc) 
 Intro to sphinx format (unclear how much in depth we need to go) 
 Explain “one little trick” of DH re-randomization 
