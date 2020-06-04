@@ -435,10 +435,46 @@ The `Payment Hash` is rather included in the Lightning Message that also transpo
 
 ==== Payment Forwarding Algorithm
 
-* receive an incoming HTLC
-* forward an HTLC
-* BOLT 02 channel update protocol
-* sending back errors
+In stark contrast to the Internet Protocol Forwarding Algorithm on the lightning network it is only the sender of a payment that decides the path it takes to the recipient.
+Forwarding nodes can only reject a path.
+This can happen either on purpose or because they are not able to fulfill the request. 
+The payment forwarding algorithm is initated by the sender of an payment who selects a path throught the lightning network and constructs an onion.
+It contains information about the payment for the recipient, routing hints for the intermediary nodes.
+Routing fees which those nodes will earn if (and only if) the payment is successfully delivered and settles with the release of the `Payment Hash` are also included to the onion.
+
+All Lightning Nodes must follow the payment forwarding algorithm.
+Upon receiving a Lightning Message called `update_add_htlc` which contains the `Payment Hash` and the onion package it needs to follow through X steps:
+
+1. It needs to decrypt the outer layer of the onion and use the HMAC to make sure that the onion was not corrupted.
+2. It will check that it can fullfill the routing hints in the way that the fees are respecting its fee announcements and that it has enough liquidity on the outgoing channel or is even owner of the specified channel.
+3. It needs to work with its peer on the incoming channel to update the channel state to include the offered HTLC.
+4. It will have to add some padding data to the end of the onion to keep it as a constant size even though it removed some data from the beginning.
+5. It will then follow the routing hints from its layer of the onion to forward the modified onion package on its outgoing payment channel by also sending and `update_add_htlc` message which includes the same `Payment Hash` and the onion.
+6. Obviously it also has to collaborate with its peer on the outgoing channel to move foward the state to also include the offered `HTLC`.
+
+Of course those steps will be interrupted and abroated if an error is detected.
+In most of those cases an error message will be send back to the originator of the received `update_add_htlc` message. 
+If for example in the first step the node detects that the onion was corrupted it will not proceed to the second and subsecquent steps to move forward the channel state on the receiving channel to include the HTLC.
+Similarly if in the second step the node discoveres that it won't be able to fulfill the routing request or that the not enough fees have been included it will also abort the payment forwarding algorithm and rather send back an error. 
+
+We node that the error is also an onion reply package.
+Even though the node sending the error does not know who initially sent out the payment the error message will be encrypted with the key that was used to encrypt the forwarding nodes layer.
+The reply onion is then send back on the incoming channel.
+The node on the other side knows on which channel it received an onion and with which other channel it has an HTLC with the same `Payment Hash`.
+Thus the error can safely propagate back towards the originator.
+Nodes that are sending back an error Onion must on their way remove the HTLCs from their payment channels to make sure that they cannot be enforced. 
+
+[Note]
+====
+It is important to understand that HTLCs have a time measured in absolute blockheight through which they are valid.
+Once the sender of a payment sends away the onion it is completely out if their controll what happens.
+Honest nods SHOULD either forward the onion as quickly as possible or send an error back the original.
+While sender expects nodes along the path to be honest it has according to the protocol no power of making sure that nodes act quickly.
+Thus payment can currently get stuck if nodes want to behave malicously. 
+While the likelihood for a payment to fail is pretty high if it does not settle quickly a node SHOULD never initate another payment attempt along a different path before the onion returned with an error as a node might just have delayed the forwarding of the payment.
+Nodes which act malicously by delaying the forwarding of payments or errors are actually hard to detect due to the privacy properties that are gained with the onion routing scheme. 
+====
+
 
 === Missing bits
 From a computer science perspective the Lightning Network protocol is mainly a peer to peer protocol between its participants.
