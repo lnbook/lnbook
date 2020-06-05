@@ -152,6 +152,45 @@ Successfully built 3a38f85ba558
 Successfully tagged lnbook/devenv:latest
 ----
 
+Once the +devenv+ docker container is built, we can run it and access and interactive command shell like this:
+
+----
+$ docker run -it lnbook/devenv
+root@6b5c904d899f:/lnbook#
+----
+
+You see a prompt +root@6b5c904d899f:/lnbook#+, which shows you the user (root), the container fingerprint (6b5c904d899f) and the current working directory (/lnbook). The prompt ends in +#+ instead of +$+ because you are the root user inside this container.
+
+Let's give it a quick test, by trying to run the Lightning Network Daemon command +lnd+ and see if it is installed correctly:
+
+----
+root@6b5c904d899f:/lnbook# lnd --version
+lnd version 0.9.0-beta commit=v0.9.0-beta-148-g38b521d87d3fd9cff628e5dc09b764aeabaf011a
+----
+[TIP]
+====
+To exit the container, press +CTRL-D+ or type +exit+. You are returned to the prompt of your own computer's command-line terminal.
+====
+
+Great! You have built and ran your first docker container. In order to be able to access the book examples, we will need to connect the folder containing the book repository to our docker container. This is achieved with the +volume+ parameter, which specifies a local volume (where you cloned the book repository) and a container volume (a folder in the container) where the local volume will be mounted.
+
+[TIP]
+====
+Docker's volume parameter needs an _absolute_ path, so that will depend on your local configuration and where you cloned or extracted the book repository files.
+====
+
+In the following example, we will be connecting the book repository files that were extracted in +/home/ubuntu/lnbook+ to the container volume +lnbook+. Your configuration is likely different, so you need to replace +/home/ubuntu/lnbook+ with the absolute path to the folder where you extracted the book repository:
+
+----
+$ export LNBOOK_DIR=/home/ubuntu/lnbook
+$ docker run --volume $LNBOOK_DIR:/lnbook -it lnbook/devenv
+root@a7da66010491:/lnbook# ls
+code                             images		CONTRIBUTING.md              	 README.md
+[...]
+----
+
+You should now see all the book repository files inside your container, under the folder +/lnbook+. Now you can access the examples from the code directory with all the tools, applications and utilities that are in the container.
+
 
 ==== Installing a Bitcoin node
 
