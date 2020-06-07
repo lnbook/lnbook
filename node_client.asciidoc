@@ -182,8 +182,7 @@ Docker's volume parameter needs an _absolute_ path, so that will depend on your 
 In the following example, we will be connecting the book repository files that were extracted in +/home/ubuntu/lnbook+ to the container volume +lnbook+. Your configuration is likely different, so you need to replace +/home/ubuntu/lnbook+ with the absolute path to the folder where you extracted the book repository:
 
 ----
-$ export LNBOOK_DIR=/home/ubuntu/lnbook
-$ docker run --volume $LNBOOK_DIR:/lnbook -it lnbook/devenv
+$ docker run --volume /home/ubuntu/lnbook:/lnbook -it lnbook/devenv
 root@a7da66010491:/lnbook# ls
 code                             images		CONTRIBUTING.md              	 README.md
 [...]
@@ -192,13 +191,16 @@ code                             images		CONTRIBUTING.md              	 README.m
 You should now see all the book repository files inside your container, under the folder +/lnbook+. Now you can access the examples from the code directory with all the tools, applications and utilities that are in the container.
 
 
-==== Installing a Bitcoin node
+==== Bitcoin Core and Regtest
 
-Most of the Lightning node implementations need access to a full Bitcoin node in order to work. This Bitcoin node can be installed on the same computer (will require an additional 250+ GB of disk) or run on a different computer that can authorize connections from the Lightning node over the Internet.
+Most of the Lightning node implementations need access to a full Bitcoin node in order to work.
 
 Installing a full Bitcoin node is outside the scope of this book and is a relatively complex endeavor in itself. If you want to try it, refer to _Mastering Bitcoin_ (https://github.com/bitcoinbook/bitcoinbook), "Chapter 3: Bitcoin Core: The Reference Implementation" which discusses the installation and operation of a Bitcoin node.
 
 A Bitcoin node can also be operated in _regtest_ mode, where the nodes creates a local simulated Bitcoin blockchain for testing purposes. In the following examples, we will be using regtest mode to allow us to demonstrate lightning without having to synchronize a Bitcoin node, or risk any funds.
+
+There are two docker containers for Bitcoin Core. The first is a base container (+bitcoind-base+) that downloads and installs the Bitcoin Core software. The second container is +bitcoind-regtest+ that runs Bitcoin Core in regtest mode and mines a new block every 10 seconds.
+
 
 === c-lightning
 
