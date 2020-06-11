@@ -361,15 +361,17 @@ Here we will focus on the second and thrid questions.
 
 The short answer to the questions is that only the sender decides which path to choose and no other node in the network learns about this path.
 Nodes along the path only learn on which channel they received a payment and on which channel they are supposed to forward it.
-Neither do they know of the peer on the receiving channel initiated the payment nor do they know whether the peer on the outgoing channel is the final recipient of the payment.
+Neither do they know whether the peer on the receiving channel initiated the payment nor do they know whether the peer on the outgoing channel is the final recipient of the payment.
 We exepect you to be surprised that it is actually possible to create such an algorithm with modern cryptography.
 This is why we will now devote quite some space to write and discuss about source based onion routing.
-This is a technique which is fundamentally different to the best effort routing approach implemented on the internet protocol which is know to have poor privacy protection of the transfered data and needs end to end encryption on the upper layers to be secure. 
-Very roughly speaking the routing of payments on the Lightning Network can be compared with Onion routing that is well known from the TOR network.
+This is a technique is fundamentally different to the best effort routing approach implemented on the internet protocol.
+Best effort routing is know to have poor privacy protection of the transfered data and needs end to end encryption on the upper layers to be secure.
+To get rid of these problems the Lightning Network utilizes a sourced base onion routing based on the SPHINX Mix format. 
+Very roughly speaking the SPHINX Mix format can be compared with the onion routing that is well known from the TOR network.
 
 [NOTE]
 ====
-While the Lightning Network also uses an onion routing it is actually very differnt to the onion routing scheme in the TOR network.
+While the Lightning Network also uses an onion routing scheme it is actually very differnt to the onion routing scheme in the TOR network.
 The biggest difference is that TOR is being used for arbitrary data to be exchanged between two participants where on the Lightning Network the main usecase is to pay people.
 For example on the Lightning Network there is no analogy to the exit nodes of the Tor Network which produce a security risk. However since nodes forward funds and with the cheap fees have to see almost the exact payment amount they can make a good guess about the content of the package (not about the sender or recipient though).
 In tor the security can be compromised if all randomly chosen tor hops are acting together. In Lightning the payment hash identifies a payment and thus not every node along the path needs to be compromised in order to attack the security.
@@ -379,24 +381,112 @@ Last but not least the Lightning Network can actuly run on TOR.
 This means that all connections of a node with its peers and the resulting communication will by obfuscated once more through the TOR network.  
 ====
 
-Lets stick to our example that Alice still wants to tip Gloria and has decided to use the path via Bob and Wei.
+Lets stick to our example in which Alice still wants to tip Gloria and has decided to use the path via Bob and Wei.
 We note that there might have been alternative paths from Alice to Gloria but for now we will just assume it is this path that Alice has decided to use.
 You have already learnt that Alice needs to set up an HTLC with Bob via and `update_add_htlc` message.
-If you recall the `update_add_htlc` message you will remember that it containes a data field of 1366 Bytes in length that is the Onion Package.
+As discussed the `update_add_htlc` message containes a data field of 1366 Bytes in length that is the onion package.
 This onion cointains all the information about the path that Alice intends to use to send the payment to Gloria.
-However Bob who receives the Onion cannot read all the information about the path as most of the onion is hidden from him through a sequence of encryptions. 
-The name onion comes from the analogy to an onion that consits of several layers where in our example every layer corresponds to one round of encryption.
+However Bob who receives the onion cannot read all the information about the path as most of the onion is hidden from him through a sequence of encryptions. 
+The name onion comes from the analogy to an onion that consits of several layers. In our case every layer corresponds to one round of encryption.
 Each round of encryption uses different encryption keys.
-They are chosen in a way that the recipient can only peel (decrypt) the top layer of the onion.
-Bob will only see the information that he is supposed to forward the onion to Wai.
-After Boab saw this he will modify the onion a little bit to remove his information from it and pass it a long to Wei.
+They are chosen by Alice in a way that only the rightful recipient of an onion can peel of (decrypt) the top layer of the onion.
+
+For example after Bob received the onion from Alice he will be able to decrypt the first layer and he will only see the information that he is supposed to forward the onion to Wai by setting up an HTLC with Wei.
+The HTLC with Wei should use the same Payment Hash as the receiving HTLC from Alice.
+The amount of the forwarded HTLC was specified in Bob decrypted layer of the onion.
+It will be slightly smaller the the imount of his incoming HTLC from Alice.
+The difference of these two amounts has to be at least as big as to cover the routing fees that Bob's node announced earlier.
+
+In order to set up the HTLC Bob will modify the onion a little bit.
+He removes the information that he could read from it and passes it along to Wei.
+
 Wei in turn is only able to see that he is supposed to forwad the package to Gloria.
 Wai knows he recieved the onion from Bob but has no clue that it was actually Alice who initiated the onion in the first place.
-In this way every participant can peel of one layer of the onion by encrypting it and only learn the information it has to learn to fullfil the routing request.
-For example Bob will only know that Alice offered him an HTLC and send him an onion and that he is supposed to offer an HTLC to Wei and forward a slightly modified onion.
+In this way every participant is only able to peel of one layer of the onion by decrypting it.
+Each participant will only learn the information it has to learn to fullfil the routing request.
+For example Bob will only know that Alice offered him an HTLC and sent him an onion and that he is supposed to offer an HTLC to Wei and forward a slightly modified onion.
 Bob does not know if Alice is the originator of this payment as she could also just have forwarded the payment to him.
 Due to the layered encryption he cannot see the inside of Wei's, and Gloria's Layer and can thus does not know that Gloria is the final destination of the payment.
 The only thing Bob knows is that he was involved in a path that involved Alice, him and Wei. 
+
+While the Onion is decrypted layer by layer it while it travels along the path from Alice via Bob and Wei to Gloria it is created from the inside layer to the outside layers via several rounds of encryption.
+Being created from the inside means that the construction starts with the Onion Package that Gloria is supposed to receive in plain text. 
+Let us now look at the construction of the Onion that Alice has to follow and at the exact information that is being put inside each layer of the onion.
+
+The onions are a data structure that consists of four parts:
+
+1. The Version byte
+2. The header sonsisting of a public key that can be used by the recipient to produce the shared secret for decrypting the outer layer and to derieve the public key for the next recipient.
+3. The payload
+4. an authentication via an HMAC.
+
+For now we will ignore how the public keys are derived and exchanged and focus on the payload of the onion.
+Only the payload is actually encrypted and will be peeled of layer by layer.
+The payload consits of a sequence of a sequence of per hop data.
+This data can come in two formats the legacy one and the Type Length Value (TLV) Format.
+While the TLV format offers more flexability in both cases the routing information that is encoded into the onion is the same for every but the last hop.
+On the last hop the TLV information departs from the legacy information as it allows to include a preimage.
+This is nice as it allow a payer to initiate a payment without the neccessity to ask the payer for an invoice and payment hash first.
+
+A node needs three pieces of information to forward the package:
+
+1. The short channel id of the next channel along which it is supposed to forward the onion by setting up an HTLC with the same payment hash.
+2. The amount that it is supposed to be forwarded and thus being used in the HTLC.
+3. Timelock information is the last piece of information that is needed as HTLCs are hashed time locked contracts.
+
+For easier readability we have used shorts as `short_channel_ids` in the following example and graphics.
+
+[[routing-onion-1]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-1.png[]
+
+We can see that Alice has created some per hop data for David.
+The short channel id is set to 0 signaling David that this payment is intended to be for him.
+The amount to forward is set to 300.
+On the incoming HTLCs David should have seen the same amount.
+Usually this amount is intended to say how many satoshis should be forwarded.
+Since the short channel id was set to zeor in this particular case it is interpreted as the payment amount.
+
+TODO: does it really need an outgoing CLTV value on the last hop or does it have to match the CLTV value of the last offered HTLC... details :(
+
+TODO: everything from here on will most likely change and could even be redundant.
+
+Onions are being constructed from the inside to the outside.
+As the inside of the onion is decrypted last it has to correspond to the recipient which in our case is Gloria.
+As every layer of the Onion is encrypted by Alice in such a way that only the respective recpient can decrypt their layer Alice needs to come up with a sequence of encryption keys that she will use for each and every hop.
+The main concept that is being used is the shared secret computation via an elliptic Courve Diffie Helmann Key exchange (ECDH) between Alice and each of the hops.
+However for the recipients to be able to to compute their shared secrete they have to know a public key which they can use.
+If Alice used the same private key for the computation of each of the shared secrets Alice would have to send the same public key with the onion.
+
+the different payments could be linked together by an attacker that is why 
+
+Every layer of the onion has 32 Bytes of `per_hop` data.
+This data is split into 4 data filds
+
+- The 8 Byte `short_channel_id` indicates on which channel the onion should be forwarded next
+- The 8 Bytes `amt_to_forward` is a 64 Bit unsigned integer that encodes an amount in millisatoshi and indicates the amount that is supposed to be forwarded
+- The 4 Bytes `cltv_delta` is a 32 Bit unsigned integer that is used for the time locks in the HTLCs.
+- Finally there are 12 Byte left for padding and future versions and updates of the onion package format.
+
+
+
+
+[[routing-onion-2]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-2.png[]
+
+[[routing-onion-3]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-3.png[]
+
+[[routing-onion-4]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-4.png[]
+
+[[routing-onion-5]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-5.png[]
+
 
 Interestingly enough Alice can construct the onion with different encryption keys for Bob, Wei and Gloria without the necessity to estable a peer connection with them.
 She only needs a public key from each participant which is the public `node_id` of the lightning node and known to Alice.
@@ -422,49 +512,6 @@ However she would have to put her public key in the header of the onion.
 This is necessary for nodes to be able to execute an ECDH and produce the same shared secrete that Alice used for the respective layer of the Onion.
 However with that information nodes would know that Alice was the originator of the payment lifting the anonymity of the payer by design.  
 ====
-
-Let us now look at the construction of the Onion that Alice has to follow and at the exact information that is being put inside each layer of the onion.
-
-Onions are being constructed from the inside to the outside.
-As the inside of the onion is decrypted last it has to correspond to the recipient which in our case is Gloria.
-As every layer of the Onion is encrypted by Alice in such a way that only the respective recpient can decrypt their layer Alice needs to come up with a sequence of encryption keys that she will use for each and every hop.
-The main concept that is being used is the shared secret computation via an elliptic Courve Diffie Helmann Key exchange (ECDH) between Alice and each of the hops.
-However for the recipients to be able to to compute their shared secrete they have to know a public key which they can use.
-If Alice used the same private key for the computation of each of the shared secrets Alice would have to send the same public key with the onion.
-
-the different payments could be linked together by an attacker that is why 
-
-Every layer of the onion has 32 Bytes of `per_hop` data.
-This data is split into 4 data filds
-
-- The 8 Byte `short_channel_id` indicates on which channel the onion should be forwarded next
-- The 8 Bytes `amt_to_forward` is a 64 Bit unsigned integer that encodes an amount in millisatoshi and indicates the amount that is supposed to be forwarded
-- The 4 Bytes `cltv_delta` is a 32 Bit unsigned integer that is used for the time locks in the HTLCs.
-- Finally there are 12 Byte left for padding and future versions and updates of the onion package format.
-
-
-
-For easier readability we have used shorts as `short_channel_ids` in the following example and graphics.
-
-[[routing-onion-1]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-1.png[]
-
-[[routing-onion-2]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-2.png[]
-
-[[routing-onion-3]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-3.png[]
-
-[[routing-onion-4]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-4.png[]
-
-[[routing-onion-5]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-5.png[]
 
 
 
