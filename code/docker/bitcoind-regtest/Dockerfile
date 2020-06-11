@@ -1,4 +1,32 @@
-FROM lnbook/bitcoind-base:latest
+FROM ubuntu:18.04 AS bitcoind-base
+
+# RUN apk update \
+# 	&& apk upgrade \
+# 	&& apk add bash bash-completion
+
+RUN apt update \
+	&& apt install -y \
+		bash-completion
+
+ENV BITCOIND_VERSION 0.20.0
+# Install binaries for Bitcoin Core
+ADD https://bitcoincore.org/bin/bitcoin-core-${BITCOIND_VERSION}/bitcoin-${BITCOIND_VERSION}-x86_64-linux-gnu.tar.gz /usr/local
+RUN cd /usr/local/ \
+	&& tar -zxf bitcoin-${BITCOIND_VERSION}-x86_64-linux-gnu.tar.gz \
+	&& cd bitcoin-${BITCOIND_VERSION} \
+	&& install bin/* /usr/local/bin \
+	&& install include/* /usr/local/include \
+	&& install -v lib/* /usr/local/lib
+
+ENV GH_URL https://raw.githubusercontent.com/bitcoin/bitcoin/master/
+ENV BC /usr/share/bash-completion/completions/
+ADD $GH_URL/contrib/bitcoin-cli.bash-completion $BC/bitcoin-cli
+ADD $GH_URL/contrib/bitcoind.bash-completion $BC/bitcoind
+ADD $GH_URL/contrib/bitcoin-tx.bash-completion $BC/bitcoin-tx
+
+ADD bashrc /root/.bashrc
+
+FROM bitcoind-base AS bitcoind-regtest
 
 ADD bitcoind /bitcoind
 RUN ln -s /bitcoind /root/.bitcoin

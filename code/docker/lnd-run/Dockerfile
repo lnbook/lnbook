@@ -1,4 +1,17 @@
-FROM lnbook/lnd-base
+FROM golang:1.13 as lnd-base
+
+ENV GOPATH /go
+WORKDIR $GOPATH/src
+
+RUN apt update && apt install -y \
+	jq
+
+# LND
+RUN go get -d github.com/lightningnetwork/lnd
+WORKDIR $GOPATH/src/github.com/lightningnetwork/lnd
+RUN make && make install
+
+FROM lnd-base AS lnd-run
 
 ADD lnd /lnd
 RUN ln -s /lnd /root/.lnd
