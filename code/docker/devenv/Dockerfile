@@ -1,62 +1,30 @@
 # syntax = docker/dockerfile:1.0-experimental
+# devenv Dockerfile (multi-state container)
 FROM ubuntu:18.04
 
-# Install development tools prerequisites
-RUN apt-get update && apt-get install -y \
-    build-essential \
-	libtool \
-	autotools-dev \
-	automake \
-	pkg-config \
-	python3 \
-	wget \
-	git \
-	curl \
-	unzip
+# Import Bitcoin Core files from bitcoind-base container
+COPY --from=lnbook/bitcoind-base /usr/local/ /usr/local/
 
-# Install additional Bitcoin Core (bitcoind) requirements
-RUN apt-get install -y \
-	libssl-dev \
-	libevent-dev \
-	bsdmainutils \
-	libboost-system-dev \
-	libboost-filesystem-dev \
-	libboost-chrono-dev \
-	libboost-test-dev \
-	libboost-thread-dev \
-	libminiupnpc-dev \
-	libzmq3-dev
+# Import lnd from lnd-base container
+FROM golang:1.13
+ENV GOPATH /go
+ENV PATH $PATH:$GOPATH/bin
+COPY --from=lnbook/lnd-base $GOPATH $GOPATH
 
 # Install software-properties-common to add apt repositories
-RUN apt-get install -y \
-	software-properties-common
-
-# Add Bitcoin Core PPA repository
-RUN add-apt-repository ppa:bitcoin/bitcoin
 RUN apt-get update && apt-get install -y \
-	bitcoind
-
+	software-properties-common \
+	apt-utils \
+	curl \
+	git
 
 # c-lightning
 RUN add-apt-repository -u ppa:lightningnetwork/ppa
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y \
  	lightningd
 
-# Go 1.13 for LND
-RUN curl -SL https://dl.google.com/go/go1.13.linux-amd64.tar.gz \
-	| tar -xzC /usr/local
-ENV PATH $PATH:/usr/local/go/bin
-ENV GOPATH /gocode
-RUN mkdir -p $GOPATH
-ENV PATH $PATH:$GOPATH/bin
-
-# LND
-RUN go get -d github.com/lightningnetwork/lnd
-WORKDIR $GOPATH/src/github.com/lightningnetwork/lnd
-RUN make && make install
-
 # OpenJDK11 for eclair
-RUN apt install -y \
+RUN apt-get update && apt install -y \
 	openjdk-11-jdk
 
 # eclair-node

@@ -1,26 +1,17 @@
-FROM lnbook/bitcoind_base:latest
+FROM lnbook/bitcoind-base:latest
 
 ADD bitcoind /bitcoind
-WORKDIR /bitcoind
 RUN ln -s /bitcoind /root/.bitcoin
 
-EXPOSE 12001
+# bitcoind P2P
+EXPOSE 18444/tcp
+# bitcoind regtest RPC
+EXPOSE 18443/tcp
+# zmqpubrawblock
+EXPOSE 12005/tcp
+# zmqpubrawtx
+EXPOSE 12006/tcp
 
-CMD bitcoind -datadir=/bitcoind -daemon \
-	&& sleep 2 \
-	&& export address=$(bitcoin-cli -datadir=/bitcoind getnewaddress) \
-	&& export privkey=$(bitcoin-cli -datadir=/bitcoind dumpprivkey $address)\
-	&& echo "Mining 101 blocks to unlock some bitcoin" \
-	&& bitcoin-cli -datadir=/bitcoind generatetoaddress 101 $address \
-	&& echo "================================================"\
-	&& echo "Mining to bitcoin address: " ${address} \
-	&& echo "Private key: " ${privkey} \
-	&& echo "Balance: " `bitcoin-cli -datadir=/bitcoind getbalance` \
-	&& echo "================================================"\
-	&& echo "Configuration:" \
-	&& cat /bitcoind/bitcoin.conf \
-	&& echo "================================================"\
-	&& echo "Use the command below to mine new blocks and progress the chain:"\
-	&& echo "bitcoin-cli -datadir=/bitcoind generatetoaddress 1" $address \
-	&& echo "================================================"\
-	&& bash
+WORKDIR /bitcoind
+CMD /bin/bash /bitcoind/bitcoind-start.sh \
+	&& /bin/bash /bitcoind/mine.sh

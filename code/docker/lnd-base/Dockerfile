@@ -1,6 +1,10 @@
 FROM golang:1.13
 
-WORKDIR /go/src/
+ENV GOPATH /go
+WORKDIR $GOPATH/src
+
+RUN apt update && apt install -y \
+	jq
 
 # LND
 RUN go get -d github.com/lightningnetwork/lnd
