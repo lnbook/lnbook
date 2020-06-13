@@ -1,0 +1,37 @@
+Chapter overview:
+  * describes how channels are put together at the script+transaction level
+  * details how a channel if funded in the protocol
+  * details how a channel is updated in the protocol
+  * describes what needs to happen when a channel is force closed
+
+Relevant questions to answer:
+  * Channel construction:
+      * What's the difference between a replace-by-revocation based and a replace-by-versioning commitment format?
+      * What does the funding output script look like, what security guarantees does it give us?
+      * What's the difference between CSV and CLTV? How do both of these use the existing fields of the transaction to enforce new behavior?
+      * How do we implement revocation in our channel format?
+      * What does the script on the commitment to the broadcaster look like?
+      * What does the script on the commitment for the party that didn't broadcast look like?
+      * How are HTLCs constructed? What are second-level HTLCs?
+      * How has the commitment format in LN changed over time? What are some of the changes to the commitment format that've happened?
+  * Funding flow and messages:
+      * What are the messages exchanged to initiate a new channel with another peer?
+      * What do the parameters such as the max in flight do?
+      * How should the CSV values and the number of blocks until a channel is considered confirmed change with the size of the channel?
+      * What are wumbo channels? How are they enabled?
+      * What is an upfront shutdown address? What security does it offer?
+      * Is it possible to open multiple channels in a single transaction?
+  * Channel state machine:
+      * What does Medium Access Control mean in the context of network protocols?
+      * At a high level, how does the MAC protocol for 802.11 work?
+      * What steps need to happen for a new commitment state to be proposed and irrevocably committed for both parties?
+      * When is it safe for a party to forward a new HTLC to another peer? (may be out of scope for this chapter)
+      * Is it possible to commit a 
+      * How does the current MAC protocol for the LN work?
+        * What does an htlc_add message contain?
+        * How are HTLCs cancelled or settled?
+        * Can both parties propose updates at the same time?
+        * Is it possible for a party to add a batch of HTLCs in a single go?
+        * What constraints exist that both parties need to adhere to?
+      * How are fees paid in a channel? Who pays which fees? Has this changed with newer commitment formats?
+      * How would the MAC protocol need to change if we used channels with symmetric state?

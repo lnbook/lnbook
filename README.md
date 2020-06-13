@@ -2,13 +2,49 @@
 
 [![Build Status](https://travis-ci.com/lnbook/lnbook.svg?branch=develop)](https://travis-ci.com/lnbook/lnbook)
 
-![Mastering Lightning Cover](images/cover_thumb.png)
+<img src="images/cover_thumb.png" width=200 alt="Mastering Lightning Cover">
 
+## About
 Mastering the Lightning Network is an O'Reilly Media book, due for publication in Q4'2020, and announced on August 28th by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)).
 
 The book describes the Lightning Network (LN), a Peer-to-Peer protocol running on top of Bitcoin and other blockchains, which provides near-instant, secure, micro-payments.
 
 The book is suitable for technical readers with an understanding of the fundamentals of Bitcoin and other open blockchains.
+
+## Status
+
+The current status of the book is "IN PROGRESS". See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
+
+### Legend
+
+* :arrows_clockwise:  LIVE EDITS - Continuously changing: Submit focused/small Issues and PRs
+* :mag: REVIEW - Ready for review: Submit Issues and PRs as needed
+* :lock_with_ink_pen: EARLY DRAFT - In progress, changing often: Submit issues only, NO PRs or fixes
+* :bookmark_tabs: OUTLINE - Rough outline - Please contribute! PRs welcome.
+* :thought_balloon: PLANNED - Planned section  - Do nothing yet.
+
+| Section | Length (Word Count) |  Status |
+|-------|------|:------:|
+| [Preface and Acknowledgments](preface.asciidoc) | ### | :arrows_clockwise: |
+| [Glossary](glossary.asciidoc) | ############# | :arrows_clockwise: |
+| [Introduction](01_introduction.asciidoc) | ##### | :mag: |
+| [Getting Started](02_getting_started.asciidoc) | ########## | :mag: |
+| [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ###################### | :mag: |
+| [Intro to LN Routing (HTLCs)](routing.asciidoc) | ############# | :lock_with_ink_pen: |
+| [Nodes (LN Clients)](node_client.asciidoc) | #### | :lock_with_ink_pen: |
+| [Operating a Node](node_operations.asciidoc) | # | :bookmark_tabs: |
+| [P2P Communication](p2p.asciidoc) | # | :bookmark_tabs: |
+| [Channel Construction in Detail](channel-construction.asciidoc) | # | :bookmark_tabs: |
+| [Onion Routing and HTLC forwarding](onion-routing-htlc-forwarding.asciidoc) | # | :bookmark_tabs: |
+| [Channel Graph and Gossip Layer](channel-graph.asciidoc) | # | :bookmark_tabs: |
+| [Payment Path Finding](path-finding.asciidoc) | # | :bookmark_tabs: |
+| [End-to-End Payement Presentation Layer](e2e-presentation-layer.asciidoc) | # | :bookmark_tabs: |
+| [Lightning Applications (LApps)]() | # | :thought_balloon: |
+| [LN's Future]() | # | :thought_balloon: |
+
+Total Word Count: 35050
+
+Target Word Count: 100,000-120,000
 
 ## Contributing
 
