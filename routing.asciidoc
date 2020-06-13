@@ -442,7 +442,7 @@ A node needs three pieces of information to forward the package:
 2. The amount that it is supposed to be forwarded and thus being used in the HTLC.
 3. Timelock information encoded to a `cltv_delta` is the last piece of information that is needed as HTLCs are hashed time locked contracts.
 
-For easier readability we have used just a mall integer as `short_channel_ids` in the following example and graphics.
+For easier readability we have used just a small integer as `short_channel_ids` in the following example and graphics.
 
 [[routing-onion-1]]
 .`per_hop` payload of Glorias onion and the encrypted 
@@ -454,19 +454,37 @@ The amount to forward is set to 3000.
 On the incoming HTLCs David should have seen that exact amount.
 Usually this amount is intended to say how many satoshis should be forwarded.
 Since the short channel id was set to zero in this particular case it is interpreted as the payment amount.
-Finally the CLTV delta which David should to forward the payment is also set to zero as David is the final hop.
-According to the protocol the per hop data can have up to 20 Byte as this is not used up the remaining space will be filled with zeros which we did not depict in the picture.
+Finally the CLTV delta which David should use to forward the payment is also set to zero as David is the final hop.
+These data fields consit of 20 Bytes.
+The Lightning Network protocol actually allows to store 65 Bytes of data the Onion for every hope.
+
+- 1 Byte Realm which signals nodes how to decode the following 32 Bytes.
+- 32 Byte for routing hints (20 of which we have already used).
+- 32 Byte of a Hasched Message Authentication code.
+
+Since the additional 12 Byte of data for the routing hints were not needed at this time they are set to zero.
+In the next diagram we can see how the per hop payload for David looks like.
+
+[[routing-onion-2]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-2.png[]
 
 On important feature to protect the privacy is to make sure that onions are always of equal length independ of their position along the payment path.
-Thus onions are always expected to contain 20 entries with fields of per hop data.
-As David is the final recipient there is onlye reasonable data for one field with per hop data.
+Thus onions are always expected to contain 20 entries of 65 Bytes with per hop data.
+As David is the final recipient there is only reasonable data for 65 Bytes ofth per hop data.
 This is not a problem as the other 19 fields are filled with junk data.
+You could also see this in the previous diagram. 
 
 After Alice has set all the data she needs to encrypt the onion payload.
 For this she derives a shared secret between Davids public node key and the private secrete that she generated for David.
 This process is also well known as an Elliptic Curve Diffie Hellmann key exchange and a standard technique in cryptography and Bitcoin.
 
-ALice puts the encrypted payload inside the full Onion Package which contains a the public keys from the secrete key that she used to derive the shared secrete.
+[[routing-onion-3]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-3.png[]
+
+You can see that Alice put the encrypted payload inside the full Onion Package which contains a the public keys from the secrete key that she used to derive the shared secrete.
+Full onion package also has a version byte in the beginning and an HMAC for the entire Onion. 
 When David receives the Onion package he will extract the public key from the unencrypted part of the onion package.
 The property of the Elliptic Curve Diffie Hellmann key exchange is that if he multiplies this public key with his private node key he will get the same shared secret as a result as Alice did.
 However others cannot derive the same shared secrete as they neither know Alice's nor David's private key.
@@ -483,20 +501,50 @@ With the same argument as before we apply the law of associativity and apply the
 We just saw why `ek_d*D = d*EPK_D = ss_d` and why Alice and Davide will be able to derive the same shared secrete if Alice puts the ephmeral pubilic key inside the onion.
 ====
 
-Alice now creates the Onion for Wei.
-Again she starts with the obviously necessary data which are the short channel id, the amount to forward and the CLTV delta that Wei should use when he forwards the Onion.
-This data is stored as the per hop data and is appened with a few padding zeros and the onion payload that Alice previously computed for David.
-As the onions have to be of equal length Alice will not Use the entire payload data that she has computed for David but she will trunkate the last couple bytes and throw them away.
-this is the plaintext version of Weis Onion payload.
+After the encrypted Onion for David is created Alice will create the next outer layer by creating the onion for Wei.
+
+She truncates 65 Bytes from the end of the encrypted onion and prepends the truncated onion with 65 Byte per Hop data for Wei.
+The per hop data follows the same structure as the per hop data for David. 
+Thus she starts with the Realm Byte that she will set to 0 again.
+Then comes the short channel id.
+This is set to 452 as Wei is supposed to use that channel to forward the onion.
+She sets the amount to 3000 satoshi as this is the amount that David is supposed to receive.
+Finally she uses the CLTV delta that was announced for this channel on the gossip protocol and that Wei should use for the HTLC when he forwards the Onion.
+Again 12 Bytes of zeros are padded and an HMAC is computed.
+Note that she did not have to compute filler this time as she already has too much data with the encrypted inner onion.
+That is why the inner onion had to be truncated at the end.
+This is the plain text version of Weis Onion payload and can be seen in the following diagram:
+
+[[routing-onion-4]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-4.png[]
+
 We emphasize that Wei has no chance to decrypt the inner part of the onion.
 However the information for Wei should also be protected from others.
 Thus Alice conducts another ECDH.
 This time with Wei's public key and and emphemeral keypair that she has generated particularly for Wei.
-She uses the shared secret to encrypt the onion payload and would be able to construct the entire onion.
-Note that in the entire onion there will be Wei's empheral public key and in the encrypted inside part Davids ephemeral public key is not stored.
-After Wei decrypts his layer he can use the shared secrete and his Emphermal public key to derrive the Empheral public key that David is supposed to use.
+She uses the shared secret to encrypt the onion payload.
+She would be able to construct the entire onion for Wei - which actually Bob does while he forwards the onion.
+The Onion that Wei would receive can be seen in the following diagram:
+
+[[routing-onion-5]]
+.`per_hop` payload of Glorias onion and the encrypted 
+image:images/routing-onion-5.png[]
+
+Note that in the entire onion there will be Wei's empheral public key.
+David ephemeral public key is not stored anywhere in the onion.
+Neither in the header, nor in the payload data.
+However we have seen that David needed to have this key in the header of the Onion that he received.
+Luckily the ephemeral keys that Alice used for the ECDH with david can be derived from the ephmeral key that she used for Wei. 
+Thus after Wei decrypts his layer he can use the shared secrete and his emphermal public key to derrive the Empheral public key that David is supposed to use and store it in the header of the Onion that he forwards to David.
 The exact progress to generate the empheral keys for every hope will be explained at the very end of the chapter.
+Similarly it is important to recognize that Alice removed data from the end of Davids onion payload to create space for the per hop data in Wei's onion.
+Thus when Wei has received his onion and removed his routing hints and per hopd data the onion would be to short and he somehow needs to be able to append the 65 Bytes of filled junk data in a way that the HMACs will still be valid.
+This process is of filler generation as well as the process of derriving the emphemeral keys is described in the end of this chapter.
 What is important to know is that every hope can derive the Ephemeral Public key that is necessary for the next hop and that the onions save space by always storing only one ephemeral key instead of all the keys for all the hops.
+
+
+
 
 Finally after Alice has computed the encrypted version for Wei she will use the exact same process to compute the encrypted version for Bob.
 For Bobs onion she actually computes the header and provides the emphemeral public key herself.
@@ -534,21 +582,11 @@ This data is split into 4 data filds
 
 
 
-[[routing-onion-2]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-2.png[]
 
-[[routing-onion-3]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-3.png[]
 
-[[routing-onion-4]]
+[[routing-onion-6]]
 .`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-4.png[]
-
-[[routing-onion-5]]
-.`per_hop` payload of Glorias onion and the encrypted 
-image:images/routing-onion-5.png[]
+image:images/routing-onion-6.png[]
 
 
 Interestingly enough Alice can construct the onion with different encryption keys for Bob, Wei and Gloria without the necessity to estable a peer connection with them.
