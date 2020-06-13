@@ -328,7 +328,7 @@ While Lightning Nodes usually use the encrypted communication channels over the 
 This could be via a Webservice or Email.
 Invoices are usually encoded either as long bech32 strings or as QR codes which enables them to be easily scanned by smartphones.
 Obviously the invoices contains the amount of bitcoin that is requested and a signature of the payee.
-The later is used to extract the address of the payee so that the payer knows whom to send the money.
+The latter is used to extract the address of the payee so that the payer knows whom to send the money.
 Besides some other meta data the most important but not quite obvious data in the invoice is a Payment Hash.
 
 ==== Payment Hash
@@ -362,7 +362,7 @@ After opening a channel a node will send out an announcement of the channel via 
 Every peer can validate the information from the `channel_announcement` message and verify that the funding transaction was indeed confirmed by the Bitcoin network.
 Upon verification the node will forward the gossip message to its peers.
 In order to avoid spam this will only be done if the message was not forwarded by that node already.
-Similarly nodes can be announced via the gossip protocol with the `node_announcment` message.
+Similarly nodes can be announced via the gossip protocol with the `node_announcement` message.
 For this message to be forwarded a node has to have at least one public channel that was announced on the gossip protocol.
 This again is a spam reduction measure of the gossip protocol.
 Payment channels have various meta data that are useful for other participants of the network.
@@ -372,7 +372,7 @@ These messages will only be forwarded about four times a day for every channel t
 The gossip protocol also comes with a variety of queries and tools to initially synchronize a node with the view of the network or to update the node's view after being offline for a while.
 We will investigate the details of the gossip protocol in a later chapter.
 For now it is only important to know that it exists and that it is used to share topology information of the Lightning Network with its participants.
-This topology information is crucually needed for delivering payments through the network of payment channels.
+This topology information is crucially needed for delivering payments through the network of payment channels.
 
 [NOTE]
 ====
@@ -452,14 +452,14 @@ Upon receiving a Lightning Message called `update_add_htlc` which contains the `
 5. It will then follow the routing hints from its layer of the onion to forward the modified onion package on its outgoing payment channel by also sending and `update_add_htlc` message which includes the same `Payment Hash` and the onion.
 6. Obviously it also has to collaborate with its peer on the outgoing channel to move foward the state to also include the offered `HTLC`.
 
-Of course those steps will be interrupted and abroated if an error is detected.
+Of course those steps will be interrupted and aborted if an error is detected.
 In most of those cases an error message will be send back to the originator of the received `update_add_htlc` message. 
-If for example in the first step the node detects that the onion was corrupted it will not proceed to the second and subsecquent steps to move forward the channel state on the receiving channel to include the HTLC.
-Similarly if in the second step the node discoveres that it won't be able to fulfill the routing request or that the not enough fees have been included it will also abort the payment forwarding algorithm and rather send back an error. 
+If for example in the first step the node detects that the onion was corrupted it will not proceed to the second and subsequent steps to move forward the channel state on the receiving channel to include the HTLC.
+Similarly if in the second step the node discovers that it won't be able to fulfill the routing request or that not enough fees have been included it will also abort the payment forwarding algorithm and rather send back an error. 
 
 We node that the error is also an onion reply package.
 Even though the node sending the error does not know who initially sent out the payment the error message will be encrypted with the key that was used to encrypt the forwarding nodes layer.
-The reply onion is then send back on the incoming channel.
+The reply onion is then sent back on the incoming channel.
 The node on the other side knows on which channel it received an onion and with which other channel it has an HTLC with the same `Payment Hash`.
 Thus the error can safely propagate back towards the originator.
 Nodes that are sending back an error Onion must on their way remove the HTLCs from their payment channels to make sure that they cannot be enforced. 
@@ -468,7 +468,7 @@ Nodes that are sending back an error Onion must on their way remove the HTLCs fr
 ====
 It is important to understand that HTLCs have a time measured in absolute blockheight through which they are valid.
 Once the sender of a payment sends away the onion it is completely out if their controll what happens.
-Honest nods SHOULD either forward the onion as quickly as possible or send an error back the original.
+Honest nodes SHOULD either forward the onion as quickly as possible or send an error back the original.
 While sender expects nodes along the path to be honest it has according to the protocol no power of making sure that nodes act quickly.
 Thus payment can currently get stuck if nodes want to behave malicously. 
 While the likelihood for a payment to fail is pretty high if it does not settle quickly a node SHOULD never initate another payment attempt along a different path before the onion returned with an error as a node might just have delayed the forwarding of the payment.
