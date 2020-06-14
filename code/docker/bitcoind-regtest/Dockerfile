@@ -1,12 +1,7 @@
 FROM ubuntu:18.04 AS bitcoind-base
 
-# RUN apk update \
-# 	&& apk upgrade \
-# 	&& apk add bash bash-completion
-
-RUN apt update \
-	&& apt install -y \
-		bash-completion
+RUN apt update && apt install -yqq \
+	curl gosu jq bash-completion
 
 ENV BITCOIND_VERSION 0.20.0
 # Install binaries for Bitcoin Core

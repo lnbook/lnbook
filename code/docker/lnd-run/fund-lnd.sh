@@ -1,4 +1,5 @@
 #!/bin/bash
+set -Eeuo pipefail
 
 # Generate a new receiving address for LND wallet
 address=$(lncli --lnddir=/lnd --network regtest newaddress np2wkh | jq .address)
