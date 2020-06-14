@@ -629,24 +629,38 @@ They are not required to be aware of the state of the entire network.
 In summary, Bitcoin transactions are broadcasted publicly and stored forever. Lightning payments are executed between a few selected peers and information about is privately stored and only until the channel is closed. 
 Creating en-masse analysis tools equivalent to the ones on the Bitcoin network will be impossible on Lightning. 
 
-==== Waiting for Confirmations vs Instant settlement
+==== Waiting for Confirmations vs Instant Settlement
 
 On the Bitcoin network, transactions are only 'settled' once they have been included in a block, in which case they are 'confirmed' in that block.
-As more blocks are mined on the Bitcoin network after this, the transaction acquires more 'confirmations' and is considered more secure.
+As more blocks are mined on the Bitcoin network thereafter, the transaction acquires more 'confirmations' and is considered more secure.
 
-On the Lightning Network, confirmation only matters for opening and closing channels.
+On the Lightning Network, confirmations only matters for opening and closing channels on-chain.
 Once a Funding Transaction has reached a suitable number of confirmations (e.g. 3), the channel partners consider the channel open.
-As the bitcoin in the channel is secured by the smart contract that manages that channel, payments settle instantly once received by the receiver and are not reversible.
+As the bitcoin in the channel is secured by the smart contract that manages that channel, payments settle instantly once received by the receiver.
+In practical terms, instant settlement means that payments take on the order of a few seconds to execute.
+And as on Bitcoin, Lightning payments are not reversible.
 When the channel is closed, a transaction will be made on the Bitcoin network and, only once that transaction is confirmed will the channel be considered closed.
 
-==== Sending arbitrary amounts vs capacity restrictions
+==== Sending arbitrary Amounts vs Capacity Restrictions
 
 On the Bitcoin network, a user can send any amount of bitcoin that they own to another user, without capacity restrictions.
 
-On the Lightning Network, a user can only send as much bitcoin as currently exists on their side of a particular channel.
+On the Lightning Network, a user can only send as much bitcoin as currently exists on their side of a particular channel to a channel partner.
 For instance, if a user owns one channel with 0.4 BTC on their side, and another channel with 0.2 BTC on their side, then the maximum they can send with one payment is 0.4 BTC.
 This is true regardless of how much bitcoin the user currently has in their Bitcoin wallet.
-At the time of writing, Atomic Multi-Path Payments (AMPs) are in development, which, in the above example, would allow the user to combine their 0.4 BTC and 0.2 BTC channels to be able to send a maximum of 0.6 BTC with one payment.
+
+At the time of writing, Atomic Multi-Path Payments (AMPs) are in development which, in the above example, would allow the user to combine both their 0.4 BTC and 0.2 BTC channels to be able to send a maximum of 0.6 BTC with one payment.
+
+In a direct payment where payer and payee are connected via a channel, the limit is stated as above. 
+If the payment gets routed, every routing node along the routing path must have at least the amount of funds as indicated in the payment. 
+If person A pays person C via person B, the payment follows the route A-B-C. 
+Say, person A wants to pay C the amount of 0.4 BTC. 
+Then both A as well as B must have 0.4 BTC available in their respective channels A-B and B-C.
+The same holds true for longer routes. 
+There must be enough liquidity available on the channel for the node that wants to forward the payment. 
+This must hold true for every single channel that the payment is routed through.
+The lowest capacity of a channel set the upper limit of the full route through this channel. 
+Hence, capacity and connectivity are crucial resources in the Lightning network. 
 
 ==== Using the Blockchain as a Ledger vs Using the Blockchain as a Court system
 
