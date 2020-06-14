@@ -339,16 +339,22 @@ How do you not catch a cheat? If you don't do any of the above you will be vulne
 === Invoices
 
 Every payment on the Lightning Network starts with a person who wants to receive bitcoins issuing an invoice.
-The main reason for this process is that it helps to make the payment process over a path of payment channels atomic.
-Atomic means that no node on the path can decide to take the money that is being routed and stop the routing process.
-The payment will either be transferred successfully through the path of nodes or will not be delivered.
+An invoice is nothing more than a simple payment instruction containing various pieces of information such as a unique payment identifier, called a payment hash, a recipient, an amount, etc.
+The main reason for this process is that it helps to make the payment process over a path of payement channels atomic.
+Atomic means that no node on the path can decide to take the money that is being routed or stop the routing process.
+The payment will either be transferred successfully through the complete path of nodes or will not be delivered at all.
 There are no such things as a partial payment or a half successful payment.
-While Lightning Nodes usually use the encrypted communication channels over the peer to peer network to exchange information, invoices are being transferred via a second communication channel.
-This could be via a Webservice or Email.
-Invoices are usually encoded either as long bech32 strings or as QR codes which enables them to be easily scanned by smartphones.
-Obviously the invoices contains the amount of bitcoin that is requested and a signature of the payee.
-The latter is used to extract the address of the payee so that the payer knows whom to send the money.
+
+While Lightning Nodes usually use the encrypted communication channels over the Lightning peer-to-peer network to exchange information, invoices are being transferred via a second communication channel.
+The payee has to pass the invoice to the payer via any arbitrary means.
+This could be done via a Webservice, an instant message on a chat app, an SMS or an Email.
+Invoices are usually encoded either as long bech32-encoded strings or as QR codes which enables them to be easily scanned by smartphones.
+The invoices contains the amount of bitcoin that is requested and a signature of the payee.
+The later is used to extract the address of the payee so that the payer knows whom to send the money.
 Besides some other meta data the most important but not quite obvious data in the invoice is a Payment Hash.
+
+Did you notice how this contrasts with Bitcoin and how different language terms are used? In Bitcoin, the recipient passes an address to the sender. In Lightning, the payee creates an invoice and sends an invoice to the payer. In Bitcoin, the payer sends funds to an address. In Lightning, the payer pays an invoice and it gets routed to the payee. Bitcoin is based on the concept of an "address", and Lightning is a payment network and based on the concept of an "invoice".
+The same way, the analog term to Bitcoin's "transaction" is the term "payment" in Lightning. 
 
 ==== Payment Hash
 The payee will choose a truly random number `r` and produces the `sha256` of that number which we call the Payment Hash `H(r)`.
