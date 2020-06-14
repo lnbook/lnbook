@@ -21,8 +21,6 @@ In this chapter you will learn how to set up each of the software packages for t
 
 The examples in this chapter, and more broadly in most of this book, use a command-line terminal. That means that you type commands into a terminal and receive text responses. Furthermore, the examples are demonstrated on an operating system based on the Linux kernel and GNU software system, specifically the latest long-term stable release of Ubuntu (Ubuntu 18.04 LTS). The majority of the examples can be replicated on other operating systems such as Windows or Mac OS, with small modifications to the commands. The biggest difference between operating systems is the _package manager_ which installs the various software libraries and pre-requisites. In the examples, we will use +apt+, which is the package manager for Ubuntu. In Mac OS, a common package manager used for open source development is Homebrew (command +brew+) found at https://brew.sh.
 
-Many developers also use a _container_, which is a type of virtual machine, to install a pre-configured operating system and application with all the necessary dependencies. Much of the Lightning software can also be installed using a container system such as _Docker_ (command +docker+) found at https://docker.com. Container installations are a lot easier, especially for those who are not used to a command-line environment.
-
 In most of the examples here, we will be building the software directly from the source code, which gives us the most power and control, but can be quite challenging. You may choose to use a docker container, pre-compiled package or other installation mechanism instead if you get stuck!
 
 [TIP]
@@ -30,13 +28,113 @@ In most of the examples here, we will be building the software directly from the
 ((("$ symbol")))((("shell commands")))((("terminal applications")))In many of the examples in this chapter we will be using the operating system's command-line interface (also known as a "shell"), accessed via a "terminal" application. The shell will display a prompt; you type a command; and the shell responds with some text and a new prompt for your next command. The prompt may look different on your system, but in the following examples it is denoted by a +$+ symbol. In the examples, when you see text after a +$+ symbol, don't type the +$+ symbol but type the command immediately following it, then press Enter to execute the command. In the examples, the lines below each command are the operating system's responses to that command. When you see the next +$+ prefix, you'll know it's a new command and you should repeat the process.
 ====
 
-==== Installing a Bitcoin node
+==== Donwloading the book repository
 
-Most of the Lightning node implementations need access to a full Bitcoin node in order to work. This Bitcoin node can be installed on the same computer (will require an additional 250+ GB of disk) or run on a different computer that can authorize connections from the Lightning node over the Internet.
+All the code examples are available in the book's repository. The repository will be kept up-to-date, as much as possible, so you should always look for the latest version in the repository, instead of copying it from the printed book or ebook version of this test.
 
-Installing a full Bitcoin node is outside the scope of this book and is a relatively complex endeavor in itself. If you want to try it, refer to _Mastering Bitcoin_ (https://github.com/bitcoinbook/bitcoinbook), "Chapter 3: Bitcoin Core: The Reference Implementation" which discusses the installation and operation of a Bitcoin node.
+You can download the repository as a ZIP bundle by visiting +github.com/lnbook/lnbook+ and selecting the "Clone or Download" green button on the right.
 
-In the following examples we will be using a Bitcoin node that has already been installed and fully synched to the Bitcoin blockchain on another computer, and connecting to it over the Internet.
+Alternatively, you can use the +git+ command, to create a version-controlled clone of the repository on your local computer. Git is a distributed version control system that is used by most developers to collaborate on software development and track changes to software repositories. Donwload and install +git+ by following the instructions on https://git-scm.com/.
+
+
+To make a local copy of the repository on your computer, run the git command as follows:
+
+[git-clone-lnbook]
+----
+$ git clone git@github.com:lnbook/lnbook.git
+----
+
+You now have a complete copy of the book repository in a folder called +lnbook+. All subsequent examples will assume that you are running commands from that folder.
+
+=== Docker Containers
+
+Many developers use a _container_, which is a type of virtual machine, to install a pre-configured operating system and application with all the necessary dependencies. Much of the Lightning software can also be installed using a container system such as _Docker_ (command +docker+) found at https://docker.com. Container installations are a lot easier, especially for those who are not used to a command-line environment.
+
+The book's repository contains a collection of docker containers that can be used to set up a consistent development environment to practice and replicate the examples on any system. Because the container is a complete operating system that runs with a consistent configuration, you can be sure that the examples will work on your computer and not worry about dependencies, library versions or differences in configuration.
+
+Docker containers are often optimized for size and composability. However, in this book we are using containers to _standardize_ the environment and make it consistent for all readers. Furthermore, these containers are not meant to be used to run services in the background. Instead, they are meant to be used to test the examples and learn by interacting with the software. For these reasons, the containers are quite large and come with a lot of development tools and utilities. Also, the containers are built on Ubuntu, instead of the more commonly used Alpine distribution, as we want to work with a distribution that is familiar to many developers rather than one that is lightweight.
+
+You can find the latest container definitions and build configurations in the book's repository under the +code/docker+ folder. Each container is in a separate folder beneath:
+
+//// $ tree -F --charset=asciii  code
+[docker-dir-list]
+----
+code
+`-- docker/
+    |-- bitcoind-base/
+    |   `-- Dockerfile
+    |-- bitcoind-regtest/
+    |   |-- bitcoind/
+    |   |   `-- bitcoin.conf
+    |   `-- Dockerfile
+    |-- c-lightning-base/
+    |   `-- Dockerfile
+    |-- devenv/
+    |   `-- Dockerfile
+    |-- docker-compose/
+    |   `-- docker-compose.yml
+    |-- eclair-base/
+    |   `-- Dockerfile
+    |-- lnd-base/
+    |   `-- Dockerfile
+    `-- lnd-run/
+        |-- Dockerfile
+        `-- lnd/
+            `-- lnd.conf
+----
+
+==== Installing Docker
+
+Before we begin, you should install the docker container system on your computer. Docker is an open system that is distributed as a _Community Edition_, for many different operating systems including Windows, Mac OS and Linux. The Windows and Mac versions are called _Docker Desktop_, which is GUI desktop application and command-line tools, and the Linux version is called _Docker Engine_, which is a server daemon and command-line tools. We will be using the command-line tools, which are identical across all platforms.
+
+Go ahead and install Docker for your operating system by following the instructions to _"Get Docker"_ from the Docker website found here:
+
+https://docs.docker.com/get-docker/
+
+Select your operating system from the list, and follow the instructions to install.
+
+[TIP]
+====
+If you install on Linux, follow the post-installation instructions to ensure you can run Docker as a regular user instead of root. Otherwise, you will need to prefix the +docker+ command with +sudo+, running it as root like: +sudo docker+.
+====
+
+Once you have Docker installed, you can test your installation by running the demo container +hello-world+, like this:
+
+[docker-hello-world]
+----
+$ docker run hello-world
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+----
+
+==== Bitcoin Core and Regtest
+
+Most of the Lightning node implementations need access to a full Bitcoin node in order to work.
+
+Installing a full Bitcoin node and synching the Bitcoin blockchain is outside the scope of this book and is a relatively complex endeavor in itself. If you want to try it, refer to _Mastering Bitcoin_ (https://github.com/bitcoinbook/bitcoinbook), "Chapter 3: Bitcoin Core: The Reference Implementation" which discusses the installation and operation of a Bitcoin node.
+
+A Bitcoin node can also be operated in _regtest_ mode, where the node creates a local simulated Bitcoin blockchain for testing purposes. In the following examples, we will be using regtest mode to allow us to demonstrate lightning without having to synchronize a Bitcoin node, or risk any funds.
+
+There are two docker containers for Bitcoin Core. The first is a base container (+bitcoind-base+) that downloads and installs the Bitcoin Core software. The second container (which extends the bitcoind-base container) is +bitcoind-regtest+ that runs Bitcoin Core in regtest mode and mines a new block every 10 seconds.
 
 === c-lightning
 
@@ -201,3 +299,69 @@ You may see a different version from that shown above, as the software continues
 
 === eclair
 === lightning network daemon (lnd)
+
+
+
+==== The _devenv_ bundle container
+
+As stated above, we have not optimized these containers for size. In that spirit, the +devenv+ folder has everything in a single container. It allows you to run any of the examples in a single environment.
+
+[NOTE]
+====
+The devenv image is more than 2GB in size. The first time you build the image it will download a lot of data and take quite a while to finish building. However, docker efficiently caches each step, so if you rebuild it or make changes to it, it will be much faster next time!
+====
+
+Let's build our +devenv+ container and see how it works. Follow the steps below, while :
+
+[docker-build-devenv]
+----
+$ cd code/docker
+$ docker build devenv/ -t lnbook/devenv
+Sending build context to Docker daemon  3.072kB
+Step 1/20 : FROM ubuntu:18.04
+ ---> 72300a873c2c
+ [...]
+Step 20/20 : RUN curl -SLO https://github.com/ACINQ/eclair/releases/download/v0.3.3/eclair-node-0.3.3-12ac145.jar
+ ---> Using cache
+ ---> 3a38f85ba558
+Successfully built 3a38f85ba558
+Successfully tagged lnbook/devenv:latest
+----
+
+Once the +devenv+ docker container is built, we can run it and access and interactive command shell like this:
+
+----
+$ docker run -it lnbook/devenv
+root@6b5c904d899f:/lnbook#
+----
+
+You see a prompt +root@6b5c904d899f:/lnbook#+, which shows you the user (root), the container fingerprint (6b5c904d899f) and the current working directory (/lnbook). The prompt ends in +#+ instead of +$+ because you are the root user inside this container.
+
+Let's give it a quick test, by trying to run the Lightning Network Daemon command +lnd+ and see if it is installed correctly:
+
+----
+root@6b5c904d899f:/lnbook# lnd --version
+lnd version 0.9.0-beta commit=v0.9.0-beta-148-g38b521d87d3fd9cff628e5dc09b764aeabaf011a
+----
+[TIP]
+====
+To exit the container, press +CTRL-D+ or type +exit+. You are returned to the prompt of your own computer's command-line terminal.
+====
+
+Great! You have built and ran your first docker container. In order to be able to access the book examples, we will need to connect the folder containing the book repository to our docker container. This is achieved with the +volume+ parameter, which specifies a local volume (where you cloned the book repository) and a container volume (a folder in the container) where the local volume will be mounted.
+
+[TIP]
+====
+Docker's volume parameter needs an _absolute_ path, so that will depend on your local configuration and where you cloned or extracted the book repository files.
+====
+
+In the following example, we will be connecting the book repository files that were extracted in +/home/ubuntu/lnbook+ to the container volume +lnbook+. Your configuration is likely different, so you need to replace +/home/ubuntu/lnbook+ with the absolute path to the folder where you extracted the book repository:
+
+----
+$ docker run --volume /home/ubuntu/lnbook:/lnbook -it lnbook/devenv
+root@a7da66010491:/lnbook# ls
+code                             images		CONTRIBUTING.md              	 README.md
+[...]
+----
+
+You should now see all the book repository files inside your container, under the folder +/lnbook+. Now you can access the examples from the code directory with all the tools, applications and utilities that are in the container.
