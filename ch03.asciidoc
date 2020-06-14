@@ -209,6 +209,9 @@ As new addition, a channel partner will encumber their own output with a timeloc
 The timelock prevents the owner of the output to spend it immediately once the commitment transaction was included in a block.
 The timelock is usually measured in blocktime and can be up to 2016.
 On average, 2016 blocks represent or last two weeks (assuming a blocktime of 10 minutes as in the Bitcoin network).
+Be aware, the exact number of blocks used for the timeout can be set to different values by different software.
+2016 is just the maximum value, but smaller values are possible.
+footnote:[Users likely prefer a longer timeout value for a larger channel capacity.]
 Within the timelock anyone who knows the revocation secret can spend the output even before the timelock is over.
 Alice and Bob know only one half each of the revocation secret.
 But if they share their half with the other channel partner, then the other partner knows the full secret.
@@ -316,6 +319,22 @@ The "ugly way" can be executed faster than the "good" and the "bad way" to close
 
 Game theory predicts that cheating is not a successful strategy because it is easy to detect a cheater and as penalty the cheater will lose all funds. 
 Hence, we do not recommend to attempt to cheat. We do, however, recommend that anyone catching a cheater punish him to the fullest by taking his funds.
+
+So, how do you catch a cheat or a protocol breach in your day-to-day activities? 
+You do so by running software that monitors the public Bitcoin blockchain for on-line transactions that correspond to any of your commitment transaction. 
+A Lightning node can do this monitoring for you. 
+Specific Lightning wallets might do this for you. 
+Running a Lightning node 24x7 will catch all cheats. 
+Remember that the commitment transaction has a timeout period specified in a given number of blocks, up to a maximum od 2016.
+As long as you run your Lightning node once before the timeout period is reached, it will catch all cheats. 
+To give an example, assume that your commitment transactions have all been set to the maximum timeout of 2016 blocks, roughly corresponding to two weeks. 
+In this case, if you run your Lightning node only once every Sunday, it will still catch all cheats because in this case the timelock is roughly two weeks.
+footnote:[Even if the timeout is set to 2016 blocks, don't wait for two weeks! If the Bitcoin blockchain difficulty is low, blocks will get mined faster and the target block specified in the timeout will be reached in less than two weeks. It is the block number that counts, not the time that has passed. So, in our example the user is prudent as he should be and checks every Sunday and not every two weeks. This gives him a safety margin. ]
+In addition, you can delegate this responsibility to someone else. 
+Someone else can monitor the Bitcoin blockchain for you. 
+One of these technologies is called a "Watchtower".
+
+How do you not catch a cheat? If you don't do any of the above you will be vulnerable. Image you go on a 3-week sailing trip. Before you leave you turn your Lightning node off to save power and you turn your cell phone off because there is no cell coverage. Now add to that that you have not requested anyone else to monitor for you. In short, your wallet provider does not do it for you and you have no Watchtower or similar service. If your channel partner cheats you during the first two days of your remote vacation, he will be able to steal your funds two weeks later and before you come back from vacation. You will have to be responsible and do a little bit of planning to prevent this vulnerability.
 
 === Invoices
 
