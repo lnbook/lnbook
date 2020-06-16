@@ -6,7 +6,7 @@ RUN apt update && apt install -yqq \
 
 # c-lightning
 RUN add-apt-repository -u ppa:lightningnetwork/ppa
-RUN apt-get install -y \
+RUN apt-get install -yqq \
  	lightningd
 
 FROM c-lightning-base AS c-lightning-run
@@ -20,6 +20,7 @@ ADD c-lightning-entrypoint.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/c-lightning-entrypoint.sh
 ADD fund-c-lightning.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/fund-c-lightning.sh
+ADD https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/lightning-cli.bash-completion /usr/share/bash-completion/completions/lightning-cli
 
 EXPOSE 9735 9835
 ENTRYPOINT ["/usr/local/bin/c-lightning-entrypoint.sh"]
