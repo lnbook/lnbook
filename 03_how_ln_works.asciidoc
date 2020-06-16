@@ -340,7 +340,7 @@ How do you not catch a cheat? If you don't do any of the above you will be vulne
 
 Every payment on the Lightning Network starts with a person who wants to receive bitcoins issuing an invoice.
 An invoice is nothing more than a simple payment instruction containing various pieces of information such as a unique payment identifier, called a payment hash, a recipient, an amount, etc.
-The main reason for this process is that it helps to make the payment process over a path of payement channels atomic.
+The main reason for this process is that it helps to make the payment process over a path of payment channels atomic.
 Atomic means that no node on the path can decide to take the money that is being routed or stop the routing process.
 The payment will either be transferred successfully through the complete path of nodes or will not be delivered at all.
 There are no such things as a partial payment or a half successful payment.
@@ -446,7 +446,7 @@ This includes currently known public payment channels, known nodes, known topolo
 
 If the sending node of a payment has selected a path that is supposed to be used to make the payment, the Lightning Network uses an onion routing scheme similar to the famous TOR-network.
 The routing scheme is called the "SPHINX mixformat" and will be explained in detail in a later chapter.
-Note that Lightning Onion routing via "SPHINX mixformat" is only similar to the TOR network routing in conecpt, but as a protocol as well as in implementation it is definitely different from the TOR network.
+Note that Lightning Onion routing via "SPHINX mixformat" is only similar to the TOR network routing in concept, but as a protocol as well as in implementation it is definitely different from the TOR network.
 For now we want to focus on its properties for the transport of payments.
 A payment package used for routing is called an "onion".
 footnote:[The term "onion" was originally used by the TOR project.
@@ -492,7 +492,7 @@ This makes the Payment Hash obtainable without the need to decrypt any onion.
 In stark contrast to the Internet Protocol Forwarding Algorithm on the lightning network it is only the sender of a payment that decides the path it takes to the recipient.
 Forwarding nodes can only reject a path.
 This can happen either on purpose or because they are not able to fulfill the request. 
-The payment forwarding algorithm is initated by the sender of an payment who selects a path throught the lightning network and constructs an onion.
+The payment forwarding algorithm is initiated by the sender of an payment who selects a path throught the lightning network and constructs an onion.
 It contains information about the payment for the recipient, routing hints for the intermediary nodes.
 Routing fees which those nodes will earn if (and only if) the payment is successfully delivered and settles with the release of the `Payment Hash` are also included to the onion.
 
@@ -500,11 +500,11 @@ All Lightning Nodes must follow the payment forwarding algorithm.
 Upon receiving a Lightning Message called `update_add_htlc` which contains the `Payment Hash` and the onion package it needs to follow through X steps:
 
 1. It needs to decrypt the outer layer of the onion and use the HMAC to make sure that the onion was not corrupted.
-2. It will check that it can fullfill the routing hints in the way that the fees are respecting its fee announcements and that it has enough liquidity on the outgoing channel or is even owner of the specified channel.
+2. It will check that it can fulfill the routing hints in the way that the fees are respecting its fee announcements and that it has enough liquidity on the outgoing channel or is even owner of the specified channel.
 3. It needs to work with its peer on the incoming channel to update the channel state to include the offered HTLC.
 4. It will have to add some padding data to the end of the onion to keep it as a constant size even though it removed some data from the beginning.
 5. It will then follow the routing hints from its layer of the onion to forward the modified onion package on its outgoing payment channel by also sending and `update_add_htlc` message which includes the same `Payment Hash` and the onion.
-6. Obviously it also has to collaborate with its peer on the outgoing channel to move foward the state to also include the offered `HTLC`.
+6. Obviously it also has to collaborate with its peer on the outgoing channel to move forward the state to also include the offered `HTLC`.
 
 Of course those steps will be interrupted and aborted if an error is detected.
 In most of those cases an error message will be send back to the originator of the received `update_add_htlc` message. 
@@ -521,11 +521,11 @@ Nodes that are sending back an error Onion must on their way remove the HTLCs fr
 [Note]
 ====
 It is important to understand that HTLCs have a time measured in absolute blockheight through which they are valid.
-Once the sender of a payment sends away the onion it is completely out if their controll what happens.
+Once the sender of a payment sends away the onion it is completely out if their control what happens.
 Honest nodes SHOULD either forward the onion as quickly as possible or send an error back the original.
 While sender expects nodes along the path to be honest it has according to the protocol no power of making sure that nodes act quickly.
 Thus payment can currently get stuck if nodes want to behave malicously. 
-While the likelihood for a payment to fail is pretty high if it does not settle quickly a node SHOULD never initate another payment attempt along a different path before the onion returned with an error as a node might just have delayed the forwarding of the payment.
+While the likelihood for a payment to fail is pretty high if it does not settle quickly a node SHOULD never initiate another payment attempt along a different path before the onion returned with an error as a node might just have delayed the forwarding of the payment.
 Nodes which act malicously by delaying the forwarding of payments or errors are actually hard to detect due to the privacy properties that are gained with the onion routing scheme. 
 ====
 
@@ -551,7 +551,7 @@ This makes development a little bit tricky as one cannot easily monitor one's ow
 As long as a person follows the protocol and has their node secured, there is no major risk of losing funds when participating in the Lightning Network.
 However, there is the cost of paying on-chain fees when opening a channel.
 Any cost should come with a corresponding benefit.
-In our case the reward for Alice for bearing the cost of opening a chennel is that Alice can send and receive payments of bitcoin on the Lightning Network at any time and that she can earn fees in bitcoin by forwarding payments for other people.
+In our case the reward for Alice for bearing the cost of opening a channel is that Alice can send and receive payments of bitcoin on the Lightning Network at any time and that she can earn fees in bitcoin by forwarding payments for other people.
 Alice knows that in theory Bob can close the channel immediately after opening resulting in on-chain closing fees for Alice. 
 Alice will need to have a small amount of trust in Bob. 
 Alice has been to Bob's Cafe and clearly Bob is interested in selling her coffee, so Alice can trust Bob in this sense. 
