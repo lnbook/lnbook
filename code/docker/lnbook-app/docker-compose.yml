@@ -1,18 +1,72 @@
 version: "3.3"
+networks:
+  lnnet:
+
 services:
-  bitcoind-regtest:
-      container_name: bitcoind
-      build:
-        context: ../bitcoind-regtest/.
-        dockerfile: ./Dockerfile
-      image: lnbook/bitcoind-regtest:latest
-      ports:
-      - "18443:18443"
-      - "12005:12005"
-      - "12006:12006"
-  lnd-run:
-      container_name: lnd
-      build:
-        context: ../lnd-run
-        dockerfile: ./Dockerfile
-      image: lnbook/lnd-run:latest
+  bitcoind:
+    container_name: bitcoind
+    build:
+        context: ../bitcoind
+    image: lnbook/bitcoind:latest
+    networks:
+      - lnnet
+    expose:
+      - "18443"
+      - "12005"
+      - "12006"
+    healthcheck:
+      test: bitcoin-cli -datadir=/bitcoind getblockchaininfo
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  Alice:
+    container_name: Alice
+    build:
+        context: ../lnd
+    image: lnbook/lnd:latest
+    depends_on:
+      - bitcoind
+    networks:
+      - lnnet
+    expose:
+      - "9735"
+
+  Bob:
+    container_name: Bob
+    build:
+      context: ../c-lightning
+    image: lnbook/c-lightning:latest
+    depends_on:
+      - bitcoind
+      - Alice
+    networks:
+      - lnnet
+    expose:
+      - "9735"
+
+  Wei:
+    container_name: Wei
+    build:
+        context: ../eclair
+    image: lnbook/eclair:latest
+    depends_on:
+      - bitcoind
+      - Bob
+    networks:
+      - lnnet
+    expose:
+      - "9735"
+
+  Gloria:
+    container_name: Gloria
+    build:
+        context: ../lnd
+    image: lnbook/lnd:latest
+    depends_on:
+      - bitcoind
+      - Wei
+    networks:
+      - lnnet
+    expose:
+      - "9735"

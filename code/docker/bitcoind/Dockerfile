@@ -1,12 +1,7 @@
 FROM ubuntu:18.04 AS bitcoind-base
 
-# RUN apk update \
-# 	&& apk upgrade \
-# 	&& apk add bash bash-completion
-
-RUN apt update \
-	&& apt install -y \
-		bash-completion
+RUN apt update && apt install -yqq \
+	curl gosu jq bash-completion
 
 ENV BITCOIND_VERSION 0.20.0
 # Install binaries for Bitcoin Core
@@ -24,12 +19,16 @@ ADD $GH_URL/contrib/bitcoin-cli.bash-completion $BC/bitcoin-cli
 ADD $GH_URL/contrib/bitcoind.bash-completion $BC/bitcoind
 ADD $GH_URL/contrib/bitcoin-tx.bash-completion $BC/bitcoin-tx
 
-ADD bashrc /root/.bashrc
-
 FROM bitcoind-base AS bitcoind-regtest
 
 ADD bitcoind /bitcoind
-RUN ln -s /bitcoind /root/.bitcoin
+RUN ln -s /bitcoind /root/.
+
+ADD bashrc /root/.bashrc
+ADD bitcoind-entrypoint.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/bitcoind-entrypoint.sh
+ADD mine.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/mine.sh
 
 # bitcoind P2P
 EXPOSE 18444/tcp
@@ -41,5 +40,7 @@ EXPOSE 12005/tcp
 EXPOSE 12006/tcp
 
 WORKDIR /bitcoind
-CMD /bin/bash /bitcoind/bitcoind-start.sh \
-	&& /bin/bash /bitcoind/mine.sh
+ENTRYPOINT ["/usr/local/bin/bitcoind-entrypoint.sh"]
+
+# Mine new block every 10 seconds
+CMD ["/usr/local/bin/mine.sh"]

@@ -1,7 +1,8 @@
 #!/bin/bash
+set -Eeuo pipefail
 
 # Generate a new receiving address for LND wallet
-address=$(lncli --lnddir=/lnd --network regtest newaddress np2wkh | jq .address)
+address=$(lightning-cli --lightning-dir=/lightningd --network regtest newaddr | jq .address)
 
 # Ask Bitcoin Core to send 10 BTC to the address, using JSON-RPC call
 curl --user regtest:regtest \
@@ -10,12 +11,12 @@ curl --user regtest:regtest \
 	 --data-binary @- <<EOF
 	{
 	  "jsonrpc": "1.0",
-	  "id": "lnd-run-container",
+	  "id": "c-lightning-container",
 	  "method": "sendtoaddress",
 	  "params": [
 	    ${address},
 	    10,
-	    "funding LND"
+	    "funding c-lightning"
 	  ]
 	}
 EOF
