@@ -23,7 +23,8 @@ RUN ln -s /eclair /root/.eclair
 ADD bashrc /root/.bashrc
 ADD eclair-entrypoint.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/eclair-entrypoint.sh
-
+ADD logtail.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/logtail.sh
 
 EXPOSE 9735
 ENTRYPOINT ["/usr/local/bin/eclair-entrypoint.sh"]
