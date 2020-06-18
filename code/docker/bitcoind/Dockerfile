@@ -19,7 +19,7 @@ ADD $GH_URL/contrib/bitcoin-cli.bash-completion $BC/bitcoin-cli
 ADD $GH_URL/contrib/bitcoind.bash-completion $BC/bitcoind
 ADD $GH_URL/contrib/bitcoin-tx.bash-completion $BC/bitcoin-tx
 
-FROM bitcoind-base AS bitcoind-regtest
+FROM bitcoind-base AS bitcoind
 
 ADD bitcoind /bitcoind
 RUN ln -s /bitcoind /root/.

@@ -1,4 +1,4 @@
-FROM lnbook/bitcoind-regtest AS c-lightning-base
+FROM lnbook/bitcoind AS c-lightning-base
 
 # Install software-properties-common to add apt repositories
 RUN apt update && apt install -yqq \
