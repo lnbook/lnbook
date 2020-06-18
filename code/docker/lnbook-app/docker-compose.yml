@@ -14,19 +14,12 @@ services:
       - "18443"
       - "12005"
       - "12006"
-    healthcheck:
-      test: bitcoin-cli -datadir=/bitcoind getblockchaininfo
-      interval: 2s
-      timeout: 5s
-      retries: 30
 
   Alice:
     container_name: Alice
     build:
         context: ../lnd
     image: lnbook/lnd:latest
-    depends_on:
-      - bitcoind
     networks:
       - lnnet
     expose:
@@ -37,9 +30,6 @@ services:
     build:
       context: ../c-lightning
     image: lnbook/c-lightning:latest
-    depends_on:
-      - bitcoind
-      - Alice
     networks:
       - lnnet
     expose:
@@ -50,9 +40,6 @@ services:
     build:
         context: ../eclair
     image: lnbook/eclair:latest
-    depends_on:
-      - bitcoind
-      - Bob
     networks:
       - lnnet
     expose:
@@ -63,9 +50,6 @@ services:
     build:
         context: ../lnd
     image: lnbook/lnd:latest
-    depends_on:
-      - bitcoind
-      - Wei
     networks:
       - lnnet
     expose:

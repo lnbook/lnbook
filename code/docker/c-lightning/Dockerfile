@@ -24,6 +24,11 @@ ADD fund-c-lightning.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/fund-c-lightning.sh
 ADD logtail.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/logtail.sh
+ADD wait-for-bitcoind.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/wait-for-bitcoind.sh
 
 EXPOSE 9735 9835
 ENTRYPOINT ["/usr/local/bin/c-lightning-entrypoint.sh"]
+
+# Show logs from beginning and keep following
+CMD ["/usr/local/bin/logtail.sh"]

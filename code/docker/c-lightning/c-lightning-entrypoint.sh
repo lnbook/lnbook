@@ -1,6 +1,9 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+source /usr/local/bin/wait-for-bitcoind.sh
+
+echo Starting c-lightning...
 lightningd --lightning-dir=/lightningd --daemon
 
 until lightning-cli --lightning-dir=/lightningd --network regtest getinfo > /dev/null 2>&1

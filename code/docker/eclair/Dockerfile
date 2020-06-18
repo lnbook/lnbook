@@ -6,6 +6,8 @@ RUN apt update && apt install -yqq \
 RUN apt update && apt install -yqq \
 	openjdk-11-jdk unzip
 
+COPY --from=lnbook/bitcoind /usr/local/ /usr/local/
+
 # Install eclair
 ENV ECLAIR_VER 0.4
 ENV ECLAIR_COMMIT 69c538e
@@ -25,6 +27,11 @@ ADD eclair-entrypoint.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/eclair-entrypoint.sh
 ADD logtail.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/logtail.sh
+ADD wait-for-bitcoind.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/wait-for-bitcoind.sh
 
 EXPOSE 9735
 ENTRYPOINT ["/usr/local/bin/eclair-entrypoint.sh"]
+
+# Show logs from beginning and keep following
+CMD ["/usr/local/bin/logtail.sh"]
