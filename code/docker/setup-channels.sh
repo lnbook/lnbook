@@ -37,7 +37,8 @@ gloria_invoice=$(docker-compose exec -T Gloria lncli -n regtest addinvoice 10000
 gloria_invoice=${gloria_invoice//\"}
 echo Gloria invoice ${gloria_invoice}
 
-echo Wait for channel establihment - 60 seconds for 6 blocks
+echo Wait for channel establishment - 60 seconds for 6 blocks
 sleep 60
+
 echo Alice pays Gloria 10k sats, routed around the network
 docker-compose exec -T Alice lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice}
