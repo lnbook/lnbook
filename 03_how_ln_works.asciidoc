@@ -57,7 +57,7 @@ Besides all the technical primitives, the Lightning Network protocol is a creati
 
 === Payment channels
 
-As you have seen in the last chapter, in order to use the Lightning Network, Alice had to use her wallet software to create a payment channel with another LN participant.
+As you have seen in the last chapter, in order to use the Lightning Network, Alice had to use her wallet software to create a payment channel with another Lightning Network participant.
 From a computer science perspective a payment channel is a cryptographic communication protocol between you and your channel partner.
 It allows both of the channel partners to send funds back and forth as often as they wish.
 A channel is only limited by two things:
@@ -489,10 +489,10 @@ This makes the Payment Hash obtainable without the need to decrypt any onion.
 
 ==== Payment Forwarding Algorithm
 
-In stark contrast to the Internet Protocol Forwarding Algorithm on the lightning network it is only the sender of a payment that decides the path it takes to the recipient.
+In stark contrast to the Internet Protocol Forwarding Algorithm on the Lightning Network it is only the sender of a payment that decides the path it takes to the recipient.
 Forwarding nodes can only reject a path.
 This can happen either on purpose or because they are not able to fulfill the request. 
-The payment forwarding algorithm is initiated by the sender of an payment who selects a path throught the lightning network and constructs an onion.
+The payment forwarding algorithm is initiated by the sender of an payment who selects a path through the Lightning Network and constructs an onion.
 It contains information about the payment for the recipient, routing hints for the intermediary nodes.
 Routing fees which those nodes will earn if (and only if) the payment is successfully delivered and settles with the release of the `Payment Hash` are also included to the onion.
 
@@ -524,10 +524,11 @@ It is important to understand that HTLCs have a time measured in absolute blockh
 Once the sender of a payment sends away the onion it is completely out if their control what happens.
 Honest nodes SHOULD either forward the onion as quickly as possible or send an error back the original.
 While sender expects nodes along the path to be honest it has according to the protocol no power of making sure that nodes act quickly.
-Thus payment can currently get stuck if nodes want to behave malicously. 
+
+
+Thus payments can currently get stuck if nodes want to behave maliciously. 
 While the likelihood for a payment to fail is pretty high if it does not settle quickly a node SHOULD never initiate another payment attempt along a different path before the onion returned with an error as a node might just have delayed the forwarding of the payment.
-Nodes which act malicously by delaying the forwarding of payments or errors are actually hard to detect due to the privacy properties that are gained with the onion routing scheme. 
-====
+Nodes which act maliciously by delaying the forwarding of payments or errors are actually hard to detect due to the privacy properties that are gained with the onion routing scheme. 
 
 
 === Missing bits
@@ -680,6 +681,16 @@ This must hold true for every single channel that the payment is routed through.
 The lowest capacity of a channel set the upper limit of the full route through this channel. 
 Hence, capacity and connectivity are crucial resources in the Lightning network. 
 
+==== Incentives for Large Transaction Value vs. Incentives for Small Transaction Values
+
+The fee structure in Bitcoin is independent of the transaction value. 
+A $1 million transaction has the same fee as a $1 transaction on Bitcoin. 
+In Lightning the fee is a fixed base fee plus a percentage of the transaction value. 
+Hence, in Lightning the payment fee increases with payment value. 
+These opposing fee structures create different incentives and lead to different usage in regards to transaction value.
+A transaction of enough value will be cheaper on Bitcoin and hence users will prefer Bitcoin for large value transactions.
+Similarly, on the other end of the spectrum, users will prefer Lightning for small value transactions.
+
 ==== Using the Blockchain as a Ledger vs Using the Blockchain as a Court System
 
 On the Bitcoin Network, every transaction is eventually recorded in a block on the blockchain.
@@ -723,6 +734,8 @@ When settled on-chain, it must be settled in "satoshis".
 
 Both the Bitcoin network and the Lightning network use the same monetary units: bitcoins. 
 Lightning payments use the very same bitcoins as Bitcoin transactions.
+As an implication, because the monetary unit is the same, also the economic monetary limit is the same: 21 million bitcoins.
+From these 21 million bitcoins, some are locked in 2-out-of-2 multisig addresses so that they can enable a payment channel on the Lightning Network.
 
 ==== Irrevocability 
 
