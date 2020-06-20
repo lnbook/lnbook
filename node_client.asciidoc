@@ -28,6 +28,8 @@ In most of the examples here, we will be building the software directly from the
 ((("$ symbol")))((("shell commands")))((("terminal applications")))In many of the examples in this chapter we will be using the operating system's command-line interface (also known as a "shell"), accessed via a "terminal" application. The shell will display a prompt; you type a command; and the shell responds with some text and a new prompt for your next command. The prompt may look different on your system, but in the following examples it is denoted by a +$+ symbol. In the examples, when you see text after a +$+ symbol, don't type the +$+ symbol but type the command immediately following it, then press Enter to execute the command. In the examples, the lines below each command are the operating system's responses to that command. When you see the next +$+ prefix, you'll know it's a new command and you should repeat the process.
 ====
 
+To keep things consistent, we use the +bash+ shell in all command-line examples. While other shells will behave in a similar way, and you will be able to run all the examples without it, some of the shell scripts are written specifically for the +bash+ shell and may require some changes or customization to run in another shell. For consistency, you can install the +bash+ shell on Windows and Mac OS, and it comes installed by default on most Linux systems.
+
 ==== Donwloading the book repository
 
 All the code examples are available in the book's repository. The repository will be kept up-to-date, as much as possible, so you should always look for the latest version in the repository, instead of copying it from the printed book or ebook version of this test.
@@ -52,7 +54,7 @@ Many developers use a _container_, which is a type of virtual machine, to instal
 
 The book's repository contains a collection of docker containers that can be used to set up a consistent development environment to practice and replicate the examples on any system. Because the container is a complete operating system that runs with a consistent configuration, you can be sure that the examples will work on your computer and not worry about dependencies, library versions or differences in configuration.
 
-Docker containers are often optimized for size and composability. However, in this book we are using containers to _standardize_ the environment and make it consistent for all readers. Furthermore, these containers are not meant to be used to run services in the background. Instead, they are meant to be used to test the examples and learn by interacting with the software. For these reasons, the containers are quite large and come with a lot of development tools and utilities. Also, the containers are built on Ubuntu, instead of the more commonly used Alpine distribution, as we want to work with a distribution that is familiar to many developers rather than one that is lightweight.
+Docker containers are often optimized to be small (less disk space). However, in this book we are using containers to _standardize_ the environment and make it consistent for all readers. Furthermore, these containers are not meant to be used to run services in the background. Instead, they are meant to be used to test the examples and learn by interacting with the software. For these reasons, the containers are quite large and come with a lot of development tools and utilities. Also, the containers are built on Ubuntu, instead of the Alpine distribution (more commonly used for Linux containers), as we want to work with a distribution that is familiar to many developers rather than one that is lightweight.
 
 You can find the latest container definitions and build configurations in the book's repository under the +code/docker+ folder. Each container is in a separate folder beneath:
 
@@ -61,31 +63,51 @@ You can find the latest container definitions and build configurations in the bo
 ----
 code
 `-- docker/
-    |-- bitcoind-base/
-    |   `-- Dockerfile
-    |-- bitcoind-regtest/
+    |-- bitcoind/
+    |   |-- bashrc
     |   |-- bitcoind/
-    |   |   `-- bitcoin.conf
-    |   `-- Dockerfile
-    |-- c-lightning-base/
-    |   `-- Dockerfile
-    |-- devenv/
-    |   `-- Dockerfile
-    |-- docker-compose/
-    |   `-- docker-compose.yml
-    |-- eclair-base/
-    |   `-- Dockerfile
-    |-- lnd-base/
-    |   `-- Dockerfile
-    `-- lnd-run/
+    |   |   |-- bitcoin.conf
+    |   |   `-- keys/
+    |   |       |-- demo_address.txt
+    |   |       |-- demo_mnemonic.txt
+    |   |       `-- demo_privkey.txt
+    |   |-- bitcoind-entrypoint.sh
+    |   |-- Dockerfile
+    |   `-- mine.sh*
+    |-- c-lightning/
+    |   |-- bashrc
+    |   |-- c-lightning-entrypoint.sh
+    |   |-- Dockerfile
+    |   |-- fund-c-lightning.sh
+    |   |-- lightningd/
+    |   |   `-- config
+    |   |-- logtail.sh
+    |   `-- wait-for-bitcoind.sh
+    |-- eclair/
+    |   |-- bashrc
+    |   |-- Dockerfile
+    |   |-- eclair/
+    |   |   `-- eclair.conf
+    |   |-- eclair-entrypoint.sh
+    |   |-- logtail.sh
+    |   `-- wait-for-bitcoind.sh
+    |-- lnbook-app/
+    |   |-- docker-compose.yml
+    |   `-- setup-channels.sh
+    `-- lnd/
+        |-- bashrc
         |-- Dockerfile
-        `-- lnd/
-            `-- lnd.conf
+        |-- fund-lnd.sh
+        |-- lnd/
+        |   `-- lnd.conf
+        |-- lnd-entrypoint.sh
+        |-- logtail.sh
+        `-- wait-for-bitcoind.sh
 ----
 
 ==== Installing Docker
 
-Before we begin, you should install the docker container system on your computer. Docker is an open system that is distributed as a _Community Edition_, for many different operating systems including Windows, Mac OS and Linux. The Windows and Mac versions are called _Docker Desktop_, which is GUI desktop application and command-line tools, and the Linux version is called _Docker Engine_, which is a server daemon and command-line tools. We will be using the command-line tools, which are identical across all platforms.
+Before we begin, you should install the docker container system on your computer. Docker is an open system that is distributed for free as a _Community Edition_, for many different operating systems including Windows, Mac OS and Linux. The Windows and Mac versions are called _Docker Desktop_, which is GUI desktop application and command-line tools, and the Linux version is called _Docker Engine_, which is a server daemon and command-line tools. We will be using the command-line tools, which are identical across all platforms.
 
 Go ahead and install Docker for your operating system by following the instructions to _"Get Docker"_ from the Docker website found here:
 
@@ -107,23 +129,7 @@ $ docker run hello-world
 Hello from Docker!
 This message shows that your installation appears to be working correctly.
 
-To generate this message, Docker took the following steps:
- 1. The Docker client contacted the Docker daemon.
- 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
-    (amd64)
- 3. The Docker daemon created a new container from that image which runs the
-    executable that produces the output you are currently reading.
- 4. The Docker daemon streamed that output to the Docker client, which sent it
-    to your terminal.
-
-To try something more ambitious, you can run an Ubuntu container with:
- $ docker run -it ubuntu bash
-
-Share images, automate workflows, and more with a free Docker ID:
- https://hub.docker.com/
-
-For more examples and ideas, visit:
- https://docs.docker.com/get-started/
+[...]
 ----
 
 ==== Bitcoin Core and Regtest
@@ -134,7 +140,56 @@ Installing a full Bitcoin node and synching the Bitcoin blockchain is outside th
 
 A Bitcoin node can also be operated in _regtest_ mode, where the node creates a local simulated Bitcoin blockchain for testing purposes. In the following examples, we will be using regtest mode to allow us to demonstrate lightning without having to synchronize a Bitcoin node, or risk any funds.
 
-The container for Bitcoin Core is +bitcoind-regtest+ that runs Bitcoin Core in regtest mode and mines a new block every 10 seconds. It's RPC port is exposed on port 18443 and accessible for RPC calls with the username +regtest+ and the password +regtest+. You can also access it with an interactive shell and run +bitcoin-cli+ commands locally.
+The container for Bitcoin Core is +bitcoind+ that runs Bitcoin Core in regtest mode and mines a new block every 10 seconds. It's RPC port is exposed on port 18443 and accessible for RPC calls with the username +regtest+ and the password +regtest+. You can also access it with an interactive shell and run +bitcoin-cli+ commands locally.
+
+Let's start by building and running the +bitcoind+ container. First, we use the +docker build+ command to build it:
+
+----
+$ cd code/docker
+$ docker build -t lnbook/bitcoind bitcoind
+Sending build context to Docker daemon  12.29kB
+Step 1/25 : FROM ubuntu:18.04 AS bitcoind-base
+ ---> c3c304cb4f22
+Step 2/25 : RUN apt update && apt install -yqq 	curl gosu jq bash-completion
+
+[...]
+
+Step 25/25 : CMD ["/usr/local/bin/mine.sh"]
+ ---> Using cache
+ ---> 758051998e72
+Successfully built 758051998e72
+Successfully tagged lnbook/bitcoind:latest
+----
+
+Next, let's run the bitcoind container and have it mine some blocks. We use the +docker run+ command, with the flags for _interactive (i)_ and _terminal (t)_:
+
+----
+$ docker run -it lnbook/bitcoind
+Starting bitcoind...
+Bitcoin Core starting
+bitcoind started
+================================================
+Importing demo private key
+Bitcoin address:  2NBKgwSWY5qEmfN2Br4WtMDGuamjpuUc5q1
+Private key:  cSaejkcWwU25jMweWEewRSsrVQq2FGTij1xjXv4x1XvxVRF1ZCr3
+================================================
+
+Mining 101 blocks to unlock some bitcoin
+[
+  "579311009cc4dcf9d4cc0bf720bf210bfb0b4950cdbda0670ff56f8856529b39",
+ ...
+  "33e0a6e811d6c49219ee848604cedceb0ab161485e1195b1f3576049e4d5deb7"
+]
+Mining 1 block every 10 seconds
+[
+  "5974aa6da1636013daeaf730b5772ae575104644b8d6fa034203d2bf9dc7a98b"
+]
+Balance: 100.00000000
+----
+
+As you can see, bitcoind starts up and mines 101 blocks to get the chain started. This is because under the bitcoin consensus rules, newly mined bitcoin is not spendable until 100 blocks have elapsed. By mining 101 blocks, we make the 1st block's coinbase spendable. After that initial mining activity, we mine a new block every 10 seconds, to keep the chain moving forward.
+
+For now, there are no transactions. But we now have some test bitcoin that has been mined in the wallet and is available to spend. When we connect some Lightning nodes to this chain, we will send some bitcoin to their wallets so that we can open some Lightning channels between the Lightning nodes. 
 
 === c-lightning
 

@@ -1,0 +1,56 @@
+version: "3.3"
+networks:
+  lnnet:
+
+services:
+  bitcoind:
+    container_name: bitcoind
+    build:
+        context: bitcoind
+    image: lnbook/bitcoind:latest
+    networks:
+      - lnnet
+    expose:
+      - "18443"
+      - "12005"
+      - "12006"
+
+  Alice:
+    container_name: Alice
+    build:
+        context: lnd
+    image: lnbook/lnd:latest
+    networks:
+      - lnnet
+    expose:
+      - "9735"
+
+  Bob:
+    container_name: Bob
+    build:
+      context: c-lightning
+    image: lnbook/c-lightning:latest
+    networks:
+      - lnnet
+    expose:
+      - "9735"
+
+  Wei:
+    container_name: Wei
+    build:
+        context: eclair
+    image: lnbook/eclair:latest
+    networks:
+      - lnnet
+    expose:
+      - "9735"
+
+  Gloria:
+    container_name: Gloria
+    build:
+        context: lnd
+    image: lnbook/lnd:latest
+    networks:
+      - lnnet
+    expose:
+      - "9735"

@@ -1,3 +1,48 @@
+Payment channels are the core and most fundamental building block for the Lightning Network.
+Of course every detail of a technology is there and exists for a reason but the Lightning Network is literally built around the idea and concept of payment channels.
+In the previous chapters you have learnt already quite a bit about payment channels, what properties they have, and on a high level how they work and how they can be constructed.
+In this chapter we will dig deeper into the protocol details that are needed to open and close payment channels.
+This will repeat some information from the basic chapters in the first part of this book.
+If you are new to the topic we highly encourage you to start there first.
+If you however already know a fair share about bitcoin script, OP_CODES and protocol design it might be sufficient to skip the previous chapter and start here with us.
+This books follows the construction of payment channels as described in BOLT 02 which is titled `peer protocol` and describes how two peers communicate to open, maintain and close a channel.
+In this section we will only talk about maintaining and closing a channel.
+The operation of a channel which means either making or forwarding a payment is discussed in our chapter about routing.
+Also other constructions of payment channels are known and being discussed by the developers but as of writing only the channels as described in BOLT 2 are supported by the protocol and the implementations.
+
+To repeat what you should already know a payment channel is encoded as an unspent 2 out of 2 multisignature transaction output.
+The capacity of the channel relates to the amount that is bound to the unspent 2 out of 2 multisignature transaction output.
+It is opened wht the help of a funding transaction that sends bitcoin to a 2 out of 2 multisignature output together with a communication protocol that helps to initialize its state.
+The balance of the channel encodes how the capacity is split between the two peers who maintain the channel.
+Technically it is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
+Each channel partner has both signatures for on of the commitment transactions from the sequence of pairs.
+The split of the capacity is realized by a `to_local` and a `to_remote` output that is part of every commitment transaction
+The `to_local` output goes to an address that is controlled by the peer that holds this fully signed commitment transaction.
+`to_local` outputs, which also exist in the second stage HTLC transactions, have two spending conditions.
+The `to_local` output can be spent either at any time with the help of a revocation secrete or after a timelock with the secret key that is controlled by the peer holding this commitment transaction.
+The revocation secrete is necessary to economically disincentivice peers to publish previous commitment transactions.
+Addresses and revokation secretes change with every new pair of commitment transactions that are being negotiated.
+The Lightning Network as a protocol defines the communication protocols that are necessary to achieve this.
+
+### Opening a payment channel
+Currently payment channels can only be opened by one side.
+This does not mean that only one peer is needed to open a channel.
+It means that only one peer - namingly the one who opens the channel - provides the funds and capacity for the channel.
+Let us assume for the remainder of the section that Alice wants to open a channel with Bob.
+Opening a payment channel is not as easy as sending bitcoins to a 2 out of 2 multisignature output.
+In a fully functional payment channel the bitcoins are being sent to a 2 out of 2 multisignature address to which each owner controlls a key. 
+Thus Alice needs to know the public key of Bob which will be part of the 2 out of 2 multisignature address.
+She will do that by sending Bob and `open_channel` message signaling her interest to open a channel.
+
+[NOTE]
+====
+The importance of the segwit upgrade.
+
+
+====
+
+
+
 Chapter overview:
   * describes how channels are put together at the script+transaction level
   * details how a channel if funded in the protocol

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -Eeuo pipefail
 
 export address=`cat /bitcoind/keys/demo_address.txt`
 export privkey=`cat /bitcoind/keys/demo_privkey.txt`
@@ -14,3 +15,6 @@ while sleep 10; do \
 	bitcoin-cli -datadir=/bitcoind generatetoaddress 1 $address; \
 	echo "Balance:" `bitcoin-cli -datadir=/bitcoind getbalance`; \
 done
+
+# If loop is interrupted, stop bitcoind
+bitcoin-cli -datadir=/bitcoind stop

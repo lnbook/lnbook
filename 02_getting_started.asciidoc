@@ -39,7 +39,7 @@ Finally, those seeking simplicity and convenience, even at the expense of contro
 There are many ways wallets can be characterized or categorized. 
 The most important questions to ask about a specific wallet are:
 
-- Does this Lightning wallet have a full LN Node or does it use a third-party LN Node?
+- Does this Lightning wallet have a full Lightning Node or does it use a third-party Lightning Node?
 - Does this Lightning wallet have a full Bitcoin Node or does it use a third-party Bitcoin Node? footnote:[If a Lightning wallet uses a third-party Lightning node, it is this third-party Lightning node who decides how to communicate with Bitcoin. Hence, using a third-party Lightning node implies that you as a wallet user also use a third-party Bitcoin node. Only in the other case, when the Lightning wallet uses its own Lightning node, does the choice "full Bitcoin-node" vs. "thrid-party Bitcoin node" exist. ]
 - Does this Lightning wallet store its own keys under user control (self-custody) or are the keys held be a third-party custodian?
 
@@ -52,19 +52,19 @@ But remember that this is just one way of categorizing Lightning wallets.
 .Lightning Wallets Quadrant
 [options="header"]
 |===
-|                        | *Full LN Node*      | *3rd-party LN Node*    
+|                        | *Full Lightning Node*      | *3rd-party Lightning Node*    
 | *Self-Custody*         | Q1: High technical skill, least trust in 3rd parties, most permissionless | Q2: Below medium technical skills, below medium trust in 3rd parties, requires some permissions 
 | *Custodial*            | Q3: Above medium technical skills, above medium trust in 3rd parties, requires some permissions | Q4: Low technical skills, high trust in 3rd parties, least permissionless 
 |===
 
-Q3, quadrant 3, where a full LN node is used but the keys are held by a custodian is currently not common. 
+Q3, quadrant 3, where a full Lightning node is used but the keys are held by a custodian is currently not common. 
 Future wallets from that quadrant would let a user worry about the operational aspects of their node, but then delegate the access to the keys to a third party which may use primarily cold storage.
 
 Lightning wallets can be installed on a variety of devices, including laptops, servers, and mobile devices. To run a full Lightning node (one that participates in "gossip" and creates its own map of the network for path finding and routing) you will need to use a server or desktop computer, as mobile devices and laptops are usually not powerful enough in terms of capacity, processing, battery life, and connectivity.
 
-The category "Third-party Ligntning Nodes" can again be subdivided into:
+The category "Third-party Lightning Nodes" can again be subdivided into:
 
-- Lightweight: means that the Lightning Node is operated by a third party and that the wallet obtains the required information through an API that connects wallet and third-party LN node.
+- Lightweight: means that the Lightning Node is operated by a third party and that the wallet obtains the required information through an API that connects wallet and third-party Lightning node.
 - None: means that not only is the Lightning Node operated by a third party but most of the wallet is operated by a third party in the cloud such that the wallet does not even need to make calls on a Lightning node API.
 
 These subcategories are used in Table <<lnwallet-examples>>.
@@ -80,10 +80,10 @@ In <<lnwallet-examples>> we see some examples of currently popular Lightning nod
 
 // TODO: Add a lot more wallet/node examples, confirm the details for correctness
 [[lnwallet-examples]]
-.Examples of Popular LN Wallets
+.Examples of Popular Lightning Wallets
 [options="header"]
 |===
-| Application    | Device  | LN Node     | Bitcoin Node          | Keystore
+| Application    | Device  | Lightning Node | Bitcoin Node          | Keystore
 | lnd            | Server  | Full Node   | Bitcoin Core/btcd     | Self-Custody
 | c-lightning    | Server  | Full Node   | Bitcoin Core          | Self-Custody
 | Eclair Server  | Server  | Full Node   | Bitcoin Core/Electrum | Self-Custody
@@ -100,15 +100,15 @@ Lightning wallets have to strike a careful balance between complexity and user c
 
 When selecting a wallet, keep in mind that even if you don't see these trade-offs, they still exist. For example, many wallets will attempt to remove the burden of channel management from its users. To do so, they introduce central "hub" nodes that all their wallets connect to automatically. While this trade-off simplifies the user interface and user experience, it introduces a Single Point of Failure (SPoF) as these "hub nodes" become indispensable for the wallet operation. Furthermore, relying on a "hub" like this can reduce user privacy since the hub knows the sender and potentially (if constructing the payment route on behalf of the user) also the recipient of each payment made by the user's wallet.
 
-In the next section, we will return to our first user and walk through her first Lightning wallet setup. She has chosen a wallet that is more sophisticated than the easier custodial wallets. This allows us to show some of the underlying complexity and introduce some of the inner workings of an advanced wallet during our example. You may find that your first ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own LN and Bitcoin nodes as part of your wallet solution.
+In the next section, we will return to our first user and walk through her first Lightning wallet setup. She has chosen a wallet that is more sophisticated than the easier custodial wallets. This allows us to show some of the underlying complexity and introduce some of the inner workings of an advanced wallet during our example. You may find that your first ideal wallet is further towards "ease of use", by accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own Lightning and Bitcoin nodes as part of your wallet solution.
 
-=== Alice's First LN Wallet
+=== Alice's First Lightning Wallet
 
 Alice is a long time Bitcoin user. We first met Alice in Chapter 1 of _"Mastering Bitcoin"_ footnote:["Mastering Bitcoin 2nd Edition, Chapter 1" Andreas M. Antonopoulos (https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch01.asciidoc).], when she bought a cup of coffee from Bob's cafe using a bitcoin transaction. Now, Alice is eager to learn about and experiment with the Lightning Network. First, she has to select a Lightning wallet that meets her needs.
 
 Alice does not want to entrust custody of her bitcoin to third parties. She has learned enough about cryptocurrency to know how to use a wallet. She also wants a mobile wallet so that she can use it for small payments on-the-go, so she chooses the _Eclair_ wallet, a popular non-custodial mobile Lightning wallet.
 
-==== Downloading and Installing a LN Wallet
+==== Downloading and Installing a Lightning Wallet
 
 When looking for a new cryptocurrency wallet, you must be very careful to select a secure source for the software.
 
@@ -120,7 +120,7 @@ Alice uses an Android device and will use the Google Play Store to download and 
 .Eclair Mobile in the Google Play Store
 image:images/eclair-playstore.png["Eclair wallet in the Google Play Store"]
 
-Alice notices a few different elements on this page, that help her ascertain that this is, most likely, the correct "Eclair Mobile" wallet she is looking for. Firstly, the organization "ACINQ" footnote:[ACINQ: Developers of the Eclair Mobile Lightning wallet (https://acinq.co/).] is listed as the developer of this mobile wallet, which Alice knows from her research is the correct developer. Secondly, the wallet has been installed "10,000+" times and has more than 320 positive reviews. It is unlikely this is a rogue app that has snuck into the Play Store. As third step, she goes to the ACINQ website (https://acinq.co/). There she goes to the Download section or looks for the link to the Google App store. She finds the link and clicks it. She compares that this link brings her to the very same app in the Google App Store. Satisfied by these findings, Alice installs the Eclair app on her mobile device.
+Alice notices a few different elements on this page, that help her ascertain that this is, most likely, the correct "Eclair Mobile" wallet she is looking for. Firstly, the organization "ACINQ" footnote:[ACINQ: Developers of the Eclair Mobile Lightning wallet (https://acinq.co/).] is listed as the developer of this mobile wallet, which Alice knows from her research is the correct developer. Secondly, the wallet has been installed "10,000+" times and has more than 320 positive reviews. It is unlikely this is a rogue app that has snuck into the Play Store. As third step, she goes to the ACINQ website (https://acinq.co/). She verifies that the webpage is secure (https, not http) which is shown as a green lock by some browsers. On the website she goes to the Download section or looks for the link to the Google App store. She finds the link and clicks it. She compares that this link brings her to the very same app in the Google App Store. Satisfied by these findings, Alice installs the Eclair app on her mobile device.
 
 [WARNING]
 ====
@@ -340,7 +340,7 @@ image:images/bob-cafe-posapp.png[]
 Alice selects the "Cafe Latte" option from the screen and is presented with a _Lightning Invoice_ as shown in <<bob-cafe-invoice>>
 
 [[bob-cafe-invoice]]
-.LN Invoice for Alice's latte
+.Lightning Invoice for Alice's latte
 image:images/bob-cafe-invoice.png[]
 
 To pay the invoice, Alice opens her Eclair wallet and selects the "Send" button (which looks like a right-facing arrow) under the "TRANSACTION HISTORY" tab, as shown in <<alice-send-start>>.
