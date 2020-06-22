@@ -248,7 +248,119 @@ C-lightning is a lightweight, highly customizable, and standard-compliant implem
 
 https://github.com/ElementsProject/lightning
 
+In the following sections, we will build a docker container that runs a c-lightning node connecting to the bitcoind container we build previously. We will also show you how to configure and build the c-lightning software directly from the source code.
+
 ==== Building c-lightning as a Docker container
+
+The c-lightning software distribution has a docker container, but it is designed for running c-lightning in production systems and along side a bitcoind node. We will be using a somewhat simpler container configured to run c-lightning for demonstration purposes.
+
+We start by building the c-lightning docker container, from the book's files which you previously downloaded into a directory named +lnbook+. As before, we will use the +docker build+ command, in the +code/docker+ sub-directory. We will tag the container image with the tag +lnbook/c-lightning+, like this:
+
+----
+$ cd code/docker
+$ docker build -t lnbook/c-lightning c-lightning
+Sending build context to Docker daemon  10.24kB
+Step 1/21 : FROM lnbook/bitcoind AS c-lightning-base
+ ---> 758051998e72
+Step 2/21 : RUN apt update && apt install -yqq 	software-properties-common
+
+[...]
+
+Step 21/21 : CMD ["/usr/local/bin/logtail.sh"]
+ ---> Using cache
+ ---> e63f5aaa2b16
+Successfully built e63f5aaa2b16
+Successfully tagged lnbook/c-lightning:latest
+----
+
+Our container is now built and ready to run. However, before we run the c-lightning container, we need to start the bitcoind container in another terminal, as c-lightning depends on bitcoind. We will also need to set up a docker network that allows the containers to connect to each other, as if they are on the same local area network.
+
+[TIP]
+====
+Docker containers can "talk" to each other over a virtual local-area network managed by the docker system. Each container can also have a custom name and other containers can use that name to resolve its IP address and easily connect to it.
+====
+
+==== Setting up a docker network
+
+Once a docker network is set up, docker will keep it running on our local computer every time docker starts, for example after rebooting. So we only need to set up a network once, using the +docker network create+ command. The network name itself is not important, but has to be unique on our computer. By default, docker has three networks named +host+, +bridge+, and +none+. We will name our new network +lnbook+ and create it like this:
+
+----
+$ docker network create lnbook
+ad75c0e4f87e5917823187febedfc0d7978235ae3e88eca63abe7e0b5ee81bfb
+$ docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+7f1fb63877ea        bridge              bridge              local
+4e575cba0036        host                host                local
+ad75c0e4f87e        lnbook              bridge              local
+ee8824567c95        none                null                local
+----
+
+As you can see, running +docker network ls+ gives us a listing of the docker networks. Our +lnbook+ network has been created. We can ignore the network ID, as it is automatically managed.
+
+==== Running the bitcoind and c-lightning containers
+
+Let's start the +bitcoind+ and +c-lightning+ containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the +network+ argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start +bitcoind+ like this:
+
+----
+$ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
+----
+
+You should see +bitcoind+ start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command, with the +network+ and +name+ arguments to start c-lightning, like this:
+
+----
+$ docker run -it --network lnbook --name c-lightning lnbook/c-lightning
+Waiting for bitcoind to start...
+Waiting for bitcoind to mine blocks...
+Starting c-lightning...
+[...]
+Startup complete
+Funding c-lightning wallet
+{"result":"e1a392ce2c6af57f8ef1550ccb9a120c14b454da3a073f556b55dc41592621bb","error":null,"id":"c-lightning-container"}
+[...]
+2020-06-22T14:26:09.802Z DEBUG lightningd: Opened log file /lightningd/lightningd.log
+
+----
+
+The +c-lightning+ container starts up and connects to the +bitcoind+ container over the docker network. First, our c-lightning node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node, creating a transaction that funds the c-lightning wallet with 10 test BTC. Our c-lightning node is not only running, but it has some bitcoin to play with!
+
+As we demonstrated with the +bitcoind+ container, we can issue commands to our +c-lightning+ container in another terminal, to extract information, open channels etc. The command that allows us to issue command-line instructions to the c-lightning node is called +lightning-cli+. Let's get the node info, in another terminal window, using the +docker exec+ command:
+
+----
+$ docker exec c-lightning lightning-cli getinfo
+{
+   "id": "025656e4ef0627bc87638927b8ad58a0e07e8d8d6e84a5699a5eb27b736d94989b",
+   "alias": "HAPPYWALK",
+   "color": "025656",
+   "num_peers": 0,
+   "num_pending_channels": 0,
+   "num_active_channels": 0,
+   "num_inactive_channels": 0,
+   "address": [],
+   "binding": [
+      {
+         "type": "ipv6",
+         "address": "::",
+         "port": 9735
+      },
+      {
+         "type": "ipv4",
+         "address": "0.0.0.0",
+         "port": 9735
+      }
+   ],
+   "version": "0.8.2.1",
+   "blockheight": 140,
+   "network": "regtest",
+   "msatoshi_fees_collected": 0,
+   "fees_collected_msat": "0msat",
+   "lightning-dir": "/lightningd/regtest"
+}
+
+----
+
+We now have our first Lightning node running on a virtual network and communicating with a test bitcoin blockchain. Later in this chapter we will start more nodes and connect them to each other to make some Lightning payments.
+
+In the next section we will also look at how to download, configure and compile c-lightning directly from the source code. This is an optional and advanced step that will teach you how to use the build tools and allow you to make modifications to c-lighting source code. With this knowledge, you can write some code, fix some bugs, or create a plugin for c-lightning. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
 
 ==== Installing c-lightning from source code
 
@@ -274,8 +386,7 @@ Reading package lists... Done
 
 $ sudo apt-get install -y \
   autoconf automake build-essential git libtool libgmp-dev \
-  libsqlite3-dev python python3 python3-mako net-tools zlib1g-dev libsodium-dev \
-  gettext
+  libsqlite3-dev python python3 python3-mako net-tools zlib1g-dev \ libsodium-dev gettext
 
 Reading package lists... Done
 Building dependency tree
@@ -377,7 +488,7 @@ cc   -Og  ccan-asort.o ccan-autodata.o ccan-bitmap.o ccan-bitops.o ccan-...
 
 ----
 
-If all goes well, you will see no +ERROR+ message stopping the execution of the above command. The c-lightning software package has been compiled from source and we are now ready to install the executable packages:
+If all goes well, you will not see any +ERROR+ message stopping the execution of the above command. The c-lightning software package has been compiled from source and we are now ready to install the executable packages:
 
 ----
 $ sudo make install
