@@ -132,7 +132,68 @@ This message shows that your installation appears to be working correctly.
 [...]
 ----
 
-==== Bitcoin Core and Regtest
+==== Basic docker commands
+
+In this chapter we use docker quite extensively. We will be using the following docker commands and arguments:
+
+*Building a container*
+
+----
+docker build [-t tag] [directory]
+----
+
+...where +tag+ is how we identify the container we are building, and +directory+ is where the container's "context" (folders and files) and definition file (+Dockerfile+) are found.
+
+*Running a container*
+
+----
+docker run -it [--network netname] [--name cname] tag
+----
+
+...where +netname+ is the name of a docker network, +cname+ is the name we choose for this container instance and +tag+ is the name tag we gave the container when we built it.
+
+*Executing a command in a container*
+
+----
+docker exec cname command
+----
+
+...where +cname+ is the name we gave the container in the run command, and +command+ is an executable or script that we want to run inside the container.
+
+*Stopping a container*
+
+In most cases, if we are running a container in an _interactive_ and _terminal_ mode, with the +i+ and +t+ flags (combined as +-it+), the container can be stopped by simply pressing +CTRL-C+, or exiting the shell with +exit+ or +CTRL-D+. If the container does not exit, you can stop it from another terminal, like this:
+
+----
+docker stop cname
+----
+
+...where +cname+ is the name we gave the container when we ran it.
+
+*Deleting a container by name*
+
+If you name a container, instead of letting docker name it randomly, you cannot use that name again until the container is deleted. Docker will return an error like this:
+----
+docker: Error response from daemon: Conflict. The container name "/bitcoind" is already in use...
+----
+
+To fix this, delete the existing instance of the container:
+
+----
+docker rm cname
+----
+
+...where +cname+ is the name we have the container (+bitcoind+ in the example error message)
+
+*List running containers*
+
+----
+docker ps
+----
+
+These basic docker commands will be enough to get you started and will allow you to run all the examples in this chapter. Let's see them in action, in the following sections.
+
+=== Bitcoin Core and Regtest
 
 Most of the Lightning node implementations need access to a full Bitcoin node in order to work.
 
@@ -140,11 +201,11 @@ Installing a full Bitcoin node and synching the Bitcoin blockchain is outside th
 
 A Bitcoin node can also be operated in _regtest_ mode, where the node creates a local simulated Bitcoin blockchain for testing purposes. In the following examples, we will be using regtest mode to allow us to demonstrate lightning without having to synchronize a Bitcoin node, or risk any funds.
 
-The container for Bitcoin Core is +bitcoind+ that runs Bitcoin Core in regtest mode and mines a new block every 10 seconds. It's RPC port is exposed on port 18443 and accessible for RPC calls with the username +regtest+ and the password +regtest+. You can also access it with an interactive shell and run +bitcoin-cli+ commands locally.
+The container for Bitcoin Core is bitcoind that runs Bitcoin Core in regtest mode and mines a new block every 10 seconds. It's RPC port is exposed on port 18443 and accessible for RPC calls with the username regtest and the password regtest. You can also access it with an interactive shell and run +bitcoin-cli+ commands locally.
 
 ===== Building the Bitcoin Core Container
 
-Let's start by building and running the +bitcoind+ container. First, we use the +docker build+ command to build it:
+Let's start by building and running the bitcoind container. First, we use the +docker build+ command to build it:
 
 ----
 $ cd code/docker
@@ -197,7 +258,7 @@ For now, there are no transactions. But we now have some test bitcoin that has b
 
 ===== Interacting with the Bitcoin Core Container
 
-In the mean time, we can also interact with the +bitcoind+ container by sending it shell commands. The container is sending a log file to the terminal, displaying the mining process of the bitcoind process. To interact with the shell we can issue commands in another terminal, using the +docker exec+ command. Since we previously named the running container with the +name+ argument, we can refer to it with that name when we run the +docker exec+ command. First, let's run an interactive +bash+ shell:
+In the mean time, we can also interact with the bitcoind container by sending it shell commands. The container is sending a log file to the terminal, displaying the mining process of the bitcoind process. To interact with the shell we can issue commands in another terminal, using the +docker exec+ command. Since we previously named the running container with the +name+ argument, we can refer to it with that name when we run the +docker exec+ command. First, let's run an interactive +bash+ shell:
 
 ----
 $ docker exec -it bitcoind /bin/bash
@@ -211,7 +272,7 @@ root@e027fd56e31a:/bitcoind# ps x
 root@e027fd56e31a:/bitcoind#
 ----
 
-Running the interactive shell puts us "inside" the container and logged in as the +root+ user, as we can see from the new shell prompt +root@e027fd56e31a:/bitcoind#+. If we issue the +ps x+ command to see what processes are running, we see both +bitcoind+ and the script +mine.sh+ are running in the background. To exit this shell, type +CTRL-D+ or +exit+ and you will be returned to your operating system prompt.
+Running the interactive shell puts us "inside" the container and logged in as the +root+ user, as we can see from the new shell prompt +root@e027fd56e31a:/bitcoind#+. If we issue the +ps x+ command to see what processes are running, we see both bitcoind and the script +mine.sh+ are running in the background. To exit this shell, type +CTRL-D+ or +exit+ and you will be returned to your operating system prompt.
 
 Instead of running an interactive shell, we can also issue a single command that is executed inside the container, for example to run the +bitcoin-cli+ command, like this:
 
@@ -242,7 +303,7 @@ The +jq+ JSON decoder extract the result "189" from the +getblockchaininfo+, whi
 
 As you will see in the following sections, we can run several containers and then interact with them individually, issuing commands to extract information (such as the Lightning node public key), or to take an action (open a Lightning channel to another node). The +docker run+ and +docker exec+, together with +jq+ for JSON decoding are all we need to build a working Lightning Network that mixes many different node implementations and allows us to try out various experiments, all on our own computer.
 
-=== c-lightning
+=== The c-lightning Lightning node project
 
 C-lightning is a lightweight, highly customizable, and standard-compliant implementation of the Lightning Network protocol, developed by Blockstream as part of the Elements project. The project is open source and developed collaboratively on Github:
 
@@ -299,13 +360,13 @@ As you can see, running +docker network ls+ gives us a listing of the docker net
 
 ==== Running the bitcoind and c-lightning containers
 
-Let's start the +bitcoind+ and +c-lightning+ containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the +network+ argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start +bitcoind+ like this:
+Let's start the bitcoind and c-lightning containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the +network+ argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start bitcoind like this:
 
 ----
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-You should see +bitcoind+ start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command, with the +network+ and +name+ arguments to start c-lightning, like this:
+You should see bitcoind start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command, with the +network+ and +name+ arguments to start c-lightning, like this:
 
 ----
 $ docker run -it --network lnbook --name c-lightning lnbook/c-lightning
@@ -321,9 +382,9 @@ Funding c-lightning wallet
 
 ----
 
-The +c-lightning+ container starts up and connects to the +bitcoind+ container over the docker network. First, our c-lightning node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node, creating a transaction that funds the c-lightning wallet with 10 test BTC. Our c-lightning node is not only running, but it has some bitcoin to play with!
+The c-lightning container starts up and connects to the bitcoind container over the docker network. First, our c-lightning node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node, creating a transaction that funds the c-lightning wallet with 10 test BTC. Our c-lightning node is not only running, but it has some bitcoin to play with!
 
-As we demonstrated with the +bitcoind+ container, we can issue commands to our +c-lightning+ container in another terminal, to extract information, open channels etc. The command that allows us to issue command-line instructions to the c-lightning node is called +lightning-cli+. Let's get the node info, in another terminal window, using the +docker exec+ command:
+As we demonstrated with the bitcoind container, we can issue commands to our c-lightning container in another terminal, to extract information, open channels etc. The command that allows us to issue command-line instructions to the c-lightning node is called +lightning-cli+. Let's get the node info, in another terminal window, using the +docker exec+ command:
 
 ----
 $ docker exec c-lightning lightning-cli getinfo
@@ -427,6 +488,8 @@ $ cd lightning
 
 We now have a copy of c-lightning, cloned into the +lightning+ subfolder, and we have used the +cd+ (change directory) command to enter that subfolder.
 
+==== Compiling the c-lightning source code
+
 Next, we use a set of _build scripts_ that are commonly available on many open source projects. These are +configure+ and +make+, and they allow us to:
 * Select the build options and check necessary dependencies (+configure+).
 * Build and install the executables and libraries (+make+).
@@ -516,9 +579,105 @@ v0.8.1rc2
 
 You may see a different version from that shown above, as the software continues to evolve long after this book is printed. However, no matter what version you see, the fact that the commands execute and show you version information means that you have succeeded in building the c-lightning software.
 
+=== The Lightning Network Daemon (LND) node project
+
+The Lightning Network Daemon (LND) - is a complete implementation of a Lightning Network node by Lightning Labs. The LND project provides a number of executable applications, including +lnd+, (the daemon itself) and +lncli+ (the command-line utility). LND has several pluggable back-end chain services including btcd (a full-node), bitcoind (Bitcoin Core), and neutrino (a new experimental light client). LND is written in the Go programming language (golang). The project is open source and developed collaboratively on Github:
+
+https://github.com/LightningNetwork/lnd
+
+In the next few sections we will build a docker container to run LND, build LND from source code and learn how to configure and run LND.
+
+==== Building LND as a docker container
+
+If you've followed the previous examples in this chapter, you should be quite familiar with the basic docker commands by now. In this section we will repeat them to build the LND container. The container is located in +code/docker/lnd+. We start in a terminal, by switching the working directory to +code/docker+ and issuing the +docker build+ command:
+
+----
+$ cd code/docker
+$ docker build -t lnbook/lnd lnd
+Sending build context to Docker daemon  9.728kB
+Step 1/29 : FROM golang:1.13 as lnd-base
+ ---> e9bdcb0f0af9
+Step 2/29 : ENV GOPATH /go
+
+[...]
+
+Step 29/29 : CMD ["/usr/local/bin/logtail.sh"]
+ ---> Using cache
+ ---> 397ce833ce14
+Successfully built 397ce833ce14
+Successfully tagged lnbook/lnd:latest
+
+----
+
+Our container is now built and ready to run. As with the c-lightning container we built previously, the LND container also depends on a running instance of Bitcoin Core. As before, we need to start the bitcoind container in another terminal and connect LND to it via a docker network. We've already set up a docker network called +lnbook+ and will be using that again here.
+
+[TIP]
+====
+A single bitcoind container can serve many many Lightning nodes. Normally, each node operator would run a Lightning node and Bitcoin node on their own server. Since we are simulating a network we can run several Lightning nodes, all connecting to a single Bitcoin node in regtest mode.
+====
+
+==== Running the bitcoind and LND containers
+
+As before, we start the bitcoind in one terminal and LND in another. If you already have the bitcoind container running, you do not need to restart it. Just leave it running and skip the next step. To start bitcoin in the +lnbook+ network, we use +docker run+, like this:
+
+----
+$ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
+----
+
+Next, we start the LND container we just build. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
+
+----
+$ docker run -it --network lnbook --name lnd lnbook/lnd
+Waiting for bitcoind to start...
+Waiting for bitcoind to mine blocks...
+Starting lnd...
+Startup complete
+Funding lnd wallet
+{"result":"795a8f4fce17bbab35a779e92596ba0a4a1a99aec493fa468a349c73cb055e99","error":null,"id":"lnd-run-container"}
+
+[...]
+
+2020-06-23 13:42:51.841 [INF] LTND: Active chain: Bitcoin (network=regtest)
+
+----
+
+The LND container starts up and connects to the bitcoind container over the docker network. First, our LND node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node, creating a transaction that funds the LND wallet with 10 test BTC.
+
+As we demonstrated previously, we can issue commands to our container in another terminal, to extract information, open channels etc. The command that allows us to issue command-line instructions to the +lnd+ daemon is called +lncli+. Let's get the node info, in another terminal window, using the +docker exec+ command:
+
+----
+$ docker exec lnd lncli -n regtest getinfo
+{
+    "version": "0.10.99-beta commit=clock/v1.0.0-85-gacc698a6995b35976950282b29c9685c993a0364",
+    "commit_hash": "acc698a6995b35976950282b29c9685c993a0364",
+    "identity_pubkey": "03e436739ec70f3c3630a62cfe3f4b6fd60ccf1f0b69a0036f73033c1ac309426e",
+    "alias": "03e436739ec70f3c3630",
+    "color": "#3399ff",
+    "num_pending_channels": 0,
+    "num_active_channels": 0,
+    "num_inactive_channels": 0,
+ [...]
+}
+----
+
+We now have another Lightning node running on the +lnbook+ network and communicating with bitcoind. If you are still running the c-lightning container, there are now two nodes running. They're not yet connected to each other, but we will be connecting them to each other soon.
+
+If you want, you can run several LND nodes, or c-lightning nodes, or any combination of these on the same Lightning network. To run a second LND node, for example, you would issue the +docker run+ command with a different container name, like this:
+
+----
+$ docker run -it --network lnbook --name lnd2 lnbook/lnd
+----
+
+In the command above, we start another LND container, named +lnd2+. The names are entirely up to you, as long as they are unique. If you don't provide a name, docker will construct a unique name by randomly combining two English words, such as "naughty_einstein" (this is the actual name docker chose when we wrote this paragraph - how funny!).
+
+In the next section we will also look at how to download and compile LND directly from the source code. This is an optional and advanced step that will teach you how to use the Go language build tools and allow you to make modifications to LND source code. With this knowledge, you can write some code, or fix some bugs. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
+
+==== Installing LND from source code
+
+
+
 === eclair
 
-=== lightning network daemon (lnd)
 
 === Building a complete Lightning Network
 
