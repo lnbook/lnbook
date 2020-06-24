@@ -10,18 +10,19 @@ In this section we will only talk about maintaining and closing a channel.
 The operation of a channel which means either making or forwarding a payment is discussed in our chapter about routing.
 Also other constructions of payment channels are known and being discussed by the developers but as of writing only the channels as described in BOLT 2 are supported by the protocol and the implementations.
 
-To repeat what you should already know a payment channel is encoded as an unspent 2 out of 2 multisignature transaction output.
-The capacity of the channel relates to the amount that is bound to the unspent 2 out of 2 multisignature transaction output.
-It is opened wht the help of a funding transaction that sends bitcoin to a 2 out of 2 multisignature output together with a communication protocol that helps to initialize its state.
+A payment channel connects exactly two peers. 
+A payment channel is encoded as an unspent 2-out-of-2 multisignature transaction output.
+The capacity of the channel relates to the amount that is bound to the unspent 2-out-of-2 multisignature transaction output.
+It is opened with the help of a *funding transaction* that sends bitcoin to a 2-out-of-2 multisignature output together with a communication protocol that helps to initialize its state.
 The balance of the channel encodes how the capacity is split between the two peers who maintain the channel.
-Technically it is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
-Each channel partner has both signatures for on of the commitment transactions from the sequence of pairs.
+Technically it is encoded by the most recent pair of a sequence of pairs of similar (but not equal) presigned *commitment transactions*.
+Each channel partner has both signatures for one of the commitment transactions from the sequence of pairs.
 The split of the capacity is realized by a `to_local` and a `to_remote` output that is part of every commitment transaction
 The `to_local` output goes to an address that is controlled by the peer that holds this fully signed commitment transaction.
-`to_local` outputs, which also exist in the second stage HTLC transactions, have two spending conditions.
-The `to_local` output can be spent either at any time with the help of a revocation secrete or after a timelock with the secret key that is controlled by the peer holding this commitment transaction.
-The revocation secrete is necessary to economically disincentivice peers to publish previous commitment transactions.
-Addresses and revokation secretes change with every new pair of commitment transactions that are being negotiated.
+`to_local` outputs, which also exist in the second stage HTLC transactions, have two independent spending conditions.
+The `to_local` output can be spent either at any time with the help of a revocation secret or after a timelock with the secret key that is controlled by the peer holding this commitment transaction.
+The revocation secret is necessary to economically disincentivice peers to publish previous and hence outdated commitment transactions.
+Addresses and revocation secrets change with every new pair of commitment transactions that are being negotiated.
 The Lightning Network as a protocol defines the communication protocols that are necessary to achieve this.
 
 ### Opening a payment channel
