@@ -38,7 +38,7 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Onion Routing and HTLC forwarding](onion-routing-htlc-forwarding.asciidoc) | # | :bookmark_tabs: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | # | :bookmark_tabs: |
 | [Payment Path Finding](path-finding.asciidoc) | # | :bookmark_tabs: |
-| [End-to-End Payement Presentation Layer](e2e-presentation-layer.asciidoc) | # | :bookmark_tabs: |
+| [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | # | :bookmark_tabs: |
 | [Lightning Applications (LApps)]() | # | :thought_balloon: |
 | [LN's Future]() | # | :thought_balloon: |
 
