@@ -909,6 +909,220 @@ https://github.com/ACINQ/eclair#installing-eclair
 
 Congratulations, you have built Eclair from source and you are ready to code, test, bug fix, and contribute to this project!
 
-=== Building a complete Lightning Network
+=== Building a complete network of diverse Lightning Nodes
 
-==== Using docker-compose
+Our final example, in this section, will bring together all the various containers we have build to form a Lightning network made of diverse (LND, c-lightning, Eclair) node implementations. We will compose the network by connecting the nodes together, opening channels from one node to another, and finally, by routing a payment across these channels.
+
+In this example, we will replicate the Lighting network example from <<routing_on_a_network_of_payment_channels>>. Specifically, we will create four Lightning nodes named Alice, Bob, Wei and Gloria. We will connect Alice to Bob, Bob to Wei, and Wei to Gloria. Finally, we will have Gloria create an invoice and have Alice pay that invoice. Since Alice and Gloria are not directly connected, the payment will be routed as an HTLC across all the payment channels.
+
+==== Using docker-compose to orchestrate docker containers
+
+To make this example work, we will be using a _container orchestration_ tool and command called +docker-compose+. This command allows us to specify an application composed of several containers, and run the application by launching all the containers together.
+
+First, let's install docker-compose. The instructions depend on your operating system and can be found here:
+
+https://docs.docker.com/compose/install/
+
+Once you've completed installation, you can confirm you have docker-compose by running:
+
+----
+$ docker-compose version
+docker-compose version 1.21.0, build unknown
+[...]
+
+----
+
+The most common docker-compose commands we will use are +up+, and +down+, for example by typing +docker-compose up+.
+
+==== Docker-compose configuration
+
+The configuration file for docker-compose is found in the +code/docker+ directory and is named +docker-compose.yml+. It contains a specification for a network and each of the four containers, and looks like this:
+
+----
+version: "3.3"
+networks:
+  lnnet:
+
+services:
+  bitcoind:
+    container_name: bitcoind
+    build:
+        context: bitcoind
+    image: lnbook/bitcoind:latest
+    networks:
+      - lnnet
+    expose:
+      - "18443"
+      - "12005"
+      - "12006"
+
+  Alice:
+    container_name: Alice
+----
+
+The fragment above defines a network called +lnnet+ and a container called +bitcoind+ which will attach to the +lnnet+ network. The container is the same one we built at the beginning of this chapter. We expose three of the container's ports, which allows us to send commands to it and monitor blocks and transactions. Next, the configuration specifies an LND container called "Alice". Further down you will also see specifications for containers called "Bob" (c-lightning), "Wei" (Eclair) and "Gloria" (LND again).
+
+Since all these diverse implementations follow the Basis of Lightning Technologies (BOLT) specification and have been extensively tested for interoperability, they have no difficulty working together to build a Lightning network.
+
+==== Starting the example Lightning network
+
+Before we get started, we should make sure we're not already running any of the containers, because if the new containers share the same name as one that is already running, they will fail to launch. Use +docker ps+, +docker stop+ and +docker rm+ as necessary to clean up!
+
+[TIP]
+====
+Because we use the same names for these docker containers, we might need to "clean up", to avoid any name conflicts.
+====
+
+To start the example, we switch to the directory that contains the +docker-compose.yml+ configuration file and we issue the command +docker-compose up+:
+
+----
+$ cd code/docker
+$ docker-compose up
+Creating network "docker_lnnet" with the default driver
+Creating Wei      ... done
+Creating Bob      ... done
+Creating Gloria   ... done
+Creating Alice    ... done
+Creating bitcoind ... done
+Attaching to Wei, Bob, Gloria, Alice, bitcoind
+Bob         | Waiting for bitcoind to start...
+Wei         | Waiting for bitcoind to start...
+Alice       | Waiting for bitcoind to start...
+Gloria      | Waiting for bitcoind to start...
+bitcoind    | Starting bitcoind...
+
+[...]
+----
+
+Following the start up, you will see a whole stream of log files as each of the nodes starts up and reports its progress. It may look quite jumbled on your screen, but each output line is prefixed by the container name, as you see above. If you wanted to watch the logs from only one container, you can do so in another terminal window, by using the +docker-compose logs+ command with the +f+ (follow) flag and the specific container name:
+
+----
+$ docker-compose logs -f Alice
+----
+
+==== Opening channels and routing a payment
+
+Our Lightning network should now be running. As we saw in the previous sections of this chapter, we can issue commands to a running docker container with the +docker exec+ command. Regardless of whether we started the container with +docker run+ or started a bunch of them with +docker-compose up+, we can still access containers individually using the docker commands.
+
+To make things easier, we have a little helper script that sets up the network, issues the invoice and makes the payment. The script is called +setup-channels.sh+ and is a Bash shell script. Keep in mind, this script is not very sophisticated! It "blindly" throws commands at the various nodes and doesn't do any error checking. If the network is running correct and the nodes are funded, then it all works nicely. But, you have to wait a bit for everything to boot up and for the network to mine a few blocks and settle down. This usually takes 1-3 minutes. Once you see the block height at 102 or above on each of the nodes, you are ready. If the script fails, you can stop everything (+docker-compose down+) and try again from the beginning, or you can manually issue the commands in the script one by one and look at the results.
+
+[TIP]
+====
+Beofre running the setup-channels script: Wait a minute or two after starting the network with docker-compose, to make sure all the services are running and all the wallets are funded. To keep things simple, the script doesn't check whether the containers are "ready". Be patient!
+====
+
+Let's run the script to see its effect and then we will look at how it works internally. We use +bash+ to run it as a command:
+
+----
+$ cd code/docker
+$ bash setup-channels.sh
+Getting node IDs
+Alice: 02c93da7a0a341d28e6d7742721a7d182f878e0c524e3666d80a58e1406d6d9391
+Bob: 0343b8f8d27a02d6fe688e3596b2d0834c576672e8750106540617b6d5755c812b
+Wei: 03e17cbc7b46d553bade8687310ee0726e40dfa2c629b8b85ca5d888257757edc1
+Gloria: 038c9dd0f0153cba3089616836936b2dad9ea7f97ef839f5fbca3a808d232db77b
+
+Setting up channels...
+Alice to Bob
+
+Bob to Wei
+
+Wei to Gloria
+
+Get 10k sats invoice from Gloria
+
+Gloria invoice lnbcrt100u1p00w5sypp5fw2gk98v6s4s2ldfwxa6jay0yl3f90j82kv6xx97jfwpa3s964vqdqqcqzpgsp5jpasdchlcx85hzfp9v0zc7zqs9sa3vyasj3nm0t4rsufrl7xge6s9qy9qsqpdd5d640agrhqe907ueq8n8f5h2p42vpheuzen58g5fwz94jvvnrwsgzd89v70utn4d7k6uh2kvp866zjgl6g85cxj6wtvdn89hllvgpflrnex
+
+Wait for channel establishment - 60 seconds for 6 blocks
+
+----
+
+As you can see from the output, the script first gets the node IDs (public keys) for each of the four nodes. Then, it connects the nodes and sets up a 1,000,000 satoshi channel from each node to the next in the network.
+
+Looking inside the script, we see the part that gets all the node IDs and stores them in temporary variables so that they can be used in subsequent command. It looks like this:
+
+----
+alice_address=$(docker-compose exec -T Alice lncli -n regtest getinfo | jq .identity_pubkey)
+bob_address=$(docker-compose exec -T Bob lightning-cli getinfo | jq .id)
+wei_address=$(docker-compose exec -T Wei eclair-cli -s -j -p eclair getinfo| jq .nodeId)
+gloria_address=$(docker-compose exec -T Gloria lncli -n regtest getinfo | jq .identity_pubkey)
+----
+
+If you have followed the first part of the chapter you will recognise these commands and be able to "decipher" their meaning. It looks quite complex, but we will walk through it step-by-step and you'll quickly get the hang of it.
+
+The first command, for example, sets up a variable called +alice_address+ that is the output of a +docker-compose exec+ command. The +T+ flag tells docker-compose to not open an interactive terminal (an interactive terminal may mess up the output with things like color-coding of results). The +exec+ command is directed to the Alice container and runs the +lncli+ utility, since Alice is an LND node. The +lncli+ command must be told that it is operating on the regtest network and will then issue the +getinfo+ command to LND. The output from +getinfo+ is a JSON-encoded object, which we can parse by piping the output to the +jq+ command. The +jq+ command selects the +identity_pubkey+ field from the JSON object. The contents of the +identity_pubkey+ field are then output and stored in +alice_address+.
+
+The following three lines do the same for each of the other nodes. Because they are different node implementations (c-lightning, Eclair), their command-line interface is slightly different, but the general principle is the same: Use the command utility to ask the node for it's public key (node ID) information and parse it with +jq+, storing it in a variable for further use later.
+
+Next, we tell each node to establish a network connection to the next node and open a channel:
+
+----
+docker-compose exec -T Alice lncli -n regtest connect ${bob_address}@Bob
+docker-compose exec -T Alice lncli -n regtest openchannel ${bob_address} 1000000
+----
+
+Both of the commands are directed to the Alice container, since the channel will be opened _from_ Alice _to_ Bob, and Alice will initiate the connection.
+
+As you can see, in the first command we tell Alice to connect to the Bob node. It's node ID is stored in +${bob_address}+ and it's IP address can be resolved from the name +Bob+ (hence +@Bob+ as the network identifier/address). We do not need to add the port number (9375) because we are using the default Lightning ports.
+
+Next, now that Alice is connected, we open a 1,000,000 satoshi channel to Bob with the +openchannel+ command. Again, we refer to Bob's node by the node ID (i.e. public key).
+
+We do the same with the other nodes, setting up connections and channels. Each node type has a slightly different syntax for these commands, but the overall principle is the same:
+
+To Bob's node (c-lightning), we send the command:
+----
+lightning-cli connect ${wei_address}@Wei
+lightning-cli fundchannel ${wei_address} 1000000
+----
+
+To Wei's node (Eclair), we send:
+----
+eclair-cli -p eclair connect --uri=${gloria_address}@Gloria
+eclair-cli -p eclair open --nodeId=${gloria_address} --fundingSatoshis=1000000
+----
+
+Now, on Gloria's node, we create a new invoice, for 10,000 satoshi:
+
+----
+lncli -n regtest addinvoice 10000 | jq .payment_request
+----
+
+The +addinvoice+ command creates an invoice for the specified amount (in satoshis) and produces a JSON object with the invoice details. From that JSON object, we only need the actual bech32-encoded payement request, and we use +jq+ to extract it.
+
+Next, we have to wait. We just created a bunch of channels, which means that our nodes broadcast a bunch of funding transactions. The channels can't be used until the funding transactions are mined with 6 confirmations. Since our Bitcoin regtest blockchain is set to mine blocks every ten seconds, we have to wait 60 seconds for all the channels to be ready to use.
+
+The final command is the actual payment. We connect to Alice's node and present Gloria's invoice for payment.
+
+----
+lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice}
+----
+
+We ask Alice's node to pay the invoice, but also ask for +inflight_updates+ in +json+ format. That will give us detailed output about the invoice, the route, the HTLCs and the final payment result, so we can study and learn!
+
+Since Alice's node doesn't have a direct channel to Gloria, her node has to find a route. There's only one viable route here (Alice->Bob->Wei->Gloria), which Alice will be able to discover now that all the channels are active and have been advertised to all the nodes by the Lightning gossip protocol. Alice's node will construct the route and create an onion packet to establish HTLCs across the channels. All of this happens in a fraction of a second and Alice's node will report the result of the payment attempt. If all goes well, you will see the last line of the JSON output showing:
+
+----
+"failure_reason": "FAILURE_REASON_NONE"
+----
+
+Arguably, this is a weird message, but technically if there is no failure reason, it is a success!
+
+Scrolling above that funny message you will see all the details of the payment. There's a lot to review, but as you gain understanding of the underlying technology, more and more of that information will become clear. Come back to this example later.
+
+Of course, you could do a lot more with this test network than a 3-channel, 4-node payment. Here are some ideas for your experiments:
+
+* Create a more complex network by launching many more nodes of different types. Edit the +docker-compose.yml+ file and copy sections, renaming as needed.
+
+* Connect the nodes in more complex topologies: circular routes, hub-and-spoke, full mesh
+
+* Run lots of payments to exhaust channel capacity. Then run payments in the opposite direction to rebalance the channels. See how the routing algorithm adapts.
+
+* Change the channel fees to see how the routing algorithm negotiates multiple routes and what optimizations it applies. Is a cheap long route better than an expensive short route?
+
+* Run a circular payment from a node back to itself, in order to rebalance it's own channels. See how that affects all the other channels and nodes.
+
+* Generate hundreds or thousands of small invoices in a loop and then pay them as fast as possible in another loop. See how many transactions per second you can squeeze out of this test network.
+
+=== Conclusion
+
+In this chapter we looked at various projects which implement the BOLT specifications. We built containers to run complete networks and learned how to build each project from source code. You are now ready to explore and dig deeper. 

@@ -6,12 +6,21 @@ bob_address=$(docker-compose exec -T Bob lightning-cli getinfo | jq .id)
 wei_address=$(docker-compose exec -T Wei eclair-cli -s -j -p eclair getinfo| jq .nodeId)
 gloria_address=$(docker-compose exec -T Gloria lncli -n regtest getinfo | jq .identity_pubkey)
 
-# remove quote characters from around IDs
+# The jq command returns JSON strings enclosed in double-quote characters
+# These will confuse the shell later, because double-quotes have special
+# meaning in a bash script.
+
+# We remove the double-quote character by using the shell string manipulation
+# expression: // removes the " character. Even here, we have to escape the "
+# character with a backslash because otherwise bash will interpret it as a
+# string closure.
+# A bit messy, but it works!
 alice_address=${alice_address//\"}
 bob_address=${bob_address//\"}
 wei_address=${wei_address//\"}
 gloria_address=${gloria_address//\"}
 
+# Let's tell everyone what we found!
 echo Alice: ${alice_address}
 echo Bob: ${bob_address}
 echo Wei: ${wei_address}
