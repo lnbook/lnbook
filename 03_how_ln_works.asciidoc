@@ -187,7 +187,7 @@ As Bitcoin is censorship resistant no one can prevent a participant from the Lig
 Imagine, the commitment transactions can be slightly modified so that publishing an outdated commitment transaction can be punished. 
 A high punishment will discourage cheating.
 The penalty for broadcasting an old commitment transaction is to give the cheated channel partner the ability to claim the funds that belonged to the cheater, i.e. the broadcaster of the outdated transaction.
-With this modification in in place, let us go through this scenario again. 
+With this modification in place, let us go through this scenario again. 
 Alice creates a channel with Bob and put 10 mBTC into it. 
 Alice send 3 mBTC to Bob. 
 Alice now tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the original 10 mBTC for herself. 
@@ -218,7 +218,7 @@ But if they share their half with the other channel partner, then the other part
 In order to update the balance and receive a signature from Bob, Alice will have to share her half of the revocation secret of the current commitment transaction with Bob.
 
 Obviously, for every new update of the channel balance new revocation secrets have to be created and saved. 
-As long as a channel remains open, all revocation secrets ever created for this specific channel need to be keep as they might be needed in the future.
+As long as a channel remains open, all revocation secrets ever created for this specific channel need to be kept as they might be needed in the future.
 Luckily, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network.
 Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of Lightning nodes that require node operators to maintain backups.
 Other technologies such as Watchtower services or switching to the aforementioned "eltoo" channels might be future strategies to mitigate these issues.
@@ -325,7 +325,7 @@ You do so by running software that monitors the public Bitcoin blockchain for on
 A Lightning node can do this monitoring for you. 
 Specific Lightning wallets might do this for you. 
 Running a Lightning node 24x7 will catch all cheats. 
-Remember that the commitment transaction has a timeout period specified in a given number of blocks, up to a maximum od 2016.
+Remember that the commitment transaction has a timeout period specified in a given number of blocks, up to a maximum of 2016.
 As long as you run your Lightning node once before the timeout period is reached, it will catch all cheats. 
 To give an example, assume that your commitment transactions have all been set to the maximum timeout of 2016 blocks, roughly corresponding to two weeks. 
 In this case, if you run your Lightning node only once every Sunday, it will still catch all cheats because in this case the timelock is roughly two weeks.
@@ -427,7 +427,7 @@ The fact that the path finding problem is not fully solved for the case of the L
 The path finding strategy currently implemented in Lightning nodes is to probe paths until one is found that has enough liquidity to forward the payment.
 While this is not optimal and certainly can be improved, it should be noted that even this simplistic strategy works well.
 This probing is done by the Lightning node or wallet and is not directly seen by the user of the software.
-The user might only realize that probing is taking place if the payment is not going though instantly.
+The user might only realize that probing is taking place if the payment is not going through instantly.
 The algorithm currently also does not necessarily result in the path with the lowest fees.
 
 [NOTE]
@@ -492,7 +492,7 @@ This makes the Payment Hash obtainable without the need to decrypt any onion.
 In stark contrast to the Internet Protocol Forwarding Algorithm on the Lightning Network it is only the sender of a payment that decides the path it takes to the recipient.
 Forwarding nodes can only reject a path.
 This can happen either on purpose or because they are not able to fulfill the request. 
-The payment forwarding algorithm is initiated by the sender of an payment who selects a path through the Lightning Network and constructs an onion.
+The payment forwarding algorithm is initiated by the sender of a payment who selects a path through the Lightning Network and constructs an onion.
 It contains information about the payment for the recipient, routing hints for the intermediary nodes.
 Routing fees which those nodes will earn if (and only if) the payment is successfully delivered and settles with the release of the `Payment Hash` are also included to the onion.
 
@@ -511,7 +511,7 @@ In most of those cases an error message will be send back to the originator of t
 If for example in the first step the node detects that the onion was corrupted it will not proceed to the second and subsequent steps to move forward the channel state on the receiving channel to include the HTLC.
 Similarly if in the second step the node discovers that it won't be able to fulfill the routing request or that not enough fees have been included it will also abort the payment forwarding algorithm and rather send back an error. 
 
-We node that the error is also an onion reply package.
+We note that the error is also an onion reply package.
 Even though the node sending the error does not know who initially sent out the payment the error message will be encrypted with the key that was used to encrypt the forwarding nodes layer.
 The reply onion is then sent back on the incoming channel.
 The node on the other side knows on which channel it received an onion and with which other channel it has an HTLC with the same `Payment Hash`.
