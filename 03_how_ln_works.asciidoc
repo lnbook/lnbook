@@ -56,30 +56,35 @@ Beyond all the technical primitives, the Lightning Network protocol is a creativ
 
 === Payment channels
 
-As you have seen in the last chapter, in order to use the Lightning Network, Alice had to use her wallet software to create a payment channel with another Lightning Network participant.
-From a computer science perspective a payment channel is a cryptographic communication protocol between you and your channel partner.
-It allows both of the channel partners to send funds back and forth as often as they wish.
-A channel is only limited by two things:
-First, the time it takes for the internet to transfer the few bytes of data that the protocol requires to make a payment between you and your partner.
-Second, the capacity of the channel, which is the term for the monetary funds, i.e. bitcoin, that have been assigned to and locked up by the channel.
-Payment channels have a couple of very interesting and useful properties.
+As we saw in the previous chapter, Alice used her wallet software to create a payment channel between her and another Lightning Network participant.
+From a computer science perspective, a payment channel is a cryptographic communication protocol between you and your channel partner.
+It allows the channel partners to send funds back and forth as often as they wish.
 
-* If the channel is open, making a payment does not require the confirmation of Bitcoin blocks. In fact - as long as you and your channel partner follow the protocol - it does not require any interaction with the Bitcoin network or anyone else other than with your channel partner.
-* The cryptographic protocol is constructed in a way that there is little to no trust involved between you and your channel partner. If your partner becomes unresponsive or tries to cheat you, you can ask the Bitcoin network to act as a court system resolving the conflict according to the rules that you and your partner have previously agreed upon.
-* The capacity of the channel will be split between you and your partner. In that sense at that level you already will have gained privacy compared to the Bitcoin network where every transaction is public. Within payment channels the amounts and values of payments are only known to you and your partner. Only the final balance which is the aggregate of all payments in that channel will become visible on the Bitcoin blockchain if and when the payment channel is closed.
-* As the time to update the channel is primarily bound by the communication speed of the internet, making a payment on a payment channel is almost instant.
+A channel is only limited by two things:
+First, the time it takes for the internet to transfer the few bytes of data that the protocol requires to move funds from one end of the channel to the other.
+Second, the capacity of the channel, meaning the amount of bitcoin that is committed to the channel when it is opened.
+
+Payment channels have a few very interesting and useful properties:
+
+* Because the time to update a channel is primarily bound by the communication speed of the internet, making a payment on a payment channel is almost instant.
+
+* If the channel is open, making a payment does not require the confirmation of Bitcoin blocks. In fact - as long as you and your channel partner follow the protocol - it does not require any interaction with the Bitcoin network or anyone else other than your channel partner.
+
+* The cryptographic protocol is constructed such that there is little to no trust needed between you and your channel partner. If your partner becomes unresponsive or tries to cheat you, you can ask the Bitcoin system to act as a "court" resolving the smart contract you and your partner have previously agreed upon.
+
+* Payments made in a payment channel are only known to you and your partner. In that sense you gain privacy compared to Bitcoin, where every transaction is public.  Only the final balance, which is the aggregate of all payments in that channel, will become visible on the Bitcoin blockchain.
+
 
 Bitcoin was about 5 years old when talented developers first figured out how payment channels could be constructed and by now there are at least 3 different methods known.
-This chapter will only focus on the channel construction method proposed by Joseph Poon and Thaddeus Dryja in 2015 since it is actually being used in the Lightning Network and was first described in the Lightning Network whitepaper.
-The two other proposed methods are the "Duplex Micropayment" channels which have been introduced by Christian Decker around the same time as the "Poon and Dryja" channels and the "eltoo" channels which have been introduced in 2018 by Christian Decker, Rusty Russel and our co-author Olaoluwa Osuntokun.
-The later seem much easier to implement and have a couple of nicer properties.
-However, these "eltoo" channels require a new OP_CODE in the Bitcoin scripting language and can therefore currently not be implemented on top of the Bitcoin mainnet.
+This chapter will focus on the channel construction method first described in the Lightning Network whitepaper by Joseph Poon and Thaddeus Dryja in 2015. These are known as _Poon-Dryja_ channels, and are the channel construction method currently used in the Lightning Network.
+The other two proposed methods are _Duplex Micropayment_ channels, introduced by Christian Decker around the same time as the "Poon-Dryja" channels and _eltoo_ channels, introduced in 2018 by Christian Decker, Rusty Russel and our co-author Olaoluwa Osuntokun.
+
+Eltoo channels have some interesting properties and simplify the implementation of payment channels. However, eltoo channels require a change in the Bitcoin scripting language and therefore cannot be implemented on the Bitcoin mainnet at this time.
 
 ==== Multisig addresses
-Payment channels are smart contracts that build on top of 2-out-of-2 multisignature addresses which will be spent by Segwit transactions.
-By knowing the properties of multisignature addresses you will be able to understand the exact construction of payment channels.
-However, at this point we will not review all the technical details about multisignature addresses and Segwit but just stick to the basic properties.
-If you know Bitcoin well enough to be familiar with those topics feel free to skip this section.
+
+Payment channels are built on top of 2-of-2 multisignature addresses, timelocks and Segregated Witness transaction outputs. We will not revise these relatively advanced concepts of the Bitcoin system. Instead, in this section we will provide a high-level overview of multisignature scripts and how they allow us to construct payment channels.
+If you have already studied Bitcoin and are familiar with multisignature addresses, feel free to skip this section.
 
 [TIP]
 ====
@@ -88,31 +93,35 @@ Also, in case you are not familiar with P2PKH addresses and the basic format and
 There is also a video on Rene's YouTube channel which dissects the bits and bytes of a transaction spending from a P2PKH output at: https://youtu.be/1n4g3eYX1UI
 ====
 
-To allow escrow services and complex ownership configurations between several stakeholders, the Bitcoin scripting language provides multisignature addresses.
-The general form of a locking script setting an M--out-of-N multisignature condition is:
+The Bitcoin scripting language provides a multisignature building block (primitive), that can be used to build escrow services and complex ownership configurations between several stakeholders. An arrangement that requires multiple signatures to spend Bitcoin is called a _multisignature scheme_, further specified as an _K-of-N_ scheme, where:
+
+
+* N is the total number of signers identified in the multisignature scheme, and
+* K is the _quorum_ or _threshold_ - the minimum number of signatures to authorize spending.
+
+The script for an K-of-N multisignature is:
 
 ----
-M <Public Key 1> <Public Key 2> ... <Public Key N> N CHECKMULTISIG
+K PubKey1 PubKey2 ... PubKeyN N CHECKMULTISIG
 ----
 
-where N is the total number of listed public keys and M is the threshold of required signatures to spend the output.
+where K is the total number of listed public keys (Public Key 1 through Public Key N) and K is the threshold of required signatures to spend the output.
 
-A special case which is particularly interesting for us is a locking script setting a 2-out-of-2 multisignature condition.
-It would look like this:
-
-----
-2 <Public Key A> <Public Key B> 2 CHECKMULTISIG
-----
-
-The preceding locking script can be satisfied with an unlocking script containing pairs of signatures:
+The Lightning Network uses a 2-of-2 multisignature scheme to build a payment channel. For example, a payment channel between Alice and Bob would be build on a 2-of-2 multisignature like this:
 
 ----
-0 <Signature A> <Signature B>
+2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG
+----
+
+The preceding locking script can be satisfied with an unlocking script containing a pair of signatures:
+
+----
+0 <Sig Alice> <Sig Bob>
 ----
 The two scripts together would form the combined validation script:
 
 ----
-0 <Signature A> <Signature B> 2 <Public Key A> <Public Key B> 2 CHECKMULTISIG
+0 <Sig Alice> <Sig Bob> 2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG
 ----
 
 ==== Funding Transaction
