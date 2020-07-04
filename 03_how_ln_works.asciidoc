@@ -30,30 +30,34 @@ When someone says they 'own' bitcoin they typically mean that they know the priv
 The private key allows the owner to produce a signature for a transaction that spends the bitcoin by sending it to a different address.
 Thus 'ownership' of bitcoin can be defined as the ability to spend that bitcoin.
 
-If you have an unpublished but signed transaction from a 2-out-of-2 multisignature address, where some outputs are sent to an address you own, and additionally you own one of the private keys of the multisignature address, then you effectively own the bitcoin of that output.
-Without your help no other transaction from the 2-out-of-2 multisignature address can be produced.
-However, without the help of anybody else you can transfer the funds to an address which you control.
-On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-out-of-2 multisignature address.
+Ownership on the Lightning Network is more complicated.
+When someone says they 'own' bitcoin in a Lightning channel, they mean that they have a signed transaction from a 2-out-of-2 multisignature address for which they own 1 of the 2 private keys, that this transaction sends some outputs to an address they own, and that this transaction is not yet published to the Bitcoin network.
+When they publish this transaction to the Bitcoin network and it is confirmed, these outputs will be taken out of the 2-out-of-2 multisignature address and returned to them.
+These Bitcoin outputs can be taken out of the 2-out-of-2 multisignature at any time by the owner and cannot be spent without the owner's consent.
+Thus 'ownership' on the Lightning Network is also defined as the ability to spend that bitcoin, but with a few caveats.
+It is the ability to remove the bitcoin from a 2-out-of-2 multisignature address and return it to an address the 'owner' controls
 ====
 
 Additionally, these contracts have the option to connect channels in a way that one can forward payments from one channel to another.
 For example, Alice can send money to Bob if Alice had a channel with Mallory and Mallory had a channel with Bob.
+In this way, Alice is 'routing' her payment to Bob using Mallory as an intermediary.
 By the design of the Lightning Network, it is possible to extend the smart contracts which operate the channel so that Mallory has no way of stealing the funds that are being routed through her.
 Not only does the construction of the payment channel work for the partners without the necessity to trust each other but the entire network works without the necessity to trust any other participant.
-Since the channels are funds on multisignature addresses and as the contracts are unpublished but presigned Bitcoin transactions, all the trust that is needed to operate the Lightning Network comes from the trust in the decentralized Bitcoin network!
+Channels are funds on multisignature addresses and the contracts are unpublished but presigned Bitcoin transactions, hence all the trust that is needed to operate the Lightning Network comes from the trust in the decentralized Bitcoin network.
 
-The aforementioned innovations are certainly the major breakthrough that allow the creation of the Lightning Network.
+These innovations are the major breakthrough that allow the creation of the Lightning Network.
 However, the Lightning Network is so much more than the cryptographic protocols on top of the Bitcoin scripting language.
 It is a full communication protocol that allows peers to communicate with each other via Lightning messages to achieve the transfer of bitcoin.
 The communication protocol also defines how Lightning messages are being encrypted and exchanged.
-A gossip protocol is part of the specification that is used to share public information about the topology of the network with the other participants.
+It also includes A gossip protocol that is used to share public information about the topology of the network with the other participants.
 This information is needed for Alice to be aware of the fact that Mallory has a channel with Bob so that she can decide to send a payment indirectly via Mallory to Bob.
 
-Last but not least, it is important to understand that the Lightning Network is nothing but Bitcoin.
-We emphasize this as you might find people who will try to spread misinformation and create a false barrier between the "real" Bitcoin and the Lightning Network or even use terms like the Lightning Network coin. At any point in time, any value held in the Lightning Network is exclusively held as bitcoin and exclusively secured by the Bitcoin network. 
-We hope that as soon as you have studied the remainder of this book you do not need to believe what we just mentioned.
-We rather hope that this book enables you to critically do your own research to understand and verify the following (instead of trusting us):
-Besides all the technical primitives, the Lightning Network protocol is a creative way to get more benefits out of Bitcoin by allowing an arbitrary amount of instant payments with instant settlements without the necessity to trust anyone else but the Bitcoin network.
+Last but not least, it is important to understand that the Lightning Network is nothing but an extension of Bitcoin.
+We emphasize this due to the misinformation that exists around the Lightning Network, some of which attempts to create a false barrier between the "real" Bitcoin by claiming that the Lightning Network is a separate coin.
+At any point in time, any value held in the Lightning Network is exclusively held as bitcoin and exclusively secured by the Bitcoin network.
+All of this is made clear both in both this book and in the Lightning Network technical documents.
+
+Besides its technical primitives, the Lightning Network protocol is a creative way to get more benefits out of Bitcoin by allowing an arbitrary amount of instant payments with instant settlements without the necessity to trust anyone else but the Bitcoin network.
 
 === Payment channels
 
@@ -62,25 +66,26 @@ From a computer science perspective a payment channel is a cryptographic communi
 It allows both of the channel partners to send funds back and forth as often as they wish.
 A channel is only limited by two things:
 First, the time it takes for the internet to transfer the few bytes of data that the protocol requires to make a payment between you and your partner.
-Second, the capacity of the channel, which is the term for the monetary funds, i.e. bitcoin, that have been assigned to and locked up by the channel.
-Payment channels have a couple of very interesting and useful properties.
+Second, the capacity of the channel, which is the term for the bitcoin that has been assigned to and locked up by the channel.
+Payment channels have a couple of interesting and useful properties.
 
-* If the channel is open, making a payment does not require the confirmation of Bitcoin blocks. In fact - as long as you and your channel partner follow the protocol - it does not require any interaction with the Bitcoin network or anyone else other than with your channel partner.
+* If the channel is open, making a payment does not require the confirmation of Bitcoin blocks. As long as you and your channel partner follow the protocol, it does not require any interaction with the Bitcoin network or anyone else other than with your channel partner.
 * The cryptographic protocol is constructed in a way that there is little to no trust involved between you and your channel partner. If your partner becomes unresponsive or tries to cheat you, you can ask the Bitcoin network to act as a court system resolving the conflict according to the rules that you and your partner have previously agreed upon.
-* The capacity of the channel will be split between you and your partner. In that sense at that level you already will have gained privacy compared to the Bitcoin network where every transaction is public. Within payment channels the amounts and values of payments are only known to you and your partner. Only the final balance which is the aggregate of all payments in that channel will become visible on the Bitcoin blockchain if and when the payment channel is closed.
+* The capacity of the channel will be split between you and your partner, and payments within that channel are known only to you and your partner. Only the final balance which is the aggregate of all payments in that channel will become visible on the Bitcoin blockchain if and when the payment channel is closed. In that sense the channel partners will have gained privacy compared to the Bitcoin network where every transaction is public.
 * As the time to update the channel is primarily bound by the communication speed of the internet, making a payment on a payment channel is almost instant.
 
-Bitcoin was about 5 years old when talented developers first figured out how payment channels could be constructed and by now there are at least 3 different methods known.
-This chapter will only focus on the channel construction method proposed by Joseph Poon and Thaddeus Dryja in 2015 since it is actually being used in the Lightning Network and was first described in the Lightning Network whitepaper.
-The two other proposed methods are the "Duplex Micropayment" channels which have been introduced by Christian Decker around the same time as the "Poon and Dryja" channels and the "eltoo" channels which have been introduced in 2018 by Christian Decker, Rusty Russel and our co-author Olaoluwa Osuntokun.
-The later seem much easier to implement and have a couple of nicer properties.
-However, these "eltoo" channels require a new OP_CODE in the Bitcoin scripting language and can therefore currently not be implemented on top of the Bitcoin mainnet.
+Bitcoin was about 5 years old when developers first discovered how to construct payment channels. There are now there are at least 3 different methods known.
+This chapter will focus on the channel construction method proposed by Joseph Poon and Thaddeus Dryja in 2015 as this is the method used in the Lightning Network, and which was first described in the Lightning Network whitepaper.
+The two other proposed methods are the "Duplex Micropayment" channels which introduced by Christian Decker around the same time as the "Poon and Dryja" channels and the "eltoo" channels introduced in 2018 by Christian Decker, Rusty Russel and our co-author Olaoluwa Osuntokun.
+"Eltoo" channels in particular are easier to implement than "Poon-Dryja" channels and have many useful properties compared to them.
+However, "eltoo" channels require a new OP_CODE to be introduced into the Bitcoin scripting language and thus cannot be implemented on top of the Bitcoin mainnet at this stage.
+At a later stage, if this OP_CODE is introduced into Bitcoin with a soft work, "eltoo" channels may become viable for the Lightning Network.
 
 ==== Multisig addresses
 Payment channels are smart contracts that build on top of 2-out-of-2 multisignature addresses which will be spent by Segwit transactions.
-By knowing the properties of multisignature addresses you will be able to understand the exact construction of payment channels.
-However, at this point we will not review all the technical details about multisignature addresses and Segwit but just stick to the basic properties.
-If you know Bitcoin well enough to be familiar with those topics feel free to skip this section.
+By studying the properties of multisignature addresses you will understand the exact construction of payment channels.
+However, at this point we will not review the technical details of multisignature addresses and Segwit, and will focus on basic properties.
+If you understand Bitcoin sufficiently to be familiar with these topics, feel free to skip this section.
 
 [TIP]
 ====
@@ -90,13 +95,13 @@ There is also a video on Rene's YouTube channel which dissects the bits and byte
 ====
 
 To allow escrow services and complex ownership configurations between several stakeholders, the Bitcoin scripting language provides multisignature addresses.
-The general form of a locking script setting an M--out-of-N multisignature condition is:
+The general form of a locking script setting an M-out-of-N multisignature condition is:
 
 ----
 M <Public Key 1> <Public Key 2> ... <Public Key N> N CHECKMULTISIG
 ----
 
-where N is the total number of listed public keys and M is the threshold of required signatures to spend the output.
+where N is the total number of listed public keys and M is the threshold of signatures required to spend the output.
 
 A special case which is particularly interesting for us is a locking script setting a 2-out-of-2 multisignature condition.
 It would look like this:
@@ -117,115 +122,123 @@ The two scripts together would form the combined validation script:
 ----
 
 ==== Funding Transaction
-We have already seen that one of the important building blocks of a payment channel is a 2-out-of-2 multisignature address.
-To open a payment channel one must send bitcoin to that address.
-The Bitcoin transaction that sends bitcoin to that 2-out-of-2 multisignature address is called the funding transaction. 
-It is included in the Bitcoin blockchain.
+To open a payment channel, we must send bitcoin to a 2-out-of-2 multisignature address, where each of the channel partners holds one of the keys to this address.
+The Bitcoin transaction that first sends bitcoin to this 2-out-of-2 multisignature address, and is included in the Bitcoin blockchain, is called the funding transaction.
 While the payment channel opened by two participants of the Lightning Network can be private, the funding transaction will always be publicly visible to the Bitcoin network.
 The amount of bitcoin sent to the multisignature address forms an upper limit on how much Bitcoin can be transacted using the channel, and is called the capacity of the channel.
 Two channel partners will never be able to conduct payments on a channel that are larger than its channel capacity.
 While the Bitcoin network can see that funds have been committed to a channel using a funding transaction, it is unable to determine how those funds are distributed between the two channel partners.
 
-[Note]
-====
-You might hear people falsely complaining about bitcoin being locked up by the Lightning Network preventing their movement.
-This is incorrect.
-One can use the Bitcoin network to send bitcoin from a P2PKH address as well as from a 2-out-of-2 multisignature address with a P2WSH transaction.
-In both cases transfer of ownership incurs the corresponding bitcoin fees for processing the "on-chain" transaction on the Bitcoin network.
-However, once the bitcoin are used to open a payment channel they can freely flow within the Lightning Network from one participant to another one.
-If a channel partner should not respond, one will always have the chance to fall back to the on-chain transactions without the necessity for the channel partner to help to do so.
-On-chain fees and Bitcoin confirmation times make moving bitcoin on the Bitcoin network more expensive and slower than moving bitcoin on the Lightning Network.
-====
-
 ===== Example of a poor channel opening procedure
 Alice wants to open a payment channel with Mallory but she is not yet fully aware of the Lightning Network Protocol.
-She creates a new private and corresponding public key and talks to Mallory who does the same and sends her public key to Alice.
-Now Alice prepares a Bitcoin Transaction sending a few mBTC to the multisignature address that was created from Alice's and Mallory's key.
-As Alice wasn't aware of the protocol to open the channel she now has to trust that Mallory will provide her signature if Alice wants to spend from the multisignature address.
-Mallory on the other side has the chance to execute a blackmail attack on Alice by holding back her signature and denying Alice access to her funds.
+She creates a new private key and corresponding public key and talks to Mallory who does the same and sends her public key to Alice.
+These two new private keys will be used to create a 2-out-of-2 multisignature address which will be the basis of a channel between Alice and Mallory.
+Alice prepares a Bitcoin Transaction sending some bitcoin to this 2-out-of-2 multisignature address.
+As Alice wasn't aware of the protocol to open the channel, and this is a multisignature address that requires two signatures, Alice has to trust that Mallory will provide her signature if she wants to spend from this address.
+If Mallory refuses to provide the other signature, Alice cannot spend from this address on her own.
+Mallory is able to execute a blackmail attack on Alice by holding back her signature and denying Alice access to her own funds.
 
-In order to prevent Mallory from performing such an attack Alice will need to create a spend transaction from the funding transaction and have that transaction signed by Mallory before she broadcasts her funding transaction to the Bitcoin network.
-This transaction that protects Alice is called Commitment transaction and we will study it now.
+In order to prevent Mallory from performing such an attack, Alice will need to have a way to reclaim her funds once the channel is open.
+The Lightning Network solution is to create a spend transaction from the funding transaction that returns her funds.
+This spend transaction will be signed by Mallory _before_ she broadcasts the funding transaction to the Bitcoin network.
+This spend transaction protects Alice from Mallory witholding her signature and is called Commitment transaction.
+We will study it now.
 
 ==== Commitment Transaction
 
-You have just learnt that a payment channel needs to be opened by preparing a funding transaction which sends the funds of the payment channel to a 2-out-of-2 multisignature address.
-From the example in the last section you learnt that more ingredients are necessary to open and operate a payment channel that does not rely on trusting the channel partner.
-These ingredients are the commitment transactions.
-They are used to make sure that everyone connected to a channel is able to get its own funds back in case the channel partner becomes unresponsive or, even worse, if the channel partner deliberately or by accident tries to cheat during the execution of the protocol.
+We have just learnt that a payment channel needs to be opened by preparing a funding transaction which sends the funds of the payment channel to a 2-out-of-2 multisignature address.
+From the example on poor channel opening procedure, we have learnt that more ingredients are necessary to open and operate a payment channel without trusting the channel partner and exposing the channel partners to risk.
+We also require a way to return the channel funds to the channel partners without both signatures i.e. the commitment transaction.
+This is required for a Lightning Network user to reclaim their funds in the case that their channel partner becomes unresponsive or, in the worst case, if their channel partner tries to cheat them out of their funds.
 The commitment transactions also encode the balance of the payment channel.
 The balance of the payment channel is an agreement by the channel partners about how the funds, i.e. capacity, are split among the partners.
-Let us assume Alice opens a channel with a capacity of 10 mBTC with Bob.
-Naturally, initially Alice should still be in the possession of the 10 mBTC.
-This can actually be easily achieved with the following construction:
+
+Let us assume Alice opens a channel with a capacity of 1 BTC with Bob.
+Initially Alice should still be in the possession of the 1 BTC.
+This can be easily achieved with the following construction:
 
 . Alice creates a new private / public key pair and informs Bob that she wishes to open a channel via the `open_channel` message.
-. Bob also creates a new private / public key pair and agrees to accept a channel from Alice while sending his public key to Alice via the `accept_channel` message.
-. Alice now creates a funding transaction from her wallet that sends 10 mBTC to the multisignature address with a locking script `2 <Public Key A> <Public Key B> 2 CHECKMULTISIG`.
-. Alice does not broadcast the funding transaction but informs Bob about the transaction id of the funding transaction by sending a `funding_created` message.
+. Bob also creates a new private / public key pair and agrees to accept a channel from Alice while sending his public key to Alice via the `accept_channel` message. Alice now has both public keys.
+. Alice creates a funding transaction from her wallet that sends 1 BTC to the multisignature address with a locking script `2 <Public Key A> <Public Key B> 2 CHECKMULTISIG`.
+. Alice does not broadcast the funding transaction but informs Bob of the funding transaction's transaction ID by sending a `funding_created` message.
 . Both Alice and Bob create their version of a commitment transaction. This transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
 . Alice provides a signature for Bob's Commitment Transaction. This signature was already included in the `funding_created` message.
 . Bob provides a signature for Alice's Commitment Transaction and sends this back to Alice via the `funding_signed` message.
-. Only after signatures have been exchanged Alice will broadcast the funding transaction to the Bitcoin network.
+. Both parties now have a Commitment Transaction signed by both parties, Alice has a funding transaction sending to a 2-out-of-2 multisignature controlled by her and Bob, and Bob is aware of the funding transaction's TXID. Only now does Alice broadcast the funding transaction to the Bitcoin network.
 
-By following this protocol Alice did not give up ownership of her 10 mBTC even though the funds have been sent to a 2-out-of-2 multisignature address for which Alice controls only one key.
+By following this protocol Alice did not give up ownership of her 1 BTC even though the funds have been sent to a 2-out-of-2 multisignature address for which Alice controls only one key.
 If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
-She will only have lost the fees for the two on-chain transactions.
+She will lose only the fees she needs to pay for the funding transaction and the commitment transaction, both of which need to be confirmed on the Bitcoin blockchain.
 As long as she follows the protocol and has her node secured this is her only risk when opening a channel.
 
-At channel opening time, the commitment transactions serve the purpose of allowing Alice to withdraw her funds directly after opening the channel in case Bob does not answer. However, commitment transactions are created each time the channel balance changes. In other words, each time bitcoin is sent between Alice and Bob new commitment transactions are created. Each commitment transaction encodes the latest balance between Alice and Bob.
-If Alice wanted to send 3 mBTC to Bob to pay him for a service he offered, both would create a new version of their commitment transactions which would now send 7mBTC to Alice and 3 mBTC to Bob and share signatures with each other.
-However, there is still a piece missing in the design presented so far.
+After opening the channel, the commitment transactions serve the purpose of allowing Alice to withdraw her funds from the channel, without Bob's permission, in the case Bob does not answer.
+Note that new commitment transactions are created each time the channel balance changes.
+In other words, each time bitcoin is sent between Alice and Bob, new commitment transactions are created that encodes the latest balance between Alice and Bob.
+If Alice wanted to send 0.3 BTC to Bob to pay him for a service, both would create a new version of their commitment transactions which would now send 0.7 BTC to Alice and 0.3 BTC to Bob, and both parties would sign these new commitment transactions.
+The original commitment transactions, which paid 1 BTC to Alice and 0 BTC to Bob, is now outdated.
+However, there is still a missing piece in the design presented so far.
 
 **Do you see any way how Alice could cheat on Bob?**
 
-How many commitment transactions does Alice hold after her payment of 3mBTC to Bob? She holds two, the original one giving her 10 mBTC and the last one giving her 7mBTC. As you see, in the design presented so far nothing could stop Alice from publishing an old or even initial commitment transaction. A crooked Alice could publish the commitment transaction which grants her 10 mBTC.
-Since that commitment transaction has previously been signed by Bob he can't prevent Alice from doing so.
-A smarter mechanism is needed to prevent Alice from publishing an old commitment transaction. 
-Let us now find out how this can be achieved and how an improved mechanism enables the Lightning Network to operate without trust.
+How many commitment transactions does Alice hold after her payment of 0.3 BTC to Bob?
+She holds two: the original one giving her 1 BTC and the latest one giving her 0.7 BTC.
+As you see, in the design presented so far nothing could stop Alice from publishing an old or even initial commitment transaction.
+A crooked Alice could publish the original commitment transaction which grants her the full 1 BTC.
+Since Bob previously signed this commitment transaction, he cannot prevent Alice from publishing it to the Bitcoin blockchain, and the Bitcoin blockchain would see both signatures required for the 2-out-of-2 multisignature address and accept it.
+A further mechanism is required to prevent Alice from publishing an old commitment transaction.
+
+We will now discuss how this can be achieved, and how this mechanism enables the Lightning Network to operate without trust.
 As Bitcoin is censorship resistant no one can prevent a participant from the Lightning Network to publish an old commitment transaction.
-Imagine, the commitment transactions can be slightly modified so that publishing an outdated commitment transaction can be punished. 
-A high punishment will discourage cheating.
-The penalty for broadcasting an old commitment transaction is to give the cheated channel partner the ability to claim the funds that belonged to the cheater, i.e. the broadcaster of the outdated transaction.
-With this modification in place, let us go through this scenario again. 
-Alice creates a channel with Bob and put 10 mBTC into it. 
-Alice send 3 mBTC to Bob. 
-Alice now tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the original 10 mBTC for herself. 
-With the modification, Bob can now detect the fraud and he is enabled to punish Alice for the fraud by claiming the full 10 mBTC for himself. 
-Bob ends up with 10 mBTC gaining 7 mBTC for catching Alice cheat. 
-Alice ends up with 0 mBTC. 
-For cheating she lost the 7 mBTC she still had. 
-With such a strong penalty mechanism in place Alice will not be tempted to cheat by publishing an old state as she would almost always lose all her remaining funds in the channel.
+However, we can modify commitment transactions so that publishing an outdated commitment transaction can be punished.
+This way, if Alice tries to publish the 1 BTC commitment transaction when 0.7 BTC is her latest balance in the channel, then Bob can enforce a penalty.
+A high penalty will discourage Alice from cheating.
+In the current specification of the Lightning Network, the penalty for broadcasting an old commitment transaction is to give the cheated channel partner all of the funds in the channel.
 
-[Note]
+With this modification in place, this is how the scenario would play out.
+. Alice creates a channel with Bob and places 1 BTC into it.
+. Alice send 0.3 BTC to Bob to pay him for a service. The latest balance of the channel is now 0.7 BTC to Alice and 0.3 BTC to Bob.
+. Alice now tries to cheat Bob out of his 0.3 BTC by publishing the old commitment transaction which states a channel balance of 1 BTC to Alice and 0 BTC to Bob.
+. With the modification, Bob can now detect the fraud and can publish a penalty transaction, which punishes Alice for attempted fraud by giving him the entire channel balance.
+. Bob ends up with the entire 1 BTC, essentially gaining 0.7 BTC for catching Alice cheat.
+. Alice ends up nothing, losing both the 0.3 BTC she tried to steal and the 0.7 BTC she had remaining.
+
+With such a strong penalty mechanism in place, Alice will not be tempted to cheat by publishing an old state as she stands lose all her remaining funds in the channel.
+
+[NOTE]
 ====
-In Mastering Bitcoin Andreas states it very elegantly:
-A key characteristic of bitcoin is that once a transaction is valid, it remains valid and does not expire. The only way to cancel a transaction is by double-spending its inputs with another transaction before it was mined. That's why we used timelocks [...] to ensure that more recent commitments could be spent before older commitments were valid.
+In _Mastering Bitcoin_, Andreas Antonopolous states it elegantly:
+
+"A key characteristic of bitcoin is that once a transaction is valid, it remains valid and does not expire. The only way to cancel a transaction is by double-spending its inputs with another transaction before it was mined. That's why we used timelocks [...] to ensure that more recent commitments could be spent before older commitments were valid."
 ====
 
-We will now see how such a penalty mechanism can be included to the above construction of the commitment transactions.
-Usually the commitment transaction has at least two outputs, one for each partner.
-As new addition, a channel partner will encumber their own output with a timelock and a revocation secret.
+**Channel Penalties**
+
+We will now discuss such a penalty mechanism can be included to the above construction of the commitment transactions.
+
+Typically, the commitment transaction has at least two outputs, one for each partner.
+As an addition, each channel partner will encumber their own output with a timelock and a revocation secret.
 The timelock prevents the owner of the output to spend it immediately once the commitment transaction was included in a block.
-The timelock is usually measured in blocktime and can be up to 2016.
-On average, 2016 blocks represent or last two weeks (assuming a blocktime of 10 minutes as in the Bitcoin network).
-Be aware, the exact number of blocks used for the timeout can be set to different values by different software.
-2016 is just the maximum value, but smaller values are possible.
-footnote:[Users likely prefer a longer timeout value for a larger channel capacity.]
-Within the timelock anyone who knows the revocation secret can spend the output even before the timelock is over.
-Alice and Bob know only one half each of the revocation secret.
-But if they share their half with the other channel partner, then the other partner knows the full secret.
-In order to update the balance and receive a signature from Bob, Alice will have to share her half of the revocation secret of the current commitment transaction with Bob.
+This means that there is a window of time from the point commit transaction is confirmed, until the output from that transaction is confirmed, during which a penalty can be enforced.
+The timelock is usually measured in blocktime and can be up to 2016 blocks.
+On average, 2016 blocks will last two weeks (assuming a blocktime of 10 minutes as in the Bitcoin network).
+Note that 2016 blocks is simply the maximum value; different timelocks can be specified by different software.
+footnote:[Users typically prefer a longer timeout value for a larger channel capacity, as this grants more time to enforce a channel penalty and thus provides more security.]
+Within the timelock, before it expires, anyone who knows the revocation secret can spend the output before the timelock is over.
+Initially, Alice and Bob know only one half each of the revocation secret, but if they share their half with the other channel partner, then the other partner knows the full secret.
+Each time the channel balance is updated and Alice receives a receive a signature from Bob, Alice will also share her half of the revocation secret of the current commitment transaction with Bob.
 
-Obviously, for every new update of the channel balance new revocation secrets have to be created and saved. 
-As long as a channel remains open, all revocation secrets ever created for this specific channel need to be kept as they might be needed in the future.
-Luckily, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network.
-Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of Lightning nodes that require node operators to maintain backups.
-Other technologies such as Watchtower services or switching to the aforementioned "eltoo" channels might be future strategies to mitigate these issues.
+This means that every time the channel balance is updated, a new commitment transaction is created, as well as new revocation secrets for that commitment.
+As long as a channel remains open, all revocation secrets ever created for this specific channel need to be stored as they might be needed in the future if the channel partner tries to cheat.
+Luckily, the secrets are small in terms of bytes, and it is only the channel partners who need to keep them, not the entire network.
+Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of running a Lightning node.
+Node operators need to maintain backups as losing these secrets (such as due to hardware failure) means the channel owner has no recourse if the channel partner tries to cheat.
+However, this is an area of the Lightning Network that is still under development.
+Future technologies such as Watchtower services or the aforementioned "eltoo" channels may allow for different penalty strategies that mitigate these issues.
 
-With the timelocks in place Alice can close the channel at any time if Bob does not respond, claiming her fair share of the balance.
-After publishing the commitment transaction "on-chain" Alice has to wait for the time lock to expire before she can spend her funds from the commitment transaction.
-Other than that and the "on-chain" fees for opening and closing a channel there comes no additional burden with maintaining a payment channel.
+With the timelocks in place Alice can close the channel at any time if Bob does not respond, claiming her share of the balance, and she also has a way of reclaiming her funds if Bob tries to cheat.
+Once she decides to close a channel, she simply publishes the latest commitment transaction to the Bitcoin blockchain.
+Once the transaction is confirmed and the timelock expires, Alice is free to spend her funds.
+Other than the time delays and the fees for the Bitcoin transactions that need to be confirmed on-chain, ALice has no additional burden with maintaining a payment channel.
 
 ==== Announcing the channel
 Channel partners can optionally agree to publicly announce the channel over the gossip protocol that comes with the Lightning Network. Such a channel is called a "public" channel. 
