@@ -46,7 +46,7 @@ In all cases, some privacy of the payer and the recipient are lost.
 image:images/malicious-routing-diagram.png["If the Malicious node knows there are 2 layers left, then it knows that the payment recipient is either Node 19 (and there were only 19 hops) or one Node 19's channel partners"]
 
 We can extend this example.
-Imagine a malicious entity sets up multiple Lightning nodes connected to well-connected nodes, as well as connects itself across popular payment routes.
+Imagine a malicious entity sets up multiple Lightning nodes connected to other well-connected nodes, and it also connects itself across popular payment routes.
 These malicious Lightning nodes would then be popular routing choices for those wanting to send payments, especially if they set their routing fees low.
 The malicious nodes can then capture the data of all packets that pass through their routing nodes.
 With additional information, such as the names of the other routing nodes, it could infer who is making these payments, who is receiving them, and for what amounts.
@@ -55,11 +55,12 @@ It is known, for example, that the nodes "aantonop" and "1.ln.aantonop.com" are 
 Furthermore, many companies and businesses in this space use a publicly known name for their routing nodes.
 If we see, for example, a payment with destination "Bitrefill", we could infer that someone is making a purchase from Bitrefill.
 If we know the prices of their services, we could even infer what they purchased. ]
-If it has multiple routing nodes connected to each other, it might even be responsible for transmitting several of the hops and could form a more complete picture of the payment.
+If it has multiple routing nodes connected to each other, it might even be responsible for transmitting several of the hops in a single payment and could form a more complete picture of the route.
 We see this example as spiritually similar to the chain analysis already performed on the Bitcoin network; even an incomplete picture of payments can be used to infer things about the parties involved and potentially de-anonymize them.
 
 Fixing the packet size solves the problem of routing nodes knowing how far a packet is along the route.
 Whenever a routing node peels off a layer, it adds another layer of junk data to the end, restoring the packet to its "full" size.
 In this way, even if a packet has already been transmitted 18 hops, the 19th routing node would still see that the packet contains enough data for up to 20 hops.
 It would have no way of determining if it was the first routing node or the second last routing node.
-If it is not the recipient itself, then it knows only that it is not the recipient and that the recipient is someone it is connected to by up to 20 hops.
+If it is not the recipient itself, then it knows only that the recipient is someone it is connected to by up to 20 hops.
+Assuming a sufficiently complex network with a large number of nodes, the size of the packet then gives them no useful information about the source or the destination of the payment.
