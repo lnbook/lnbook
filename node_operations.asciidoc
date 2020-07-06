@@ -29,3 +29,55 @@ Both techniques will be discussed later in this chapter.
 ==== submarine swaps
 
 ==== Fees and Centrality
+
+
+
+=== Hardware Requirements for a Lightning Nodes
+
+In this section we discuss various types of hardware Lightning Nodes, why they are needed, and the risks in running them.
+
+==== Why is hardware important for running a Lightning Node?
+
+In Bitcoin, unless one is specifically running a mining node, hardware is not particularly important.
+The Bitcoin Core node software can be run on any machine that meets its minimum requirements and does not need to be online to receive payments; only to send them.
+If a Bitcoin node goes down for an extended period of time, the user can simply reboot the node and once it connects to the rest of the network, it can simply request the blocks that were mined in the interim from its peers.
+It can then validate all of the transactions at its leisure until it resyncs with the rest of the network.
+
+In Lightning however, the user needs to be online both to send _and_ to receive payments.
+If the Lightning user is offline it cannot receive any payments from anyone and thus its open invoices cannot be fulfilled.
+Furthermore, the open channels of an offline user cannot be used to route payments.
+Your channel partners will notice that you are offline and cannot contact you to route a payment.
+If you are offline too often, they may consider the Bitcoin locked up in their channels with you to be "wasted" capacity, and may close those channels.
+We also consider the case of a Protocol Breach i.e. your channel partner tries to cheat you by submitting an earlier commitment transaction.
+If you are offline and your channels aren't being monitored, then the theft could succeed and you will have no recourse if the cheater force closes a channel and the timelock expires.
+Hence uptime is extremely important for a Lightning node and a reliable routing node will aim to be online at all times.
+
+There is also the issue of hardware failure.
+In Bitcoin, hardware failure can be a trivial problem if the user has a backup of their mnemonic phrase or private key.
+The Bitcoin wallet and the bitcoin inside the wallet be easily restored from the private key on any computer or hardware wallet, and the blockchain can be re-downloaded from any peer.
+In Lightning, however, the private keys for the 2-out-of-2 multisignature addresses where funds are stored are separate from the private key and are not restored when the private key is restored.
+Furthermore, the information about the user's channels, including the commitment transactions and revocation secrets, are not publicly known and are only stored on the individual user's hardware.
+Thus hardware failure in the Lightning Network can easily result in loss of funds.
+Even if the user has backed up their Bitcoin private key, without the private keys to the 2-out-of-2 multisignature addresses and the revocation secrets, they will not be able to restore in their funds in the case of hardware failure or theft.
+
+==== What are the types of hardware Lightning Nodes?
+
+* **General Purpose Computers**: a Lightning Network node can be run on a home computer or laptop running Windows, MacOS, or Linux. Typically this is run alongside a Bitcoin node. This method of running a Lightning node is vulnerable to attackers unless the user takes measure to ensure their own security and privacy.
+* **Dedicated Hardware**: a Lightning Node can also be run on dedicated hardware like a Raspberry Pi or Rock64. This setup would usually run a software stack including a Bitcoin node and other applications. This setup is popular as the hardware is dedicated to running and maintaining the Lightning node only, and is thus has a lower attack surface than a general purpose computer.
+* **Specialized Hardware**: a Lightning Network node can also be run on purpose-built hardware specifically designed for it. This would include "out-of-the-box" Lightning node solutions.
+* **Light-Client**: technically, running a phone app like Eclair Mobile Wallet for Android is also a Lightning node in that it can open and close channels and route payments. However, it does not run a Bitcoin node and so is unable to monitor the Bitcoin blockchain for cheating attempts against it. It thus reliant on third-party services in order to use the Lightning Network securely.
+
+==== What hardware is required to run a Lightning node?
+
+We will assume in this section that the user is setting up a dedicated solution mentioned above.
+These points apply equally to a general purpose computer or specialized hardware, but in the case of specialized hardware it will be the manufacturer who considers these points.
+
+At a minimum, the following will be required to run a Lightning Node:
+
+* **CPU**: sufficient processing power will be required to run a Bitcoin node, which will continuously download and validate new blocks. The user also needs to consider the initial block download when setting up a new Bitcoin node which can take anything from several hours to several days.
+* **Storage Drive**: this can be a Hard Drive or an SSD, although an SSD will be significantly quicker for running a Bitcoin node. The storage drive is primarily to store the Bitcoin blockchain, however this can be pruned. In addition it will also store channel information, route maps, and commitment transactions.
+* **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning Peers. If the user wishes to route payments, ideally they want low latency to other users.
+
+In addition, the user will also want to consider some kind of backup solution.
+This could be a cloud-based automated backup to a server or web service the user controls.
+Or it could be a hardware backup, such as a second hard drive that can be used if the first hard drive fails.
