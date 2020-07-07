@@ -142,42 +142,44 @@ The funds sent to the multisignature address in the funding transaction are some
 
 If you think carefully about 2-of-2 multisignature addresses, you will realize that putting your funds into such an address seems to carry some risk. What if your channel partner refuses to sign a transaction to "release" the funds? Are they stuck forever? Let's look at that scenario and how the Lightning Network protocol avoids it, next.
 
-Alice and Mallory want to create a payment channel. They each create a private/public key pair and then exchange public keys. Now, they can construct a multisignature 2-of-2 with the two public keys, forming the foundation for their payment channel.
+Alice and Bob want to create a payment channel. They each create a private/public key pair and then exchange public keys. Now, they can construct a multisignature 2-of-2 with the two public keys, forming the foundation for their payment channel.
 
-Next, Alice constructs a Bitcoin transaction sending a few mBTC to the multisignature address created from Alice's and Mallory's public keys. If Alice doesn't take any additional steps and simply broadcasts this transaction, she has to trust that Mallory will provide her signature to spend from the multisignature address. Mallory on the other hand has the chance to blackmail Alice by withholding her signature and denying Alice access to her funds.
+Next, Alice constructs a Bitcoin transaction sending a few mBTC to the multisignature address created from Alice's and Mallory's public keys. If Alice doesn't take any additional steps and simply broadcasts this transaction, she has to trust that Bob will provide his signature to spend from the multisignature address. Bob on the other hand has the chance to blackmail Alice by withholding his signature and denying Alice access to her funds.
 
-In order to prevent this, Alice will need to create an additional transaction which spends from the multisignature address, refunding her mBTC. Alice then has Mallory sign the refund transaction before broadcasting her funding transaction to the Bitcoin network. This way, Alice can get a refund even if Mallory disappears or fails to cooperate.
+In order to prevent this, Alice will need to create an additional transaction which spends from the multisignature address, refunding her mBTC. Alice then has Bob sign the refund transaction _before_ broadcasting her funding transaction to the Bitcoin network. This way, Alice can get a refund even if Bob disappears or fails to cooperate.
 
-The "refund" transaction that protects Alice is the first of a class of transactions called _commitment transactions_ and we will examine it in more detail next.
+The "refund" transaction that protects Alice is the first of a class of transactions called _commitment transactions_, which we will examine  in more detail next.
 
 ==== Commitment Transaction
 
-You have just learnt that a payment channel needs to be opened by preparing a funding transaction which sends the funds of the payment channel to a 2-out-of-2 multisignature address.
-From the example in the last section you learnt that more ingredients are necessary to open and operate a payment channel that does not rely on trusting the channel partner.
-These ingredients are the commitment transactions.
-They are used to make sure that everyone connected to a channel is able to get its own funds back in case the channel partner becomes unresponsive or, even worse, if the channel partner deliberately or by accident tries to cheat during the execution of the protocol.
-The commitment transactions also encode the balance of the payment channel.
-The balance of the payment channel is an agreement by the channel partners about how the funds, i.e. capacity, are split among the partners.
+A _commitment transaction_ is a transaction that pays each channel partner their channel balance and ensures that the channel partners do not have to trust each other. By signing a commitment transaction, each channel partner "commits" to the current balance and gives the other channel partner the ability to get their funds back whenever they want.
+
+By holding a signed commitment transaction, each channel partner can get their funds even without the cooperation of the other channel partner. This protects them against the other channel partner's disappearance, refusal to cooperate or attempt to cheat by violating the payment channel protocol.
+
+The commitment transaction that Alice prepared in the previous example, was a "refund" of her initial payment to the multisignature address. More generally however, a commitment transaction splits the funds of the payment channel, paying the two channel partners according to the distribution (balance) they each hold. At first, Alice holds all the balance, so it is a simple refund. But as funds flow from Alice to Bob, they will each sign and exchange new commitment transactions that represent the new balance distribution, with some part of the funds paid to Alice and some paid to Bob.
+
 Let us assume Alice opens a channel with a capacity of 10 mBTC with Bob.
-Naturally, initially Alice should still be in the possession of the 10 mBTC.
-This can actually be easily achieved with the following construction:
+Initially Alice owns 10 mBTC, the entirety of the funds in the channel. Here's how the payment channel protocol would work:
 
-. Alice creates a new private / public key pair and informs Bob that she wishes to open a channel via the `open_channel` message.
-. Bob also creates a new private / public key pair and agrees to accept a channel from Alice while sending his public key to Alice via the `accept_channel` message.
-. Alice now creates a funding transaction from her wallet that sends 10 mBTC to the multisignature address with a locking script `2 <Public Key A> <Public Key B> 2 CHECKMULTISIG`.
-. Alice does not broadcast the funding transaction but informs Bob about the transaction id of the funding transaction by sending a `funding_created` message.
+. Alice creates a new private / public key pair and informs Bob that she wishes to open a channel via the `open_channel` message (a message in the Lightning Network protocol).
+. Bob also creates a new private / public key pair and agrees to accept a channel from Alice, sending his public key to Alice via the `accept_channel` message.
+. Alice now creates a funding transaction from her wallet that sends 10 mBTC to the multisignature address with a locking script +2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG+.
+. Alice does not yet broadcast this funding transaction but sends Bob the transaction ID in a `funding_created` message.
 . Both Alice and Bob create their version of a commitment transaction. This transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
-. Alice provides a signature for Bob's Commitment Transaction. This signature was already included in the `funding_created` message.
+. Alice and Bob don't need to exchange these commitment transactions, since they each know how they are constructed and can build both independently. They only need to exchange signatures.
+. Alice provides a signature for Bob's commitment transaction. This signature was already included in the `funding_created` message.
 . Bob provides a signature for Alice's Commitment Transaction and sends this back to Alice via the `funding_signed` message.
-. Only after signatures have been exchanged Alice will broadcast the funding transaction to the Bitcoin network.
+. Now that signatures have been exchanged Alice will broadcast the funding transaction to the Bitcoin network.
 
-By following this protocol Alice did not give up ownership of her 10 mBTC even though the funds have been sent to a 2-out-of-2 multisignature address for which Alice controls only one key.
+By following this protocol, Alice does not give up ownership of her 10 mBTC even though the funds are sent to a 2-of-2 multisignature address for which Alice controls only one key.
 If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
-She will only have lost the fees for the two on-chain transactions.
-As long as she follows the protocol and has her node secured this is her only risk when opening a channel.
+Her only costs are the fees for the two on-chain transactions.
+As long as she follows the protocol this is her only risk when opening a channel.
 
-At channel opening time, the commitment transactions serve the purpose of allowing Alice to withdraw her funds directly after opening the channel in case Bob does not answer. However, commitment transactions are created each time the channel balance changes. In other words, each time bitcoin is sent between Alice and Bob new commitment transactions are created. Each commitment transaction encodes the latest balance between Alice and Bob.
-If Alice wanted to send 3 mBTC to Bob to pay him for a service he offered, both would create a new version of their commitment transactions which would now send 7mBTC to Alice and 3 mBTC to Bob and share signatures with each other.
+After this initial exchange, commitment transactions are created each time the channel balance changes. In other words, each time a payment is sent between Alice and Bob, new commitment transactions are created and signatures are exchanged. Each new commitment transaction encodes the latest balance between Alice and Bob.
+
+If Alice wants to send 3 mBTC to Bob, both would create a new version of their commitment transactions which would now pay 7mBTC to Alice and 3 mBTC to Bob. By encoding a new balance for Alice and Bob, the new commitment transactions are the means by which a payment is "sent" across the channel.
+
 However, there is still a piece missing in the design presented so far.
 
 **Do you see any way how Alice could cheat on Bob?**
