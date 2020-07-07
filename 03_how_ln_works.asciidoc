@@ -125,35 +125,30 @@ The two scripts together would form the combined validation script:
 ----
 
 ==== Funding Transaction
-We have already seen that one of the important building blocks of a payment channel is a 2-out-of-2 multisignature address.
-To open a payment channel one must send bitcoin to that address.
-The Bitcoin transaction that sends bitcoin to that 2-out-of-2 multisignature address is called the funding transaction.
-It is included in the Bitcoin blockchain.
-While the payment channel opened by two participants of the Lightning Network can be private, the funding transaction will always be publicly visible to the Bitcoin network.
-The amount of bitcoin sent to the multisignature address forms an upper limit on how much Bitcoin can be transacted using the channel, and is called the capacity of the channel.
-Two channel partners will never be able to conduct payments on a channel that are larger than its channel capacity.
-While the Bitcoin network can see that funds have been committed to a channel using a funding transaction, it is unable to determine how those funds are distributed between the two channel partners.
 
-[Note]
+The fundamental building block of a payment channel, is a 2-of-2 multisignature address. The two channel partners fund the payment channel by sending bitcoin to the multisignature address. This transaction is called the _funding transaction_, and is recorded on the Bitcoin blockchain.
+
+Even though the funding transaction is public, it is not obvious that it is a Lightning payment channel until it is closed. Furthermore, channel payments are still not visible to anyone other than the channel partners, nor is the distribution of the channel balance between them.
+
+The amount deposited in the multisignature address is the called the _channel capacity_ and sets the maximum amount that can be sent across the payment channel. However, since funds can be sent back and forth, the channel capacity is not the upper limit on how much value can flow across the channel. That's because if the channel capacity is exhausted with payments in one direction, it can be used to send payments in the opposite direction again.
+
+
+[NOTE]
 ====
-You might hear people falsely complaining about bitcoin being locked up by the Lightning Network preventing their movement.
-This is incorrect.
-One can use the Bitcoin network to send bitcoin from a P2PKH address as well as from a 2-out-of-2 multisignature address with a P2WSH transaction.
-In both cases transfer of ownership incurs the corresponding bitcoin fees for processing the "on-chain" transaction on the Bitcoin network.
-However, once the bitcoin are used to open a payment channel they can freely flow within the Lightning Network from one participant to another one.
-If a channel partner should not respond, one will always have the chance to fall back to the on-chain transactions without the necessity for the channel partner to help to do so.
-On-chain fees and Bitcoin confirmation times make moving bitcoin on the Bitcoin network more expensive and slower than moving bitcoin on the Lightning Network.
+The funds sent to the multisignature address in the funding transaction are sometimes referred to as "locked in a Lightning channel". However in practice, funds in a Lightning channel are not "locked" but rather "unleashed". Lightning channel funds are more liquid than funds on the Bitcoin blockchain as they can be spent faster, cheaper and more privately. Opening a Lightning channel unleashes your Bitcoin!
 ====
 
 ===== Example of a poor channel opening procedure
-Alice wants to open a payment channel with Mallory but she is not yet fully aware of the Lightning Network Protocol.
-She creates a new private and corresponding public key and talks to Mallory who does the same and sends her public key to Alice.
-Now Alice prepares a Bitcoin Transaction sending a few mBTC to the multisignature address that was created from Alice's and Mallory's key.
-As Alice wasn't aware of the protocol to open the channel she now has to trust that Mallory will provide her signature if Alice wants to spend from the multisignature address.
-Mallory on the other side has the chance to execute a blackmail attack on Alice by holding back her signature and denying Alice access to her funds.
 
-In order to prevent Mallory from performing such an attack Alice will need to create a spend transaction from the funding transaction and have that transaction signed by Mallory before she broadcasts her funding transaction to the Bitcoin network.
-This transaction that protects Alice is called Commitment transaction and we will study it now.
+If you think carefully about 2-of-2 multisignature addresses, you will realize that putting your funds into such an address seems to carry some risk. What if your channel partner refuses to sign a transaction to "release" the funds? Are they stuck forever? Let's look at that scenario and how the Lightning Network protocol avoids it, next.
+
+Alice and Mallory want to create a payment channel. They each create a private/public key pair and then exchange public keys. Now, they can construct a multisignature 2-of-2 with the two public keys, forming the foundation for their payment channel.
+
+Next, Alice constructs a Bitcoin transaction sending a few mBTC to the multisignature address created from Alice's and Mallory's public keys. If Alice doesn't take any additional steps and simply broadcasts this transaction, she has to trust that Mallory will provide her signature to spend from the multisignature address. Mallory on the other hand has the chance to blackmail Alice by withholding her signature and denying Alice access to her funds.
+
+In order to prevent this, Alice will need to create an additional transaction which spends from the multisignature address, refunding her mBTC. Alice then has Mallory sign the refund transaction before broadcasting her funding transaction to the Bitcoin network. This way, Alice can get a refund even if Mallory disappears or fails to cooperate.
+
+The "refund" transaction that protects Alice is the first of a class of transactions called _commitment transactions_ and we will examine it in more detail next.
 
 ==== Commitment Transaction
 
@@ -195,14 +190,14 @@ As Bitcoin is censorship resistant no one can prevent a participant from the Lig
 Imagine, the commitment transactions can be slightly modified so that publishing an outdated commitment transaction can be punished.
 A high punishment will discourage cheating.
 The penalty for broadcasting an old commitment transaction is to give the cheated channel partner the ability to claim the funds that belonged to the cheater, i.e. the broadcaster of the outdated transaction.
-With this modification in place, let us go through this scenario again. 
-Alice creates a channel with Bob and put 10 mBTC into it. 
-Alice send 3 mBTC to Bob. 
-Alice now tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the original 10 mBTC for herself. 
-With the modification, Bob can now detect the fraud and he is enabled to punish Alice for the fraud by claiming the full 10 mBTC for himself. 
-Bob ends up with 10 mBTC gaining 7 mBTC for catching Alice cheat. 
-Alice ends up with 0 mBTC. 
-For cheating she lost the 7 mBTC she still had. 
+With this modification in place, let us go through this scenario again.
+Alice creates a channel with Bob and put 10 mBTC into it.
+Alice send 3 mBTC to Bob.
+Alice now tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the original 10 mBTC for herself.
+With the modification, Bob can now detect the fraud and he is enabled to punish Alice for the fraud by claiming the full 10 mBTC for himself.
+Bob ends up with 10 mBTC gaining 7 mBTC for catching Alice cheat.
+Alice ends up with 0 mBTC.
+For cheating she lost the 7 mBTC she still had.
 With such a strong penalty mechanism in place Alice will not be tempted to cheat by publishing an old state as she would almost always lose all her remaining funds in the channel.
 
 [Note]
@@ -225,7 +220,7 @@ Alice and Bob know only one half each of the revocation secret.
 But if they share their half with the other channel partner, then the other partner knows the full secret.
 In order to update the balance and receive a signature from Bob, Alice will have to share her half of the revocation secret of the current commitment transaction with Bob.
 
-Obviously, for every new update of the channel balance new revocation secrets have to be created and saved. 
+Obviously, for every new update of the channel balance new revocation secrets have to be created and saved.
 As long as a channel remains open, all revocation secrets ever created for this specific channel need to be kept as they might be needed in the future.
 Luckily, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network.
 Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of Lightning nodes that require node operators to maintain backups.
@@ -328,14 +323,14 @@ The "ugly way" can be executed faster than the "good" and the "bad way" to close
 Game theory predicts that cheating is not a successful strategy because it is easy to detect a cheater and as penalty the cheater will lose all funds.
 Hence, we do not recommend to attempt to cheat. We do, however, recommend that anyone catching a cheater punish him to the fullest by taking his funds.
 
-So, how do you catch a cheat or a protocol breach in your day-to-day activities? 
-You do so by running software that monitors the public Bitcoin blockchain for on-line transactions that correspond to any of your commitment transaction. 
-A Lightning node can do this monitoring for you. 
-Specific Lightning wallets might do this for you. 
-Running a Lightning node 24x7 will catch all cheats. 
+So, how do you catch a cheat or a protocol breach in your day-to-day activities?
+You do so by running software that monitors the public Bitcoin blockchain for on-line transactions that correspond to any of your commitment transaction.
+A Lightning node can do this monitoring for you.
+Specific Lightning wallets might do this for you.
+Running a Lightning node 24x7 will catch all cheats.
 Remember that the commitment transaction has a timeout period specified in a given number of blocks, up to a maximum of 2016.
-As long as you run your Lightning node once before the timeout period is reached, it will catch all cheats. 
-To give an example, assume that your commitment transactions have all been set to the maximum timeout of 2016 blocks, roughly corresponding to two weeks. 
+As long as you run your Lightning node once before the timeout period is reached, it will catch all cheats.
+To give an example, assume that your commitment transactions have all been set to the maximum timeout of 2016 blocks, roughly corresponding to two weeks.
 In this case, if you run your Lightning node only once every Sunday, it will still catch all cheats because in this case the timelock is roughly two weeks.
 footnote:[Even if the timeout is set to 2016 blocks, don't wait for two weeks! If the Bitcoin blockchain difficulty is low, blocks will get mined faster and the target block specified in the timeout will be reached in less than two weeks. It is the block number that counts, not the time that has passed. So, in our example the user is prudent as he should be and checks every Sunday and not every two weeks. This gives him a safety margin. ]
 In addition, you can delegate this responsibility to someone else.
@@ -499,7 +494,7 @@ This makes the Payment Hash obtainable without the need to decrypt any onion.
 
 In stark contrast to the Internet Protocol Forwarding Algorithm on the Lightning Network it is only the sender of a payment that decides the path it takes to the recipient.
 Forwarding nodes can only reject a path.
-This can happen either on purpose or because they are not able to fulfill the request. 
+This can happen either on purpose or because they are not able to fulfill the request.
 The payment forwarding algorithm is initiated by the sender of a payment who selects a path through the Lightning Network and constructs an onion.
 It contains information about the payment for the recipient, routing hints for the intermediary nodes.
 Routing fees which those nodes will earn if (and only if) the payment is successfully delivered and settles with the release of the `Payment Hash` are also included to the onion.
