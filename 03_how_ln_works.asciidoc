@@ -180,57 +180,65 @@ After this initial exchange, commitment transactions are created each time the c
 
 If Alice wants to send 3 mBTC to Bob, both would create a new version of their commitment transactions which would now pay 7mBTC to Alice and 3 mBTC to Bob. By encoding a new balance for Alice and Bob, the new commitment transactions are the means by which a payment is "sent" across the channel.
 
-However, there is still a piece missing in the design presented so far.
+Now that we understand commitment transactions, let's look at some of the more subtle details. You may notice that this protocol leaves a way for either Alice or Bob to cheat.
 
-**Do you see any way how Alice could cheat on Bob?**
+==== Cheating with prior state
 
-How many commitment transactions does Alice hold after her payment of 3mBTC to Bob? She holds two, the original one giving her 10 mBTC and the last one giving her 7mBTC. As you see, in the design presented so far nothing could stop Alice from publishing an old or even initial commitment transaction. A crooked Alice could publish the commitment transaction which grants her 10 mBTC.
-Since that commitment transaction has previously been signed by Bob he can't prevent Alice from doing so.
-A smarter mechanism is needed to prevent Alice from publishing an old commitment transaction.
-Let us now find out how this can be achieved and how an improved mechanism enables the Lightning Network to operate without trust.
-As Bitcoin is censorship resistant no one can prevent a participant from the Lightning Network to publish an old commitment transaction.
-Imagine, the commitment transactions can be slightly modified so that publishing an outdated commitment transaction can be punished.
-A high punishment will discourage cheating.
-The penalty for broadcasting an old commitment transaction is to give the cheated channel partner the ability to claim the funds that belonged to the cheater, i.e. the broadcaster of the outdated transaction.
-With this modification in place, let us go through this scenario again.
-Alice creates a channel with Bob and put 10 mBTC into it.
-Alice send 3 mBTC to Bob.
-Alice now tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the original 10 mBTC for herself.
-With the modification, Bob can now detect the fraud and he is enabled to punish Alice for the fraud by claiming the full 10 mBTC for himself.
-Bob ends up with 10 mBTC gaining 7 mBTC for catching Alice cheat.
-Alice ends up with 0 mBTC.
-For cheating she lost the 7 mBTC she still had.
-With such a strong penalty mechanism in place Alice will not be tempted to cheat by publishing an old state as she would almost always lose all her remaining funds in the channel.
+How many commitment transactions does Alice hold after she pays 3 mBTC to Bob? She holds two: the original one paying her 10 mBTC and the more recent one, paying her 7 mBTC and Bob 3 mBTC.
 
-[Note]
+In the channel protocol we have seen so far, nothing stops Alice from publishing a previous commitment transaction. A cheating Alice could publish the commitment transaction which grants her 10 mBTC.
+Since that commitment transaction  was signed by Bob he can't prevent Alice from transmitting it.
+
+Some mechanism is needed to prevent Alice from publishing an old commitment transaction. Let us now find out how this can be achieved and how it enables the Lightning Network to operate without requiring any trust between Alice and Bob.
+
+Because Bitcoin is censorship resistant, no one can prevent someone from publishing an old commitment transaction. To prevent this form of cheating, we construct commitment transactions so that if an old one is transmitted, the cheater can be punished. By making the penalty large enough, we create a strong incentive against cheating and this makes the system secure.
+
+The way the penalty works is by giving the cheated party an opportunity to claim the balance of the cheater. So if someone attempts to cheat by broadcasting an old commitment transaction, in which they are paid a higher balance than they are due, the other party can punish them by taking *both* their own balance and the balance of the cheater. The cheater loses everything.
+
+Let us go through the channel construction scenario again, adding a penalty mechanism to protect against cheating:
+
+* Alice creates a channel with Bob and put 10 mBTC into it.
+* Alice send 3 mBTC to Bob.
+* Alice tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the full 10 mBTC for herself.
+* Bob detects the fraud and punishes Alice by taking the full 10 mBTC for himself.
+* Bob ends up with 10 mBTC, gaining 7 mBTC for catching Alice cheat.
+* Alice ends up with 0 mBTC.
+* Trying to cheat Bob out of 3 mBTC, she loses the 7 mBTC she owned.
+
+With a strong penalty mechanism, Alice is not tempted to cheat by publishing an old commitment transaction as she risks losing her entire balance.
+
+[NOTE]
 ====
 In Mastering Bitcoin Andreas states it very elegantly:
 A key characteristic of bitcoin is that once a transaction is valid, it remains valid and does not expire. The only way to cancel a transaction is by double-spending its inputs with another transaction before it was mined. That's why we used timelocks [...] to ensure that more recent commitments could be spent before older commitments were valid.
 ====
 
-We will now see how such a penalty mechanism can be included to the above construction of the commitment transactions.
-Usually the commitment transaction has at least two outputs, one for each partner.
-As new addition, a channel partner will encumber their own output with a timelock and a revocation secret.
-The timelock prevents the owner of the output to spend it immediately once the commitment transaction was included in a block.
-The timelock is usually measured in blocktime and can be up to 2016.
-On average, 2016 blocks represent or last two weeks (assuming a blocktime of 10 minutes as in the Bitcoin network).
-Be aware, the exact number of blocks used for the timeout can be set to different values by different software.
-2016 is just the maximum value, but smaller values are possible.
-footnote:[Users likely prefer a longer timeout value for a larger channel capacity.]
-Within the timelock anyone who knows the revocation secret can spend the output even before the timelock is over.
-Alice and Bob know only one half each of the revocation secret.
-But if they share their half with the other channel partner, then the other partner knows the full secret.
-In order to update the balance and receive a signature from Bob, Alice will have to share her half of the revocation secret of the current commitment transaction with Bob.
+Now that we understand _why_ a penalty mechanism is needed and how it will prevent cheating, let's see _how_ it works in detail.
 
-Obviously, for every new update of the channel balance new revocation secrets have to be created and saved.
-As long as a channel remains open, all revocation secrets ever created for this specific channel need to be kept as they might be needed in the future.
-Luckily, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network.
+Usually, the commitment transaction has at least two outputs, paying each channel partner. We change this to add a _timelock delay_ and a _revocation secret_, to one of the payments. The timelock prevents the owner of the output from spending it immediately once the commitment transaction is included in a block. The revocation secret, allows either party to immediately spend that payment, bypassing the timelock.
+
+So, in our example, Bob holds a commitment transaction which pays Alice _immediately_, but his own payment is delayed and revocable. Alice also holds a commitment transaction, but hers is the opposite: it pays Bob immediately but her own payment is delayed and revocable.
+
+The two channel partners hold half of the revocation secret, so that neither one knows the whole secret. If they share their half, then the other channel partner has the full secret and can use it to exercise the revocation condition. When signing a new commitment transaction, they revoke the previous commitment by exchanging the signature for the revocation secret.
+
+In simple terms, Alice signs Bob's new commitment transaction only if Bob offers his half of the revocation secret for the previous commitment. Bob only signs Alice's new commitment transaction if she gives him her half of the revocation secrect from the previous commitment.
+
+With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use the old commitments as they sign the new ones.
+
+The timelock is set to a number of blocks, up to 2016 (approximately two weeks). If either channel partner publishes a commitment transaction without cooperating with the other partner, they will have to wait for that number of blocks (e.g. 2 weeks) to claim their balance. The other channel partner can claim their own balance at any time. Furthermore, if the commitment they published was previously revoked, the channel partner can *also* immediately claim the cheating party's balance, bypassing the timelock and punishing the cheater.
+
+The timelock is adjustable and can be negotiated between channel partners. Usually, it is longer for larger capacity channels, and shorter for smaller channels, to align the incentives with the value of the funds.
+
+For every new update of the channel balance, new commitment transactions and new revocation secrets have to be created and saved. As long as a channel remains open, all revocation secrets _ever created_ for the channel need to be kept as they might be needed in the future. Fortunately, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network.
 Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of Lightning nodes that require node operators to maintain backups.
-Other technologies such as Watchtower services or switching to the aforementioned "eltoo" channels might be future strategies to mitigate these issues.
+
+[NOTE]
+====
+Technologies such as Watchtower services or changing the channel construction protocol to the "eltoo" protocol might be future strategies to mitigate these issues and reduce the need for revocation secrets, penalty transactions and channel backups.
+====
 
 With the timelocks in place Alice can close the channel at any time if Bob does not respond, claiming her fair share of the balance.
-After publishing the commitment transaction "on-chain" Alice has to wait for the time lock to expire before she can spend her funds from the commitment transaction.
-Other than that and the "on-chain" fees for opening and closing a channel there comes no additional burden with maintaining a payment channel.
+After publishing the *last* commitment transaction on-chain Alice has to wait for the time lock to expire before she can spend her funds from the commitment transaction. As we will see later, there is an easier way to close a channel without waiting, as long as Alice and Bob are both online and cooperate to close the channel with the correct balance allocation. But the commitment transactions stored by each channel partner act as a failsafe, ensuring they do not lose funds if there is a problem preventing cooperation.
 
 ==== Announcing the channel
 Channel partners can optionally agree to publicly announce the channel over the gossip protocol that comes with the Lightning Network. Such a channel is called a "public" channel.
