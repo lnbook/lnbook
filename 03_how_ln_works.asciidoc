@@ -237,24 +237,28 @@ Nevertheless, managing and storing the revocation secrets is one of the more ela
 Technologies such as Watchtower services or changing the channel construction protocol to the "eltoo" protocol might be future strategies to mitigate these issues and reduce the need for revocation secrets, penalty transactions and channel backups.
 ====
 
-With the timelocks in place Alice can close the channel at any time if Bob does not respond, claiming her fair share of the balance.
-After publishing the *last* commitment transaction on-chain Alice has to wait for the time lock to expire before she can spend her funds from the commitment transaction. As we will see later, there is an easier way to close a channel without waiting, as long as Alice and Bob are both online and cooperate to close the channel with the correct balance allocation. But the commitment transactions stored by each channel partner act as a failsafe, ensuring they do not lose funds if there is a problem preventing cooperation.
+Alice can close the channel at any time if Bob does not respond, claiming her fair share of the balance.
+After publishing the *last* commitment transaction on-chain Alice has to wait for the time lock to expire before she can spend her funds from the commitment transaction. As we will see later, there is an easier way to close a channel without waiting, as long as Alice and Bob are both online and cooperate to close the channel with the correct balance allocation. But the commitment transactions stored by each channel partner act as a failsafe, ensuring they do not lose funds if there is a problem with their channel partner.
 
 ==== Announcing the channel
-Channel partners can optionally agree to publicly announce the channel over the gossip protocol that comes with the Lightning Network. Such a channel is called a "public" channel.
-On the contrary, a channel that is not publicly announced is referred to as a "private" channel and its details are only known to the two channel partners.
-Announcing channels publicly is useful as other nodes will then be able to utilize the announced channel to route payments via it to other participants of the network.
-Note that even for private channels, the funding transaction is always publicly stored in the Bitcoin blockchain.
-However, as it is just a regular transaction to a 2-out-of-2 multisignature address, participants of the Bitcoin network do not know if this particular transaction is used to maintain a payment channel.
-In short, the "on-chain" transactions of the Lightning Network are indistinguishable from other Bitcoin transactions.
-Private channels can still be used in routing payments but only by the subset of nodes which are aware of their existence.
-If a channel and its capacity are publicly announced on the gossip protocol, the channel partners will also be able to announce some meta data about the channel.
-This meta data includes the routing fees a node charges to forward payments on that channel as well as information about what kind and how many Hash Time-Locked Contracts (HTLCs) will be accepted.
-As we have not discussed HTLCs yet we will just mention that they are additional conditional outputs in the commitment transactions used for routing payments and for updating the channel balance.
-We will later investigate HTLCs in more detail.
-When new participants join the Lightning Network they will be able to collect the information propagated via the gossip protocol from their peers.
-Peers can only omit messages.
-Peers cannot falsify messages to trick other participants as every message is cryptographically signed by the publishing node that created the message.
+
+Channels partners can agree to announce their channel to the whole Lightning Network, making it a _public channel_. To announce the channel, they use the Lightning Network's gossip protocol to tell other nodes about the existence, capacity and fees of the channel.
+
+Announcing channels publicly allows other nodes to use them for payment routing, thereby also generating routing fees for the channel partners.
+
+By contrast, the channel partners may decide to keep the existence of the channel private and not announce it, making it a _private channel_.
+
+[NOTE]
+====
+While a private channel will not be known to others while it is in use, it's existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction.
+====
+
+Private channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes a private channel.
+
+
+When a channel and its capacity is publicly announced using the gossip protocol, the announcement can also include information about the channel (metadata), such as it's routing fees and timelock duration.
+
+When new nodes join the Lightning Network they collect the channel announcements propagated via the gossip protocol from their peers, building an internal "map" of the Lightning Network. This map can then be used to find paths for payments, connecting channels together end-to-end.
 
 ==== Closing the channel
 The main goal of people using the Lightning Network is to keep their channels open as long as possible.
