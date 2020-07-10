@@ -1,10 +1,10 @@
 #!/bin/bash
 
 echo Getting node IDs
-alice_address=$(docker-compose exec -T Alice lncli -n regtest getinfo | jq .identity_pubkey)
-bob_address=$(docker-compose exec -T Bob lightning-cli getinfo | jq .id)
-wei_address=$(docker-compose exec -T Wei eclair-cli -s -j -p eclair getinfo| jq .nodeId)
-gloria_address=$(docker-compose exec -T Gloria lncli -n regtest getinfo | jq .identity_pubkey)
+alice_address=$(docker-compose exec -T Alice bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
+bob_address=$(docker-compose exec -T Bob bash -c "lightning-cli getinfo | jq .id")
+wei_address=$(docker-compose exec -T Wei bash -c "eclair-cli -s -j -p eclair getinfo| jq .nodeId")
+gloria_address=$(docker-compose exec -T Gloria bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
 
 # The jq command returns JSON strings enclosed in double-quote characters
 # These will confuse the shell later, because double-quotes have special
@@ -40,7 +40,7 @@ docker-compose exec -T Wei eclair-cli -p eclair connect --uri=${gloria_address}@
 docker-compose exec -T Wei eclair-cli -p eclair open --nodeId=${gloria_address} --fundingSatoshis=1000000
 
 echo Get 10k sats invoice from Gloria
-gloria_invoice=$(docker-compose exec -T Gloria lncli -n regtest addinvoice 10000 | jq .payment_request )
+gloria_invoice=$(docker-compose exec -T Gloria bash -c "lncli -n regtest addinvoice 10000 | jq .payment_request")
 
 # Remove quotes
 gloria_invoice=${gloria_invoice//\"}
