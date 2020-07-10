@@ -492,6 +492,7 @@ We now have a copy of c-lightning, cloned into the +lightning+ subfolder, and we
 ==== Compiling the c-lightning source code
 
 Next, we use a set of _build scripts_ that are commonly available on many open source projects. These are +configure+ and +make+, and they allow us to:
+
 * Select the build options and check necessary dependencies (+configure+).
 * Build and install the executables and libraries (+make+).
 
@@ -625,7 +626,7 @@ As before, we start the bitcoind container in one terminal and LND in another. I
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-Next, we start the LND container we just build. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
+Next, we start the LND container we just built. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
 
 ----
 $ docker run -it --network lnbook --name lnd lnbook/lnd
@@ -783,7 +784,7 @@ As before, we start the bitcoind container in one terminal and the eclair contai
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-Next, we start the eclair container we just build. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
+Next, we start the eclair container we just built. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
 
 ----
 $ docker run -it --network lnbook --name eclair lnbook/eclair
@@ -912,7 +913,7 @@ Congratulations, you have built Eclair from source and you are ready to code, te
 
 === Building a complete network of diverse Lightning Nodes
 
-Our final example, in this section, will bring together all the various containers we have build to form a Lightning network made of diverse (LND, c-lightning, Eclair) node implementations. We will compose the network by connecting the nodes together, opening channels from one node to another, and finally, by routing a payment across these channels.
+Our final example, in this section, will bring together all the various containers we have built to form a Lightning network made of diverse (LND, c-lightning, Eclair) node implementations. We will compose the network by connecting the nodes together, opening channels from one node to another, and finally, by routing a payment across these channels.
 
 In this example, we will replicate the Lighting network example from <<routing_on_a_network_of_payment_channels>>. Specifically, we will create four Lightning nodes named Alice, Bob, Wei and Gloria. We will connect Alice to Bob, Bob to Wei, and Wei to Gloria. Finally, we will have Gloria create an invoice and have Alice pay that invoice. Since Alice and Gloria are not directly connected, the payment will be routed as an HTLC across all the payment channels.
 
@@ -1005,7 +1006,7 @@ $ docker-compose logs -f Alice
 
 Our Lightning network should now be running. As we saw in the previous sections of this chapter, we can issue commands to a running docker container with the +docker exec+ command. Regardless of whether we started the container with +docker run+ or started a bunch of them with +docker-compose up+, we can still access containers individually using the docker commands.
 
-To make things easier, we have a little helper script that sets up the network, issues the invoice and makes the payment. The script is called +setup-channels.sh+ and is a Bash shell script. Keep in mind, this script is not very sophisticated! It "blindly" throws commands at the various nodes and doesn't do any error checking. If the network is running correct and the nodes are funded, then it all works nicely. But, you have to wait a bit for everything to boot up and for the network to mine a few blocks and settle down. This usually takes 1-3 minutes. Once you see the block height at 102 or above on each of the nodes, you are ready. If the script fails, you can stop everything (+docker-compose down+) and try again from the beginning, or you can manually issue the commands in the script one by one and look at the results.
+To make things easier, we have a little helper script that sets up the network, issues the invoice and makes the payment. The script is called +setup-channels.sh+ and is a Bash shell script. Keep in mind, this script is not very sophisticated! It "blindly" throws commands at the various nodes and doesn't do any error checking. If the network is running correctly and the nodes are funded, then it all works nicely. But, you have to wait a bit for everything to boot up and for the network to mine a few blocks and settle down. This usually takes 1-3 minutes. Once you see the block height at 102 or above on each of the nodes, you are ready. If the script fails, you can stop everything (+docker-compose down+) and try again from the beginning, or you can manually issue the commands in the script one by one and look at the results.
 
 [TIP]
 ====
