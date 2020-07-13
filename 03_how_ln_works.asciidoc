@@ -261,45 +261,41 @@ When a channel and its capacity is publicly announced using the gossip protocol,
 When new nodes join the Lightning Network they collect the channel announcements propagated via the gossip protocol from their peers, building an internal "map" of the Lightning Network. This map can then be used to find paths for payments, connecting channels together end-to-end.
 
 ==== Closing the channel
-The main goal of people using the Lightning Network is to keep their channels open as long as possible.
-Opening and closing payment channels will result in Bitcoin fees and in on-chain transactions that need to be stored in the Bitcoin Blockchain.
-Hence, creating and closing a Lightning channel for a single payment is inefficient.
-The longer a channel remains open and the more payments are made on it, the more efficient it will become in terms of fees and on-chain storage.
-An open channel allows you to make an arbitrary amount of payments on the Lightning Network (as long as you have funds and they are liquid).
-An open channel even allows a casi infinite number of payments if you consider the situation where two payment partners pay each other back and forth different amounts over time.
+
+The best way to close a channel is... to not close it! Opening and closing channels requires an on-chain transaction, which will incur transaction fees. So it's best to keep channels open as long as possible. You can keep using your channel to make and forward payments, as long as you have sufficient capacity on your end of the channel. But even if you send all the balance to the other end of the channel, you can then use the channel to receive payments from your channel partner. This concept of using a channel in one direction and then using it in the opposite direction is called "re-balancing" and we will examine it in more detail in another chapter. By re-balancing a channel, it can be kept open almost indefinitely and used for thousands of payments.
+
 However, sometimes closing a channel is desirable or necessary. For example:
 
-* You have become aware of the fact that your computer got compromised and you want to secure your funds by sending them to cold storage.
-* Your channel partner might be offline for too much time preventing you from utilizing the funds in that channel.
-* After analyzing your routing statistics, as well as the network topology, you might have come to the conclusion that it might be better to close some underutilized channels and open some new ones to better connected channel partners.
-* Your channel partner might have breached the protocol either due to a software bug or on purpose forcing you to protect your funds.
+* You want to reduce the balance held on your Lightning channels for security reasons and want to send funds to "cold storage"
+* Your channel partner becomes unresponsive for a long time and you cannot use the channel anymore.
+* The channel is not being used often because your channel partner is not a well-connected node, so you want to use the funds for another channel with a better-connected node.
+* Your channel partner has breached the protocol either due to a software bug or on purpose forcing you to close the channel to protect your funds.
 
 There are 3 ways to close a payment channel:
 
-* the good way - mutual close
-* the bad way - force close
-* the ugly way - protocol breach
+* The good way - Mutual close
+* The bad way - Force close
+* The ugly way - Protocol breach
 
-Different conditions require one or the other way to close a channel.
-For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
-The good news is that your Lightning Network software will most likely automatically select the best closing mechanism available to you under your specific conditions.
 
-Whether you as a user implicitly close a channel or the Lightning Network software automatically closes a channel for you due to a detected abnormality (e.g. cheating partner), it is usually the Lightning Network software that choses the appropriate way to close.
+Which way you close a channel will depend on the circumstances. For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
+Usually, you Lightning Network software will automatically select the best closing mechanism available under the circumstances.
 
-===== Examining the good way - mutual close
-The preferred and good way to close a channel is the mutual close.
-When you decide that you want to close a channel, your Lightning Network node will inform your channel partner about your intention.
-Now the channel will be prepared for shutting down.
-No new routing attempts will be accepted from either channel partner and the ongoing routing attempts will be settled or removed after they timed out.
-Once no further routing attempts are pending, the closing transaction is prepared.
-This transaction is similar to the commitment transaction.
-It has the same balance as the last commitment transaction but no outputs are encumbered with a time lock.
-As finalizing the routing attempts can take some time, a mutual close can also take some time.
-The on-chain transaction fees of the on-chain transaction for closing the channel in a mutual way are being paid by the channel partner who opened the channel and not by the person who initiated the closing procedure.
-As both channel partners sign the on-chain transaction they have the chance to pay small fees for the Bitcoin transaction by using their on-chain fee estimator.
-Even though there is a potential waiting time, this type of channel close is usually faster than closing the bad way.
+Whether you (the user) issue a command to close a channel or the Lightning Network software automatically closes a channel due to a detected anomaly (e.g. cheating partner), it is usually the Lightning Network software that chooses the appropriate way to close the channel.
 
-===== Examining the bad way - force close
+
+===== The good way - Mutual close
+
+The good way to close a channel is the mutual close and this way is always preferred, if possible. When you decide that you want to close a channel, your Lightning Network node will inform your channel partner about your intention. Now both your node and the channel parter's node work together to close the channel.  No new routing attempts will be accepted from either channel partner and any ongoing routing attempts will be settled or removed after they time-out. Finalizing the routing attempts takes time, so a mutual close can also take some time to complete.
+
+Once there are no pending routing attempts, the nodes cooperate to prepare a _closing transaction_. This transaction is similar to the commitment transaction, in that it distributes the channel balance to each channel partner according to their last commitment. Unlike the last commitment transaction, the outputs are not encumbered with a time lock.
+
+The on-chain transaction fees for the closing transaction are paid by the channel partner who opened the channel and not by the one who initiated the closing procedure. Using the on-chain fee estimator, the channel partners agree on the appropriate fee and both sign the closing transaction.
+
+Once the closing transaction is broadcast and confirmed by the Bitcoin network, the channel is effectively closed and each channel partner has received their share of the channel balance. A mutual close is usually the fastest way to close a channel.
+
+===== The bad way - Force close
+
 In case your node cannot engage in a "mutual close" you will have to do a "force close".
 The most likely reason for this to happen is because your channel partner is either offline or not responding.
 The force close is done by publishing the latest commitment transaction that your node has.
