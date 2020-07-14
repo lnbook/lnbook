@@ -6,13 +6,13 @@ Where necessary some information from the first chapters of this book will be re
 If you are new to the topic we highly encourage you to start there first.
 If you however already know a fair share about bitcoin script, OP_CODES and protocol design it might be sufficient to skip the previous chapter and start here with us.
 This books follows the construction of payment channels as described in BOLT 02 which is titled `peer protocol` and describes how two peers communicate to open, maintain and close a channel.
-In this section we will only talk about maintaining and closing a channel.
+In this section we will only talk about opening and closing a channel.
 The operation of a channel which means either making or forwarding a payment is discussed in our chapter about routing.
-Also other constructions of payment channels are known and being discussed by the developers but as of writing only the channels as described in BOLT 2 are supported by the protocol and the implementations.
+Also other constructions of payment channels are known and being discussed by the developers but as of writing only the channels as described in BOLT 02 are supported by the protocol and the implementations.
 
 To repeat what you should already know a payment channel is encoded as an unspent 2 out of 2 multisignature transaction output.
 The capacity of the channel relates to the amount that is bound to the unspent 2 out of 2 multisignature transaction output.
-It is opened wht the help of a funding transaction that sends bitcoin to a 2 out of 2 multisignature output together with a communication protocol that helps to initialize its state.
+It is opened with the help of a funding transaction that sends bitcoin to a 2 out of 2 multisignature output together with a communication protocol that helps to initialize its state.
 The balance of the channel encodes how the capacity is split between the two peers who maintain the channel.
 Technically it is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
 Each channel partner has both signatures for on of the commitment transactions from the sequence of pairs.
@@ -25,14 +25,60 @@ Addresses and revokation secretes change with every new pair of commitment trans
 The Lightning Network as a protocol defines the communication protocols that are necessary to achieve this.
 
 ### Opening a payment channel
-Currently payment channels can only be opened by one side.
+A payment channel currently always only exists between exactly two peers.
+Even though two users are owning and maintaining the channel the current construction requires only one user to open the channel.
 This does not mean that only one peer is needed to open a channel.
-It means that only one peer - namingly the one who opens the channel - provides the funds and capacity for the channel.
-Let us assume for the remainder of the section that Alice wants to open a channel with Bob.
-Opening a payment channel is not as easy as sending bitcoins to a 2 out of 2 multisignature output.
-In a fully functional payment channel the bitcoins are being sent to a 2 out of 2 multisignature address to which each owner controlls a key. 
-Thus Alice needs to know the public key of Bob which will be part of the 2 out of 2 multisignature address.
+It does however mean that a user who opens the channel also has to provide the bitcoins to fund the channel.
+Let us stick to our example where Alice opens a channel with Bob with a capacity of 100k satoshi.
+This means that Alice provides 100k satoshi.
+Once the channel is open Alice will be able to send 99k satoshi along this channel.
+Bob on the other side will be able to receive 99k satoshi along that channel.
+This means that initially Alice will not be able to recieve Bitcoins on this channel and that Bob initially will not be able to send Bitcoin along that channel.
+
+You have learnt before that the capacity of a payment channel is encoded as a 2 out of 2 multisignature output.
+In a fully functional payment channel each owner controlls one private key of this multisignature output.
+
+[NOTE]
+====
+Even though Alice and Bob both have a public node key to wich they own the private secret opening a payment channel is not as easy as sending bitcoins to the 2 out of 2 multisignature output that belongs to the public keys of Alice and Bob.
+Let us assume for a moment that Alice would send 100k Satoshi to the Multisig address resulting from hers and Bob's public node id.
+In that case Alice will never be able to maintain her funds back without the help of Bob.
+Of course we want our payment channels to work in a way that Alice does not need to trust Bob. 
+Bob could however refuse to sign a transaction that sends all those outputs back to an address that is controlled by Alice.
+He would be able to blackmail Alice to assign a significant amount of those Bitcoin to an output address that is controlled by him.
+Thus Bob can't steel the coins from Alice directly but he can threten Alice to have her coins lost forever.
+This example shows that unfortunatelly opening a channel will be a little bit more complex than just sending Bitcoins to a multisignature address.
+====
+
+In order to avoid the reuse of addresses Alice and Bob will generate a new set of keys for the multisig address that they use to open the channel.
+Alice needs to inform Bob which key she intends to use for their channel and ask him which key he intends to use.
 She will do that by sending Bob and `open_channel` message signaling her interest to open a channel.
+This message contains a lot of additional data fields.
+Most of them specify meta data which is necessary for the channel operation and can be be safely ignored for now.
+We will only look at the following ones: 
+
+* [chain_hash:chain_hash]
+* [32*byte:temporary_channel_id]
+* [u64:funding_satoshis]
+* [point:funding_pubkey]
+* [point:revocation_basepoint], [point:payment_basepoint], [point:delayed_payment_basepoint], [point:htlc_basepoint], [point:first_per_commitment_point]
+
+With the `chain_hash` Alice signals that she intends to open the channel on the Bitcoin blockchain.
+While the Lightning Network was certainly invented to scale the amount of payments that can be conducted on the Bitcoin Network it is interesting to note that the Network is designed in a way that allows to build channels over various currencies.
+If a node has channels with more than one currency it is even possible to route payments through multi asset channels.
+However this turns out to be a little bit tricky in reality as the exchange rate between currencies might change which might lead the forwarding node to wait for a better ex hange rate to settle or to abort the payment process.
+For the opening process the final channel id cannot be determined yet thus Alice needs to select a random channel id which Bob and she can use to identify the messages for this channel during the opening phase.
+This design descision allows multiple channels to exist between two nodes - though currently only LND supports this feature.
+Alice tells Bob for how many satoshis she wishes to open the channel.
+This information is necessary to construct the commitment transaction ...
+
+[NOTE]
+====
+Commitment transactions fulfill two purposes:
+1. refund / split into balance
+2. penalty. 
+====
+
 
 [NOTE]
 ====
@@ -41,7 +87,11 @@ The importance of the segwit upgrade.
 
 ====
 
-
+[NOTE]
+====
+The current construction could be generalized to multiparty channels and channel factories.
+However the communication protocol would suffer from increased complexity.
+====
 
 Chapter overview:
   * describes how channels are put together at the script+transaction level
