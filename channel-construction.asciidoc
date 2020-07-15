@@ -1,24 +1,52 @@
 Payment channels are the core and most fundamental building block of the Lightning Network.
-Of course, every detail of a technology is exists for a reason but the Lightning Network is literally built around the idea and concept of payment channels.
-In the previous chapters you have already learned about payment channels, what properties they have, and on a high level how they work and how they can be constructed.
+Of course, every detail of a technology exists for a reason and is important.
+However the Lightning Network is literally built around the idea and concept of payment channels.
+In the previous chapters you have already learned that payment channels
+
+* allow two peers who created it to send and receive Bitcoin up to the amount specified by the capacity of the channel as often as they want to.
+* split the capacity of the channel into a balance between the two peers which - as long as the channel is open is only known by the owners of the channel and increases privacy.
+* do not require peers to do any additional onchain transactions other than the one needed to open and - potentially at a later state - to close the channel.
+* can stay open for an arbitrary time. Potentially in the best case forever.
+* do not require peers to trust each other as any attempt by a peer to cheat would enable the other peer to receive all the funds in the channel as a panality.
+* can be connected to a network and allow peers to send money a long a path of connected channels without the necessity to trust the intermediary nodes as they have no ability to steal the Bitcoin that are being forwarded.
+* 
+
 In this chapter we will dig deeper into the protocol details that are needed to open and close payment channels.
+Working through this rather technical chapter you will be able to understand how the protocol design achieves the properties of payment channels.
 Where necessary some information from the first chapters of this book will be repeated.
 If you are new to the topic we highly encourage you to start there first.
 If you however already know a fair share about bitcoin script, OP_CODES and protocol design it might be sufficient to skip the previous chapter and start here with us.
 This books follows the construction of payment channels as described in BOLT 02 which is titled `peer protocol` and describes how two peers communicate to open, maintain and close a channel.
-In this section we will only talk about opening and closing a channel.
-The operation of a channel which means either making or forwarding a payment is discussed in our chapter about routing.
-Also other constructions of payment channels are known and being discussed by the developers but as of writing only the channels as described in BOLT 02 are supported by the protocol and the implementations.
+There will be one big difference though.
+We will only discuss opening and closing a channel.
+The operation and maintainance of a channel which means either making or forwarding a payment is discussed in our chapter about routing.
+Also other constructions of payment channels are known and being discussed by the developers.
+Historically speaking these are the Duplex Micropayment channels introduced by Christian Decker during his time as a PhD student at ETH Zuric and the eltoo channels which where also introduced by Christian Decker.
+The eltoo channels are certainly a more elgant and cleaner why of achieving payment channels with the afore mentioned properties.
+However they require the activation of BIP 118 and a softfork and are - at the time of writing - a potential future protocol change.
+Thus this chapter will only focus on the pentalty based channels as described in the Lightning Network Whitepaper and specified in BOLT 02 which are currently supported by the protocol and the implementations.
 
-To repeat what you should already know a payment channel is encoded as an unspent 2 out of 2 multisignature transaction output.
-The capacity of the channel relates to the amount that is bound to the unspent 2 out of 2 multisignature transaction output.
-It is opened with the help of a funding transaction that sends bitcoin to a 2 out of 2 multisignature output together with a communication protocol that helps to initialize its state.
+[NOTE]
+====
+The Lightning Network does not need consensus of features across it's participants.
+If the Bitcoin Softfork related to BIP 118 activates and people implement eltoo channels nodes that support eltoo can create payment channels and the onion routing of payments a long a path of channels would work just fine even if some of the channels are the modern eltoo channels or some channels are the legacy channels.
+Actually when Lightning network connections are established nodes signal feature bits of global and local features that they support.
+Thus havning the ability to create eltoo channels would just be an additional feature bit.
+In this sense upgrading the Lightnign Network is much easier than upgrading Bitcoin where consensus among all stakeholders is needed.
+====
+
+Let's quickly summarize what you should already know about payment channels on a technical level and for what you will learn the details in this chapter.
+A payment channel is encoded as an unspent 2 - of - 2 multisignature transaction output.
+The capacity of the channel relates to the amount that is bound to the unspent 2 - of - 2 multisignature transaction output.
+It is opened with the help of a funding transaction that sends bitcoin to a 2 - of - 2 multisignature output together with a communication protocol that helps to initialize and maintain its state.
 The balance of the channel encodes how the capacity is split between the two peers who maintain the channel.
-Technically it is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
-Each channel partner has both signatures for on of the commitment transactions from the sequence of pairs.
-The split of the capacity is realized by a `to_local` and a `to_remote` output that is part of every commitment transaction
+Technically the balance is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
+These commitment transactions should never hit the blockchain and serve as a safty net for the participants in case the channel partner becomes unresponsive of disappears.
+They are also the reason why the Lightning Network is called an offchain scaling solution.
+Each channel partner has both signatures for one of the commitment transactions from the sequence of pairs.
+The split of the capacity is realized by a `to_local` and a `to_remote` output that is part of every commitment transaction.
 The `to_local` output goes to an address that is controlled by the peer that holds this fully signed commitment transaction.
-`to_local` outputs, which also exist in the second stage HTLC transactions, have two spending conditions.
+`to_local` outputs, which also exist in the second stage HTLC transactions - which we discuss in the routing chapter - have two spending conditions.
 The `to_local` output can be spent either at any time with the help of a revocation secrete or after a timelock with the secret key that is controlled by the peer holding this commitment transaction.
 The revocation secrete is necessary to economically disincentivice peers to publish previous commitment transactions.
 Addresses and revokation secretes change with every new pair of commitment transactions that are being negotiated.
@@ -35,7 +63,7 @@ Once the channel is open Alice will be able to send 99k satoshi along this chann
 Bob on the other side will be able to receive 99k satoshi along that channel.
 This means that initially Alice will not be able to recieve Bitcoins on this channel and that Bob initially will not be able to send Bitcoin along that channel.
 
-You have learnt before that the capacity of a payment channel is encoded as a 2 out of 2 multisignature output.
+You have learnt before that the capacity of a payment channel is encoded as a 2 - of  - 2 multisignature output.
 In a fully functional payment channel each owner controlls one private key of this multisignature output.
 
 [NOTE]
@@ -96,7 +124,8 @@ However the communication protocol would suffer from increased complexity.
 Chapter overview:
   * describes how channels are put together at the script+transaction level
   * details how a channel if funded in the protocol
-  * details how a channel is updated in the protocol
+  ** including Key derrivation!
+  * details how a channel is updated in the protocol (moved to routing!)
   * describes what needs to happen when a channel is force closed
 
 Relevant questions to answer:
