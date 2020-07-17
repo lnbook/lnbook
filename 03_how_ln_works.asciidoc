@@ -404,41 +404,50 @@ Lightning invoices contain an expiry date. Since the recipient must keep the pre
 
 === Delivering the payment
 
-You have already learnt that payments start with the payee creating an invoice which includes a Payment Hash to make sure that payments are atomic and that no one on the path of payment channels can withhold the transferred money to their benefit.
-In this section we will dive into the ideas and methods that are being used to deliver a payment over the Lightning Network and utilize everything that we have presented so far.
-We need to introduce one missing protocol of the Lightning Network which is the gossip protocol.
+We have seen how the recipient creates an invoice that contains a payment hash. This payment hash will be used to move the payment across a series of payment channels, from sender to recipient, even if they do not have a direct payment channel between them.
+
+In the next few sections we will dive into the ideas and methods that are being used to deliver a payment over the Lightning Network and use all the concepts we have presented so far.
+
+First, let's look at the Lightning network's communication protocol.
 
 ==== The peer-to-peer gossip protocol
 
-As mentioned payment channels can be announced to the network after they are established.
-This is happening via a peer-to-peer gossip protocol.
-After opening a channel a node will send out an announcement of the channel via the `channel_announcement` message to its peers.
-Every peer can validate the information from the `channel_announcement` message and verify that the funding transaction was indeed confirmed by the Bitcoin network.
-Upon verification the node will forward the gossip message to its peers.
-In order to avoid spam this will only be done if the message was not forwarded by that node already.
-Similarly nodes can be announced via the gossip protocol with the `node_announcement` message.
-For this message to be forwarded a node has to have at least one public channel that was announced on the gossip protocol.
-This again is a spam reduction measure of the gossip protocol.
+As we mentioned previously, when a payment channel is constructed, the channel partners have the option of making it public, announcing its existence and details to the whole Lightning network.
+
+Channel announcements are communicated over a peer-to-peer _gossip protocol_. A peer-to-peer protocol is a communications protocol where each node connects to a random selection of other nodes in the network, usually over TCP/IP. Each of the nodes that are directly connected (over TCP/IP) to your node are called your _peers_. Your node in turn is one of their peers. Keep in mind, when we say that your node is connected to other peers, we don't mean that you have payment channels, but only via the gossip protocol.
+
+After opening a channel, a node may choose to send out an announcement of the channel via the `channel_announcement` message to its peers.
+Every peer validates the information from the `channel_announcement` message and verifies that the funding transaction is confirmed on the Bitcoin blockchain.
+After verification the node will forward the gossip message to its own peers, and they will forward to their peers and so on, spreading the announcement across the entire network.
+In order to avoid excessive communication the channel announcement is only forwarded by each node if it has not already forwarded that announcement previously.
+
+The gossip protocol is also used to announce information about known nodes, with the `node_announcement` message.
+For this message to be forwarded a node has to have at least one public channel announced on the gossip protocol, again to avoid excessive communication traffic.
+
 Payment channels have various meta data that are useful for other participants of the network.
 This meta data is mainly used for making routing decisions.
-As nodes might want to change the meta data of their channel occasionally this information is shared in a `channel_update` message.
-These messages will only be forwarded about four times a day for every channel to prevent spam.
-The gossip protocol also comes with a variety of queries and tools to initially synchronize a node with the view of the network or to update the node's view after being offline for a while.
-We will investigate the details of the gossip protocol in a later chapter.
-For now it is only important to know that it exists and that it is used to share topology information of the Lightning Network with its participants.
-This topology information is crucially needed for delivering payments through the network of payment channels.
+Since nodes might occasionally change the meta data of their channels, this information is shared in a `channel_update` message.
+These messages will only be forwarded approximately four times a day (per channel) to prevent excessive communication.
+The gossip protocol also has a variety of queries and messages to initially synchronize a node with the view of the network or to update the node's view after being offline for a while.
 
-[NOTE]
-====
 A major challenge for the participants of the Lightning Network is that the topology information that is being shared by the gossip protocol is only partial.
 For example, the capacity of the payment channels is shared on the gossip protocol via the `channel_announcement` message.
 However, this information is not as useful as the actual distribution of the capacity into the local balance between the two channel partners.
-A node can only forward the amount of bitcoin via a particular payment channel that it actually owns within that channel.
+A node can only forward as much bitcoin as it actually owns (local balance) within that channel.
+
 While Lightning could have been designed to share balance information of channels and a precise topology, this has not been done for several reasons:
-1. To protect the privacy of the users and not shout out every financial transaction and payment that is being conducted.
-2. To be able to scale the amount of payments that can be conducted with the Lightning Network. Remember that the Lightning Network was created in the first place because notifying every participant about every payment does not scale well. Thus for simple technical reasons the Lightning Network cannot be designed in a way that the current balance updates of channels are being shared among participants.
-3. The Lightning Network is a dynamic organism. It changes constantly and frequently. Nodes are being added, other nodes are being turned off, balances change, etc. Even if everything is always communicated, the information will be valid only for a short amount of time. As a matter of fact, information might be already outdated by the time it is received.
-====
+
+1. To protect the privacy of the users and not shout out every financial transaction and payment that is being conducted. Channel balance updates would reveal that a payment has moved across the channel. This information could be correlated to reveal all payment sources and destinations.
+
+2. To scale the amount of payments that can be conducted with the Lightning Network. Remember that the Lightning Network was created in the first place because notifying every participant about every payment does not scale well. Thus, the Lightning Network cannot be designed in a way that balance updates of channels are  shared among participants.
+
+3. The Lightning Network is a dynamic system. It changes constantly and frequently. Nodes are being added, other nodes are being turned off, balances change, etc. Even if everything is always communicated, the information will be valid only for a short amount of time. As a matter of fact, information is often outdated by the time it is received.
+
+We will examine the details of the gossip protocol in a later chapter.
+
+For now, it is only important to know that the gossip protocol exists and that it is used to share topology information of the Lightning Network.
+This topology information is crucial for delivering payments through the network of payment channels.
+
 
 ==== Finding a path
 
