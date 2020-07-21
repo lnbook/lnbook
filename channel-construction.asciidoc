@@ -69,7 +69,7 @@ Alice has heard that Payment channel are 2 - of - 2 multisnature outputs.
 As she wants to have a channel with Bob and since she knows a public key from Bob she decides to open a channel by sending money to a 2 - of - 2 multisignature address that comes from Bob's and her key.
 We call the Transaction that Alices used a **funding transaction** as it is supposed to fund the payment channel.
 However signing and broadcasting this funding transaction would be a huge mistake.
-As we have discussed the Bitcoins from the resulting UTXO can only be spent if Alice and Bob work together and both provide a signature for a transaction spending thos coins. 
+As we have discussed the Bitcoins from the resulting UTXO can only be spent if Alice and Bob work together and both provide a signature for a transaction spending those coins. 
 If Bob would not respond to Alice in future Alice would have lost her Bitcoins forever.
 That is because the coins would be stuck in the 2 - of - 2 multisignature address to which she has just sent them.
 
@@ -92,36 +92,86 @@ Why would Alice send money to a multisignature address just to prepare a transac
 
 We really hope you have wondered about this because this is really the point where the innovation begins.
 Just because in general people are expected to broadcast a transaction to the bitcoin network as soon as they have signed it noone forcses you to do that.
-Instead of braodcasting the commitment transaction together with the funding transaction she will send out the funding transaction and keep the commitment transaction at a save place.
-
-TODO: talk about segwit here? 
-
-[NOTE]
-====
-This entire process might be surprising (... comparison with HTTP server push and AJAX...)
-
-====
-
-So the main question is:
-
-    What can go wrong with the insecure payment channel? 
-
 
 As Alice would loose access of her Bitcoins once she sends it to a 2 - of - 2 multisignature output for which she only controlls one key she needs to make sure that she will be able to regain access of her coins in case Bob becomes unresponisive. 
 Thus before Alice publishes the funding transaction she will create another transaction that sends all the bitcoin from the 2 - of - 2 multisignature output back to an address which she controlls. 
 
 .The situation can be seen in the following picture
 image:channel-construction-opening-1.png[]
-Of course for the commitment transaction Alice would need to get a Signature from Bob
+Of course for the commitment transaction Alice would need to get a Signature from Bob before she can safely broadcast the funding transaction.
+After publishing the funding transaction instead of braodcasting the commitment transaction she will keep it at a save place.
+For this to work Alice needs to be sure that the funding transaction could not be published with a different transaction id.
+This malleability was possible before the Segwit upgrade of Bitcoin.
+We will discuss the details later but didn't want to leave them out here.
+
 
 [NOTE]
 ====
-Commitment transactions fulfill three purposes:
+This entire process might be surprising (... comparison with HTTP server push and AJAX...)
+
+====
+Having Segwit and this first commitment transaction is actually secure for Alice.
+We have seen the first of three main properties that commit transactions fulfill:
+
+    Commitment Transactions refund channel participants in case the other side becomes irresponsive.
+
+The second purpose was implicitely defined by the first purpose:
+
+    Commitment Transactions split the capacity of the channel into a balance which is owned by each partner.
+
+Initially this split means that all the capacity is naturally on the side of the partner who funded the channel.
+Of course during the lifetime of the channel the balance could change.
+For example Alice might want to send some funds to Bob.
+This could happen because she wants to pay Bob or because she wants Bob to forward the funds through a path of channels to another merchant that she wants to pay.
+Let us assume as an example that Alice wants to send 30k Satoshi to Bob.
+For now we can assume that through some communication protocol Alice and Bob would negotiate a double spent of the funding transaction output of 100k satoshi.
+The new commitment transaction for which Alice and Bob would exchange signatures would send 70k satoshi to Alice and 30k Satoshi to Bob.
+.The situation can be seen in the following picture
+image:channel-construction-opening-2.png[]
+Whenever Alice and Bob want to change the balance of the payment channel they will negotiate a new commitment transaction.
+Effectively they double spend the funding transaction output.
+But as the commitment transactions are not broadcasted - as long as the channel stays open - they will be able to do that.
+
+At this point we want to emphasize that the section was labeled in a way that suggests that this construction is insecure.
+So the main question reads:
+
+    What can go wrong with the insecure payment channel? 
+
+The thing that goes and makes this construction insecure lies within the mechanics of Bitcoin.
+The key innovation of Bitcoin was to prevent the double spending problem of electronic coins.
+After Alice and Bob have exchanged signatures for the second commitment transaction Bob cannot rely on the fact that he really owns 30k satoshi.
+Of course he could close the channel by publishing the second commitment transaction assigning 30k satoshi to an address that he controlls.
+But similarly Alice could broadcast the first commitment transaction and transfer the entire capacity of the channel back to an address that she controlls.
+As Bitcoin prevents double spending of the funding transaction miners will include only one of the two commitment transactions.
+Thus we need to adapt the idea with the commitment transactions to create the ability to revoke an old commitment transaction.
+Regarding the fact that Bob and Alice Both have a copy of the transaction and that Bob cannot controll the Data that Alice has stored on her hardware it seems pretty hopeless.
+Luckily the scripting language in Bitcoin allows at least for changing commitment transactions in a way that econimically disencentivices channel partners to publish and outdated balances after they have negotated a new balance. 
+
+#### Secure Payment channels via Revokable Commitment transactions
+
+
+[NOTE]
+====
+In summary we can conclude that commitment transactions fulfill three purposes:
 1. refund channel participants in case the other side becomes irresponsive
 2. Splite the capacity of the channel into the current balance that peers have agreed upon.
 3. Allow revocation of old state through the means of a penality via a revocable sequence maturity contract.
 ====
 
+We have not yet explained how channel partners actually communicate to negotiate a new balance.
+Because it seems pretty amazing that we can make this swap revocation secret for signature atomic.
+In order to understand this we first need to understand the general communication of how a channel is opened.
+The actual negotiation of the new state is also done with HTLCs.
+That is why we only explain this in the routing chapter and ask you to stay patient.
+
+[NOTE]
+====
+*TODO: Move this note to routing chapter?*
+HTLCS fullfill the following purposes:
+1. Make a conditional payment.
+2. Help to update a new balance in a channel
+3. Make payments through a path of channel atomic, meaning that peers along the path cannot steal funds.
+====
 
 ### Opening a payment channel
 We call the process of creating a new payment channel "opening a payment channel".
