@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 AS eclair-base
+FROM ubuntu:20.04 AS eclair-base
 
 RUN apt update && apt install -yqq \
 	curl gosu jq bash-completion
