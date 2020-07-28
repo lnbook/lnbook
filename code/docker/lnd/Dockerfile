@@ -8,7 +8,7 @@ RUN go get -d github.com/lightningnetwork/lnd
 WORKDIR $GOPATH/src/github.com/lightningnetwork/lnd
 RUN make && make install
 
-FROM ubuntu:18.04 AS lnd-run
+FROM ubuntu:20.04 AS lnd-run
 
 RUN apt update && apt install -yqq \
 	curl gosu jq bash-completion

@@ -1,9 +1,93 @@
-[[maintaining_a_lightning_node]]
-== Running and Maintaining a Lightning Network Node
+[[operating_ln_node]]
+== Operating a Lightning Network Node
 
-=== Implications of Configurations
+After reading this far, you've probably set up a Lightning wallet. In this chapter we will take things one step further and set up a full Lightning node, learning how to operate and maintain it over time.
 
-=== Backups
+There are many reasons why you might want to set up your own Lightning node:
+
+* To be a full participant of the Lightning Network, not just an end-user.
+* To run an e-commerce store, or earn income with Lightning payments.
+* To develop new services, applications or plugins on the Lightning Network
+* To increase your privacy while using Lightning
+
+Of course, there are costs to running a Lightning Network node. You need a computer (of course), a permanent Internet connection, lots of disk space, and lots of time!
+
+But the skills you will learn from this experience are valuable and can be applied to a variety of other tasks too.
+
+Let's get started!
+
+=== Choosing your platform
+
+There are many ways you can run a Lightning node, from a small mini-PC hosted in your home, to a dedicated server, to a hosted server in the cloud. The method you choose will depend on the resources you have and how much money you want to spend.
+
+
+==== Running in the "cloud"
+
+Virtual Private Server (VPS) and "cloud computing" services such as Microsoft Azure, Google Cloud, or Amazon Web Services (AWS) are quite affordable and can be set up very quickly. A Lightning node can be hosted for between $20 and $40 per month on such a service.
+
+However, as the saying goes, "'Cloud' is just other people's computers". Using these services means running your node on other people's computers, with all the privacy and security implications that has. A Lightning node running in the "cloud", will always be less secure, less private that one running on your own computer. Additionally, these cloud computing services are very centralized. The vast majority of Bitcoin and Lightning nodes running on such services are located in a handful of data centers in Virginia, Sunnyvale, Seattle, London and Frankfurt. When the networks or data centers of these providers have service problems, it affects thousands of nodes on so-called "decentralized" networks.
+
+Running a Lightning node in the cloud is better than not running a node at all, and worse than running it on your own computer at home or in your office.
+
+==== Running a node at home
+
+If you have a reasonable capacity internet link at home, or in your office, you can certainly run a Lightning node there. Any "broadband" connection is sufficient for this purpose (running a lightweight node), and a fast connection will allow you to run a Bitcoin full node too.
+
+While you can run a Lightning node (and even a Bitcoin node) on your laptop, it will become annoying quite fast. These programs consume your computer's resources and need to run 24/7, and you will find yourself competing against the background services for your computer's attention (meaning your browser and other desktop workloads will be slowed down).
+
+Instead, most users will choose to run a node on a dedicated computer. Fortunately, you don't need a "server" class computer to do this. You can run a Lightning node on a mini-PC, such as a Raspberry Pi or an Atom-based fanless PC, computers which are commonly used as a media server or home automation hub. These are relatively inexpensive, costing between $50 and $150 USD at that time of this writing. To run on a mini-PC, you will need an external USB hard drive, which again is relatively inexpensive, costing approximately $50 USD. The advantage of a dedicated mini-PC as a platform for Lightning and Bitcoin nodes is that it can run continuously, silently and unobtrusively on your home WiFi network, tucked behind your router or TV. No one will even know that this little box is actually a global banking system!
+
+==== Using an installer/helper
+
+Installing a Lightning node (or also a Bitcoin node), may be daunting if you are not familiar with a command-line environment. However, there are a number of projects that make "helpers", software that installs and configures the various components for you. You will still need to learn some command-line incantations to interact with your node, but most of the initial work is done for you.
+
+One of the most popular and complete such "helpers", is _RaspibBlitz_, a project built by Christian Rootzoll, which is intended to be installed on a Raspberry Pi 4. RaspiBlitz comes with a recommended hardware "kit" that you can build in a matter of hours, or at most a weekend. If you attent a Lightning "hackathon" in your city, you are likely to see many people working on their RaspiBlitz set up, swapping tips and helping each other. You can find the RaspiBlitz project here:
+
+https://github.com/rootzoll/raspiblitz
+
+
+image::[images/raspiblitz.jpg]
+
+
+MyNode is another popular open source project including a lot of Bitcoin related software. Is is super easy to install, you just have to flash it on an SD card, put it into your nano-computer an plug it in. You do not need any screen to use myNode as the administrative tools are accessible from a browser. You can manage it from a computer or even from your smartphone. Once installed, go to http://mynode.local/ and create a lightning wallet and node in two clicks.
+
+==== Choosing your hardware
+
+Independently of the type of computer you will use, from a server in the cloud to a mini-PC, you will have to choose the hardware configuration that suits your needs and wallet.
+
+If you use a mini-PC or rent a server, the storage can be the costliest part. Let's have a look at the different options available. First there are two main types of drives, HDDs and SSDs. HDDs are a lot cheaper and SSDs are a lot faster, but both would do the job. The fastest SSDs up to date use the NVMe protocol, but depending on your hardware they may not be better than the cheaper version, the SATA ones. As an example, the Raspberry Pi 4 cannot benefit from them because of the limited bandwidth of it's USB port. To choose the size, let's look at the blockchain. As of July 2020 it's size is ~330GB including the transaction index. If you want to have some margin available for the future or to install other stuff on your node, choose at least 1TB.
+
+For the CPU and RAM, low-end equipment should be enough to run a lightning node. The 10-year-old computer in your garage or your old student laptop should do the job. Even the $40 Raspberry Pi 4 has a powerful enough CPU to manage it. For the RAM 2GB is enough but 4GB is probably a better option.
+
+* Bandwidth
+* Full node backend (bitcoind, btcd) or lightweight backend (neutrino)
+* Where will you host it (cloud hosting, VPS, own server, your laptop, RPi, MiniPC)
+* What OS will you use (Linux variant, Windows, other)
+* Docker or direct installation
+
+=== Choose your node implementation
+
+* Which project (LND, eclair, c-lightning, other) will you use
+* Language and build-system familiarity
+* Integration needs
+* Features
+* Performance
+
+=== Node startup and configuration
+
+* Startup and headless operation
+* Process isolation
+* Auto-unlocking
+* IBD configuration
+* Fine tuning performance
+* RPC security and authentication
+* Logging
+* Process monitoring
+
+=== Node and channel backups
+
+* Difference between Bitcoin wallet (BIP39) backups and LN backups
+* Need for backup of channel state
 
 ==== Static channel backups
 
@@ -11,25 +95,54 @@
 
 ==== Hot wallet risk
 
+==== Sweeping funds
+
+===== On-chain sweep
+
+===== Off-chain sweep
+
 ==== Watchtowers
 
 === Channel management
-In order to participate on the Lightning Network you need to have payment channels on your Lighting networknode.
-It might be confusing to decide with whom to open channels and which parameters to set for the specific channel policies.
-An obvious strategy might be to open channels with shops where you want to buy products.
-But what happens if those shops do only accept large channels which are beyond your funds or do not accept public channels at all?
-Also if you are not a consumer but a vendor you want to receive payments on the Lightning Network.
-Therefore you need others to open channels with you or you need to open channels and use submarine swaps and rebalancing techniques to provide yourself with the ability to receive payments.
-Both techniques will be discussed later in this chapter.
 
-==== Autopilots
+==== Private vs public channels
 
-==== Rebalancing
+==== Manually choosing nodes for outbound channels
 
-==== submarine swaps
+==== Autopilot
 
-==== Fees and Centrality
+==== Getting inbound liquidity
 
+==== On-chain fees for channel management
+
+==== Submarine swaps
+
+==== Splice-in/Splice-out
+
+
+=== Routing fees
+
+* Earning fees from routing
+* Setting routing fees
+  * High volume/low cost vs. High cost/low volume
+  * Zero fee routing
+
+=== Node monitoring
+
+* RTL
+* lndash
+* External node monitors (1ml etc.)
+
+=== Channel maintenance
+
+==== Inactive channels and nodes
+==== When to force-close
+==== Re-balancing channels
+
+=== Running multiple Lightning Network nodes
+
+==== Private channels
+==== Topology
 
 
 === Hardware Requirements for a Lightning Nodes
@@ -82,3 +195,4 @@ At a minimum, the following will be required to run a Lightning Node:
 In addition, the user will also want to consider some kind of data backup solution.
 This could be a cloud-based automated backup to a server or web service the user controls.
 Or it could be a hardware backup, such as a second hard drive that can be used if the first hard drive fails.
+
