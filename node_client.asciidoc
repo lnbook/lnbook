@@ -19,24 +19,25 @@ In this chapter you will learn how to set up each of the software packages for t
 
 ==== Using the command-line
 
-The examples in this chapter, and more broadly in most of this book, use a command-line terminal. That means that you type commands into a terminal and receive text responses. Furthermore, the examples are demonstrated on an operating system based on the Linux kernel and GNU software system, specifically the latest long-term stable release of Ubuntu (Ubuntu 18.04 LTS). The majority of the examples can be replicated on other operating systems such as Windows or Mac OS, with small modifications to the commands. The biggest difference between operating systems is the _package manager_ which installs the various software libraries and their pre-requisites. In the given examples, we will use +apt+, which is the package manager for Ubuntu. On Mac OS, a common package manager used for open source development is Homebrew (command +brew+) found at https://brew.sh.
+The examples in this chapter, and more broadly in most of this book, use a command-line terminal. That means that you type commands into a terminal and receive text responses. Furthermore, the examples are demonstrated on an operating system based on the Linux kernel and GNU software system, specifically the latest long-term stable release of Ubuntu (Ubuntu 20.04 LTS). The majority of the examples can be replicated on other operating systems such as Windows or Mac OS, with small modifications to the commands. The biggest difference between operating systems is the _package manager_ which installs the various software libraries and their pre-requisites. In the given examples, we will use +apt+, which is the package manager for Ubuntu. On Mac OS, a common package manager used for open source development is Homebrew (command +brew+) found at https://brew.sh.
 
 In most of the examples here, we will be building the software directly from the source code. While this can be quite challenging, it gives us the most power and control. You may choose to use docker containers, pre-compiled packages or other installation mechanisms instead if you get stuck!
 
 [TIP]
 ====
-((("$ symbol")))((("shell commands")))((("terminal applications")))In many of the examples in this chapter we will be using the operating system's command-line interface (also known as a "shell"), accessed via a "terminal" application. The shell will display a prompt; you type a command; and the shell responds with some text and a new prompt for your next command. The prompt may look different on your system, but in the following examples it is denoted by a +$+ symbol. In the examples, when you see text after a +$+ symbol, don't type the +$+ symbol but type the command immediately following it, then press Enter to execute the command. In the examples, the lines below each command are the operating system's responses to that command. When you see the next +$+ prefix, you'll know it's a new command and you should repeat the process.
+((("$ symbol")))((("shell commands")))((("terminal applications")))In many of the examples in this chapter we will be using the operating system's command-line interface (also known as a "shell"), accessed via a "terminal" application. The shell will first display a prompt as an indicator that it is ready for your command. Then you type a command and press "Enter" to which the shell responds with some text and a new prompt for your next command. The prompt may look different on your system, but in the following examples it is denoted by a +$+ symbol. In the examples, when you see text after a +$+ symbol, don't type the +$+ symbol but type the command immediately following it. Then press the Enter key to execute the command. In the examples, the lines below each command are the operating system's responses to that command. When you see the next +$+ prefix, you'll know it is a new command and you should repeat the process.
 ====
 
-To keep things consistent, we use the +bash+ shell in all command-line examples. While other shells will behave in a similar way, and you will be able to run all the examples without it, some of the shell scripts are written specifically for the +bash+ shell and may require some changes or customization to run in another shell. For consistency, you can install the +bash+ shell on Windows and Mac OS, and it comes installed by default on most Linux systems.
+To keep things consistent, we use the +bash+ shell in all command-line examples. While other shells will behave in a similar way, and you will be able to run all the examples without it, some of the shell scripts are written specifically for the +bash+ shell and may require some changes or customizations to run in another shell. For consistency, you can install the +bash+ shell on Windows and Mac OS, and it comes installed by default on most Linux systems.
 
 ==== Downloading the book repository
 
-All the code examples are available in the book's repository. The repository will be kept up-to-date, as much as possible, so you should always look for the latest version in the repository, instead of copying it from the printed book or ebook version of this test.
+All the code examples are available in the book's online repository. Because the repository will be kept up-to-date as much as possible, you should always look for the latest version in the online repository, instead of copying it from the printed book or the ebook.
 
-You can download the repository as a ZIP bundle by visiting +github.com/lnbook/lnbook+ and selecting the "Clone or Download" green button on the right.
+You can download the repository as a ZIP bundle by visiting +github.com/lnbook/lnbook+ and selecting the green "Clone or Download" button on the right.
 
-Alternatively, you can use the +git+ command, to create a version-controlled clone of the repository on your local computer. Git is a distributed version control system that is used by most developers to collaborate on software development and track changes to software repositories. Download and install +git+ by following the instructions on https://git-scm.com/.
+
+Alternatively, you can use the +git+ command to create a version-controlled clone of the repository on your local computer. Git is a distributed version control system that is used by most developers to collaborate on software development and track changes to software repositories. Donwload and install +git+ by following the instructions on https://git-scm.com/.
 
 
 To make a local copy of the repository on your computer, run the git command as follows:
@@ -50,13 +51,13 @@ You now have a complete copy of the book repository in a folder called +lnbook+.
 
 === Docker Containers
 
-Many developers use a _container_, which is a type of virtual machine, to install a pre-configured operating system and application with all the necessary dependencies. Much of the Lightning software can also be installed using a container system such as _Docker_ (command +docker+) found at https://docker.com. Container installations are a lot easier, especially for those who are not used to a command-line environment.
+Many developers use a _container_, which is a type of virtual machine, to install a pre-configured operating system and applications with all the necessary dependencies. Much of the Lightning software can also be installed using a container system such as _Docker_ (command +docker+) found at https://docker.com. Container installations are a lot easier, especially for those who are not used to a command-line environment.
 
-The book's repository contains a collection of docker containers that can be used to set up a consistent development environment to practice and replicate the examples on any system. Because the container is a complete operating system that runs with a consistent configuration, you can be sure that the examples will work on your computer and not worry about dependencies, library versions or differences in configuration.
+The book's repository contains a collection of docker containers that can be used to set up a consistent development environment to practice and replicate the examples on any system. Because the container is a complete operating system that runs with a consistent configuration, you can be sure that the examples will work on your computer and need not worry about dependencies, library versions or differences in configuration.
 
-Docker containers are often optimized to be small (less disk space). However, in this book we are using containers to _standardize_ the environment and make it consistent for all readers. Furthermore, these containers are not meant to be used to run services in the background. Instead, they are meant to be used to test the examples and learn by interacting with the software. For these reasons, the containers are quite large and come with a lot of development tools and utilities. Also, the containers are built on Ubuntu, instead of the Alpine distribution (more commonly used for Linux containers), as we want to work with a distribution that is familiar to many developers rather than one that is lightweight.
+Docker containers are often optimized to be small, i.e. occupy the minimum disk space. However, in this book we are using containers to _standardize_ the environment and make it consistent for all readers. Furthermore, these containers are not meant to be used to run services in the background. Instead, they are meant to be used to test the examples and learn by interacting with the software. For these reasons, the containers are quite large and come with a lot of development tools and utilities. Commonly the Alpine distribution is used for Linux containers due to their reduced size. Nonetheless, we provide containers built on Ubuntu because more developers are familiar with Ubuntu, and this familiarity is more important to us than size.
 
-You can find the latest container definitions and build configurations in the book's repository under the +code/docker+ folder. Each container is in a separate folder beneath:
+You can find the latest container definitions and build configurations in the book's repository under the +code/docker+ folder. Each container is in a separate folder as can be seen below:
 
 //// $ tree -F --charset=asciii  code
 [docker-dir-list]
@@ -107,20 +108,20 @@ code
 
 ==== Installing Docker
 
-Before we begin, you should install the docker container system on your computer. Docker is an open system that is distributed for free as a _Community Edition_, for many different operating systems including Windows, Mac OS and Linux. The Windows and Mac versions are called _Docker Desktop_, which is GUI desktop application and command-line tools, and the Linux version is called _Docker Engine_, which is a server daemon and command-line tools. We will be using the command-line tools, which are identical across all platforms.
+Before we begin, you should install the docker container system on your computer. Docker is an open system that is distributed for free as a _Community Edition_ for many different operating systems including Windows, Mac OS and Linux. The Windows and Mac versions are called _Docker Desktop_ and consist of a GUI desktop application and command-line tools. The Linux version is called _Docker Engine_ and is comprised of a server daemon and command-line tools. We will be using the command-line tools, which are identical across all platforms.
 
 Go ahead and install Docker for your operating system by following the instructions to _"Get Docker"_ from the Docker website found here:
 
 https://docs.docker.com/get-docker/
 
-Select your operating system from the list, and follow the instructions to install.
+Select your operating system from the list and follow the installation instructions.
 
 [TIP]
 ====
-If you install on Linux, follow the post-installation instructions to ensure you can run Docker as a regular user instead of root. Otherwise, you will need to prefix the +docker+ command with +sudo+, running it as root like: +sudo docker+.
+If you install on Linux, follow the post-installation instructions to ensure you can run Docker as a regular user instead of user _root_. Otherwise, you will need to prefix all +docker+ commands with +sudo+, running them as root like: +sudo docker+.
 ====
 
-Once you have Docker installed, you can test your installation by running the demo container +hello-world+, like this:
+Once you have Docker installed, you can test your installation by running the demo container +hello-world+ like this:
 
 [docker-hello-world]
 ----
@@ -134,7 +135,7 @@ This message shows that your installation appears to be working correctly.
 
 ==== Basic docker commands
 
-In this chapter we use docker quite extensively. We will be using the following docker commands and arguments:
+In this chapter we use +docker+ quite extensively. We will be using the following +docker+ commands and arguments:
 
 *Building a container*
 
@@ -158,11 +159,11 @@ docker run -it [--network netname] [--name cname] tag
 docker exec cname command
 ----
 
-...where +cname+ is the name we gave the container in the run command, and +command+ is an executable or script that we want to run inside the container.
+...where +cname+ is the name we gave the container in the +run+ command, and +command+ is an executable or script that we want to run inside the container.
 
 *Stopping a container*
 
-In most cases, if we are running a container in an _interactive_ and _terminal_ mode, with the +i+ and +t+ flags (combined as +-it+), the container can be stopped by simply pressing +CTRL-C+, or exiting the shell with +exit+ or +CTRL-D+. If the container does not exit, you can stop it from another terminal, like this:
+In most cases, if we are running a container in an _interactive_ as well as _terminal_ mode, i.e. with the +i+ and +t+ flags (combined as +-it+) set, the container can be stopped by simply pressing +CTRL-C+ or by exiting the shell with +exit+ or +CTRL-D+. If a container does not terminate, you can stop it from another terminal like this:
 
 ----
 docker stop cname
@@ -172,7 +173,7 @@ docker stop cname
 
 *Deleting a container by name*
 
-If you name a container, instead of letting docker name it randomly, you cannot use that name again until the container is deleted. Docker will return an error like this:
+If you name a container instead of letting docker name it randomly, you cannot reuse that name until the container is deleted. Docker will return an error like this:
 ----
 docker: Error response from daemon: Conflict. The container name "/bitcoind" is already in use...
 ----
@@ -183,7 +184,7 @@ To fix this, delete the existing instance of the container:
 docker rm cname
 ----
 
-...where +cname+ is the name we have the container (+bitcoind+ in the example error message)
+...where +cname+ is the name assigned to the container (+bitcoind+ in the example error message)
 
 *List running containers*
 
@@ -191,7 +192,7 @@ docker rm cname
 docker ps
 ----
 
-These basic docker commands will be enough to get you started and will allow you to run all the examples in this chapter. Let's see them in action, in the following sections.
+These basic docker commands will be enough to get you started and will allow you to run all the examples in this chapter. Let's see them in action in the following sections.
 
 === Bitcoin Core and Regtest
 
@@ -199,19 +200,19 @@ Most of the Lightning node implementations need access to a full Bitcoin node in
 
 Installing a full Bitcoin node and synching the Bitcoin blockchain is outside the scope of this book and is a relatively complex endeavor in itself. If you want to try it, refer to _Mastering Bitcoin_ (https://github.com/bitcoinbook/bitcoinbook), "Chapter 3: Bitcoin Core: The Reference Implementation" which discusses the installation and operation of a Bitcoin node.
 
-A Bitcoin node can also be operated in _regtest_ mode, where the node creates a local simulated Bitcoin blockchain for testing purposes. In the following examples, we will be using regtest mode to allow us to demonstrate lightning without having to synchronize a Bitcoin node, or risk any funds.
+A Bitcoin node can be operated in _regtest_ mode, where the node creates a local simulated Bitcoin blockchain for testing purposes. In the following examples we will be using the +regtest+ mode to allow us to demonstrate Lightning without having to synchronize a Bitcoin node or risk any funds.
 
-The container for Bitcoin Core is bitcoind that runs Bitcoin Core in regtest mode and mines a new block every 10 seconds. It's RPC port is exposed on port 18443 and accessible for RPC calls with the username regtest and the password regtest. You can also access it with an interactive shell and run +bitcoin-cli+ commands locally.
+The container for Bitcoin Core is +bitcoind+. It is configured to run Bitcoin Core in +regtest+ mode and to mine a new block every 10 seconds. Its RPC port is exposed on port 18443 and accessible for RPC calls with the username +regtest+ and the password +regtest+. You can also access it with an interactive shell and run +bitcoin-cli+ commands locally.
 
 ===== Building the Bitcoin Core Container
 
-Let's start by building and running the bitcoind container. First, we use the +docker build+ command to build it:
+Let's start by building and running the +bitcoind+ container. First, we use the +docker build+ command to build it:
 
 ----
 $ cd code/docker
 $ docker build -t lnbook/bitcoind bitcoind
 Sending build context to Docker daemon  12.29kB
-Step 1/25 : FROM ubuntu:18.04 AS bitcoind-base
+Step 1/25 : FROM ubuntu:20.04 AS bitcoind-base
  ---> c3c304cb4f22
 Step 2/25 : RUN apt update && apt install -yqq 	curl gosu jq bash-completion
 
@@ -226,7 +227,7 @@ Successfully tagged lnbook/bitcoind:latest
 
 ===== Running the Bitcoin Core Container
 
-Next, let's run the bitcoind container and have it mine some blocks. We use the +docker run+ command, with the flags for _interactive (i)_ and _terminal (t)_, and the +name+ argument to give the running container a custom name:
+Next, let's run the +bitcoind+ container and have it mine some blocks. We use the +docker run+ command, with the flags for _interactive (i)_ and _terminal (t)_, and the +name+ argument to give the running container a custom name:
 
 ----
 $ docker run -it --name bitcoind lnbook/bitcoind
@@ -252,13 +253,13 @@ Mining 1 block every 10 seconds
 Balance: 100.00000000
 ----
 
-As you can see, bitcoind starts up and mines 101 blocks to get the chain started. This is because under the bitcoin consensus rules, newly mined bitcoin is not spendable until 100 blocks have elapsed. By mining 101 blocks, we make the 1st block's coinbase spendable. After that initial mining activity, we mine a new block every 10 seconds, to keep the chain moving forward.
+As you can see, bitcoind starts up and mines 101 simulated blocks to get the chain started. This is because under the bitcoin consensus rules, newly mined bitcoin is not spendable until 100 blocks have elapsed. By mining 101 blocks, we make the first block's coinbase spendable. After that initial mining activity, a new block is mined every 10 seconds to keep the chain moving forward.
 
-For now, there are no transactions. But we now have some test bitcoin that has been mined in the wallet and is available to spend. When we connect some Lightning nodes to this chain, we will send some bitcoin to their wallets so that we can open some Lightning channels between the Lightning nodes.
+For now, there are no transactions. But we have some test bitcoin that has been mined in the wallet and is available to spend. When we connect some Lightning nodes to this chain, we will send some bitcoin to their wallets so that we can open some Lightning channels between the Lightning nodes.
 
 ===== Interacting with the Bitcoin Core Container
 
-In the meantime, we can also interact with the bitcoind container by sending it shell commands. The container is sending a log file to the terminal, displaying the mining process of the bitcoind process. To interact with the shell we can issue commands in another terminal, using the +docker exec+ command. Since we previously named the running container with the +name+ argument, we can refer to it with that name when we run the +docker exec+ command. First, let's run an interactive +bash+ shell:
+In the mean time, we can also interact with the +bitcoind+ container by sending it shell commands. The container is sending a log file to the terminal, displaying the mining process of the bitcoind process. To interact with the shell we can issue commands in another terminal, using the +docker exec+ command. Since we previously named the running container with the +name+ argument, we can refer to it by that name when we run the +docker exec+ command. First, let's run an interactive +bash+ shell:
 
 ----
 $ docker exec -it bitcoind /bin/bash
@@ -272,9 +273,9 @@ root@e027fd56e31a:/bitcoind# ps x
 root@e027fd56e31a:/bitcoind#
 ----
 
-Running the interactive shell puts us "inside" the container and logged in as the +root+ user, as we can see from the new shell prompt +root@e027fd56e31a:/bitcoind#+. If we issue the +ps x+ command to see what processes are running, we see both bitcoind and the script +mine.sh+ are running in the background. To exit this shell, type +CTRL-D+ or +exit+ and you will be returned to your operating system prompt.
+Running the interactive shell puts us "inside" the container. It logs in as user +root+, as we can see from the prefix +root@+ in the new shell prompt +root@e027fd56e31a:/bitcoind#+. If we issue the +ps x+ command to see what processes are running, we see both bitcoind and the script +mine.sh+ are running in the background. To exit this shell, type +CTRL-D+ or +exit+ and you will be returned to your operating system prompt.
 
-Instead of running an interactive shell, we can also issue a single command that is executed inside the container, for example to run the +bitcoin-cli+ command, like this:
+Instead of running an interactive shell, we can also issue a single command that is executed inside the container. In the following example we run the +bitcoin-cli+ command to obtain information about the current blockchain state:
 
 ----
 $ docker exec bitcoind bitcoin-cli -datadir=/bitcoind getblockchaininfo
@@ -290,18 +291,18 @@ $ docker exec bitcoind bitcoin-cli -datadir=/bitcoind getblockchaininfo
 $
 ----
 
-As you can see, we need to tell +bitcoin-cli+ where the bitcoind data directory is, with the +datadir+ argument. We can then issue RPC commands to the Bitcoin Core node and get JSON encoded results.
+As you can see, we need to tell +bitcoin-cli+ where the bitcoind data directory is by using the +datadir+ argument. We can then issue RPC commands to the Bitcoin Core node and get JSON encoded results.
 
-All the docker containers also have +jq+ installed, which is a command-line JSON encoder/decoder, to help us process JSON on the command-line or from inside scripts. You can send the JSON output of any command to +jq+ using the +|+ character ("pipe" notation). For example, if we pipe the +getblockchaininfo+ JSON result we got above, we can extract the specific field +blocks+ like this:
+All our docker containers have +jq+, which is a command-line JSON encoder/decoder, preinstalled. +jq+ helps us to process JSON-formatted data via the command-line or from inside scripts. You can send the JSON output of any command to +jq+ using the +|+ character. This character as well as this operation is called a "pipe". Let's apply a +pipe+ and +jq+ to the previous command as follows:
 
 ----
-$ docker exec bitcoind bitcoin-cli -datadir=/bitcoind getblockchaininfo | jq .blocks
+$ docker exec bitcoind bash -c "bitcoin-cli -datadir=/bitcoind getblockchaininfo | jq .blocks"
 189
 ----
 
-The +jq+ JSON decoder extract the result "189" from the +getblockchaininfo+, which we could use in a subsequent command.
++jq .blocks+ instructs the +jq+ JSON decoder to extract the field +blocks" from the +getblockchaininfo+ result. In our case, it extracts and prints the value of 189 which we could use in a subsequent command.
 
-As you will see in the following sections, we can run several containers and then interact with them individually, issuing commands to extract information (such as the Lightning node public key), or to take an action (open a Lightning channel to another node). The +docker run+ and +docker exec+, together with +jq+ for JSON decoding are all we need to build a working Lightning Network that mixes many different node implementations and allows us to try out various experiments, all on our own computer.
+As you will see in the following sections, we can run several containers at the same time and then interact with them individually. We can issue commands to extract information such as the Lightning node public key, or to take actions such as opening a Lightning channel to another node. The +docker run+ and +docker exec+ commands together with +jq+ for JSON decoding are all we need to build a working Lightning Network that mixes many different node implementations. This enables us to try out diverse experiments on our own computer.
 
 === The c-lightning Lightning node project
 
@@ -447,7 +448,8 @@ Reading package lists... Done
 
 $ sudo apt-get install -y \
   autoconf automake build-essential git libtool libgmp-dev \
-  libsqlite3-dev python python3 python3-mako net-tools zlib1g-dev \ libsodium-dev gettext
+  libsqlite3-dev python python3 python3-mako net-tools zlib1g-dev \
+  libsodium-dev gettext
 
 Reading package lists... Done
 Building dependency tree
@@ -457,10 +459,10 @@ The following additional packages will be installed:
 
  [...]
 
-Setting up libgcc-7-dev:amd64 (7.4.0-1ubuntu1~18.04.1) ...
-Setting up cpp-7 (7.4.0-1ubuntu1~18.04.1) ...
-Setting up libsodium-dev:amd64 (1.0.16-2) ...
-Setting up libstdc++-7-dev:amd64 (7.4.0-1ubuntu1~18.04.1) ...
+Setting up libsigsegv2:amd64 (2.12-2) ...
+Setting up libltdl-dev:amd64 (2.4.6-14) ...
+Setting up python2 (2.7.17-2ubuntu4) ...
+Setting up libsodium-dev:amd64 (1.0.18-1) ...
 
 [...]
 $
@@ -491,6 +493,7 @@ We now have a copy of c-lightning, cloned into the +lightning+ subfolder, and we
 ==== Compiling the c-lightning source code
 
 Next, we use a set of _build scripts_ that are commonly available on many open source projects. These are +configure+ and +make+, and they allow us to:
+
 * Select the build options and check necessary dependencies (+configure+).
 * Build and install the executables and libraries (+make+).
 
@@ -624,7 +627,7 @@ As before, we start the bitcoind container in one terminal and LND in another. I
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-Next, we start the LND container we just build. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
+Next, we start the LND container we just built. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
 
 ----
 $ docker run -it --network lnbook --name lnd lnbook/lnd
@@ -680,11 +683,9 @@ We will follow the installation instructions found on the LND project documentat
 
 https://github.com/lightningnetwork/lnd/blob/master/docs/INSTALL.md
 
-First, we will install the golang package and associated libraries. We need, _at minimum_ Go version 1.13 or later. The official Go language packages are distributed as binaries from https://golang.org/dl. For convenience they are also packaged as debian packages distributed through the +apt+ command. You can follow the instructions on https://golang.org/dl or use the apt commands below on a Debian/Ubuntu Linux system:
+First, we will install the golang package and associated libraries. We need, _at minimum_ Go version 1.13 or later. The official Go language packages are distributed as binaries from https://golang.org/dl. For convenience they are also packaged as debian packages distributed through the +apt+ command. You can follow the instructions on https://golang.org/dl or use the apt commands below on a Debian/Ubuntu Linux system as described on https://github.com/golang/go/wiki/Ubuntu:
 
 ----
-$ sudo add-apt-repository ppa:longsleep/golang-backports
-$ sudo apt update
 $ sudo apt install golang-go
 ----
 
@@ -751,7 +752,7 @@ By this point, you are almost an expert in the basic operations of docker! In th
 $ cd code/docker
 $ docker build -t lnbook/eclair eclair
 Sending build context to Docker daemon  9.216kB
-Step 1/22 : FROM ubuntu:18.04 AS eclair-base
+Step 1/22 : FROM ubuntu:20.04 AS eclair-base
  ---> c3c304cb4f22
 Step 2/22 : RUN apt update && apt install -yqq 	curl gosu jq bash-completion
  ---> Using cache
@@ -782,7 +783,7 @@ As before, we start the bitcoind container in one terminal and the eclair contai
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-Next, we start the eclair container we just build. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
+Next, we start the eclair container we just built. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
 
 ----
 $ docker run -it --network lnbook --name eclair lnbook/eclair
@@ -847,7 +848,7 @@ Check that you have the correct version installed and ready to use by running:
 ----
 $ javac -version
 javac 11.0.7
-$ mvn -V
+$ mvn -v
 Apache Maven 3.6.1
 Maven home: /usr/share/maven
 Java version: 11.0.7, vendor: Ubuntu, runtime: /usr/lib/jvm/java-11-openjdk-amd64
@@ -911,7 +912,7 @@ Congratulations, you have built Eclair from source and you are ready to code, te
 
 === Building a complete network of diverse Lightning Nodes
 
-Our final example, in this section, will bring together all the various containers we have build to form a Lightning network made of diverse (LND, c-lightning, Eclair) node implementations. We will compose the network by connecting the nodes together, opening channels from one node to another, and finally, by routing a payment across these channels.
+Our final example, in this section, will bring together all the various containers we have built to form a Lightning network made of diverse (LND, c-lightning, Eclair) node implementations. We will compose the network by connecting the nodes together, opening channels from one node to another, and finally, by routing a payment across these channels.
 
 In this example, we will replicate the Lighting network example from <<routing_on_a_network_of_payment_channels>>. Specifically, we will create four Lightning nodes named Alice, Bob, Wei and Gloria. We will connect Alice to Bob, Bob to Wei, and Wei to Gloria. Finally, we will have Gloria create an invoice and have Alice pay that invoice. Since Alice and Gloria are not directly connected, the payment will be routed as an HTLC across all the payment channels.
 
@@ -1004,7 +1005,7 @@ $ docker-compose logs -f Alice
 
 Our Lightning network should now be running. As we saw in the previous sections of this chapter, we can issue commands to a running docker container with the +docker exec+ command. Regardless of whether we started the container with +docker run+ or started a bunch of them with +docker-compose up+, we can still access containers individually using the docker commands.
 
-To make things easier, we have a little helper script that sets up the network, issues the invoice and makes the payment. The script is called +setup-channels.sh+ and is a Bash shell script. Keep in mind, this script is not very sophisticated! It "blindly" throws commands at the various nodes and doesn't do any error checking. If the network is running correct and the nodes are funded, then it all works nicely. But, you have to wait a bit for everything to boot up and for the network to mine a few blocks and settle down. This usually takes 1-3 minutes. Once you see the block height at 102 or above on each of the nodes, you are ready. If the script fails, you can stop everything (+docker-compose down+) and try again from the beginning, or you can manually issue the commands in the script one by one and look at the results.
+To make things easier, we have a little helper script that sets up the network, issues the invoice and makes the payment. The script is called +setup-channels.sh+ and is a Bash shell script. Keep in mind, this script is not very sophisticated! It "blindly" throws commands at the various nodes and doesn't do any error checking. If the network is running correctly and the nodes are funded, then it all works nicely. But, you have to wait a bit for everything to boot up and for the network to mine a few blocks and settle down. This usually takes 1-3 minutes. Once you see the block height at 102 or above on each of the nodes, you are ready. If the script fails, you can stop everything (+docker-compose down+) and try again from the beginning, or you can manually issue the commands in the script one by one and look at the results.
 
 [TIP]
 ====
