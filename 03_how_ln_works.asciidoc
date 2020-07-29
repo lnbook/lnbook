@@ -247,14 +247,15 @@ Channels partners can agree to announce their channel to the whole Lightning Net
 
 Announcing channels publicly allows other nodes to use them for payment routing, thereby also generating routing fees for the channel partners.
 
-By contrast, the channel partners may decide to keep the existence of the channel private and not announce it, making it a _private channel_.
+By contrast, the channel partners may decide not to announce the channel, making it an _unannounced_ channel.
+
 
 [NOTE]
 ====
-While a private channel will not be known to others while it is in use, it's existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction.
+You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, it's existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction. It's existence can also leak in a variety of other ways, so we avoid calling it "private"
 ====
 
-Private channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes a private channel.
+Unannounced channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes a unannounced channel.
 
 When a channel and its capacity is publicly announced using the gossip protocol, the announcement can also include information about the channel (metadata), such as it's routing fees and timelock duration.
 
@@ -390,7 +391,7 @@ The payment process of the Lightning Network is only secure if +r+ is chosen com
 
 Invoices can optionally include other useful meta data such as a short text description. If a user has several invoices to pay, the user can read the description and be reminded what the invoice is about.
 
-The invoice can also include some _routing hints_, which are private channels that have not been publicly announced, but can be used by the sender to construct a route to the recipient. Routing hints can also be used to suggest public channels, for example channels known by the recipient to have enough inbound capacity to route the payment.
+The invoice can also include some _routing hints_, which are unannounced channels that have not been publicly announced, but can be used by the sender to construct a route to the recipient. Routing hints can also be used to suggest public channels, for example channels known by the recipient to have enough inbound capacity to route the payment.
 
 In case the sender's Lightning node is unable to send the payment over the Lightning Network, invoices can optionally include an on-chain Bitcoin address as a fallback.
 
