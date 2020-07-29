@@ -9,7 +9,7 @@ In the previous chapters you have already learned that payment channels
 * can stay open for an arbitrary time. Potentially in the best case forever.
 * do not require peers to trust each other as any attempt by a peer to cheat would enable the other peer to receive all the funds in the channel as a panality.
 * can be connected to a network and allow peers to send money a long a path of connected channels without the necessity to trust the intermediary nodes as they have no ability to steal the Bitcoin that are being forwarded.
-* 
+*
 
 In this chapter we will dig deeper into the protocol details that are needed to open and close payment channels.
 Working through this rather technical chapter you will be able to understand how the protocol design achieves the properties of payment channels.
@@ -41,6 +41,20 @@ The capacity of the channel relates to the amount that is bound to the unspent 2
 It is opened with the help of a funding transaction that sends bitcoin to a 2 - of - 2 multisignature output together with a communication protocol that helps to initialize and maintain its state.
 The balance of the channel encodes how the capacity is split between the two peers who maintain the channel.
 Technically the balance is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
+
+.Bitcoin, Lightning and "Ownership" of funds
+****
+When someone says they 'own' bitcoin they typically mean that they know the private key of a bitcoin address that has some unspent transaction outputs (UTXOs).
+The private key allows the owner to produce a signature for a transaction that spends the bitcoin by sending it to a different address.
+Thus 'ownership' of bitcoin can be defined as the ability to spend that bitcoin.
+
+If you have an unpublished but signed transaction from a 2-out-of-2 multisignature address, where some outputs are sent to an address you own, and additionally you own one of the private keys of the multisignature address, then you effectively own the bitcoin of that output.
+Without your help no other transaction from the 2-out-of-2 multisignature address can be produced.
+However, without the help of anybody else you can transfer the funds to an address which you control.
+On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-out-of-2 multisignature address.
+
+****
+
 These commitment transactions should never hit the blockchain and serve as a safty net for the participants in case the channel partner becomes unresponsive of disappears.
 They are also the reason why the Lightning Network is called an offchain scaling solution.
 Each channel partner has both signatures for one of the commitment transactions from the sequence of pairs.
@@ -69,7 +83,7 @@ Alice has heard that Payment channel are 2 - of - 2 multisnature outputs.
 As she wants to have a channel with Bob and since she knows a public key from Bob she decides to open a channel by sending money to a 2 - of - 2 multisignature address that comes from Bob's and her key.
 We call the Transaction that Alices used a **funding transaction** as it is supposed to fund the payment channel.
 However signing and broadcasting this funding transaction would be a huge mistake.
-As we have discussed the Bitcoins from the resulting UTXO can only be spent if Alice and Bob work together and both provide a signature for a transaction spending those coins. 
+As we have discussed the Bitcoins from the resulting UTXO can only be spent if Alice and Bob work together and both provide a signature for a transaction spending those coins.
 If Bob would not respond to Alice in future Alice would have lost her Bitcoins forever.
 That is because the coins would be stuck in the 2 - of - 2 multisignature address to which she has just sent them.
 
@@ -88,13 +102,13 @@ Even if he did Alice intends to spend from an output which Bob never was involve
 Thus at that point for Bob it is perfectly reasonable to sign the commitment transaction that spends the funding transaction.
 On the other side you as a reader might think:
 
-Why would Alice send money to a multisignature address just to prepare a transaction that sends the money back to her? 
+Why would Alice send money to a multisignature address just to prepare a transaction that sends the money back to her?
 
 We really hope you have wondered about this because this is really the point where the innovation begins.
 Just because in general people are expected to broadcast a transaction to the bitcoin network as soon as they have signed it noone forcses you to do that.
 
-As Alice would loose access of her Bitcoins once she sends it to a 2 - of - 2 multisignature output for which she only controlls one key she needs to make sure that she will be able to regain access of her coins in case Bob becomes unresponisive. 
-Thus before Alice publishes the funding transaction she will create another transaction that sends all the bitcoin from the 2 - of - 2 multisignature output back to an address which she controlls. 
+As Alice would loose access of her Bitcoins once she sends it to a 2 - of - 2 multisignature output for which she only controlls one key she needs to make sure that she will be able to regain access of her coins in case Bob becomes unresponisive.
+Thus before Alice publishes the funding transaction she will create another transaction that sends all the bitcoin from the 2 - of - 2 multisignature output back to an address which she controlls.
 
 .The situation can be seen in the following picture
 image:channel-construction-opening-1.png[]
@@ -135,7 +149,7 @@ But as the commitment transactions are not broadcasted - as long as the channel 
 At this point we want to emphasize that the section was labeled in a way that suggests that this construction is insecure.
 So the main question reads:
 
-    What can go wrong with the insecure payment channel? 
+    What can go wrong with the insecure payment channel?
 
 The thing that goes and makes this construction insecure lies within the mechanics of Bitcoin.
 The key innovation of Bitcoin was to prevent the double spending problem of electronic coins.
@@ -145,7 +159,7 @@ But similarly Alice could broadcast the first commitment transaction and transfe
 As Bitcoin prevents double spending of the funding transaction miners will include only one of the two commitment transactions.
 Thus we need to adapt the idea with the commitment transactions to create the ability to revoke an old commitment transaction.
 Regarding the fact that Bob and Alice Both have a copy of the transaction and that Bob cannot controll the Data that Alice has stored on her hardware it seems pretty hopeless.
-Luckily the scripting language in Bitcoin allows at least for changing commitment transactions in a way that econimically disencentivices channel partners to publish and outdated balances after they have negotated a new balance. 
+Luckily the scripting language in Bitcoin allows at least for changing commitment transactions in a way that econimically disencentivices channel partners to publish and outdated balances after they have negotated a new balance.
 
 #### Secure Payment channels via Revokable Commitment transactions
 
@@ -183,7 +197,7 @@ It does however mean that the user who opens the channel also has to provide the
 Let us stick to our example where Alice opens a channel with Bob with a capacity of 100k satoshi.
 This means that Alice provides 100k satoshi.
 Alice will do that by creating a so called funding transaction.
-This transaction sends 100k satoshi from an address that she - or her lightning node software controlls - to a 2 - of - 2 multisig address for which she and Bob know 1 secret key each. 
+This transaction sends 100k satoshi from an address that she - or her lightning node software controlls - to a 2 - of - 2 multisig address for which she and Bob know 1 secret key each.
 The amount of Bitcoin that is sent to the multisig output by Alice is called the capacity of the payment channel.
 Thus for the reminder of the chapter in all examples we assume the payment channels that we use as examples already magically exist and the two peers Alice and Bob already have all the necessary data at hand.
 
@@ -192,7 +206,7 @@ Thus for the reminder of the chapter in all examples we assume the payment chann
 Even though Alice and Bob both have a public node key to which they own the private secret opening a payment channel is not as easy as sending bitcoins to the 2 out of 2 multisignature output that belongs to the public keys of Alice and Bob.
 Let us assume for a moment that Alice would send 100k Satoshi to the Multisig address resulting from hers and Bob's public node id.
 In that case Alice will never be able to maintain her funds back without the help of Bob.
-Of course we want our payment channels to work in a way that Alice does not need to trust Bob. 
+Of course we want our payment channels to work in a way that Alice does not need to trust Bob.
 Bob could however refuse to sign a transaction that sends all those outputs back to an address that is controlled by Alice.
 He would be able to blackmail Alice to assign a significant amount of those Bitcoin to an output address that is controlled by him.
 Thus Bob can't steel the coins from Alice directly but he can threten Alice to have her coins lost forever.
@@ -215,7 +229,7 @@ Alice needs to inform Bob which key she intends to use for their channel and ask
 She will do that by sending Bob and `open_channel` message signaling her interest to open a channel.
 This message contains a lot of additional data fields.
 Most of them specify meta data which is necessary for the channel operation and can be be safely ignored for now.
-We will only look at the following ones: 
+We will only look at the following ones:
 
 * [chain_hash:chain_hash]
 * [32*byte:temporary_channel_id]
@@ -273,7 +287,7 @@ Relevant questions to answer:
       * At a high level, how does the MAC protocol for 802.11 work?
       * What steps need to happen for a new commitment state to be proposed and irrevocably committed for both parties?
       * When is it safe for a party to forward a new HTLC to another peer? (may be out of scope for this chapter)
-      * Is it possible to commit a 
+      * Is it possible to commit a
       * How does the current MAC protocol for the LN work?
         * What does an htlc_add message contain?
         * How are HTLCs cancelled or settled?
