@@ -158,12 +158,12 @@ By holding a signed commitment transaction, each channel partner can get their f
 
 The commitment transaction that Alice prepared in the previous example, was a "refund" of her initial payment to the multisignature address. More generally however, a commitment transaction splits the funds of the payment channel, paying the two channel partners according to the distribution (balance) they each hold. At first, Alice holds all the balance, so it is a simple refund. But as funds flow from Alice to Bob, they will exchange signatures for new commitment transactions that represent the new balance distribution, with some part of the funds paid to Alice and some paid to Bob.
 
-Let us assume Alice opens a channel with a capacity of 10 mBTC with Bob.
-Initially Alice owns 10 mBTC, the entirety of the funds in the channel. Here's how the payment channel protocol would work:
+Let us assume Alice opens a channel with a capacity of 100k satoshi with Bob.
+Initially Alice owns 100k satoshi, the entirety of the funds in the channel. Here's how the payment channel protocol would work:
 
 . Alice creates a new private / public key pair and informs Bob that she wishes to open a channel via the `open_channel` message (a message in the Lightning Network protocol).
 . Bob also creates a new private / public key pair and agrees to accept a channel from Alice, sending his public key to Alice via the `accept_channel` message.
-. Alice now creates a funding transaction from her wallet that sends 10 mBTC to the multisignature address with a locking script +2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG+.
+. Alice now creates a funding transaction from her wallet that sends 100k satoshi to the multisignature address with a locking script +2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG+.
 . Alice does not yet broadcast this funding transaction but sends Bob the transaction ID in a `funding_created` message.
 . Both Alice and Bob create their version of a commitment transaction. This transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
 . Alice and Bob don't need to exchange these commitment transactions, since they each know how they are constructed and can build both independently. They only need to exchange signatures.
@@ -171,22 +171,22 @@ Initially Alice owns 10 mBTC, the entirety of the funds in the channel. Here's h
 . Bob provides a signature for Alice's Commitment Transaction and sends this back to Alice via the `funding_signed` message.
 . Now that signatures have been exchanged Alice will broadcast the funding transaction to the Bitcoin network.
 
-By following this protocol, Alice does not give up ownership of her 10 mBTC even though the funds are sent to a 2-of-2 multisignature address for which Alice controls only one key.
+By following this protocol, Alice does not give up ownership of her 100k satoshi even though the funds are sent to a 2-of-2 multisignature address for which Alice controls only one key.
 If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
 Her only costs are the fees for the two on-chain transactions.
 As long as she follows the protocol this is her only risk when opening a channel.
 
 After this initial exchange, commitment transactions are created each time the channel balance changes. In other words, each time a payment is sent between Alice and Bob, new commitment transactions are created and signatures are exchanged. Each new commitment transaction encodes the latest balance between Alice and Bob.
 
-If Alice wants to send 3 mBTC to Bob, both would create a new version of their commitment transactions which would now pay 7mBTC to Alice and 3 mBTC to Bob. By encoding a new balance for Alice and Bob, the new commitment transactions are the means by which a payment is "sent" across the channel.
+If Alice wants to send 30k satoshi to Bob, both would create a new version of their commitment transactions which would now pay 70k satoshi to Alice and 30k satoshi to Bob. By encoding a new balance for Alice and Bob, the new commitment transactions are the means by which a payment is "sent" across the channel.
 
 Now that we understand commitment transactions, let's look at some of the more subtle details. You may notice that this protocol leaves a way for either Alice or Bob to cheat.
 
 ==== Cheating with prior state
 
-How many commitment transactions does Alice hold after she pays 3 mBTC to Bob? She holds two: the original one paying her 10 mBTC and the more recent one, paying her 7 mBTC and Bob 3 mBTC.
+How many commitment transactions does Alice hold after she pays 30k satoshi to Bob? She holds two: the original one paying her 100k satoshi and the more recent one, paying her 70k satoshi and Bob 30k satoshi.
 
-In the channel protocol we have seen so far, nothing stops Alice from publishing a previous commitment transaction. A cheating Alice could publish the commitment transaction which grants her 10 mBTC.
+In the channel protocol we have seen so far, nothing stops Alice from publishing a previous commitment transaction. A cheating Alice could publish the commitment transaction which grants her 100k satoshi.
 Since that commitment transaction  was signed by Bob he can't prevent Alice from transmitting it.
 
 Some mechanism is needed to prevent Alice from publishing an old commitment transaction. Let us now find out how this can be achieved and how it enables the Lightning Network to operate without requiring any trust between Alice and Bob.
@@ -197,13 +197,13 @@ The way the penalty works is by giving the cheated party an opportunity to claim
 
 Let us go through the channel construction scenario again, adding a penalty mechanism to protect against cheating:
 
-* Alice creates a channel with Bob and put 10 mBTC into it.
-* Alice send 3 mBTC to Bob.
-* Alice tries to cheat Bob out of his earned 3 mBTC by publishing an old commitment transaction claiming the full 10 mBTC for herself.
-* Bob detects the fraud and punishes Alice by taking the full 10 mBTC for himself.
-* Bob ends up with 10 mBTC, gaining 7 mBTC for catching Alice cheat.
-* Alice ends up with 0 mBTC.
-* Trying to cheat Bob out of 3 mBTC, she loses the 7 mBTC she owned.
+* Alice creates a channel with Bob and put 100k satoshi into it.
+* Alice send 30k satoshi to Bob.
+* Alice tries to cheat Bob out of his earned 30k satoshi by publishing an old commitment transaction claiming the full 100k satoshi for herself.
+* Bob detects the fraud and punishes Alice by taking the full 100k satoshi for himself.
+* Bob ends up with 100k satoshi, gaining 70k satoshi for catching Alice cheat.
+* Alice ends up with 0 satoshi.
+* Trying to cheat Bob out of 30k satoshi, she loses the 70k satoshi she owned.
 
 With a strong penalty mechanism, Alice is not tempted to cheat by publishing an old commitment transaction as she risks losing her entire balance.
 
