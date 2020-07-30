@@ -32,7 +32,18 @@ Furthermore, source-based routing comes with some inherent drawbacks.
 The sender chooses the path based on their current understanding of the topological map of the Lightning network.
 As discussed in previous chapters, this map is necessarily incomplete; the sender may not be aware of all the channels, and even if they are they will almost certainly not know the latest balances in each of the channels.
 And even if the sender did have a complete topological map at one point in time, the balances of channels change with every payment, and so in a short space of time the map would become obsolete.
-It is for this reason that the sender probes various paths until it finds a satisfactory path, and then sends the payment.
-The payment may fail along the way if one of the nodes becomes unreachable, doesn't have the channel balance or required, or the channel is closed in the interim.
+The standard path finding mechanism with source based onion routing that is implemented in all Lightning Network implementations is the following:
+
+1. Select an arbitrary path of payment channels which connects sender and receiver of the payment and for which all channels have a capacity of at least the payment amount and accept HTLCs of this amount.
+2. Construct the onion according to the meta data (basefee, feerate, CLTV delta) of the channels.
+3. Send out the onion and see if the payment settles by nodes sending back preimages or if the payment fails.
+4. If the payment fails use this knowledge to select a different path by starting at step 1.
+
+This means that with every attampted payment nodes actually probe the network and will also learn some information about how balances are distributed.
+Implementations will usually prioritice cheaper paths or exclude channels which recently have failed.
+In that sense the selection is not completely arbitrary.
+Still even with such heuristics in place it could still be considered as a random process or random walk through the channel graph. 
+There can be several reasons why the payment may fail along the way.
+For example one of the nodes becomes unreachable, doesn't have the channel balance, can't accept new htlcs, has updated its fees to a higher amount, or the channel is closed in the interim.
 Furthermore, there is no guarantee that the route chosen was the cheapest in terms of fees, or if a shorter path existed.
 As at the time of writing, this is a design trade-off made to protect user privacy.
