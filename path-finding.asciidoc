@@ -34,3 +34,26 @@ While this is not optimal and certainly can be improved, it should be noted that
 This probing is done by the Lightning node or wallet and is not directly seen by the user of the software.
 The user might only realize that probing is taking place if the payment is not going through instantly.
 The algorithm currently also does not necessarily result in the path with the lowest fees.
+=======
+=== What is "Source-Based" routing and why does the Lightning Network use it?
+
+Source-based routing is a method of path-finding where the sender (i.e. the source) plans the route from itself, through the intermediary nodes, and finally to the destination.
+Once a path has been selected, the sender sends the payment to the first intermediary node, who sends it to the second intermediary node and so on, until it reaches the destination.
+While a payment is in-flight along a path, the path typically does not get changed by any of the intermediary nodes, even if a shorter path or a cheaper path (in terms of routing fees) exists.
+
+
+The Lightning Network uses source-based routing at the time of writing in order to protect user privacy.
+As discussed in the chapter on Onion Routing, the intermediary nodes transmitting the payment are not aware of the full path of the payment; they only know the node they received it from and the node they are sending it to.
+
+We also cannot expect the destination to find a path.
+Even if it specifies a path in the invoice, that path may no longer be viable by the time the invoice is paid, which could be several minutes or several days later.
+The recipient can, however, specify "routing hints" in the invoice that may assist the sender in finding a possible path.
+
+Furthermore, source-based routing comes with some inherent drawbacks.
+The sender chooses the path based on their current understanding of the topological map of the Lightning network.
+As discussed in previous chapters, this map is necessarily incomplete; the sender may not be aware of all the channels, and even if they are they will almost certainly not know the latest balances in each of the channels.
+And even if the sender did have a complete topological map at one point in time, the balances of channels change with every payment, and so in a short space of time the map would become obsolete.
+It is for this reason that the sender probes various paths until it finds a satisfactory path, and then sends the payment.
+The payment may fail along the way if one of the nodes becomes unreachable, doesn't have the channel balance or required, or the channel is closed in the interim.
+Furthermore, there is no guarantee that the route chosen was the cheapest in terms of fees, or if a shorter path existed.
+As at the time of writing, this is a design trade-off made to protect user privacy.
