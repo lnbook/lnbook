@@ -14,6 +14,27 @@ Relevant questions to answer:
   * How can the flexible onion space be used to enabled packet switching in the network?
 
 
+
+
+==== Finding a path
+
+Payments on the Lightning Network are forwarded along a path of channels from one participant to another.
+Thus, a path of payment channels has to be selected.
+If we knew the exact channel balances of every channel we could easily compute a payment path using any of the standard path finding algorithms taught in any computer science program.
+This could even be done in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
+However, as discussed the balance information of all channels is and cannot be available to all participants of the network.
+Thus, we need to have one or more innovative path finding strategy.
+These strategies must relate closely to the routing algorithm that is used.
+As we will see in the next section, the Lightning Network uses a source based onion routing protocol for routing payments.
+This means in particular that the sender of the payment has to find a path through the network.
+With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
+The fact that the path finding problem is not fully solved for the case of the Lightning Network is a major point of criticism towards the technology.
+The path finding strategy currently implemented in Lightning nodes is to probe paths until one is found that has enough liquidity to forward the payment.
+While this is not optimal and certainly can be improved, it should be noted that even this simplistic strategy works well.
+This probing is done by the Lightning node or wallet and is not directly seen by the user of the software.
+The user might only realize that probing is taking place if the payment is not going through instantly.
+The algorithm currently also does not necessarily result in the path with the lowest fees.
+=======
 === What is "Source-Based" routing and why does the Lightning Network use it?
 
 Source-based routing is a method of path-finding where the sender (i.e. the source) plans the route from itself, through the intermediary nodes, and finally to the destination.
