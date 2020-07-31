@@ -21,7 +21,8 @@ Relevant questions to answer:
 Payments on the Lightning Network are forwarded along a path of channels from one participant to another.
 Thus, a path of payment channels has to be selected.
 If we knew the exact channel balances of every channel we could easily compute a payment path using any of the standard path finding algorithms taught in any computer science program.
-This could even be done in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
+Actually when we consider multipath payments it is rather a flow problem than a path finding problem.
+With exact information about channel balances available we could solve those problems in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
 However, as discussed the balance information of all channels is and cannot be available to all participants of the network.
 Thus, we need to have one or more innovative path finding strategy.
 These strategies must relate closely to the routing algorithm that is used.
@@ -35,16 +36,12 @@ This probing is done by the Lightning node or wallet and is not directly seen by
 The user might only realize that probing is taking place if the payment is not going through instantly.
 The algorithm currently also does not necessarily result in the path with the lowest fees.
 
-=== Things we know about path finding
-From a computer science knowledge we know that this is a maxflow problem.
-
 
 === What is "Source-Based" routing and why does the Lightning Network use it?
 
-Source-based routing is a method of path-finding where the sender (i.e. the source) plans the route from itself, through the intermediary nodes, and finally to the destination.
+Source-based routing is a method of path-finding where the sender (i.e. the source) plans the path from itself, through the intermediary nodes, and finally to the destination.
 Once a path has been selected, the sender sends the payment to the first intermediary node, who sends it to the second intermediary node and so on, until it reaches the destination.
 While a payment is in-flight along a path, the path typically does not get changed by any of the intermediary nodes, even if a shorter path or a cheaper path (in terms of routing fees) exists.
-
 
 The Lightning Network uses source-based routing at the time of writing in order to protect user privacy.
 As discussed in the chapter on Onion Routing, the intermediary nodes transmitting the payment are not aware of the full path of the payment; they only know the node they received it from and the node they are sending it to.
@@ -59,13 +56,13 @@ As discussed in previous chapters, this map is necessarily incomplete; the sende
 And even if the sender did have a complete topological map at one point in time, the balances of channels change with every payment, and so in a short space of time the map would become obsolete.
 The standard path finding mechanism with source based onion routing that is implemented in all Lightning Network implementations is the following:
 
-1. Select an arbitrary path of payment channels which connects sender and receiver of the payment and for which all channels have a capacity of at least the payment amount and accept HTLCs of this amount.
-2. Construct the onion according to the meta data (basefee, feerate, CLTV delta) of the channels.
-3. Send out the onion and see if the payment settles by nodes sending back preimages or if the payment fails.
-4. If the payment fails use this knowledge to select a different path by starting at step 1.
+. Select an arbitrary path of payment channels which connects sender and receiver of the payment and for which all channels have a capacity of at least the payment amount and accept HTLCs of this amount.
+. Construct the onion from destination to sender according to the meta data (basefee, feerate, CLTV delta) of the channels.
+. Send out the onion and see if the payment settles by nodes sending back preimages or if the payment fails.
+. If the payment fails use this knowledge to select a different path by starting at step 1.
 
 This means that with every attempted payment nodes actually probe the network and will also learn some information about how balances are distributed.
-Implementations will usually prioritice cheaper paths or exclude channels which recently have failed.
+Implementations will usually prioritise cheaper paths or exclude channels which recently have failed.
 In that sense the selection is not completely arbitrary.
 Still even with such heuristics in place it could still be considered as a random process or random walk through the channel graph. 
 There can be several reasons why the payment may fail along the way.
@@ -73,7 +70,85 @@ For example one of the nodes becomes unreachable, doesn't have the channel balan
 Furthermore, there is no guarantee that the route chosen was the cheapest in terms of fees, or if a shorter path existed.
 As at the time of writing, this is a design trade-off made to protect user privacy.
 
+=== Paths are constructed from Destination to Source
+Let us assume our standard example in which Alice wants to send a payment of 100k satoshi on a path via Bob and Wei to Gloria.
+The Path obviously looks like (Alice)-->(Bob)-->(Wei)-->Gloria.
+However Bob and Wei will charge routing fees to forward the onion.
+As you already know nodes can charge two types of fees.
+First the base fee that will be charged for any successfull forwarding and settlement of and htlc.
+This fee is constant and does not depend on the amount that the node is supposed to forward.
+Additionally nodes might charge a freerate.
+The name rate alredy indicates that this fee depends on the amount that a node is supposed to forward.
+Let us for the simplicity of assume that the feerate of Bob and Wei is very expensive with 1% for Bob and 2% for Wei.
+However Bob and Wei will not take a base fee to keep things simple in our example.
+If Alice constructs the Onion she has to include the routing fees as the differnce of the incoming htlc and the outgoing htlc.
+Let us assume she falsely computes the following to construct the onions with the routing fees.
+Alice knows that 1% of 100k satoshi is 1k satoshi which she belives she should include in Bob's onion.
+Similarly she knows that 1% of 100k satoshi is 2k satoshi which she belives she should include in Wei's onion.
+She would find out that Bob would not forward the onion, if she believed that she would have to pay a total of 3k satoshi and construct an onion that looks like this:
+
+```
+"route": [
+      {
+         "id": "Bob",
+         "channel": "357",
+         "direction": 1,
+         "satoshi": 103000,
+         "dealy": 187,
+      },
+      {
+         "id": "Wei", 
+         "channel": "74",
+         "direction": 1,
+         "satoshi": 102000,
+         "dealy": 183,
+      },
+      {
+         "id": "Gloria",
+         "channel": "452",
+         "direction": 0,
+         "satoshi": 100000,
+         "dealy": 153,
+      }
+   ]
+}
+```
+
+The reason for Bob to not forward the onion is that he expects the the incoming amount to be 1% larger then the amount he is supposed to forward.
+Thus he would like to have an incoming ammount of `103020` satoshi which is 20 satoshi more than Alice sent him.
+According to his fee schedual Bob will have to reject the Onion.
+If Alice constructed the onion from she would have computed 1% of the to forward amount correctly as 1% from 102k satoshi which is 1020 sat.
+Adding 1020 to the 102000 satoshi that Wei needs to have on his incoming channel will result in the right value of 103020 satoshi that Bob requires.
+As the routing fees can increase the amount that is being forwarded even beyond the capacity of small channels it makes sense to start the construction of the onion and the pathfinding from the destination to the sender.
+
+[NOTE]
+====
+While onions are also constructed from inside to outside and thus start with the destination this is not the reason why pathfinding has to start with the destination node. 
+====
+
+=== Fundamentals about path finding
+Finding a path through a graph is a problem modern computers can solve rather efficiently.
+Mostly developers chose bredth first search (if the edges are all of equal weiht) or the Dijkstra Algorithm in cases where the edges are not of equal weight.
+In our case the weights of the edges could be the routing fees and only edges will be included where the capacity is larger than the amount that is to be sent.
+In this basic form pathfinding on the lightning network is very simple and straight forward.
+However as we have already discussed in the introduction channel balances cannot be shared with every participant every time a payment takes place as the system would not scale.
+Thus our easy computer science problem for which we know a solution turns into a rather complex problem.
+We now have to solve a path finding problem with only partial knowledge.
+For example we know which edges might be able to forward a payment because their capacity seems big enough but we can't know it for sure unless we try it out or ask the channel owners directly.
+Even if we where able to ask the channel owners directly their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
+Thus we do not only have partial information but the information we have is highly dynamic and might change before we can use it.
+
+One general observation that everyone can easily make is that if every node along a path is able to forward a certain amount of satoshis these nodes will also be able to forward a lower amount of satoshis.
+This is why many people intuitively belive that multipath payments might be a good strategy.
+Instead of finding one path where every node owns a large amount of liquidity the task is split into smaller ones.
+Another reason is of course that the sender of a payment might just not have the amount they wish to send in one single channel but split over several channels.
+We leave it to later sections of this chapter to discuss the strengths and weaknesses of multipath payments.
+However we note that multi path payments are equivalent to finding a flow between the source and the destination.
+While finding flows in a graph with full knowledge that is static is computationally a little bit more heavythan computing a shortest path it still seams to be a feasable problem.
+Given the reality of the Lightning Network and the fact that we do not need to compute a max flow we currently do not know if the problem is more or less difficult as finding a path.
+It seems to be about equally difficult and the problems are somewhat connect as we will see in the following sections.
+
 === Improvements on Source based onion routing
-One improvement that can be implemented is to introduce concurrency.
-
-
+* concurrency / Redundancy / probing
+* multipath and split payments
+* (proactive / reactive) Rebalancing

@@ -36,12 +36,12 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [P2P Communication](p2p.asciidoc) | # | :bookmark_tabs: |
 | [Channel Construction in Detail](channel-construction.asciidoc) | ######### | :bookmark_tabs: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | # | :bookmark_tabs: |
-| [Payment Path Finding](path-finding.asciidoc) | ### | :bookmark_tabs: |
+| [Payment Path Finding](path-finding.asciidoc) | ##### | :bookmark_tabs: |
 | [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ## | :bookmark_tabs: |
 | [Lightning Applications (LApps)]() | # | :thought_balloon: |
 | [LN's Future]() | # | :thought_balloon: |
 
-Total Word Count: 58747
+Total Word Count: 60123
 
 Target Word Count: 100,000-120,000
 
