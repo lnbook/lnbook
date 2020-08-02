@@ -584,15 +584,15 @@ You may see a different version from that shown above, as the software continues
 
 === The Lightning Network Daemon (LND) node project
 
-The Lightning Network Daemon (LND) - is a complete implementation of a Lightning Network node by Lightning Labs. The LND project provides a number of executable applications, including +lnd+, (the daemon itself) and +lncli+ (the command-line utility). LND has several pluggable back-end chain services including btcd (a full-node), bitcoind (Bitcoin Core), and neutrino (a new experimental light client). LND is written in the Go programming language (golang). The project is open source and developed collaboratively on Github:
+The Lightning Network Daemon (LND) is a complete implementation of a Lightning Network node by Lightning Labs. The LND project provides a number of executable applications, including +lnd+ (the daemon itself) and +lncli+ (the command-line utility). LND has several pluggable back-end chain services including btcd (a full-node), bitcoind (Bitcoin Core), and neutrino (a new experimental light client). LND is written in the Go programming language. The project is open source and developed collaboratively on Github:
 
 https://github.com/LightningNetwork/lnd
 
-In the next few sections we will build a docker container to run LND, build LND from source code and learn how to configure and run LND.
+In the next few sections we will build a docker container to run LND, build LND from source code, and learn how to configure and run LND.
 
 ==== Building LND as a docker container
 
-If you've followed the previous examples in this chapter, you should be quite familiar with the basic docker commands by now. In this section we will repeat them to build the LND container. The container is located in +code/docker/lnd+. We start in a terminal, by switching the working directory to +code/docker+ and issuing the +docker build+ command:
+If you have followed the previous examples in this chapter, you should be quite familiar with the basic docker commands by now. In this section we will repeat them to build the LND container. The container is located in +code/docker/lnd+. We issue commands in a terminal to change the working directory to +code/docker+ and perform the +docker build+ command:
 
 ----
 $ cd code/docker
@@ -612,22 +612,22 @@ Successfully tagged lnbook/lnd:latest
 
 ----
 
-Our container is now built and ready to run. As with the c-lightning container we built previously, the LND container also depends on a running instance of Bitcoin Core. As before, we need to start the bitcoind container in another terminal and connect LND to it via a docker network. We've already set up a docker network called +lnbook+ and will be using that again here.
+Our container is now built and ready to run. As with the c-lightning container we built previously, the LND container also depends on a running instance of Bitcoin Core. As before, we need to start the bitcoind container in another terminal and connect LND to it via a docker network. We have already set up a docker network called +lnbook+ previously and will be using that again here.
 
 [TIP]
 ====
-A single bitcoind container can serve many many Lightning nodes. Normally, each node operator would run a Lightning node and Bitcoin node on their own server. Since we are simulating a network we can run several Lightning nodes, all connecting to a single Bitcoin node in regtest mode.
+Normally, each node operator runs its own Lightning node and its own Bitcoin node on their own server. For us a single bitcoind container can serve many Lightning nodes. On our simulated network we can run several Lightning nodes, all connecting to a single Bitcoin node in regtest mode.
 ====
 
 ==== Running the bitcoind and LND containers
 
-As before, we start the bitcoind container in one terminal and LND in another. If you already have the bitcoind container running, you do not need to restart it. Just leave it running and skip the next step. To start bitcoin in the +lnbook+ network, we use +docker run+, like this:
+As before, we start the bitcoind container in one terminal and LND in another. If you already have the bitcoind container running, you do not need to restart it. Just leave it running and skip the next step. To start bitcoind in the +lnbook+ network we use +docker run+ like this:
 
 ----
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-Next, we start the LND container we just built. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
+Next, we start the LND container we just built. As done before we need to attach it to the +lnbook+ network and give it a name:
 
 ----
 $ docker run -it --network lnbook --name lnd lnbook/lnd
@@ -644,9 +644,9 @@ Funding lnd wallet
 
 ----
 
-The LND container starts up and connects to the bitcoind container over the docker network. First, our LND node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node, creating a transaction that funds the LND wallet with 10 test BTC.
+The LND container starts up and connects to the bitcoind container over the docker network. First, our LND node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node thereby creating a transaction that funds the LND wallet with 10 test BTC.
 
-As we demonstrated previously, we can issue commands to our container in another terminal, to extract information, open channels etc. The command that allows us to issue command-line instructions to the +lnd+ daemon is called +lncli+. Let's get the node info, in another terminal window, using the +docker exec+ command:
+As we demonstrated previously, we can issue commands to our container in another terminal in order to extract information, open channels etc. The command that allows us to issue command-line instructions to the +lnd+ daemon is called +lncli+. Let's get the node info using the +docker exec+ command in another terminal window:
 
 ----
 $ docker exec lnd lncli -n regtest getinfo
@@ -663,17 +663,17 @@ $ docker exec lnd lncli -n regtest getinfo
 }
 ----
 
-We now have another Lightning node running on the +lnbook+ network and communicating with bitcoind. If you are still running the c-lightning container, there are now two nodes running. They're not yet connected to each other, but we will be connecting them to each other soon.
+We now have another Lightning node running on the +lnbook+ network and communicating with bitcoind. If you are still running the c-lightning container, then there are now two nodes running. They're not yet connected to each other, but we will be connecting them to each other soon.
 
-If you want, you can run several LND nodes, or c-lightning nodes, or any combination of these on the same Lightning network. To run a second LND node, for example, you would issue the +docker run+ command with a different container name, like this:
+If desired, you can run any combination of LND and c-lightning nodes on the same Lightning network. For example, to run a second LND node you would issue the +docker run+ command with a different container name like so:
 
 ----
 $ docker run -it --network lnbook --name lnd2 lnbook/lnd
 ----
 
-In the command above, we start another LND container, named +lnd2+. The names are entirely up to you, as long as they are unique. If you don't provide a name, docker will construct a unique name by randomly combining two English words, such as "naughty_einstein" (this is the actual name docker chose when we wrote this paragraph - how funny!).
+In the command above, we start another LND container, naming it +lnd2+. The names are entirely up to you, as long as they are unique. If you don't provide a name, docker will construct a unique name by randomly combining two English words such as "naughty_einstein". This was the actual name docker chose for us when we wrote this paragraph. How funny!
 
-In the next section we will also look at how to download and compile LND directly from the source code. This is an optional and advanced step that will teach you how to use the Go language build tools and allow you to make modifications to LND source code. With this knowledge, you can write some code, or fix some bugs. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
+In the next section we will look at how to download and compile LND directly from the source code. This is an optional and advanced step that will teach you how to use the Go language build tools and allow you to make modifications to LND source code. With this knowledge you can write some code or fix some bugs. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
 
 ==== Installing LND from source code
 
