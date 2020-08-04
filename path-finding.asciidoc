@@ -22,6 +22,7 @@ Payments on the Lightning Network are forwarded along a path of channels from on
 Thus, a path of payment channels has to be selected.
 If we knew the exact channel balances of every channel we could easily compute a payment path using any of the standard path finding algorithms taught in any computer science program.
 Actually when we consider multipath payments it is rather a flow problem than a path finding problem.
+Since flows consist of several paths we conveniently talk about path finding.
 With exact information about channel balances available we could solve those problems in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
 However, as discussed the balance information of all channels is and cannot be available to all participants of the network.
 Thus, we need to have one or more innovative path finding strategy.
@@ -114,7 +115,7 @@ She would find out that Bob would not forward the onion, if she believed that sh
 }
 ```
 
-The reason for Bob to not forward the onion is that he expects the the incoming amount to be 1% larger then the amount he is supposed to forward.
+The reason for Bob to not forward the onion is that he expects the incoming amount to be 1% larger then the amount he is supposed to forward.
 Thus he would like to have an incoming ammount of `103020` satoshi which is 20 satoshi more than Alice sent him.
 According to his fee schedual Bob will have to reject the Onion.
 If Alice constructed the onion from she would have computed 1% of the to forward amount correctly as 1% from 102k satoshi which is 1020 sat.
@@ -128,13 +129,14 @@ While onions are also constructed from inside to outside and thus start with the
 
 === Fundamentals about path finding
 Finding a path through a graph is a problem modern computers can solve rather efficiently.
-Mostly developers chose bredth first search (if the edges are all of equal weiht) or the Dijkstra Algorithm in cases where the edges are not of equal weight.
+Mostly developers choose bredth first search (if the edges are all of equal weight) or the Dijkstra Algorithm in cases where the edges are not of equal weight.
 In our case the weights of the edges could be the routing fees and only edges will be included where the capacity is larger than the amount that is to be sent.
 In this basic form pathfinding on the lightning network is very simple and straight forward.
 However as we have already discussed in the introduction channel balances cannot be shared with every participant every time a payment takes place as the system would not scale.
 Thus our easy computer science problem for which we know a solution turns into a rather complex problem.
 We now have to solve a path finding problem with only partial knowledge.
-For example we know which edges might be able to forward a payment because their capacity seems big enough but we can't know it for sure unless we try it out or ask the channel owners directly.
+For example we know which edges might be able to forward a payment because their capacity seems big enough but we can't know it for sure
+unless we try it out or ask the channel owners directly.
 Even if we where able to ask the channel owners directly their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
 Thus we do not only have partial information but the information we have is highly dynamic and might change before we can use it.
 
@@ -144,9 +146,58 @@ Instead of finding one path where every node owns a large amount of liquidity th
 Another reason is of course that the sender of a payment might just not have the amount they wish to send in one single channel but split over several channels.
 We leave it to later sections of this chapter to discuss the strengths and weaknesses of multipath payments.
 However we note that multi path payments are equivalent to finding a flow between the source and the destination.
-While finding flows in a graph with full knowledge that is static is computationally a little bit more heavythan computing a shortest path it still seams to be a feasable problem.
+While finding flows in a graph with full knowledge that is static is computationally a little bit more heavy than computing a shortest path it still seams to be a feasable problem.
 Given the reality of the Lightning Network and the fact that we do not need to compute a max flow we currently do not know if the problem is more or less difficult as finding a path.
 It seems to be about equally difficult and the problems are somewhat connect as we will see in the following sections.
+
+=== Probing based path finding algorithm on the Lightning Network
+As discussed in order to reliably find a path nodes would need to know the balance of remote payment channels and the balances would have to be static.
+As both is not given nodes currently use a probing based algorithm.
+In its most basic form the algorithm works as follows:
+
+. Select a random path to the destination node
+. Construct and send the onion
+. wait for the response of the onion
+. if response == preimage --> success
+. if response == feilure --> start over from begin.
+
+Nodes will use various sources of information to improve the selection of a random path.
+The main source of information is the gossip protocol.
+From the gossip protocol a node learns which other nodes exist and which channels have been opened.
+This will basically provide a network view that can be used to run graph algorithms that generate plausible paths.
+For example a breadth first seach traversal.
+The graph algorithm will usually be constrained to channels that have at least the capacity of the amount to be sent.
+In practice due to channel reserve and the assumption that the capacity in the channel will not be sitting completely on one side it is saver to prefer larger channels.
+
+The second source of information is the blockchain itself.
+If channels are closed this is not announced via the gossip protocol.
+However as the funding transaction is encoded by the short channel id of the channel and as it will be spent if the channel is closed nodes have to use this information to update their knowledge about the network of channels.
+
+Another source of information are the past payments themselves.
+Onions can return with errors.
+Knowing for example that the third hop along a path returns an error means that the first two channels had enough balance and that the third channel - depending on the error - did not have enough balance.
+Such edges can be removed from the set of edges similarly to the edges that do not have enough capacity.
+Similarly nodes could use such information from previous payment attempts.
+It is important that nodes are carefull with this data.
+As the capacity information of channels from the gossip protocol and blockchain data is verifiably correct the data from our third source of information can be incorrect.
+Nodes might just send an error back because they do not want to reveal balance information.
+Also the data might just change over time as the balances in the lightning network are not static and changing with every payment attempt that is being made.
+Thus nodes should only use such data if it is not to far in the past or use it only with a certain confidence.
+
+The last source of information that nodes could use is to probe the network themselves.
+Instead of making the actual payment nodes could send out many fake payments which are onions to a random payment hash.
+Given the properties of the hashfunction it is save to assume that noone would know the preimage.
+In that sense the payment will only fail at the destination and nodes can learn a lot about the balances.
+Of course this produces spam and heavy load on the network and it is not recommended that nodes do this.
+However participants cannot really be stopped from doing this.
+unless channel partners see a lot of traffic coming on a channel which always fails and never settles.
+In this case channel partners could decide to close the channel. 
+
+[Note]
+====
+We want you to understand that Lightning Network by design does not have perfect privacy.
+While a lot of information is not easily accessible every time a path is probed the node learns something about the state of the network at that point in time. 
+====
 
 === Improvements on Source based onion routing
 * concurrency / Redundancy / probing
