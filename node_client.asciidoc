@@ -737,7 +737,7 @@ You will likely see a different version from that shown above, as the software c
 
 === The Eclair Lightning node project
 
-Eclair (French for Lightning) is a Scala implementation of the Lightning Network, made by ACINQ. Eclair is also one of the most popular and pioneering mobile Lightning wallets, which we used to demonstrate a Lightning payment in the second chapter. In this section we are examining the Eclair server project, which runs a Lightning node. Eclair is an open source project and can be found on GitHub:
+Eclair (French for Lightning) is a Scala implementation of the Lightning Network made by ACINQ. Eclair is also one of the most popular and pioneering mobile Lightning wallets which we used to demonstrate a Lightning payment in the second chapter. In this section we examine the Eclair server project which runs a Lightning node. Eclair is an open source project and can be found on GitHub:
 
 https://github.com/ACINQ/eclair
 
@@ -746,7 +746,7 @@ In the next few sections we will build a docker container to run Eclair, as we d
 
 ==== Building Eclair as a Docker container
 
-By this point, you are almost an expert in the basic operations of docker! In this section we will repeat many of the commands you have seen previously to build the Eclair container. The container is located in +code/docker/eclair+. We start in a terminal, by switching the working directory to +code/docker+ and issuing the +docker build+ command:
+By now, you are almost an expert in the basic operations of docker! In this section we will repeat many of the previously seen commands to build the Eclair container. The container is located in +code/docker/eclair+. We start in a terminal, by switching the working directory to +code/docker+ and issuing the +docker build+ command:
 
 ----
 $ cd code/docker
@@ -771,19 +771,19 @@ Successfully tagged lnbook/eclair:latest
 
 ----
 
-Our container is now built and ready to run. The Eclair container also depends on a running instance of Bitcoin Core. As before, we need to start the bitcoind container in another terminal and connect Eclair to it via a docker network. We've already set up a docker network called +lnbook+ and will be using that again here.
+Our container is now built and ready to run. The Eclair container also depends on a running instance of Bitcoin Core. As before, we need to start the bitcoind container in another terminal and connect Eclair to it via a docker network. We have already set up a docker network called +lnbook+ and will be reusing it here.
 
-One notable difference between Eclair and LND or c-lightning is that Eclair doesn't contain a separate bitcoin wallet, but instead relies on the bitcoin wallet in Bitcoin Core directly. For example, whereas with LND we "funded" it's bitcoin wallet by executing a transaction to transfer bitcoin from Bitcoin Core's wallet to LND's bitcoin wallet, this step is not necessary. When running Eclair, the Bitcoin Core wallet is used directly as the source of funds to open channels. As a result, the Eclair container does not contain a script to transfer bitcoin into its wallet on startup, unlike the LND or c-lightning containers.
+One notable difference between Eclair and LND or c-lightning is that Eclair doesn't contain a separate bitcoin wallet but instead relies directly on the bitcoin wallet in Bitcoin Core. Recall that using LND we "funded" its bitcoin wallet by executing a transaction to transfer bitcoin from Bitcoin Core's wallet to LND's bitcoin wallet. This step is not necessary using Eclair. When running Eclair, the Bitcoin Core wallet is used directly as the source of funds to open channels. As a result, unlike the LND or c-lightning containers, the Eclair container does not contain a script to transfer bitcoin into its wallet on startup.
 
-==== Running the bitcoind and eclair containers
+==== Running the bitcoind and Eclair containers
 
-As before, we start the bitcoind container in one terminal and the eclair container in another. If you already have the bitcoind container running, you do not need to restart it. Just leave it running and skip the next step. To start bitcoin in the +lnbook+ network, we use +docker run+, like this:
+As before, we start the bitcoind container in one terminal and the Eclair container in another. If you already have the bitcoind container running, you do not need to restart it. Just leave it running and skip the next step. To start +bitcoind+ in the +lnbook+ network, we use +docker run+ like this:
 
 ----
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-Next, we start the eclair container we just built. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
+Next, we start the Eclair container we just built. We will need to attach it to the +lnbook+ network and give it a name, just as we did with the other containers:
 
 ----
 $ docker run -it --network lnbook --name eclair lnbook/eclair
@@ -800,9 +800,9 @@ INFO  fr.acinq.eclair.Setup - version=0.4 commit=69c538e
 
 ----
 
-The eclair container starts up and connects to the bitcoind container over the docker network. First, our eclair node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet.
+The Eclair container starts up and connects to the bitcoind container over the docker network. First, our Eclair node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet.
 
-As we demonstrated previously, we can issue commands to our container in another terminal, to extract information, open channels etc. The command that allows us to issue command-line instructions to the +eclair+ daemon is called +eclair-cli+. The +eclair-cli+ command expects a password, which we have set to "eclair" in this container and we will pass +eclair-cli+ that password with the +p+ flag. Let's get the node info, in another terminal window, using the +docker exec+ command:
+As we demonstrated previously, we can issue commands to our container in another terminal in order to extract information, open channels etc. The command that allows us to issue command-line instructions to the +eclair+ daemon is called +eclair-cli+. The +eclair-cli+ command expects a password which we have set to "eclair" in this container. We pass the password +eclair+ to the +eclair-cli+ command via the +p+ flag. Using the +docker exec+ command in another terminal window we get the node info from Eclair:
 
 ----
 $ docker exec eclair eclair-cli -p eclair getinfo
@@ -819,15 +819,15 @@ $ docker exec eclair eclair-cli -p eclair getinfo
 
 ----
 
-We now have another Lightning node running on the +lnbook+ network and communicating with bitcoind. If you want, you can run several Eclair  nodes, or LND, or c-lightning nodes, or any combination of these on the same Lightning network. To run a second Eclair node, for example, you would issue the +docker run+ command with a different container name, like this:
+We now have another Lightning node running on the +lnbook+ network and communicating with bitcoind. You can run any number and any combination of Lightning nodes on the same Lightning network. Any number of Eclair, LND, and c-lightning nodes can coexist. For example, to run a second Eclair node you would issue the +docker run+ command with a different container name as follows:
 
 ----
 $ docker run -it --network lnbook --name eclair2 lnbook/eclair
 ----
 
-In the command above, we start another Eclair container, named +eclair2+.
+In the above command we start another Eclair container named +eclair2+.
 
-In the next section we will also look at how to download and compile Eclair directly from the source code. This is an optional and advanced step that will teach you how to use the Scala and Java language build tools and allow you to make modifications to Eclair's source code. With this knowledge, you can write some code, or fix some bugs. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
+In the next section we will also look at how to download and compile Eclair directly from the source code. This is an optional and advanced step that will teach you how to use the Scala and Java language build tools and allow you to make modifications to Eclair's source code. With this knowledge, you can write some code or fix some bugs. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
 
 ==== Installing Eclair from source code
 
