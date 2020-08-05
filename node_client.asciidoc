@@ -206,7 +206,7 @@ The container for Bitcoin Core is +bitcoind+. It is configured to run Bitcoin Co
 
 ===== Building the Bitcoin Core Container
 
-Let's start by building and running the +bitcoind+ container. First, we use the +docker build+ command to build it:
+Let us start by building and running the +bitcoind+ container. First, we use the +docker build+ command to build it:
 
 ----
 $ cd code/docker
@@ -273,7 +273,7 @@ root@e027fd56e31a:/bitcoind# ps x
 root@e027fd56e31a:/bitcoind#
 ----
 
-Running the interactive shell puts us "inside" the container. It logs in as user +root+, as we can see from the prefix +root@+ in the new shell prompt +root@e027fd56e31a:/bitcoind#+. If we issue the +ps x+ command to see what processes are running, we see both bitcoind and the script +mine.sh+ are running in the background. To exit this shell, type +CTRL-D+ or +exit+ and you will be returned to your operating system prompt.
+Running the interactive shell puts us "inside" the container. It logs in as user +root+, as we can see from the prefix +root@+ in the new shell prompt +root@e027fd56e31a:/bitcoind#+. If we issue the +ps x+ command to see what processes are running, we see both +bitcoind+ and the script +mine.sh+ are running in the background. To exit this shell, type +CTRL-D+ or +exit+ and you will be returned to your operating system prompt.
 
 Instead of running an interactive shell, we can also issue a single command that is executed inside the container. In the following example we run the +bitcoin-cli+ command to obtain information about the current blockchain state:
 
@@ -293,7 +293,7 @@ $
 
 As you can see, we need to tell +bitcoin-cli+ where the bitcoind data directory is by using the +datadir+ argument. We can then issue RPC commands to the Bitcoin Core node and get JSON encoded results.
 
-All our docker containers have +jq+, which is a command-line JSON encoder/decoder, preinstalled. +jq+ helps us to process JSON-formatted data via the command-line or from inside scripts. You can send the JSON output of any command to +jq+ using the +|+ character. This character as well as this operation is called a "pipe". Let's apply a +pipe+ and +jq+ to the previous command as follows:
+All our docker containers have a command-line JSON encoder/decoder named +jq+ preinstalled. +jq+ helps us to process JSON-formatted data via the command-line or from inside scripts. You can send the JSON output of any command to +jq+ using the +|+ character. This character as well as this operation is called a "pipe". Let's apply a +pipe+ and +jq+ to the previous command as follows:
 
 ----
 $ docker exec bitcoind bash -c "bitcoin-cli -datadir=/bitcoind getblockchaininfo | jq .blocks"
@@ -302,7 +302,7 @@ $ docker exec bitcoind bash -c "bitcoin-cli -datadir=/bitcoind getblockchaininfo
 
 +jq .blocks+ instructs the +jq+ JSON decoder to extract the field +blocks" from the +getblockchaininfo+ result. In our case, it extracts and prints the value of 189 which we could use in a subsequent command.
 
-As you will see in the following sections, we can run several containers at the same time and then interact with them individually. We can issue commands to extract information such as the Lightning node public key, or to take actions such as opening a Lightning channel to another node. The +docker run+ and +docker exec+ commands together with +jq+ for JSON decoding are all we need to build a working Lightning Network that mixes many different node implementations. This enables us to try out diverse experiments on our own computer.
+As you will see in the following sections, we can run several containers at the same time and then interact with them individually. We can issue commands to extract information such as the Lightning node public key or to take actions such as opening a Lightning channel to another node. The +docker run+ and +docker exec+ commands together with +jq+ for JSON decoding are all we need to build a working Lightning Network that mixes many different node implementations. This enables us to try out diverse experiments on our own computer.
 
 === The c-lightning Lightning node project
 
@@ -316,7 +316,7 @@ In the following sections, we will build a docker container that runs a c-lightn
 
 The c-lightning software distribution has a docker container, but it is designed for running c-lightning in production systems and along side a bitcoind node. We will be using a somewhat simpler container configured to run c-lightning for demonstration purposes.
 
-We start by building the c-lightning docker container, from the book's files which you previously downloaded into a directory named +lnbook+. As before, we will use the +docker build+ command, in the +code/docker+ sub-directory. We will tag the container image with the tag +lnbook/c-lightning+, like this:
+We start by building the c-lightning docker container from the book's files which you previously downloaded into a directory named +lnbook+. As before, we will use the +docker build+ command in the +code/docker+ sub-directory. We will tag the container image with the tag +lnbook/c-lightning+ like this:
 
 ----
 $ cd code/docker
@@ -335,16 +335,16 @@ Successfully built e63f5aaa2b16
 Successfully tagged lnbook/c-lightning:latest
 ----
 
-Our container is now built and ready to run. However, before we run the c-lightning container, we need to start the bitcoind container in another terminal, as c-lightning depends on bitcoind. We will also need to set up a docker network that allows the containers to connect to each other, as if they are on the same local area network.
+Our container is now built and ready to run. However, before we run the c-lightning container, we need to start the bitcoind container in another terminal as c-lightning depends on bitcoind. We will also need to set up a docker network that allows the containers to connect to each other as if residing on the same local area network.
 
 [TIP]
 ====
-Docker containers can "talk" to each other over a virtual local-area network managed by the docker system. Each container can also have a custom name and other containers can use that name to resolve its IP address and easily connect to it.
+Docker containers can "talk" to each other over a virtual local area network managed by the docker system. Each container can have a custom name and other containers can use that name to resolve its IP address and easily connect to it.
 ====
 
 ==== Setting up a docker network
 
-Once a docker network is set up, docker will keep it running on our local computer every time docker starts, for example after rebooting. So we only need to set up a network once, using the +docker network create+ command. The network name itself is not important, but has to be unique on our computer. By default, docker has three networks named +host+, +bridge+, and +none+. We will name our new network +lnbook+ and create it like this:
+Once a docker network is set up, docker will activate the network on our local computer every time docker starts, e.g. after rebooting. So we only need to set up a network once by using the +docker network create+ command. The network name itself is not important, but it has to be unique on our computer. By default, docker has three networks named +host+, +bridge+, and +none+. We will name our new network +lnbook+ and create it like this:
 
 ----
 $ docker network create lnbook
@@ -361,13 +361,13 @@ As you can see, running +docker network ls+ gives us a listing of the docker net
 
 ==== Running the bitcoind and c-lightning containers
 
-Let's start the bitcoind and c-lightning containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the +network+ argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start bitcoind like this:
+The next step is to start the bitcoind and c-lightning containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the +network+ argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start bitcoind like this:
 
 ----
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-You should see bitcoind start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command, with the +network+ and +name+ arguments to start c-lightning, like this:
+You should see bitcoind start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command with the +network+ and +name+ arguments to start c-lightning as follows:
 
 ----
 $ docker run -it --network lnbook --name c-lightning lnbook/c-lightning
@@ -383,9 +383,9 @@ Funding c-lightning wallet
 
 ----
 
-The c-lightning container starts up and connects to the bitcoind container over the docker network. First, our c-lightning node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node, creating a transaction that funds the c-lightning wallet with 10 test BTC. Our c-lightning node is not only running, but it has some bitcoin to play with!
+The c-lightning container starts up and connects to the bitcoind container over the docker network. First, our c-lightning node will wait for bitcoind to start and then it will wait until bitcoind has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the bitcoind node which creates a transaction that funds the c-lightning wallet with 10 test BTC. Now our c-lightning node is not only running, but it even has some test bitcoin to play with!
 
-As we demonstrated with the bitcoind container, we can issue commands to our c-lightning container in another terminal, to extract information, open channels etc. The command that allows us to issue command-line instructions to the c-lightning node is called +lightning-cli+. Let's get the node info, in another terminal window, using the +docker exec+ command:
+As we demonstrated with the bitcoind container, we can issue commands to our c-lightning container in another terminal in order to extract information, open channels etc. The command that allows us to issue command-line instructions to the c-lightning node is called +lightning-cli+. To get the node info use the following +docker exec+ command in another terminal window:
 
 ----
 $ docker exec c-lightning lightning-cli getinfo
@@ -422,7 +422,7 @@ $ docker exec c-lightning lightning-cli getinfo
 
 We now have our first Lightning node running on a virtual network and communicating with a test bitcoin blockchain. Later in this chapter we will start more nodes and connect them to each other to make some Lightning payments.
 
-In the next section we will also look at how to download, configure and compile c-lightning directly from the source code. This is an optional and advanced step that will teach you how to use the build tools and allow you to make modifications to c-lighting source code. With this knowledge, you can write some code, fix some bugs, or create a plugin for c-lightning. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
+In the next section we will also look at how to download, configure and compile c-lightning directly from the source code. This is an optional and advanced step that will teach you how to use the build tools and allow you to make modifications to c-lighting source code. With this knowledge you can write some code, fix some bugs, or create a plugin for c-lightning. If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The docker container we just built is sufficient for most of the examples in the book.
 
 ==== Installing c-lightning from source code
 
