@@ -153,22 +153,29 @@ In addition to a Bitcoin and Lightning node, BTCPay server can also install a va
 
 The number of additional services and features is expanding rapidly, so the list above is only a small subset of what is available in the BTCPay Server platform.
 
-
-==== Network bandwidth requirements
-
-
-
 ==== Bitcoin node or lightweight Lightning
 
-* Full node backend (bitcoind, btcd) or lightweight backend (neutrino)
+One critical choice for your node will be the choice of Bitcoin node and its configuration. Bitcon Core, the reference implementation is the most common choice, but not the only choice available. One alternative choice is +btcd+, which is a Go-language implementation of a Bitcoin node. Btcd supports some features that are useful for running an LND Lightning node and are not available in Bitcoin Core.
 
+A second consideration is whether you will run an archival Bitcoin node with a full copy of the blockchain (some 350GB in mid-2020), or a _pruned_ blockchain that only keeps the most recent blocks. A pruned blockchain can save you some disk space, but will still need to download the full blockchain at least one (during the Initial Block Download), so it won't save you anything on network utilization. Using a pruned node to run a Lightning node is still an experimental capability and might not support all the functionality, however many people are running a node like that successfully.
+
+Finally, you also have the option of not running a Bitcoin node at all, instead operating the LND Lightning node in "lightweight" mode, using the _neutrino_ protocol to retrieve blockchain information from public Bitcoin nodes operated by others. Running like this means that you are taking resources from the Bitcoin network without offering any back, but it is still better than not running your own Lightning node at all.
+
+Keep in mind that operating a Bitcoin node allows you to support other services (other than a Lightning node). These other services may require an arcihval (not pruned) Bitcoin node and often can't run without a Bitcoin node. Consider what other services you may need to run now or in the future, to make an informed decision on the type of Bitcoin node you run.
+
+The bottom line for this decision is: If you can afford a > 500GB disk, run a full archival Bitcoin node. You will be contributing resources to the Bitcoin system and helping others who  cannot afford to do so. If you can't afford such a big disk, run a pruned node. If you can't afford the disk or the bandwidth for even a pruned node, run a lightweight LND node over neutrino.
 
 ==== Operating system choice
 
-* What OS will you use (Linux variant, Windows, other)
-* Docker/VM/container or direct installation
+The next decision is on which operating system you build your nodes. The vast majority of internet servers run on some variant of Linux. Linux is the platform of choice for the internet because it is an open source and powerful operating system. Linux, however has a steep learning curve and requires familiarity with a command-line environment. It is often intimidating for new users.
+
+Ultimately, most of the services can be run on any modern POSIX operating system, which includes Mac OS, Windows and of course Linux. Your choice should be driven more by your familiarity and comfort with an operating system and you learning objectives. If you want to expand your knowledge and learn how to operate a Linux system, this is a great opportunity to do so with a specific project and a clear goal. If you just want to get a node up and running, go with what you know.
+
+Nowadays, many services are also delivered in the form of containers, usually based on the docker system. These containers can be deployed on a variety of operating systems, abstracting the underlying OS. You may need to leanr some Linux CLI commands, however, as most of the containers run some variant of Linux inside.
 
 === Choose your Lightning node implementation
+
+
 
 * Which project (LND, eclair, c-lightning, other) will you use
 * Language and build-system familiarity
