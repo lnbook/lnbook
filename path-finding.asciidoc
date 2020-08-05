@@ -8,7 +8,7 @@ Relevant questions to answer:
   * Why must path finding happen backwards (receiver to sender)?
   * How is the information contained in a channel update used in path finding?
   * How can errors sent during payment routing help the sender to narrow their search space?
-  * What is payment splitting? How does it work?
+  * What is payment splitting? How does it work? What alternatives exist?
   * What information can be sent to intermediate and the final node aside from the critical routing data?
   * What are multi-hop locks? What addition privacy and security guarantees to they offer?
   * How can the flexible onion space be used to enabled packet switching in the network?
@@ -88,7 +88,7 @@ Alice knows that 1% of 100k satoshi is 1k satoshi which she belives she should i
 Similarly she knows that 1% of 100k satoshi is 2k satoshi which she belives she should include in Wei's onion.
 She would find out that Bob would not forward the onion, if she believed that she would have to pay a total of 3k satoshi and construct an onion that looks like this:
 
-```
+----
 "route": [
       {
          "id": "Bob",
@@ -113,7 +113,7 @@ She would find out that Bob would not forward the onion, if she believed that sh
       }
    ]
 }
-```
+----
 
 The reason for Bob to not forward the onion is that he expects the incoming amount to be 1% larger then the amount he is supposed to forward.
 Thus he would like to have an incoming ammount of `103020` satoshi which is 20 satoshi more than Alice sent him.
@@ -158,8 +158,8 @@ In its most basic form the algorithm works as follows:
 . Select a random path to the destination node
 . Construct and send the onion
 . wait for the response of the onion
-. if response == preimage --> success
-. if response == feilure --> start over from begin.
+. If response == preimage -> success
+. If response == feilure -> start over from step one.
 
 Nodes will use various sources of information to improve the selection of a random path.
 The main source of information is the gossip protocol.
@@ -184,6 +184,36 @@ Nodes might just send an error back because they do not want to reveal balance i
 Also the data might just change over time as the balances in the lightning network are not static and changing with every payment attempt that is being made.
 Thus nodes should only use such data if it is not to far in the past or use it only with a certain confidence.
 
+The fourth source of information that the node will use are the routing hints in the BOLT 11 invoice.
+Remember that a regular payment process starts with the person who wants to receive money coming up with a random secret and hashing it as the payment hash.
+This hash is usually transported to the sender via an invoice.
+Invoices usually contain some meta data and in particular routing hints.
+This is necessary if the person who wants to be paid does not have announced channels. In that case it will speciefie some unannounced channels within the invoice.
+Otherwise the payer would not even be able to find a path to the "hidden" node.
+Routing hints might also be used by the receiving node to indicate which public channels have enough inbound capacity for the payment and thus the ability to receive funds.
+In general the further away from the originating peer the payment goes the more likely it becomes to select a channel with insufficient balance.
+Thus indicating on which channels a node wishes to receive funds would actually be quite nice for the sender.
+
+
+=== Improvements on Source based onion routing
+
+The probing based approach that is used in the Lightning Network has several flaws.
+Sending out an onion usually takes a certain amount of time.
+The time depends on how many hops the onion is supposed to be forwarded and of course on the speed of nodes processing the onion and the topology on the web.
+In the following diagram you can see how the time for onions to return in general increase with the amount of hops that the onion has encoded.
+
+[[pathfinding-probing]]
+.Research showing the times that onions take to return depending on the distance (CC-BY-SA Tikhomirov, Sergei & Pickhardt, Rene & Biryukov, Alex & Nowostawski, Mariusz. (2020). Probing Channel Balances in the Lightning Network.)
+image:images/probingtimes.ppm[]
+Of course this diagram was just a snapshot from an experiment in early 2020 and things might change.
+We can learn from the Diagram that payments can take several seconds while the node tries to probe several paths.
+This is due to the fact that the fact that single onions can easily take a few seconds to return and a sender might have to send several onions in a row while probing for a sucessfull path.
+in generall this will still be much faster than waiting for confirmations on a bitcoin block but it is not sufficient in an environment where payments need to settle fast.
+If people stand in a line at the cash register for their groceries this would be such a setting.
+Thus lightnign developers 
+
+
+==== Probing based improvements
 The last source of information that nodes could use is to probe the network themselves.
 Instead of making the actual payment nodes could send out many fake payments which are onions to a random payment hash.
 Given the properties of the hashfunction it is save to assume that noone would know the preimage.
@@ -199,7 +229,28 @@ We want you to understand that Lightning Network by design does not have perfect
 While a lot of information is not easily accessible every time a path is probed the node learns something about the state of the network at that point in time. 
 ====
 
-=== Improvements on Source based onion routing
+We note that one should not send two onions at the same time with the same payment hash for which the recipient knows the preimage.
+As long as the onion is being processed and routed the payment is out of controll of the sender.
+In case two onions are sent at the same time the recipient could very well release the preimage twice and get paid twice.
+That was the reason why probing should be conducted with a fake payment hash.
+in that case the sender can probe concurrently as long as the sender has enough funds to pay for all the HTLCs.
+However there is a problem.
+Assume an onion returns indicating that the payment hash was unknown to the recipient but otherwise the path would have been possible.
+The sender would now use this exact path to send the payment with the corrent payment hash.
+Meanwhile the balances of some channels along the path might have changed and the path does not exist anymore.
+In this case the sender would have to start from the beginning all over again.
+Admittedly the risk for this to happen is rather small but there is a chance.
+
+A better way and potential improvement for the future of the Lightning network are stuckless payments...
+
 * concurrency / Redundancy / probing
+* stuckless payments! (as a way to achieve concurrency and a trigger from the sender)
+
+==== Multipath
 * multipath and split payments
+
+==== Rebalancing
 * (proactive / reactive) Rebalancing
+
+
+
