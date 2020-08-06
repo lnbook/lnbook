@@ -677,13 +677,13 @@ In the next section we will look at how to download and compile LND directly fro
 
 ==== Installing LND from source code
 
-In this section we will build LND from scratch. LND is written in the Go programming language (search for golang to avoid irrelevant results on the word "go"). Because it is written in Go and not C or C++, it uses a different "build" framework than the GNU autotools/make framework we saw used in c-lightning previously. Don't fret though, it is quite easy to install and use the golang tools and we will show each step here. Go is a fantastic language for collaborative software development as it produces very consistent, precise and easy to read code regardless of the number of authors. Go is focused and "minimalist" in a way that encourages consistency across versions of the language. As a compiled language, it is also quite efficient. Let's dive in.
+In this section we will build LND from scratch. LND is written in the Go programming language. IF you want to find out more about Go, search for +golang+ instead of +go+ to avoid irrelevant results. Because it is written in Go and not C or C++, it uses a different "build" framework than the GNU autotools/make framework we saw used in c-lightning previously. Don't fret though, it is quite easy to install and use the golang tools and we will show each step here. Go is a fantastic language for collaborative software development as it produces very consistent, precise, and easy to read code regardless of the number of authors. Go is focused and "minimalist" in a way that encourages consistency across versions of the language. As a compiled language, it is also quite efficient. Let's dive in.
 
-We will follow the installation instructions found on the LND project documentation:
+We will follow the installation instructions found in the LND project documentation:
 
 https://github.com/lightningnetwork/lnd/blob/master/docs/INSTALL.md
 
-First, we will install the golang package and associated libraries. We need, _at minimum_ Go version 1.13 or later. The official Go language packages are distributed as binaries from https://golang.org/dl. For convenience they are also packaged as debian packages distributed through the +apt+ command. You can follow the instructions on https://golang.org/dl or use the apt commands below on a Debian/Ubuntu Linux system as described on https://github.com/golang/go/wiki/Ubuntu:
+First, we will install the +golang+ package and associated libraries. We strictly require Go version 1.13 or later. The official Go language packages are distributed as binaries from https://golang.org/dl. For convenience they are also packaged as Debian packages available through the +apt+ command. You can follow the instructions on https://golang.org/dl or use the +apt+ commands below on a Debian/Ubuntu Linux system as described on https://github.com/golang/go/wiki/Ubuntu:
 
 ----
 $ sudo apt install golang-go
@@ -696,7 +696,7 @@ $ go version
 go version go1.13.4 linux/amd64
 ----
 
-We have 1.13.4, so we're ready to... Go! Next we need to tell any programs where to find the Go code. This is accomplished with the environment variable +GOPATH+. It doesn't matter where the GOPATH points, as long as you set it consistently. Usually it is located under the current user's home directory (referred to as +~+ in the shell). Set the +GOPATH+ and make sure your shell adds it to your executable +PATH+ like this:
+We have 1.13.4, so we're ready to... Go! Next we need to tell any programs where to find the Go code. This is accomplished by setting the environment variable +GOPATH+. Usually the Go code is located in a directory named +gocode+ directly in the user's home directory. With the following two commands we consistently set the +GOPATH+ and make sure your shell adds it to your executable +PATH+. Note that the user's home directory is referred to as +~+ in the shell. 
 
 ----
 export GOPATH=~/gocode
@@ -707,24 +707,24 @@ To avoid having to set these environment variables every time you open a shell, 
 
 ==== Copying the LND source code
 
-As with many open source projects nowadays, the source code for LND is on Github. The +go get+ command can fetch it directly using the git protocol:
+As with many open source projects nowadays, the source code for LND is on Github (www.github.com). The +go get+ command can fetch it directly using the git protocol:
 
 ----
 $ go get -d github.com/lightningnetwork/lnd
 ----
 
-Once +git clone+ finishes, you will have a sub-directory under +GOPATH+ that contains the LND source code.
+Once +go get+ finishes, you will have a sub-directory under +GOPATH+ that contains the LND source code.
 
 ==== Compiling the LND source code
 
-LND uses the +make+ build system for convenience. To build the project, we change directory to LND's source code and then use +make+, like this:
+LND uses the +make+ build system. To build the project, we change directory to LND's source code and then use +make+ like this:
 
 ----
 cd $GOPATH/src/github.com/lightningnetwork/lnd
 make && make install
 ----
 
-After several minutes, you will have two new commands +lnd+ and +lncli+ installed. Try them out and check their version, to ensure they are installed:
+After several minutes you will have two new commands +lnd+ and +lncli+ installed. Try them out and check their version to ensure they are installed:
 
 ----
 $ lnd --version
@@ -733,7 +733,7 @@ $ lncli --version
 lncli version 0.10.99-beta commit=clock/v1.0.0-106-gc1ef5bb908606343d2636c8cd345169e064bdc91
 ----
 
-You will likely see a different version from that shown above, as the software continues to evolve long after this book is printed. However, no matter what version you see, the fact that the commands execute and show you version information means that you have succeeded in building the LND software.
+You will likely see a different version from that shown above, as the software continues to evolve long after this book is published. However, no matter what version you see, the fact that the commands execute and show you version information means that you have succeeded in building the LND software.
 
 === The Eclair Lightning node project
 
