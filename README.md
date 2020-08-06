@@ -32,16 +32,16 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################## | :mag: |
 | [Intro to LN Routing (HTLCs)](routing.asciidoc) | ###################### | :lock_with_ink_pen: |
 | [Nodes (LN Clients)](node_client.asciidoc) | #################### | :mag: |
-| [Operating a Node](node_operations.asciidoc) | ##### | :bookmark_tabs: |
+| [Operating a Node](node_operations.asciidoc) | ####### | :bookmark_tabs: |
 | [P2P Communication](p2p.asciidoc) | # | :bookmark_tabs: |
 | [Channel Construction in Detail](channel-construction.asciidoc) | ######### | :lock_with_ink_pen: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | # | :bookmark_tabs: |
-| [Payment Path Finding](path-finding.asciidoc) | ####### | :bookmark_tabs: |
+| [Payment Path Finding](path-finding.asciidoc) | ######## | :bookmark_tabs: |
 | [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ## | :bookmark_tabs: |
 | [Lightning Applications (LApps)]() | # | :thought_balloon: |
 | [LN's Future]() | # | :thought_balloon: |
 
-Total Word Count: 61656
+Total Word Count: 62747
 
 Target Word Count: 100,000-120,000
 

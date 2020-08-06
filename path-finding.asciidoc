@@ -13,9 +13,6 @@ Relevant questions to answer:
   * What are multi-hop locks? What addition privacy and security guarantees to they offer?
   * How can the flexible onion space be used to enabled packet switching in the network?
 
-
-
-
 ==== Finding a path
 
 Payments on the Lightning Network are forwarded along a path of channels from one participant to another.
@@ -241,12 +238,30 @@ Meanwhile the balances of some channels along the path might have changed and th
 In this case the sender would have to start from the beginning all over again.
 Admittedly the risk for this to happen is rather small but there is a chance.
 
-A better way and potential improvement for the future of the Lightning network are stuckless payments...
+A better way and potential improvement for the future of the Lightning network are stuckless payments.
+There is a proposal for a system called stuckless payments that receives high appriciation by developers.
+This proposal will probably not be implemented before the lightning network switches from Hashed Timelocked Contracts to Point time locked contracts which won't come before Schnorr Signatures are activated on the Bitcoin Network.
+What stuckless payments can do is to give controll back to the sender of an Onion.
+Without explaining the details here we just say that the sender can now cancle an onion.
+This is great for redundant and concurrent pathfinding.
+The sender could send out several real onions.
+The first ones that arrives at the recipient will be settled.
+All others will be cancled.
+This increases the usuability of the Lightning Network on several levels.
+One advantage is that the sender can try several paths at the same time.
+The second advantage is that the path is locked after it is found and until it is settled.
+This means that the sender can either cancle the onion or help to release the preimage (as senders have to do with the stuckless payment construction)
+In particular the probed path cannot change or used by other routing requests between probing and setting up the htlcs that are used to fullfill the request.
+The time for a a successfull payment will reduce drastically.
+The distadvante is that the sender has to lock more bitcoin during the path finding process.
+Due to timeouts these bitcoin can be locked for a couple of days before they can be used again.
+This should not happen too often.
+Also it utilizes more resources of other nodes.
 
-* concurrency / Redundancy / probing
-* stuckless payments! (as a way to achieve concurrency and a trigger from the sender)
 
 ==== Multipath
+Multipath payments seem to be a natural way to improve the path finding chances of lightning nodes and success rates of payments. 
+
 * multipath and split payments
 
 ==== Rebalancing
