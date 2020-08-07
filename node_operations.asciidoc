@@ -202,11 +202,69 @@ On the other hand, if this is your first foray into the command-line and server/
 
 As a final consideration, you may want to examine the performance and reliability of different node implementations. This is especially important if you will be using this node in a production environment (for example to run a shop), and expect heavy traffic and high reliability requirements.
 
-=== Node startup and configuration
+=== Installing a Bitcoin or Lightning node
+
+You decided not to use an installation "helper" and instead to dive into the command-line of a Linxu operating system? That is a brave decision and we'll try to help you make it work. If you'd rather not try to do this manually, consider using an application that helps you install the node software or a container based solution, as described in <<helpers>>.
+
+[WARNING]
+====
+This section will delve into the advanced topic of system administration from the command-line. You will need to do additional research and learn more skills not covered here. Linux administration is a complicated topic and there are many pitfalls. Proceed with caution!
+====
+
+In the next few sections we will briefly describe how to install and configure a Bitcoin and Lightning node on a Linux operating system. You will need to review the installation instructions for the specific Bitcoin and Lightning node applications you decided to use. You can usually find these in a file called +INSTALL+ or in the +docs+ sub-directory of each project. We will only describe some of the common steps that apply to all such services, and the instructions we offer will be necessarily incomplete.
+
+==== Background services
+
+For those accustomed to running applications on their desktop or smartphone, an application always has a graphical user interface even if it may sometimes run in the background. The Bitcoin and Lightning node applications, however, are very different. These applications do not have a graphical user interface built in. Instead, they run as _headless_ background services, meaning they are always operating in the background and do not interact with the user directly.
+
+This can create some confusion for users who are not used to running background services. How do you know if such a service is currently running? How do you start and stop it? How do you interact with it? The answers to these questions depend on the operating system you are using, but for now we will assume you are using some Linux variant and answer them in that context.
+
+==== Process isolation
+
+Background services usually run under a specific user account in order to isolate them from the operating system and each other. For example, Bitcoin Core is configured to run as user +bitcoin+. You will need to use the command-line to create a user for each of the services you run.
+
+In addition, if you have connected an external drive, you will need to tell the operating system to relocate the user's home directory to that drive. That's because a service like Bitcoin Core will create files under the user's home directory. If you are setting it up to download the full Bitcoin blockchain, these files will take up several hundred GB. Here, we assume you have connected the external drive and it is located on the +/external_drive/+ path of the operating system.
+
+On most Linux systems you can creatre a new user with the +useradd+ command, like this:
+
+----
+$ sudo useradd -d /external_drive/bitcoin -s /dev/null bitcoin
+----
+
+The +m+ flag assigns the user's home directory. In this case, we put it on the external drive. The +s+ flag assigns the user's interactive shell. In this case we set it to +/dev/null+ to disable interactive shell use. The last argument is the new user's username +bitcoin+.
+
+==== Node configuration
 
 
-* Startup and headless operation
-* Process isolation
+==== Node startup
+
+For both Bitcoin and Lightning node services, "installation" also involves creating a so called _startup script_ to make sure that the node starts when the computer boots. Startup and shutdown of background services is handled by an operating system process, which in Linux is called _init_ or _systemd_. You can usually find a system startup script in the +contrib+ subdirectory of each project. For example, if you are on a modern Linux OS that uses +systemd+, you would find a script called +bitcoind.service+, that can start the Bitcoin Core node service.
+
+As the root user, install the script by copying it into the +systemd+ service folder +/lib/systemd/system/+ and then reload +systemd+:
+
+----
+$ sudo systemctl daemon-reload
+----
+
+Next, enable the service:
+
+----
+$ sudo systemctl enable bitcoind
+----
+
+You can now start and stop the service:
+
+----
+$ sudo systemctl start bitcoind
+$ sudo systemctl stop bitcoind
+----
+
+
+
+
+
+==== NEXT....
+
 * Auto-unlocking
 * IBD configuration
 * Fine tuning performance
