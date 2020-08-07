@@ -1,4 +1,4 @@
-Chapter overview:
+.Chapter overview:
   * How path finding works in the network
 
 Relevant questions to answer:
@@ -259,13 +259,81 @@ This should not happen too often.
 Also it utilizes more resources of other nodes.
 
 
-==== Multipath
-Multipath payments seem to be a natural way to improve the path finding chances of lightning nodes and success rates of payments. 
+==== Multipath payments
+Everyone can easily make the following observation:
 
-* multipath and split payments
+----
+Let's say your node has discovered a path along which a certain amount of Satoshis for example 100k could be routed.
+Then any onion along that path on the same time with an lower amount of Satoshis would also have been successfull.
+One can easily conclude that lower amounts have a higher likelyhood to be routed successfully to the destination than larger amounts.
+----
+
+Researchers and developers have already tested and confirmed this emperically over and over again.
+
+With this assumption in mind it seems natural to split a payment amount and send several smaller payments along various paths.
+With if a small payment fails it will be retried and probed just as one would do with a single larger payment.
+While the main idea is very easy to understand we want to discuss the details, advantages and disadvantages of this mechanism in the following.
+
+Usually a receiving node will see an incoming HTLC for a certain payment hash.
+If the onion signals that the node is the final recipient and that the amount of the HTLC is less than the one specified in the invoice the node would not accept the HTLC and send back an erring onion.
+However with the TLV format of onions a sender can specify the total_amount of the payment which can be bigger than the HTLC.
+The recipient can safely accept the HTLC and wait for more HTLCs to arrive.
+In this way all parts of the payment will use the same payment hash.
+The recipient will only release the preimage if the sum of all incoming HTLCs is at least the speciefied payment amount.
+
+[Note]
+====
+**Multi path or multi part payments?** You might have realized that we named the chapter multipath payments but mentioned in the last paragraph that such a payment consists of several parts.
+The protocol specification uses the abbrivation MPP for multi part payments.
+This is in fact always correct as all parts could technically - though this would not make much sense - be delivered over the same path.
+As we are introducing MPP in the pathfinding section of the book and as they are also used for path finding we take the liberty to also abbriviate multi path payments with MPP.
+====
+
+It is important to recognize that a node that forwards HTLCs via onions does not have to bother if the payment is a single payment or one of several multi part payments.
+The only node who needs to be ready to accept multi part payments is the receiving node.
+In the BOLT 11 invoice there is space for feature bits.
+If ia node wishes to accept multipart payments it has to signal this by setting the corresponding feature bit (16 / 17).
+If a node wishes to send a multi part payment it can also do so if the receiving node has signaled their willingess to accept such payments.
+Currently there is no way for routing nodes to split the payment amount and onion into several parts or merge several incoming HTLCs into a single path.
+
+Besides the potentially better chances to find smaller routes the sender might want to use a multipart payment because it does not have enough balance in a single payment channel.
+If the channel had enough capacity this could be resolved with a circular rebalancing - which we will discuss in the next section.
+However if the payment amount is bigger than the largest capacity of a channel that the sender has the sender can only pay the invoice if the recipient allows and supports multipart payments.
+Similarly a recipient might not be able to receive a single payment of the requested amount and would have the interest of signaling multi part payments.
+Luckily nodes will do this automatically and practially always signal the support for multi part payments if the implementation supports this feature.
+The standard Lightning Network implementations which follow BOLT 1.1 all support this feature.
+
+Multipart payments will almost always be more expensive than a single payment.
+You will remember that the fees that routing nodes charge consist of a fee rate and of a base fee.
+The total fee rate of a multipart payment stays roughly the same as a single payment.
+However the base fee is added independent of the amount making multipart payments in most cases more expensive.
+As the sender pays the fees the sender will not necessarily have the interest of splitting the payment in too many parts.
+Thus implementations usually integrate multi part payments into the probing based approach.
+For example after a single payment would not got through the node might split the amount into two payments and try a multipart payment with smaller amounts.
+Those mulitpart payments could again be split down if they are not successfull along a route.
+
+The advantages of multi part payments are quite obvious:
+
+. bigger payment sizes
+. higher success rates
+
+On the other side we have a couple of downsides:
+
+. Higher fees
+. More HTLCs locked / more load on the network
+. Potentially longer times. If only a single part gets stuck all the other HTLCs in flight have to wait locking liquidity of many nodes for a potentially longer time
+. Leaks more information as the network is practically probed more heavily.
+
 
 ==== Rebalancing
 * (proactive / reactive) Rebalancing
+* Imbalance measures
+* goals for rebalancing (low Gini coefficient and not 50 / 50)
+* optimization problem / game theory
+* JIT Routing
 
-
+==== Optimizations for Multi path payments
+The rebalancing goal with local channel balance coefficients could actually be integrated into multi path payments.
+Thus if a node decides to send a payment along several paths it could very well use this opportunity to split the payment in a way that it improves the imbalance of its own channels.
+So instead of splitting payments by 2 in a divide and conquorer strategy the node could use the following formula ...
 
