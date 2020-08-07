@@ -1070,60 +1070,60 @@ Now that +Alice+ is connected, we open a 1,000,000 satoshi channel to +Bob+ with
 
 We do the same with the other nodes, setting up connections and channels. Each node type has a slightly different syntax for these commands, but the overall principle is the same:
 
-To Bob's node (c-lightning), we send the command:
+To Bob's node (c-lightning) we send these commands:
 ----
 lightning-cli connect ${wei_address}@Wei
 lightning-cli fundchannel ${wei_address} 1000000
 ----
 
-To Wei's node (Eclair), we send:
+To Wei's node (Eclair) we send:
 ----
 eclair-cli -p eclair connect --uri=${gloria_address}@Gloria
 eclair-cli -p eclair open --nodeId=${gloria_address} --fundingSatoshis=1000000
 ----
 
-Now, on Gloria's node, we create a new invoice, for 10,000 satoshi:
+At this point we create a new invoice for 10,000 satoshis on Gloria's node:
 
 ----
 lncli -n regtest addinvoice 10000 | jq .payment_request
 ----
 
-The +addinvoice+ command creates an invoice for the specified amount (in satoshis) and produces a JSON object with the invoice details. From that JSON object, we only need the actual bech32-encoded payment request, and we use +jq+ to extract it.
+The +addinvoice+ command creates an invoice for the specified amount in satoshis and produces a JSON object with the invoice details. From that JSON object we only need the actual bech32-encoded payment request, which we extract with +jq+.
 
-Next, we have to wait. We just created a bunch of channels, which means that our nodes broadcast a bunch of funding transactions. The channels can't be used until the funding transactions are mined with 6 confirmations. Since our Bitcoin regtest blockchain is set to mine blocks every ten seconds, we have to wait 60 seconds for all the channels to be ready to use.
+Next, we have to wait. We just created a bunch of channels. Hence, our nodes broadcast several funding transactions. The channels can't be used until the funding transactions are mined and collect 6 confirmations. Since our Bitcoin +regtest+ blockchain is set to mine blocks every ten seconds, we have to wait 60 seconds for all the channels to be ready to use.
 
-The final command is the actual payment. We connect to Alice's node and present Gloria's invoice for payment.
+The final command is the actual invoice payment. We connect to Alice's node and present Gloria's invoice for payment.
 
 ----
 lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice}
 ----
 
-We ask Alice's node to pay the invoice, but also ask for +inflight_updates+ in +json+ format. That will give us detailed output about the invoice, the route, the HTLCs and the final payment result, so we can study and learn!
+We ask Alice's node to pay the invoice, but also ask for +inflight_updates+ in +json+ format. That will give us detailed output about the invoice, the route, the HTLCs, and the final payment result. We can study this additional output and learn from it!
 
-Since Alice's node doesn't have a direct channel to Gloria, her node has to find a route. There's only one viable route here (Alice->Bob->Wei->Gloria), which Alice will be able to discover now that all the channels are active and have been advertised to all the nodes by the Lightning gossip protocol. Alice's node will construct the route and create an onion packet to establish HTLCs across the channels. All of this happens in a fraction of a second and Alice's node will report the result of the payment attempt. If all goes well, you will see the last line of the JSON output showing:
+Since Alice's node doesn't have a direct channel to Gloria, her node has to find a route. There is only one viable route here (Alice->Bob->Wei->Gloria), which Alice will be able to discover now that all the channels are active and have been advertised to all the nodes by the Lightning gossip protocol. Alice's node will construct the route and create an onion packet to establish HTLCs across the channels. All of this happens in a fraction of a second and Alice's node will report the result of the payment attempt. If all goes well, you will see the last line of the JSON output showing:
 
 ----
 "failure_reason": "FAILURE_REASON_NONE"
 ----
 
-Arguably, this is a weird message, but technically if there is no failure reason, it is a success!
+This is arguably a weird message, but the fact that there was no failure reason, in a round-about way, implies that the operation was a success!
 
-Scrolling above that funny message you will see all the details of the payment. There's a lot to review, but as you gain understanding of the underlying technology, more and more of that information will become clear. Come back to this example later.
+Scrolling above that unusual message you will see all the details of the payment. There is a lot to review, but as you gain understanding of the underlying technology, more and more of that information will become clear. You are invited to revisit this example later.
 
-Of course, you could do a lot more with this test network than a 3-channel, 4-node payment. Here are some ideas for your experiments:
+Of course, you can do a lot more with this test network than a 3-channel, 4-node payment. Here are some ideas for your experiments:
 
-* Create a more complex network by launching many more nodes of different types. Edit the +docker-compose.yml+ file and copy sections, renaming as needed.
+* Create a more complex network by launching many more nodes of different types. Edit the +docker-compose.yml+ file and copy sections, renaming containers as needed.
 
-* Connect the nodes in more complex topologies: circular routes, hub-and-spoke, full mesh
+* Connect the nodes in more complex topologies: circular routes, hub-and-spoke, or full mesh.
 
 * Run lots of payments to exhaust channel capacity. Then run payments in the opposite direction to rebalance the channels. See how the routing algorithm adapts.
 
-* Change the channel fees to see how the routing algorithm negotiates multiple routes and what optimizations it applies. Is a cheap long route better than an expensive short route?
+* Change the channel fees to see how the routing algorithm negotiates multiple routes and what optimizations it applies. Is a cheap, long route better than an expensive, short route?
 
-* Run a circular payment from a node back to itself, in order to rebalance it's own channels. See how that affects all the other channels and nodes.
+* Run a circular payment from a node back to itself in order to rebalance its own channels. See how that affects all the other channels and nodes.
 
-* Generate hundreds or thousands of small invoices in a loop and then pay them as fast as possible in another loop. See how many transactions per second you can squeeze out of this test network.
+* Generate hundreds or thousands of small invoices in a loop and then pay them as fast as possible in another loop. Measure how many transactions per second you can squeeze out of this test network.
 
 === Conclusion
 
-In this chapter we looked at various projects which implement the BOLT specifications. We built containers to run complete networks and learned how to build each project from source code. You are now ready to explore and dig deeper. 
+In this chapter we looked at various projects that implement the BOLT specifications. We built containers to run a sample Lightning network and learned how to build each project from source code. You are now ready to explore further and dig deeper. 
