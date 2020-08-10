@@ -12,13 +12,13 @@ As long as there exists a path of well funded payment channels from a fan to Glo
 Despite the fact that the nodes along the path forward the money to Gloria they are not able to steal the money and run with it.
 Similarly, they cannot lose money while participating in the routing process assuming all time-locks along the route are constructed properly relative to the current on-chain fee market.k
 They are however entitled to charge a routing fee for their service.
-In particular due to the used Onion routing intermediary nodes will not know who is the initiator of the payment and who is the final recipient.
-Being able to connect payment channels yields the main value proposition behind the lightning network.
-While a single channel between two users already takes load from the Bitcoin network if those users were to financially interact often a network as described allows off chain payments between arbitrary participants without the need of opening and maintaining a direct payment channel between them.
-In this chapter you will first learn in a non technical way how the Bitcoin Network changes its role of being a transaction settlement layer to being a contract settlement layer.
-Afterwards the technical Hashed Time Locked Contracts are introduced and explained.
-You will learn how they are included into the commitment transactions and how neighboring nodes communicate with each other to set the HTLCs up and settle them.
-Finally, you will learn about the SPHINX mix Format that enables onion routing which grants payments with a high degree of privacy.
+In particular due to the use of onion routing, intermediary nodes are only explicitly aware of who came before them in the route, and the node that'll continue to forward the payment after them.
+
+This process of connecting a series of payment channels with end-to-end security, and the existence of incentives for nodes to _forward_ payments, is considered one of the key innovations of the Lightning Network.
+In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in-which payments flow through the network.
+First, we'll cover the concept of a conditional chained end to end secure payment, most commonly known by the name of the first known working construct: the Hash Time Locked Transaction (HTLC).
+Having learned _how_ payments can be transmitted through the network, we'll then cover the concept of source routing, and the privacy preserving variant (onion routing) used in the network today.
+Finally, we'll explore the exact mechanism of _payment forwarding_ and how the _structure_ (edges, fees, time-locks, etc) of the route is determined by the sender is transmitted to each individual node along the route.
 
 
 === Creating a Network of payment channels
