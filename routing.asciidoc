@@ -22,13 +22,16 @@ Finally, we'll explore the exact mechanism of _payment forwarding_ and how the _
 
 
 === Creating a Network of payment channels
-While technically a few challenges have to be addressed the core idea behind a network of payment channels is quite easy.
-Let us Assume after Alice bought her coffee at Bobs coffee shop with which she had opened a channel she enjoys the live stream of our gamer Gloria who accepts donations via the Lightning Network from her viewers.
-Alice and Gloria are not owning a mutual payment channel and do not wish to do so.
-However they are connected via the network of payment channels in the following way.
+
+Before we dive into the concept of a conditional chained end to end secure payment, let's walk through a simple motivating example.
+Let us assume after Alice bought her coffee at Bob's coffee shop using a direction channel, she began to watch the live stream of our gamer Gloria who accepts donations via the Lightning Network from her viewers.
+Alice and Gloria do not have a _direct_ channel connecting them, and don't wish to create one as they'd like to minimize the total number of channels they have open.
+However, they do in fact have an _indirect path_ via the network of connected payment channels that comprises the Lightning Network.
+The structure of our mini-network is as follows.
 Bob has an open channel with his the software developer Wei who helps him with technical issues of the point of sale system he uses in his coffee shop.
-Wei is actually the owner of a large software company which also develops the game that Gloria plays so that she had opened a channel with the company to pay for the games license, access to the server and in game items.
-Now it is easy to understand that Alice could use this path of channels to send a tip of a few thousand satoshis to Bob and ask him to forward the money via Wei to Gloria.
+Wei is actually the owner of a large software company which also develops the game that Gloria plays so that she had opened a channel with the company to pay for the game's license, access to the server, and in game items.
+If we draw out this series of payment channels, it's possible to manually trace a _path_ from Alice to Gloria that uses Bob and Wei as supporting intermediary routing nodes.
+Alice can then craft a _route_ from this outlined path, and use it to send a tip of a few thousand satoshis to Gloria, with the payment being _forwarded_ by Bob and Wei.
 
 [[routing-network]]
 .The network of payment channels of our friends can be seen here:
