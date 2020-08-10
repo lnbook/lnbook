@@ -76,14 +76,13 @@ This escrow service serves as our "ideal functionality", which will later be rep
 Of course Alice and Bob both have to trust this escrow service.
 Having such an escrow Alice could already provide the 12 golden coins to that service which would only release them to Bob if Bob shows the proof of delivering 11 golden coins to Wei.
 
-In fact this proof could include a secret that only Gloria knows but the contract could be commited to this secret for example by including the sha256 hash of the secret to the contract.
-We call this hash the payment hash.
+Using a bit of cryptography, it's actually possible for this proof to be contingent on a secret that only Gloria knows, which itself is included in the contract by including the sha256 hash of the secret in the contract.
+We call this hash of the receipt's secret, a payment hash, with the secret that "unlocks" the payment contracting, being known as the payment secret.
 
-In reality Gloria would come up with a large random number as a secret.
-This is to be really secure and prevent others from guessing it.
-But let us assume that in our case Glorias secret take reads `*Glorias secret*`.
-She would commit to the secret by computing the sha256 hash which reads `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`.
-You can verify this by typing `echo -n "Glorias secret" | sha256sum` to your linux command line.
+As Gloria, wants to ensure that no one else can guess this secret, in practice it's chosen to be a _very, very_ large number (typically encoded using 256 bits!).
+For simplicity, let's assume that Gloria's secret is actually just: `*Glorias secret*`.
+In order to "commit" to this secret, she computes the `sha256` hash which when encoded in hex, can be displayed as: `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`.
+You can verify this by typing `echo -n "Glorias secret" | sha256sum` to your Linux command line shell.
 
 As Alice wants to send 10 golden coins to Gloria she is told by Gloria to use this payment hash to receive a proof of payment.
 Alice now sets up a contract that reads:
@@ -100,45 +99,48 @@ As Wei gets message from the escrow that Bob has deposited the 10 golden coins W
 
 _I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message - we call it preimage - that hashes to `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`. In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 Golden coins to an trusted escrow._
 
-As Gloria learns from the escrow that the coins where deposited she reveals the secret preimage to Wei.
-Since she initially came up with the secret and committed to it in form of the payment hash she obviously is able to provide the secrete to Wei and their escrow service.
+After Gloria learns that the coins were deposited from the escrow, she reveals the secret preimage to Wei.
+As she was the one that originally committed to the secret in the form of a payment hash, she must know the secret, as otherwise there's no way she can be paid.
+Therefore, Alice provides the secret to Wei and the escrow service.
 Wei takes the preimage as a proof of payment and shows it to Bob.
 The escrow service releases the money so that Wei is reimbursed.
 Now Bob repeats the process by fulfilling the contract between Alice and him with the help of the secret preimage.
 
-With such a chain of contracts Bob and Wei have not been able to run with the money as they actually deposited money first.
-However if Gloria or anyone along this chain does not release the secrete preimage everyone has already send golden coins to their escrow service but will never get reimbursed.
-So while no one could steal money from Alice everyone could still lose money.
+With such a chain of contracts Bob and Wei were not able to run with the money as an escrow was used to prevent this.
+However if Gloria or anyone along this chain does not release the secret preimage, since everyone has already send golden coins to their escrow service but will never get reimbursed.
+So while no one can steal money from Alice everyone can still lose money.
 This is obviously not desirable.
-Luckily this can be resolved by including a deadline to the contract.
-Reaching the deadline the contract has to be fulfilled or otherwise it would be invalidated and the escrow service would return the money to the person who made the original deposit.
-We call this deadline a time lock as the deposit is locked with the escrow service for a certain amount of time and then released even if no proof of payment was provided.
+Luckily, this can be resolved by adding a deadline to the contract.
+With this new deadline, the contract has to be fulfilled in time, or it expires, with the escrow refunding the money to the party that made the original deposit.
+We call this deadline a "time lock "as the deposit is locked with the escrow service for a certain amount of time and then released if no proof of payment was provided.
 
-The Contract between Alice and Bob is appended by the following statement:
+In order to factor this in, the Contract between Alice and Bob is once again amended with a new clause:
 
 _Bob has 24 hours to show the secret after the contract was signed. If the time has passed Alice will get her deposit back from the escrow service and the contract becomes invalid._
 
-Bob of course now has to make sure to get receive the proof of payment faster than in 24 hours.
-If he would receive a later proof the contract between him and Alice would already be nullified and Bob would not get reimbursed.
-After he signed the contract with Alice he alters the original contract between him and Wei in the following way:
+Bob of course now has to make sure to receive the proof of payment before 24 hours is up.
+If he would receive this proof after 24 hours, the contract between him and Alice would already be nullified and Bob would not get reimbursed.
+After he signed the contract with Alice he creates a new (altered) original contract between him and Wei that reads:
 
 _Wei has 22 hours to show the secret after the contract was signed. If the time has passed Bob will get his deposit back from the escrow service and the contract becomes invalid._
 
-As you have guessed Wei is now incentiviced to also alter his contract with Gloria:
+As you have guessed Wei is now incentivised create a _new_ (altered) contract with Gloria:
 
 _Gloria has 20 hours to show the secret after the contract was signed. If the time has passed Wei will get his deposit back from the escrow service and the contract becomes invalid._
 
 With such a chain of contracts we can be sure that after 24 hours of setting up the first contract that the payment was either successfully delivered from Alice via Bob and Wei to Gloria or that the payment has failed and was not conducted at all.
-It cannot be stuck in the middle of the road.
-Also - as long as the escrow service is trustworthy - neither party could have stolen or lost the golden coins in the process.
-There is only the necessity that everyone along this path already had to have some money to be able to provide deposits.
-While this seems like a minor necessity we will see in a later chapter about pathfinding that this requirement is actually one of the harder issues for Lightning Network nodes.
-Also the parties cannot utilize this money while being locked otherwise.
-However as discussed their opportunity cost is reimbursed by taking a routing fee for forwarding the payment.
+Either the contract failed or succeeded, there's no middle ground. 
+In the context of the Lightning Network, we call this "all or nothing" property "atomicity".
 
-In the following two sections you will learn that the bitcoin scripting language is able to set up such contracts which we call hashed time locked contracts.
-You will see that the bitcoin network acts as the trusted third party or escrow for those HTLCs.
-This is true as the HTLCs are created as outputs in this commitment transactions of the payment channels which would be enforced by the bitcoin network in case some party becomes unresponsive or tries to act in a fraudulent way.
+As long as the escrow is trustworthy and faithfully performs its duty, then no party will have their coins stolen in the process.
+The pre-condition to this _route_ working at all, is that all parties in the path already needed to have enough money to satisfy the required series of deposits.
+While this seems like a minor detail we will see in this chapter, this requirement is actually one of the harder issues for Lightning Network nodes.
+As parties are required to deposit the funds used for the payment in escrow, they aren't able to use this money for anything else while the contract is active.
+However, as discussed earlier, they're compensated for this opportunity cost in the forms of earned routing fees when they successfully forward the payment.
+
+In the next section, we'll dive into the details of the "HTLC", exploring the properties that allow it to implement the concept of a conditional chained end to end secure payment _without_ involving the 3rd party escrow.
+You will see that the Bitcoin network acts as the trusted third party or escrow for those HTLCs.
+This is true as the HTLCs are created as outputs in this commitment transactions of the payment channels which would be enforced by the Bitcoin network in case some party becomes unresponsive or tries to act in a fraudulent way.
 Finally in the last section you will learn how the path of intermediaries is encrypted and hidden from the intermediaries so that they will only know their next hop with whom they should set up an HTLC and deliver the encrypted message that has more forwarding instructions.
 This process is called onion routing.
 
