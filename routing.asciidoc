@@ -144,20 +144,21 @@ This is true as the HTLCs are created as outputs in this commitment transactions
 Finally in the last section you will learn how the path of intermediaries is encrypted and hidden from the intermediaries so that they will only know their next hop with whom they should set up an HTLC and deliver the encrypted message that has more forwarding instructions.
 This process is called onion routing.
 
+===Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment
 
-It is safe for Bob to tell Alice the preimage.
-Imagine Alice decides that she would not want to pay Bob anymore and does not respond anymore to create a new pair of commitment transactions with the removed HTLC and the Balance on Bob's end.
-In that case Bob could just force close the channel and publish his latest version of the commitment transaction.
-As the time lock of the HTLC is not over yet with an onchain success transaction Bob would be able to claim and settle his 15 mBTC as he is the only person who is able to spend the HTLC output in the commitment transaction.
-The other way around meaning Bob and Alice would negotiate a new commitment transaction with the removed HTLC would never be save for Alice.
-If the signatures for the new commitment transaction are exchanged Bob has received the money and could decide not to release the preimage.
+outine:
+  * break down each word in the above contract
+  * introduce commitments as instantiation of the "conditional" aspect
+  * factor in time locks to make it secure (alice doesn't lose funds)
+  * layer in the three hop example, chaining each of the payments
+  * explain decrementing time locks to round it all out
+  * analyze final properties of system, along with time-lock risk
 
-[NOTE]
-====
-Isn't it remarkable that even though the process of exchanging funds for an preimage seems to be happening concurrently at the same moment in time in reality it is actually happening one step after another but in the right order.
-====
+# TODO(roasbeef): fill in chapter based on remaining contents
 
-=== Source based Onion Routing
+=== source based Onion Routing
+
+# TODO(Roasbeef): introduce source routing first as an alternative to path finding, then go into lack of privacy
 
 So far you have learnt that payment channels can be connected to a network which can be utilized to send payment from one participant to another one through a path of payment channels.
 You have seen that with the use of HTLCs the intermediary nodes along the path are not able to steal any funds that they are supposed to forward and you have also learnt how a node can set up and settle an HTLC.
