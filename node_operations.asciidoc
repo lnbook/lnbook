@@ -233,12 +233,60 @@ $ sudo useradd -d /external_drive/bitcoin -s /dev/null bitcoin
 
 The +m+ flag assigns the user's home directory. In this case, we put it on the external drive. The +s+ flag assigns the user's interactive shell. In this case we set it to +/dev/null+ to disable interactive shell use. The last argument is the new user's username +bitcoin+.
 
-==== Node configuration
-
-
 ==== Node startup
 
 For both Bitcoin and Lightning node services, "installation" also involves creating a so called _startup script_ to make sure that the node starts when the computer boots. Startup and shutdown of background services is handled by an operating system process, which in Linux is called _init_ or _systemd_. You can usually find a system startup script in the +contrib+ subdirectory of each project. For example, if you are on a modern Linux OS that uses +systemd+, you would find a script called +bitcoind.service+, that can start the Bitcoin Core node service.
+
+Here's an example (from the Bitcoin Core code repository) of what a Bitcoin node's startup script looks like:
+
+.From bitcoin/contrib/init/bitcoind.service
+----
+[Unit]
+Description=Bitcoin daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/bitcoind -daemon \
+                            -pid=/run/bitcoind/bitcoind.pid \
+                            -conf=/etc/bitcoin/bitcoin.conf \
+                            -datadir=/var/lib/bitcoind
+
+# Make sure the config directory is readable by the service user
+PermissionsStartOnly=true
+ExecStartPre=/bin/chgrp bitcoin /etc/bitcoin
+
+# Process management
+####################
+
+Type=forking
+PIDFile=/run/bitcoind/bitcoind.pid
+Restart=on-failure
+TimeoutStopSec=600
+
+# Directory creation and permissions
+####################################
+
+# Run as bitcoin:bitcoin
+User=bitcoin
+Group=bitcoin
+
+# /run/bitcoind
+RuntimeDirectory=bitcoind
+RuntimeDirectoryMode=0710
+
+# /etc/bitcoin
+ConfigurationDirectory=bitcoin
+ConfigurationDirectoryMode=0710
+
+# /var/lib/bitcoind
+StateDirectory=bitcoind
+StateDirectoryMode=0710
+
+[...]
+
+[Install]
+WantedBy=multi-user.target
+----
 
 As the root user, install the script by copying it into the +systemd+ service folder +/lib/systemd/system/+ and then reload +systemd+:
 
@@ -252,23 +300,43 @@ Next, enable the service:
 $ sudo systemctl enable bitcoind
 ----
 
-You can now start and stop the service:
+You can now start and stop the service (don't do this yet, as we haven't configured the Bitcoin node):
 
 ----
 $ sudo systemctl start bitcoind
 $ sudo systemctl stop bitcoind
 ----
 
+==== Node configuration
+
+To configure your node, you need to create and reference a configuration file. By convention, this file is usually created in +/etc+, under a directory with the name of the program. For example, Bitcoin Core and LND configurations would usually be stored in:
+
++/etc/bitcoin/bitcoin.conf+
++/etc/lnd/lnd.conf+
+
+These configuration files are text files with each line expressing one configuration option and its value. Default values are assumed for anything not defined in the configuration file. You can see what options can be set in the configuration in two ways. First, running the node application with a +help+ argument will show the options that can be defined on the command-line. These same options can be defined in the configuration file. Second, you can usually find an example configuration file, with all the default options, in the code repository of the software.
+
+You can see one example of a configuration file in each of the docker images we saw in <<set_up_a_lightning_node>>. For example, the file +code/docker/bitcoind/bitcoind/bitcoin.conf+:
+
+.Configuration file for docker bitcoind (code/docker/bitcoind/bitcoind/bitcoin.conf)
+----
+include::code/docker/bitcoind/bitcoind/bitcoin.conf[]
+----
+
+That particular configuration file configures Bitcoin Core for operation as a +regtest+ node and provides a weak username and password for remote access, so you shouldn't use it for your node configuration. However, it serves to illustrate the syntax of a configuration file and you can make adjustments to it in the docker container to experiment with different options. See if you can use the +bitcoind -help+ command to understand what each of the options does in the context of the docker network we build in <<set_up_a_lightning_node>>
+
+==== Security and authentication
+
+A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access, by setting up strong authentication.
+
+Your Lightning node will expose a Remote Procedure Call (RPC) Application Programming Interface (API). This means that your node can be controlled by commands sent to a specific TCP port. Control of that RPC API is achieved by some form of user authentication. Depending on the type of Lightning node you set up, this will either be done by username/password authentication, or by a mechanism called an authentication _macaroon_. A macaroon is a more sophisticated type of cookie, as the name implies. Unlike a cookie, it is cryptographically signed and can express a set of access capabilities.
+
+For example, LND uses macaroons to grant access to the RPC API. By default the LND software creates three macaroons with different levels of access, called +admin+, +invoice+ and +readonly+. Depending on which macaroon you copy and use in your RPC client, you either have "readonly" access, "invoice" access (which includes the "readonly" capabilities), or "admin" access which gives you full control. There's also a macaroon "bakery" function in LND that can construct macaroons with any combination of capabilities with very fine-grained control.
 
 
 
+==== NEXT ...
 
-==== NEXT....
-
-* Auto-unlocking
-* IBD configuration
-* Fine tuning performance
-* RPC security and authentication
 * Logging
 * Process monitoring
 
