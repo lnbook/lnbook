@@ -326,6 +326,41 @@ On the other side we have a couple of downsides:
 
 
 ==== Rebalancing
+
+In this chapter you have already learnt that the path finding problem on the lightning network is actually rather a problem of finding a flow - which consists of several paths.
+Very early research about pathfinding in payment channel networks suggests \footnote{FIND LINK} that rebalancing channels does not change the flow properties between nodes.
+With rebalancing we mean shifting liquidity from one channel to another channel for example via a circular payment.
+There is also the notion of offchain / onchain swaps with swapping services.
+This form of rebalancing certainly changes also the topological properties like the flow of the network.
+As rebalancing via circular self payments would not change the overall amount that an arbitrary node can send to any other node people thought that rebalancing is not very useful.
+However in practice a node hardly wants to find the perfect flow or multipath to be able to send the absolute maximum amount to another node.
+Nodes are rather interested in quickly finding a sufficient large flow so that they can make a reasonable payment.
+Research conducted by Rene Pickhardt (one of the authors of this book) indicated that circular rebalancing operations improve the overall successrate in the network for arbitrary payments.
+It turns out that there is various ways how rebalancing can be used and in some form it even resembles the functionality of a multi path payment.
+Thus we decided to devote a section here on basics about rebalancing and how it can be used to improve the pathfinding abilities of the network.
+
+We made the experience that most people call their payment channel balanced if they own the same amount of bitcoin in that channel as their channel partner.
+While this seems intuitive we want to show that this intuition does not seem to be the best intuition for our goals.
+In order to see this let us assume the Lightning Network at some point in time looks exactly like that.
+All channels split the capacity 50 - 50 dividing it into half between the channel partners.
+It is quite clear that after already one single payment such a 50 - 50 state would be destroyed.
+You can see this in the following graph
+
+IMPORT picture
+
+rebalancing will leave others with uneven state.
+
+IMPORT PICTURE
+
+even the most rebalanced state that cannot reach 50/50 everywhere for obious reasons
+
+IMPORT PICTURE
+
+a better goal is low imbalance measured via gini on relative funds. Explain why releative and how this is actually done
+
+Show it still can lead into conflicting situations.
+
+
 * (proactive / reactive) Rebalancing
 * Imbalance measures
 * goals for rebalancing (low Gini coefficient and not 50 / 50)
