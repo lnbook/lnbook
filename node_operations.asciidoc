@@ -363,18 +363,28 @@ A plain alphanumeric sequence that is longer than 12 characters and randomly gen
 
 A very important consideration when running a Lightning node is the issue of backups. Unlike a Bitcoin wallet, where a BIP39 mnemonic phrase can recover all the state of the wallet, in Lightning this is not sufficient.
 
-Lightning wallets do use a BIP39 mnemonic phrase backup for the on-chain wallet. However, due to the way channels are constructed, the mnemonic phrase is not sufficient to restore a Lightning node. An additional layer of backup is needed, which is called the _Channel State Backup (CSB)_. Without a CSB, a Lightning node operator may lose all the funds that are in channels if they lose the Lightning node data store.
+Lightning wallets do use a BIP39 mnemonic phrase backup for the on-chain wallet. However, due to the way channels are constructed, the mnemonic phrase is not sufficient to restore a Lightning node. An additional layer of backup is needed, which is called the _Static Channel Backup (SCB)_. Without a SCB, a Lightning node operator may lose all the funds that are in channels if they lose the Lightning node data store.
 
 [WARNING]
 ====
 Do not fund channels until you have created a system to continuously backup your channel state. Your backups should be moved "offsite" to a different system and location from your node, so that they can survive a variety of system failures (power loss, data corruption etc.) or natural disasters (flood, fire etc.)
 ====
 
+Static Channel Backups are not a panacea. First, the state of each channel needs to be backed up every time there is a new commitment transaction. Second, restoring from a channel backup is dangerous. If you do not have the _last_ commitment transaction and you accidentally broadcast an old (revoked) commitment, your channel peer will assume you are trying to cheat and take the entire channel balance with a penatly transaction. To make sure you are closing the channel, you need to do a cooperative close. But a malicious peer could mislead your node into broadcasting an old commitment during that cooperative close, thereby cheating you by making your node inadvertently try to "cheat".
 
-==== Static channel backups
+Additionally, the backups of your channels need to be encrypted to maintain your privacy and your channel security. Otherwise, anyone who finds the backups can not only see all your channels, they could use the backups to close all your channels in a way that hands over the balance to your channel peers. 
 
-* How to set up
-* Copying off the system, to account for loss of hardware
+SCB are therefore a weak compromise because they swap one type of risk (data corruption or loss) for another type of risk (malicious peer). To restore from a static channel backup, you have to interact with your channel peers and hope they don't try to cheat (either by giving you an old commitment, or by fooling your node into broadcasting a revoked commitment so they can penalize you). Ultimately, this is less of a risk than the risk of losing all funds committed to a channel because of data corruption. Since data corruption leads to the same outcome as if every one of your peers cheat, you are better off backing up and taking the chance that some of your peers will act honestly.
+
+Channel backup mechanisms are still a work-in-progress and a weakness in most Lightning implementations.
+
+==== Static Channel Backups (SCB)
+
+At the time of writing this book, only LND offers a built-in mechanism for channel backups. Eclair has no backup on the server side, although Eclair mobile does offer optional backup to a Google Drive. C-lightning recently merged the necessary interfaces for a plugin to implement channel backups, but there is no agreed on backup mechanism.
+
+File-based backups of the Lightning node databases are  partial solution, but you run the risk of data corruption because those backups may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, ensuring data consistency.
+
+To set up static channel backups in LND, set the +backupfilepath+ parameter, either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only part of the solution. Now, you have to setup a mechanism that copies that file off-site each time it changes, which is beyond the scope of this book. Any sophisticated backup solution should be able to handle this.
 
 === Security of your machine
 
