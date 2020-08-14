@@ -1043,10 +1043,10 @@ As you can see from the output, the script first gets the node IDs (public keys)
 Looking inside the script, we see the part that gets all the node IDs and stores them in temporary variables so that they can be used in subsequent command. It looks like this:
 
 ----
-alice_address=$(docker-compose exec -T Alice lncli -n regtest getinfo | jq .identity_pubkey)
-bob_address=$(docker-compose exec -T Bob lightning-cli getinfo | jq .id)
-wei_address=$(docker-compose exec -T Wei eclair-cli -s -j -p eclair getinfo| jq .nodeId)
-gloria_address=$(docker-compose exec -T Gloria lncli -n regtest getinfo | jq .identity_pubkey)
+alice_address=$(docker-compose exec -T Alice "lncli -n regtest getinfo | jq .identity_pubkey")
+bob_address=$(docker-compose exec -T Bob "lightning-cli getinfo | jq .id")
+wei_address=$(docker-compose exec -T Wei "eclair-cli -s -j -p eclair getinfo| jq .nodeId")
+gloria_address=$(docker-compose exec -T Gloria "lncli -n regtest getinfo | jq .identity_pubkey")
 ----
 
 If you have followed the first part of the chapter you will recognise these commands and be able to "decipher" their meaning. It looks quite complex, but we will walk through it step-by-step and you'll quickly get the hang of it.
