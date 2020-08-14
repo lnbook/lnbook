@@ -343,57 +343,80 @@ We made the experience that most people call their payment channel balanced if t
 While this seems intuitive we want to show that this intuition does not seem to be the best intuition for our goals.
 In order to see this let us assume the Lightning Network at some point in time looks exactly like that.
 All channels split the capacity 50 - 50 dividing it into half between the channel partners.
-It is quite clear that after already one single payment such a 50 - 50 state would be destroyed.
-You can see this in the following graph
 
 [[rebalancing-1]]
-.caption
+.A part of the Lightning Network where all the channel balances are distributed 50/50.
 image:images/rebalancing-1.png[]
 
+It is quite clear that after already one single payment such a 50 - 50 state would be destroyed.
+You can see this in the following graph.
+
 [[rebalancing-2]]
-.caption
+.The Bob - Wei channel becomes now imbalanced
 image:images/rebalancing-2.png[]
 
-[[rebalancing-3]]
-.caption
-image:images/rebalancing-3.png[]
+you can see that after Bob made a payment of 1 million satoshi to Wei the channel balance was shifted.
+Bob now has 1.5 million satoshi on the channel and wei has 3.5 million satoshi on the channel.
+The balance ratio went from 50/50 to 30/70.
+The other 2 channels however styed with 50/50.
+
+Wei decides that he wants to have a 50/50 channel with Bob.
+There are 3 ways of how he can achieve this.
+
+. He can send back 1 milion satoshi to Bob
+. He can use an onchain swapping service
+. He can send a circular onion
+
+Sending back the money would be quite expensive and does not seem to be a realistic option.
+Using an onchain swapping service after every payment to rebalance channels seems also problematic.
+The entire idea of creating the Lightning Network was to have less on chain transaction and be able to send money between people without the necessity to do on chain transactions.
+Thus there is only the last option which means that Wei could move the money from the Bob-Wei channel via the Bob-Erica channel to hhis Erica-Wei channel. 
 
 [[rebalancing-4]]
-.caption
+.Wei tries to rebalance the Bob-Wei channel in the unbalanced network via a circular onion of 1 mio Satoshi.
 image:images/rebalancing-4.png[]
 
+The problem in the new network can easily be seen on the next picture.
+While the Bob-Wei channel now becomes 50/50 again all the other channel turned into a 30/70 split ratio. 
+
 [[rebalancing-5]]
-.caption
+.Rebalancing one channel produces imbalanced other channels
 image:images/rebalancing-5.png[]
 
+An interesting oversvation about this rebalancing can be made though!
+After the payment and the rebalancing it looked like Bob initially had sent Money not via the Bob-Wei channel but via the path along Erica. 
+
 [[rebalancing-6]]
-.caption
+.Rebalancing is equivalent to having selected a different payment path to begin with.
 image:images/rebalancing-6.png[]
 
+This observation is actually quite interesting.
+While the math theory tells us that rebalancing channels does not change the max flow between two nodes we see that it has changed the selected path of a payment.
+Due to the onion routing and the privacy goals that are implemented in it we have a source based routing and thus assume the sender always has to select and thus find the path.
+However this is not true!
+When rebalancing comes into place we can use the local knowledge of the distribution of balances that nodes might have to help with selection of paths and finding a total payment path / multi path or flow.
+We will explore this idea a little bit more in the upcoming section about JIT routing.
+
+Remember in our example after Bob has paid Wei Bob had a total amount of 4 million satoshi, Wei had a total of 6 million satoshi and Erica still had 5 million satoshi as before.
+Of course it would be possible to have payment channels between these three people with that distribution of funds so that everyone has 50% of the capacity on their side of the payment channel.
+
 [[rebalancing-7]]
-.caption
+.50/50 balances with upteded capacities.
 image:images/rebalancing-7.png[]
 
+While the above picture shows that it is possible to have 50/50 channls after the payment this could only be achieved if the capacities would have been changed.
+Changing the capacity of channels is only possible by closing and opening the channel or with the help of a technique called splicing.
+The later is not widely deployed yet and would also depend on onchain transactions.
 
-IMPORT picture
+We hope that you have seen from this example a few things:
 
-We can see that in this graph that Bob, Wei and Erica all have channels with a capacity of 5.000.000 satoshi with each other.
-Everyone of them owns 2.500.000 Satoshi in their channel.
-Let us assume Bob wanted to send Wei 1 million satoshi.
-We would have 
+. Off-chain rebalancing does not change the fact how much money can flow from sender to receiver.
+. Making payments changes how much money sender and receiver can send or receive. This is similar to the physical world where you also can only spend the cash that you have received first.
+. The goal to have channels in a 50/50 state is not possible for all the nodes all the time and thus probably not a good one.
+. Rebalancing in combination with payments changes the way money flew from the sender to the recipient. In particular it shifts can shift the responsability to find a path from the sender to several nodes on the network - even they don't know which path they are trying to find.
+. Thus rebalancing can be a nice tool to support path finding.
 
-rebalancing will leave others with uneven state.
-
-IMPORT PICTURE
-
-even the most rebalanced state that cannot reach 50/50 everywhere for obious reasons
-
-IMPORT PICTURE
-
-a better goal is low imbalance measured via gini on relative funds. Explain why releative and how this is actually done
-
-Show it still can lead into conflicting situations.
-
+With these conclusings let us look more precisely what would be good rebalancing strategies for nodes.
 
 * (proactive / reactive) Rebalancing
 * Imbalance measures
