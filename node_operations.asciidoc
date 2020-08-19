@@ -347,9 +347,34 @@ bitcoin-rpcpassword=PASSWORD
 
 In general, it is a good idea to minimize the amount of customization of these systems. The default configuration is carefully designed to support the most common deployments. If you modify a default value, it may cause problems later on, or reduce the performance of your node. So, modify only when necessary!
 
-==== Security and authentication
+=== Security of your node
 
-A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access, by setting up strong authentication.
+A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access.
+
+Security is a holistic effort, meaning that you have to secure every layer of a system. As the saying goes: the chain is only as strong as the weakest link. This is an important concept in information security and we will apply it to our node.
+
+Despite all security measures you will take, remember that the Lightning Network is an early-stage experimental technology and there are likely to be exploitable bugs in the code of any project you use. *Do not put more money than you are willing to risk losing on the Lightning Network.*
+
+
+==== Operating system security
+
+Securing an operating system is a vast topic that is beyond the scope of this book. However, we can establish some basics concepts at a high level.
+
+To secure your operating system, here are some of the top items to consider:
+
+. Provenance - Start by ensuring that you are downloading the correct operating system image and verify any signatures or checksums before installing it.
+. Maintainance - Make sure that you keep your operating system up to date. Enable automated daily or weekly installation of security updates.
+. Least Privilege - Set up users for specific processes and give them the least access needed to run a service. Do not run processes with admin privileges (e.g. root).
+. Process Isolation - Use the operating system features to isolate processes from each other.
+. File System Permissions - Configure the file system carefully, on the least-privilege principle. Do not make files readable or writeable by everyone.
+. Strong Authentication - Use strong randomly generated passwords, or whenever possible public-key authentication e.g. with Secure Shell (SSH) instead of passwords.
+. Two-factor Authentication (2FA) - Use two-factor authentication wherever possible, including Universal 2-Factor (U2F) with hardware security keys.
+. Backup - Make backups of your system, but make sure you protect the backups with encryption too.
+. Vulnerability & Exposure Management - Use remote scanning to ensure you have minimized the attack surface of your system. Close any unnecessary services or ports.
+
+This is a list of basic security measures, not an exhaustive list.
+
+==== Node Access
 
 Your Lightning node will expose a Remote Procedure Call (RPC) Application Programming Interface (API). This means that your node can be controlled by commands sent to a specific TCP port. Control of that RPC API is achieved by some form of user authentication. Depending on the type of Lightning node you set up, this will either be done by username/password authentication, or by a mechanism called an authentication _macaroon_. A macaroon is a more sophisticated type of cookie, as the name implies. Unlike a cookie, it is cryptographically signed and can express a set of access capabilities.
 
@@ -372,7 +397,7 @@ Do not fund channels until you have created a system to continuously backup your
 
 Static Channel Backups are not a panacea. First, the state of each channel needs to be backed up every time there is a new commitment transaction. Second, restoring from a channel backup is dangerous. If you do not have the _last_ commitment transaction and you accidentally broadcast an old (revoked) commitment, your channel peer will assume you are trying to cheat and take the entire channel balance with a penatly transaction. To make sure you are closing the channel, you need to do a cooperative close. But a malicious peer could mislead your node into broadcasting an old commitment during that cooperative close, thereby cheating you by making your node inadvertently try to "cheat".
 
-Additionally, the backups of your channels need to be encrypted to maintain your privacy and your channel security. Otherwise, anyone who finds the backups can not only see all your channels, they could use the backups to close all your channels in a way that hands over the balance to your channel peers. 
+Additionally, the backups of your channels need to be encrypted to maintain your privacy and your channel security. Otherwise, anyone who finds the backups can not only see all your channels, they could use the backups to close all your channels in a way that hands over the balance to your channel peers.
 
 SCB are therefore a weak compromise because they swap one type of risk (data corruption or loss) for another type of risk (malicious peer). To restore from a static channel backup, you have to interact with your channel peers and hope they don't try to cheat (either by giving you an old commitment, or by fooling your node into broadcasting a revoked commitment so they can penalize you). Ultimately, this is less of a risk than the risk of losing all funds committed to a channel because of data corruption. Since data corruption leads to the same outcome as if every one of your peers cheat, you are better off backing up and taking the chance that some of your peers will act honestly.
 
@@ -386,18 +411,38 @@ File-based backups of the Lightning node databases are  partial solution, but yo
 
 To set up static channel backups in LND, set the +backupfilepath+ parameter, either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only part of the solution. Now, you have to setup a mechanism that copies that file off-site each time it changes, which is beyond the scope of this book. Any sophisticated backup solution should be able to handle this.
 
-=== Security of your machine
-
-
 ==== Hot wallet risk
+
+As we've discussed previously, the Lightning Network consists of a network of _hot wallets_. The funds you store in a Lightning wallet are *online all the time*. You should not store large amounts in a Lightning wallet, as it is quite vulnerable. Large amounts should be kept in a cold wallet that is not online and transacts on-chain.
+
+But given that warning, you may still find you have a significant amount of money in a Lightning wallet. Such is the case for example if you use a Lightning node for e-commerce operations like running a shop. If that is the case, your wallet will likely receive funds often but send funds rarely. You will therefore have two problems simultaneously: Your channels will be imbalanced inwards (more local balance than remote balance) and you will have too much money in the wallet. Fortunately, you can solve both of these problems simultaneously.
+
+Let's look at some of the solutions you can use to reduce the funds exposed on a hot wallet.
 
 ==== Sweeping funds
 
+If you Lightning wallet balance becomes too large for your risk appetite, you will need to "sweep" funds out of the wallet. You can do so in three ways: on-chain, off-chain and loop-out. Let's look at each of those in the next few sections.
+
 ===== On-chain sweep
+
+Sweeping funds on-chain, is accomplished moving the funds from the Lightning wallet to a Bitcoin wallet (presumably a more secure hardware wallet or cold storage). You do that by closing channels. When you close a channel, all funds from your local balance are "swept" to a Bitcoin address. The Bitcoin address for on-chain funds is usually generated by your Lightning wallet so it is still a hot-wallet. You may need to do an additional transaction to move the funds to a more secure address, such as one generated on your hardware wallet.
+
+Closing channels will incur an on-chain fee and will reduce your Lightning node's capacity and connectivity. However, if you run a popular e-commerce node you will not lack incoming capacity and can strategically close channels with large local balances, essentially "batching" your funds for movement on-chain. You may need to use some channel re-balancing techniques (see <<channel_rebalancing>>) before you close channels to maximise the benefit of this strategy.
 
 ===== Off-chain sweep
 
+Another technique you can use involves running a second Lightning node that is not advertized on the network. You can establish large capacity channels from your public node (e.g. the one running you shop) to your less-public (hidden) node. On a regular basis, "sweep" funds by making a Lightning payment to your hidden node. Once all the capacity of the channel moves to the hidden node side, you close the channel (as in the on-chain sweep above) and open a new channel from the public node.
+
+
+===== Loop-out sweep
+
 ==== Watchtowers
+
+
+=== Running multiple Lightning Network nodes
+
+==== Private channels
+==== Topology
 
 === Channel management
 
@@ -411,10 +456,9 @@ To set up static channel backups in LND, set the +backupfilepath+ parameter, eit
 
 ==== On-chain fees for channel management
 
-==== Submarine swaps
-
-==== Splice-in/Splice-out
-
+==== Inactive channels and nodes
+==== When to force-close
+==== Re-balancing channels
 
 === Routing fees
 
@@ -436,14 +480,3 @@ https://github.com/Ride-The-Lightning/RTL
 ==== lndash
 
 ==== External node monitors (1ml etc.)
-
-=== Channel maintenance
-
-==== Inactive channels and nodes
-==== When to force-close
-==== Re-balancing channels
-
-=== Running multiple Lightning Network nodes
-
-==== Private channels
-==== Topology
