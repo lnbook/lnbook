@@ -221,7 +221,7 @@ So, in our example, Bob holds a commitment transaction which pays Alice _immedia
 
 The two channel partners hold half of the revocation secret, so that neither one knows the whole secret. If they share their half, then the other channel partner has the full secret and can use it to exercise the revocation condition. When signing a new commitment transaction, they revoke the previous commitment by exchanging the signature for the revocation secret.
 
-In simple terms, Alice signs Bob's new commitment transaction only if Bob offers his half of the revocation secret for the previous commitment. Bob only signs Alice's new commitment transaction if she gives him her half of the revocation secrect from the previous commitment.
+In simple terms, Alice signs Bob's new commitment transaction only if Bob offers his half of the revocation secret for the previous commitment. Bob only signs Alice's new commitment transaction if she gives him her half of the revocation secret from the previous commitment.
 
 With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use the old commitments as they sign the new ones. footnote:[It is still technically possible to use old commitments, but the penalty mechanism makes it economically irrational to do so.]
 
@@ -255,7 +255,7 @@ By contrast, the channel partners may decide not to announce the channel, making
 You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, it's existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction. It's existence can also leak in a variety of other ways, so we avoid calling it "private"
 ====
 
-Unannounced channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes a unannounced channel.
+Unannounced channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes an unannounced channel.
 
 When a channel and its capacity is publicly announced using the gossip protocol, the announcement can also include information about the channel (metadata), such as it's routing fees and timelock duration.
 
@@ -519,7 +519,7 @@ The onion routing protocol used in Lightning has the following properties:
 
 . The onions are constructed such that they will always have the same length independent of the position of the processing node along the path. As each layer is "peeled" the onion is padded with encrypted "junk" data to keep the size of the onion the same. This prevents intermediary nodes from knowing their position in the path.
 
-. Onions have a HMAC (Hashed Message Authentication code) at each layer so that manipulations of onions are prevented and practically impossible
+. Onions have an HMAC (Hashed Message Authentication code) at each layer so that manipulations of onions are prevented and practically impossible
 
 . Onions can have up to 20 hops or onion layers if you prefer. This allows for sufficiently long paths.
 
@@ -543,7 +543,7 @@ Each intermediary node receives a Lightning Message called `update_add_htlc` wit
 
 . It adds some padding to the end of the onion to keep it at a constant length since it removed some data from the beginning.
 
-. It follows the routing hints to forward the modified onion package on its outgoing payment channel by also sending an `update_add_htlc` message which includes the same payement hash and the onion.
+. It follows the routing hints to forward the modified onion package on its outgoing payment channel by also sending an `update_add_htlc` message which includes the same payment hash and the onion.
 
 . It works with its channel partner on the outgoing channel, to update the channel state.
 
