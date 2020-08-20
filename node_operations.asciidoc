@@ -25,7 +25,7 @@ There are many ways you can run a Lightning node, from a small mini-PC hosted in
 
 In Bitcoin, unless one is specifically running a mining node, hardware is not particularly important.
 The Bitcoin Core node software can be run on any machine that meets its minimum requirements and does not need to be online to receive payments; only to send them.
-If a Bitcoin node goes down for an extended period of time, the user can simply reboot the node and once it connects to the rest of the network, it will resync the blockchain.
+If a Bitcoin node goes down for an extended period of time, the user can simply reboot the node and once it connects to the rest of the network, it will re-sync the blockchain.
 
 In Lightning however, the user needs to be online both to send _and_ to receive payments. If the Lightning user is offline it cannot receive any payments from anyone and thus its open invoices cannot be fulfilled.
 Furthermore, the open channels of an offline node cannot be used to route payments. Your channel partners will notice that you are offline and cannot contact you to route a payment. If you are offline too often, they may consider the Bitcoin locked up in their channels with you to be "wasted" capacity, and may close those channels. We also consider the case of a Protocol Breach i.e. your channel partner tries to cheat you by submitting an earlier commitment transaction. If you are offline and your channels aren't being monitored, then the theft could succeed and you will have no recourse once the timelock expires.
@@ -38,7 +38,7 @@ Thus, hardware failure in the Lightning Network can easily result in loss of fun
 
 ==== What are the types of hardware Lightning Nodes?
 
-* **General Purpose Computers**: a Lightning Network node can be run on a home computer or laptop running Windows, MacOS, or Linux. Typically this is run alongside a Bitcoin node.
+* **General Purpose Computers**: a Lightning Network node can be run on a home computer or laptop running Windows, Mac OS, or Linux. Typically this is run alongside a Bitcoin node.
 * **Dedicated Hardware**: a Lightning Node can also be run on dedicated hardware like a Raspberry Pi, Rock64, or mini-PC. This setup would usually run a software stack including a Bitcoin node and other applications. This setup is popular as the hardware is dedicated to running and maintaining the Lightning node only and is usually set up with an installation "helper".
 * **Specialized Hardware**: a Lightning Network node can also be run on purpose-built hardware specifically designed for it. This would include "out-of-the-box" Lightning node solutions that can be purchased as a kit or turn-key system.
 
@@ -66,7 +66,7 @@ At a minimum, the following will be required to run a Lightning Node:
 
 * **RAM**: a system running both Bitcoin and Lightning nodes may work on 2GB RAM _barely_, but will perform much better with at least 4GB of RAM. The Initial Block Download will be especially challenging with less than 4GB of RAM. More than 8GB of RAM is unnecessary, because the CPU is the greater bottleneck for these types of services, due to cryptographic operations such as signature validation.
 
-* **Storage Drive**: this can be a Hard Drive or an SSD, although an SSD will be significantly quicker for running a Bitcoin node. Most of the storage is used for the Bitcoin blockchain, which can take up more than 300GB (as of June 2020).
+* **Storage Drive**: this can be a Hard Drive or an Solid State Drive (SSD), although an SSD will be significantly quicker for running a Bitcoin node. Most of the storage is used for the Bitcoin blockchain, which can take up more than 300GB (as of June 2020).
 
 * **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning Peers. Estimated data use ranges from 10GB to 100GB per month, depending on configuration.
 
@@ -78,7 +78,7 @@ In addition, the user will also want to consider some kind of data backup soluti
 
 When renting a cloud server, it is often cost effective to change the configuration between two phases of operation: A faster CPU and faster storage will be needed during the Initial Block Download (e.g. the first day). After the blockchain has synced, the CPU and storage speed requirements are much less, so the performance can be downgraded to a more cost-effective level.
 
-For example, on Amazon's cloud, we would use a 8-16GB RAM, 8-core CPU (e.g. t3-large or m3.large) and faster 400GB SSD (1000+ provisioned IOPS) for the Initial Block Download (IBD), reducing its time to just 6-8 hours. Once that is complete, we would switch the server instance to a 2GB RAM, 2-core CPU (e.g. t3.small) and storage to a general purpose 1TB HDD. This will cost about the same as if you ran it on the slower sevrer the entire time, but will get you up and running in less than a day instead of having to wait almost a week for the IBD.
+For example, on Amazon's cloud, we would use a 8-16GB RAM, 8-core CPU (e.g. t3-large or m3.large) and faster 400GB SSD (1000+ provisioned IOPS) for the Initial Block Download (IBD), reducing its time to just 6-8 hours. Once that is complete, we would switch the server instance to a 2GB RAM, 2-core CPU (e.g. t3.small) and storage to a general purpose 1TB HDD. This will cost about the same as if you ran it on the slower server the entire time, but will get you up and running in less than a day instead of having to wait almost a week for the IBD.
 
 ===== Permanent data storage (drive)
 
@@ -96,13 +96,13 @@ Installing a Lightning node (or also a Bitcoin node), may be daunting if you are
 
 ==== RaspiBlitz
 
-One of the most popular and complete such "helpers", is _RaspibBlitz_, a project built by Christian Rootzoll, which is intended to be installed on a Raspberry Pi 4. RaspiBlitz comes with a recommended hardware "kit" that you can build in a matter of hours, or at most a weekend. If you attent a Lightning "hackathon" in your city, you are likely to see many people working on their RaspiBlitz set up, swapping tips and helping each other. You can find the RaspiBlitz project here:
+One of the most popular and complete such "helpers", is _RaspiBlitz_, a project built by Christian Rootzoll, which is intended to be installed on a Raspberry Pi 4. RaspiBlitz comes with a recommended hardware "kit" that you can build in a matter of hours, or at most a weekend. If you attend a Lightning "hackathon" in your city, you are likely to see many people working on their RaspiBlitz set up, swapping tips and helping each other. You can find the RaspiBlitz project here:
 
 https://github.com/rootzoll/raspiblitz
 
 image::[images/raspiblitz.jpg]
 
-In addition to a Bitocin and Lightning node, RaspiBlitz can install a number of additional services, such as:
+In addition to a Bitcoin and Lightning node, RaspiBlitz can install a number of additional services, such as:
 
 * TOR (Run as Hidden Service)
 * ElectRS (Electrum Server in Rust)
@@ -155,13 +155,13 @@ The number of additional services and features is expanding rapidly, so the list
 
 ==== Bitcoin node or lightweight Lightning
 
-One critical choice for your node will be the choice of Bitcoin node and its configuration. Bitcon Core, the reference implementation is the most common choice, but not the only choice available. One alternative choice is +btcd+, which is a Go-language implementation of a Bitcoin node. Btcd supports some features that are useful for running an LND Lightning node and are not available in Bitcoin Core.
+One critical choice for your node will be the choice of Bitcoin node and its configuration. Bitcoin Core, the reference implementation is the most common choice, but not the only choice available. One alternative choice is +btcd+, which is a Go-language implementation of a Bitcoin node. Btcd supports some features that are useful for running an LND Lightning node and are not available in Bitcoin Core.
 
 A second consideration is whether you will run an archival Bitcoin node with a full copy of the blockchain (some 350GB in mid-2020), or a _pruned_ blockchain that only keeps the most recent blocks. A pruned blockchain can save you some disk space, but will still need to download the full blockchain at least one (during the Initial Block Download), so it won't save you anything on network utilization. Using a pruned node to run a Lightning node is still an experimental capability and might not support all the functionality, however many people are running a node like that successfully.
 
 Finally, you also have the option of not running a Bitcoin node at all, instead operating the LND Lightning node in "lightweight" mode, using the _neutrino_ protocol to retrieve blockchain information from public Bitcoin nodes operated by others. Running like this means that you are taking resources from the Bitcoin network without offering any back, but it is still better than not running your own Lightning node at all.
 
-Keep in mind that operating a Bitcoin node allows you to support other services (other than a Lightning node). These other services may require an arcihval (not pruned) Bitcoin node and often can't run without a Bitcoin node. Consider what other services you may need to run now or in the future, to make an informed decision on the type of Bitcoin node you run.
+Keep in mind that operating a Bitcoin node allows you to support other services (other than a Lightning node). These other services may require an archival (not pruned) Bitcoin node and often can't run without a Bitcoin node. Consider what other services you may need to run now or in the future, to make an informed decision on the type of Bitcoin node you run.
 
 The bottom line for this decision is: If you can afford a > 500GB disk, run a full archival Bitcoin node. You will be contributing resources to the Bitcoin system and helping others who  cannot afford to do so. If you can't afford such a big disk, run a pruned node. If you can't afford the disk or the bandwidth for even a pruned node, run a lightweight LND node over neutrino.
 
@@ -171,7 +171,7 @@ The next decision is on which operating system you build your nodes. The vast ma
 
 Ultimately, most of the services can be run on any modern POSIX operating system, which includes Mac OS, Windows and of course Linux. Your choice should be driven more by your familiarity and comfort with an operating system and you learning objectives. If you want to expand your knowledge and learn how to operate a Linux system, this is a great opportunity to do so with a specific project and a clear goal. If you just want to get a node up and running, go with what you know.
 
-Nowadays, many services are also delivered in the form of containers, usually based on the docker system. These containers can be deployed on a variety of operating systems, abstracting the underlying OS. You may need to leanr some Linux CLI commands, however, as most of the containers run some variant of Linux inside.
+Nowadays, many services are also delivered in the form of containers, usually based on the docker system. These containers can be deployed on a variety of operating systems, abstracting the underlying OS. You may need to learn some Linux CLI commands, however, as most of the containers run some variant of Linux inside.
 
 === Choose your Lightning node implementation
 
@@ -189,7 +189,7 @@ The programming language doesn't just influence the choice of build system but a
 * File locations (in the filesystem)
 * Command-line arguments and their syntax
 * Error message formatting
-* Pre-requisite libraries
+* Prerequisite libraries
 * Remote Procedure Call interfaces
 
 When you choose your Lightning node, you are also choosing all of the above characteristics, so your familiarity with these tools and design philosophies will make it easier to run a node. Or harder, if you land in an unfamiliar domain.
@@ -204,7 +204,7 @@ As a final consideration, you may want to examine the performance and reliabilit
 
 === Installing a Bitcoin or Lightning node
 
-You decided not to use an installation "helper" and instead to dive into the command-line of a Linxu operating system? That is a brave decision and we'll try to help you make it work. If you'd rather not try to do this manually, consider using an application that helps you install the node software or a container based solution, as described in <<helpers>>.
+You decided not to use an installation "helper" and instead to dive into the command-line of a Linux operating system? That is a brave decision and we'll try to help you make it work. If you'd rather not try to do this manually, consider using an application that helps you install the node software or a container based solution, as described in <<helpers>>.
 
 [WARNING]
 ====
@@ -225,17 +225,17 @@ Background services usually run under a specific user account in order to isolat
 
 In addition, if you have connected an external drive, you will need to tell the operating system to relocate the user's home directory to that drive. That's because a service like Bitcoin Core will create files under the user's home directory. If you are setting it up to download the full Bitcoin blockchain, these files will take up several hundred GB. Here, we assume you have connected the external drive and it is located on the +/external_drive/+ path of the operating system.
 
-On most Linux systems you can creatre a new user with the +useradd+ command, like this:
+On most Linux systems you can create a new user with the +useradd+ command, like this:
 
 ----
 $ sudo useradd -d /external_drive/bitcoin -s /dev/null bitcoin
 ----
 
-The +m+ flag assigns the user's home directory. In this case, we put it on the external drive. The +s+ flag assigns the user's interactive shell. In this case we set it to +/dev/null+ to disable interactive shell use. The last argument is the new user's username +bitcoin+.
+The +d+ flag assigns the user's home directory. In this case, we put it on the external drive. The +s+ flag assigns the user's interactive shell. In this case we set it to +/dev/null+ to disable interactive shell use. The last argument is the new user's username +bitcoin+.
 
 ==== Node startup
 
-For both Bitcoin and Lightning node services, "installation" also involves creating a so called _startup script_ to make sure that the node starts when the computer boots. Startup and shutdown of background services is handled by an operating system process, which in Linux is called _init_ or _systemd_. You can usually find a system startup script in the +contrib+ subdirectory of each project. For example, if you are on a modern Linux OS that uses +systemd+, you would find a script called +bitcoind.service+, that can start the Bitcoin Core node service.
+For both Bitcoin and Lightning node services, "installation" also involves creating a so called _startup script_ to make sure that the node starts when the computer boots. Startup and shutdown of background services is handled by an operating system process, which in Linux is called _init_ or _systemd_. You can usually find a system startup script in the +contrib+ sub-directory of each project. For example, if you are on a modern Linux OS that uses +systemd+, you would find a script called +bitcoind.service+, that can start the Bitcoin Core node service.
 
 Here's an example (from the Bitcoin Core code repository) of what a Bitcoin node's startup script looks like:
 
@@ -347,6 +347,74 @@ bitcoin-rpcpassword=PASSWORD
 
 In general, it is a good idea to minimize the amount of customization of these systems. The default configuration is carefully designed to support the most common deployments. If you modify a default value, it may cause problems later on, or reduce the performance of your node. So, modify only when necessary!
 
+==== Network configuration
+
+Network configuration is normally not an issue when configuring a new application. However, peer-to-peer networks like Bitcoin and the Lightning network present some unique challenges for network configuration.
+
+In a centralized service, your computer connects to the "big servers" of some corporation, and not vice-versa. Your home Internet connection is actually configured on the assumption that you are simply a consumer of services provided by others. But in a peer-to-peer system, every peer both consumes from and provides services to other nodes. If you're running a Bitcoin or Lightning node at your home, you are providing a service to other computers on the internet. Your internet service is not configured to allow you to run servers and may need some additional configuration to work.
+
+If you want to run a Bitcoin or Lightning node, you need to make it possible for other nodes on the internet to connect to you. That means enabling incoming TCP connections to the Bitcoin port (port 8333 by default), or Lightning port (port 9735 by default). While you can run a Bitcoin node without incoming connectivity, you can't do that with a Lightning node - it needs to be accessible from outside your network.
+
+By default, your home internet router does not expect incoming connections from the outside, and in fact incoming connections are blocked. Your internet router IP address is the only externally accessible IP address, and all the computers you run inside your home network use that single IP address. This is achieved by a mechanism called _Network Address Translation (NAT)_ which allows your internet router to act as an intermediary for all outbound connections. If you want to allow an inbound connection you have to set up _Port Forwarding_, which tells your internet router that incoming connections on specific ports should be forwarded to specific computers inside the network. You can do this manually by changing your internet router configuration, or through an automatic port forwarding mechanism called called Universal Plug and Play (UPNP) if your router supports it.
+
+An alternative mechanism to port forwarding s is to enable The Onion Router (TOR), which provides a kind of virtual private network overlay that allows incoming connections to an _onion address_. If you run TOR, you don't need to do port forwarding.
+
+Let's look at different ways you can make it possible for others to connect to your node. We'll look at these mechanisms in order from easiest to most difficult.
+
+===== It just works!
+
+There's a possibility that your internet service provider is configured to support UPNP by default and everything just works automatically. Let's try this approach first, just in case we are lucky.
+
+Assuming you already have a Bitcoin or Lightning node running, we will try and see if they are accessible from the outside.
+
+[NOTE]
+====
+For this test to work, you have to have either a Bitcoin or Lightning node (or both) up and running on your home network. If your router supports UPNP, the node services will automatically use it to forward incoming connections to the corresponding ports on the computer running the node.
+====
+
+You can use some very popular and useful websites to find out what is your external IP address and whether it allows and forwards incoming connections to a known port. Here are two that are reliable:
+
+https://canyouseeme.org/
+
+https://www.whatismyip.com/port-scanner/
+
+By default, these services only allow you to check incoming connections to the IP address from which you are connecting - this prevents you from using the service to scan other people's networks and computers. You will see your router's external IP address and a field for entering a port number. If you haven't changed the default ports on your node configuration, try port 8333 (Bitcoin) and/or 9735 (Lightning).
+
+[[ln_port_check]]
+. Checking for incoming port 9735
+image::images/ln_port_check.png[]
+
+In <<ln_port_check>> you can see the result of checking port 9735 on a server running Lightning, using the +whatismyip.org+ port scanner tool. It shows that the server is accepting incoming connections to the Lightning port. If you see a result like this, you are all set!
+
+===== Automatic port forwarding using UPNP
+
+Sometimes, even if your internet router supports UPNP, it may be turned off by default. In that case you need to change your internet router configuration from its web administration interface:
+
+. Connect to your internet router's configuration website. Usually this can be done by connecting to the _gateway address_ of your home network using a web browser. You can find the gateway address by looking at the IP configuration of any computer on your home network. It is often the first address in one of the non-routable networks, like 192.168.0.1, or 10.0.0.1.
+
+. Find the administrator username and password for the web configuration panel of the router. This is often written on a sticker on the router itself and may be as simple as "admin" and "password". A quick web search for your ISP and router model can also help you find this information
+
+. Find a setting for UPNP and turn it on.
+
+Restart your Bitcoin and/or Lighting node and repeat the open port test with one of the websites we used in the previous section.
+
+===== Using TOR for incoming connections
+
+===== Manual port forwarding
+
+This is the most complex process and requires quite a bit of technical skill. The details depend on the type of internet router you have, your service provider settings and policies and a lot of other context. Try UPNP or TOR first, before you try this much more difficult mechanism.
+
+But the basic steps are as follows:
+
+. Find the IP address of the computer your node is on. This is usually dynamically allocated by the Dynamic Host Configuration Protocol (DHCP) and is often somewhere in the 192.168.0.X or 10.0.0.X range.
+
+. Find the Media Access Control (MAC) address of your node's network interface. This can be found in the internet settings of that computer.
+
+. Assign a static IP address for your node so that it is always the same one. You can use the IP address it currently has. On your internet router, look for "Static Leases" under the DHCP configuraiton. Map the MAC address to the specific IP address you want. Now your node will always have that IP address allocated to it.
+
+. Finally, set up "Port Forwarding" on your internet router.
+
+
 === Security of your node
 
 A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access.
@@ -363,7 +431,7 @@ Securing an operating system is a vast topic that is beyond the scope of this bo
 To secure your operating system, here are some of the top items to consider:
 
 . Provenance - Start by ensuring that you are downloading the correct operating system image and verify any signatures or checksums before installing it.
-. Maintainance - Make sure that you keep your operating system up to date. Enable automated daily or weekly installation of security updates.
+. Maintenance - Make sure that you keep your operating system up to date. Enable automated daily or weekly installation of security updates.
 . Least Privilege - Set up users for specific processes and give them the least access needed to run a service. Do not run processes with admin privileges (e.g. root).
 . Process Isolation - Use the operating system features to isolate processes from each other.
 . File System Permissions - Configure the file system carefully, on the least-privilege principle. Do not make files readable or writeable by everyone.
@@ -395,7 +463,7 @@ Lightning wallets do use a BIP39 mnemonic phrase backup for the on-chain wallet.
 Do not fund channels until you have created a system to continuously backup your channel state. Your backups should be moved "offsite" to a different system and location from your node, so that they can survive a variety of system failures (power loss, data corruption etc.) or natural disasters (flood, fire etc.)
 ====
 
-Static Channel Backups are not a panacea. First, the state of each channel needs to be backed up every time there is a new commitment transaction. Second, restoring from a channel backup is dangerous. If you do not have the _last_ commitment transaction and you accidentally broadcast an old (revoked) commitment, your channel peer will assume you are trying to cheat and take the entire channel balance with a penatly transaction. To make sure you are closing the channel, you need to do a cooperative close. But a malicious peer could mislead your node into broadcasting an old commitment during that cooperative close, thereby cheating you by making your node inadvertently try to "cheat".
+Static Channel Backups are not a panacea. First, the state of each channel needs to be backed up every time there is a new commitment transaction. Second, restoring from a channel backup is dangerous. If you do not have the _last_ commitment transaction and you accidentally broadcast an old (revoked) commitment, your channel peer will assume you are trying to cheat and take the entire channel balance with a penalty transaction. To make sure you are closing the channel, you need to do a cooperative close. But a malicious peer could mislead your node into broadcasting an old commitment during that cooperative close, thereby cheating you by making your node inadvertently try to "cheat".
 
 Additionally, the backups of your channels need to be encrypted to maintain your privacy and your channel security. Otherwise, anyone who finds the backups can not only see all your channels, they could use the backups to close all your channels in a way that hands over the balance to your channel peers.
 
@@ -427,11 +495,11 @@ If you Lightning wallet balance becomes too large for your risk appetite, you wi
 
 Sweeping funds on-chain, is accomplished moving the funds from the Lightning wallet to a Bitcoin wallet (presumably a more secure hardware wallet or cold storage). You do that by closing channels. When you close a channel, all funds from your local balance are "swept" to a Bitcoin address. The Bitcoin address for on-chain funds is usually generated by your Lightning wallet so it is still a hot-wallet. You may need to do an additional transaction to move the funds to a more secure address, such as one generated on your hardware wallet.
 
-Closing channels will incur an on-chain fee and will reduce your Lightning node's capacity and connectivity. However, if you run a popular e-commerce node you will not lack incoming capacity and can strategically close channels with large local balances, essentially "batching" your funds for movement on-chain. You may need to use some channel re-balancing techniques (see <<channel_rebalancing>>) before you close channels to maximise the benefit of this strategy.
+Closing channels will incur an on-chain fee and will reduce your Lightning node's capacity and connectivity. However, if you run a popular e-commerce node you will not lack incoming capacity and can strategically close channels with large local balances, essentially "batching" your funds for movement on-chain. You may need to use some channel re-balancing techniques (see <<channel_rebalancing>>) before you close channels to maximize the benefit of this strategy.
 
 ===== Off-chain sweep
 
-Another technique you can use involves running a second Lightning node that is not advertized on the network. You can establish large capacity channels from your public node (e.g. the one running you shop) to your less-public (hidden) node. On a regular basis, "sweep" funds by making a Lightning payment to your hidden node. Once all the capacity of the channel moves to the hidden node side, you close the channel (as in the on-chain sweep above) and open a new channel from the public node.
+Another technique you can use involves running a second Lightning node that is not advertised on the network. You can establish large capacity channels from your public node (e.g. the one running you shop) to your less-public (hidden) node. On a regular basis, "sweep" funds by making a Lightning payment to your hidden node. Once all the capacity of the channel moves to the hidden node side, you close the channel (as in the on-chain sweep above) and open a new channel from the public node.
 
 
 ===== Loop-out sweep
