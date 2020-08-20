@@ -522,6 +522,24 @@ Another technique you can use involves running a second Lightning node that is n
 
 ==== Getting inbound liquidity
 
+In the current design of the Lightning Network, it is more typical for users to obtain outbound liquidity _before_ obtaining inbound liquidity.
+They will do so by opening a channel with another node, and more often they'll be able to spend Bitcoin before they can receive it.
+There are three typical ways of getting inbound liquidity:
+
+* Open a channel with outbound liquidity, and then spend some of that Bitcoin
+* Request that someone else opens a channel with you, into which they load outbound liquidity from their side 
+* Pay a third party service to open a channel with you. For example, ACINQ offers this feature in Eclair Mobile Wallet and Bitrefill offers an inbound liquidity service called Thor
+
+This can sometimes create bottlenecks for earners on the Lightning Network.
+For example, merchants who sell goods for Lightning BTC could have a busy day and exhaust their inbound capacity, and then find themselves unable to receive more payments.
+Furthermore this is unintuitive from a UX perspective.
+Users typically expect to receive funds *before* they spend them, and not the other way around.
+
+In the future these challenges can be partially mitigated by the implementation of dual-funded channels, which are funded from both sides and offer both inbound and outbound capacity.
+This could also be mitigated by autopilot, which could request and pay for inbound capacity as needed.
+Ultimately, however, Lightning power users will have to strategize about channel management to ensure that sufficient inbound capacity is available to meet their inbound liquidity needs.
+
+
 ==== On-chain fees for channel management
 
 ==== Inactive channels and nodes
