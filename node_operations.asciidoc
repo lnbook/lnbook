@@ -347,6 +347,74 @@ bitcoin-rpcpassword=PASSWORD
 
 In general, it is a good idea to minimize the amount of customization of these systems. The default configuration is carefully designed to support the most common deployments. If you modify a default value, it may cause problems later on, or reduce the performance of your node. So, modify only when necessary!
 
+==== Network configuration
+
+Network configuration is normally not an issue when configuring a new application. However, peer-to-peer networks like Bitcoin and the Lightning network present some unique challenges for network configuration.
+
+In a centralized service, your computer connects to the "big servers" of some corporation, and not vice-versa. Your home Internet connection is actually configured on the assumption that you are simply a consumer of services provided by others. But in a peer-to-peer system, every peer both consumes from and provides services to other nodes. If you're running a Bitcoin or Lightning node at your home, you are providing a service to other computers on the internet. Your internet service is not configured to allow you to run servers and may need some additional configuration to work.
+
+If you want to run a Bitcoin or Lightning node, you need to make it possible for other nodes on the internet to connect to you. That means enabling incoming TCP connections to the Bitcoin port (port 8333 by default), or Lightning port (port 9735 by default). While you can run a Bitcoin node without incoming connectivity, you can't do that with a Lightning node - it needs to be accessible from outside your network.
+
+By default, your home internet router does not expect incoming connections from the outside, and in fact incoming connections are blocked. Your internet router IP address is the only externally accessible IP address, and all the computers you run inside your home network use that single IP address. This is achieved by a mechanism called _Network Address Translation (NAT)_ which allows your internet router to act as an intermediary for all outbound connections. If you want to allow an inbound connection you have to set up _Port Forwarding_, which tells your internet router that incoming connections on specific ports should be forwarded to specific computers inside the network. You can do this manually by changing your internet router configuration, or through an automatic port forwarding mechanism called called Universal Plug and Play (UPNP) if your router supports it.
+
+An alternative mechanism to port forwarding s is to enable The Onion Router (TOR), which provides a kind of virtual private network overlay that allows incoming connections to an _onion address_. If you run TOR, you don't need to do port forwarding.
+
+Let's look at different ways you can make it possible for others to connect to your node. We'll look at these mechanisms in order from easiest to most difficult.
+
+===== It just works!
+
+There's a possibility that your internet service provider is configured to support UPNP by default and everything just works automatically. Let's try this approach first, just in case we are lucky.
+
+Assuming you already have a Bitcoin or Lightning node running, we will try and see if they are accessible from the outside.
+
+[NOTE]
+====
+For this test to work, you have to have either a Bitcoin or Lightning node (or both) up and running on your home network. If your router supports UPNP, the node services will automatically use it to forward incoming connections to the corresponding ports on the computer running the node.
+====
+
+You can use some very popular and useful websites to find out what is your external IP address and whether it allows and forwards incoming connections to a known port. Here are two that are reliable:
+
+https://canyouseeme.org/
+
+https://www.whatismyip.com/port-scanner/
+
+By default, these services only allow you to check incoming connections to the IP address from which you are connecting - this prevents you from using the service to scan other people's networks and computers. You will see your router's external IP address and a field for entering a port number. If you haven't changed the default ports on your node configuration, try port 8333 (Bitcoin) and/or 9735 (Lightning).
+
+[[ln_port_check]]
+. Checking for incoming port 9735
+image::images/ln_port_check.png[]
+
+In <<ln_port_check>> you can see the result of checking port 9735 on a server running Lightning, using the +whatismyip.org+ port scanner tool. It shows that the server is accepting incoming connections to the Lightning port. If you see a result like this, you are all set!
+
+===== Automatic port forwarding using UPNP
+
+Sometimes, even if your internet router supports UPNP, it may be turned off by default. In that case you need to change your internet router configuration from its web administration interface:
+
+. Connect to your internet router's configuration website. Usually this can be done by connecting to the _gateway address_ of your home network using a web browser. You can find the gateway address by looking at the IP configuration of any computer on your home network. It is often the first address in one of the non-routable networks, like 192.168.0.1, or 10.0.0.1.
+
+. Find the administrator username and password for the web configuration panel of the router. This is often written on a sticker on the router itself and may be as simple as "admin" and "password". A quick web search for your ISP and router model can also help you find this information
+
+. Find a setting for UPNP and turn it on.
+
+Restart your Bitcoin and/or Lighting node and repeat the open port test with one of the websites we used in the previous section.
+
+===== Using TOR for incoming connections
+
+===== Manual port forwarding
+
+This is the most complex process and requires quite a bit of technical skill. The details depend on the type of internet router you have, your service provider settings and policies and a lot of other context. Try UPNP or TOR first, before you try this much more difficult mechanism.
+
+But the basic steps are as follows:
+
+. Find the IP address of the computer your node is on. This is usually dynamically allocated by the Dynamic Host Configuration Protocol (DHCP) and is often somewhere in the 192.168.0.X or 10.0.0.X range.
+
+. Find the Media Access Control (MAC) address of your node's network interface. This can be found in the internet settings of that computer.
+
+. Assign a static IP address for your node so that it is always the same one. You can use the IP address it currently has. On your internet router, look for "Static Leases" under the DHCP configuraiton. Map the MAC address to the specific IP address you want. Now your node will always have that IP address allocated to it.
+
+. Finally, set up "Port Forwarding" on your internet router.
+
+
 === Security of your node
 
 A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access.
