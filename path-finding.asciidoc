@@ -418,6 +418,36 @@ We hope that you have seen from this example a few things:
 
 With these conclusings let us look more precisely what would be good rebalancing strategies for nodes.
 
+The main problem with Lightning network channels from a routing and pathfinding perspective is that the liquidity is not known.
+From that perspective the 50/50 approach which is not achievable makes sense.
+If nodes could assume that other nodes always have a certain amount of the capacity on their side they could use that fraction of the capacity to make path finding decisions.
+Initially all the channel balance of newly opened channels is on one side.
+Thus if there is a new node which has opened some channels and received some channels all the channels are unbalanced and routing is always only possible in one direction.
+
+Nodes and node operatos could look at the channel balance coefficient which is defined as the ratio between the balance they hold on that channel divided by the capacity of that channel.
+As the balance can never be below zero and never exceed the capacity this channel balance coefficient will always be between 0 and 1.
+A node can easily compute the channel balance coefficient for all its channels.
+By the way in the case of the 50/50 rebalancing the coefficients would all have the value of 0.5.
+Researchers found out in the past that the overall likelihood to find a path increases if nodes aim to rebalance their channels in a way that their local channel balance coefficients all take the same value.
+This target value can easily be computed as the amount of total funds that a node owns on the network devided by the sum of all capacities of channels that the node maintains.
+We call this target value the node balance coefficient \nu.
+
+TODO: somehow describe this better without being too scientific. Tool and code can be found at: https://github.com/lightningd/plugins/pull/83
+
+```
+new_funds = sum(b) - a
+
+# assuming all channels have capacity of 1 btc
+cap = len(b)
+nu = float(new_funds) / cap
+ris = [1*(float(x)/1 - nu) for x in b]
+
+real_ris = [x for x in ris if x > 0]
+s = sum(real_ris)
+payments = [a*x/s for x in real_ris]
+```
+
+
 * (proactive / reactive) Rebalancing
 * Imbalance measures
 * goals for rebalancing (low Gini coefficient and not 50 / 50)
