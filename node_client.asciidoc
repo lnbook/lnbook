@@ -1043,10 +1043,10 @@ As you can see from the output, the script first gets the node IDs (public keys)
 Looking inside the script, we see the part that gets all the node IDs and stores them in temporary variables so that they can be used in subsequent command. It looks like this:
 
 ----
-alice_address=$(docker-compose exec -T Alice lncli -n regtest getinfo | jq .identity_pubkey)
-bob_address=$(docker-compose exec -T Bob lightning-cli getinfo | jq .id)
-wei_address=$(docker-compose exec -T Wei eclair-cli -s -j -p eclair getinfo| jq .nodeId)
-gloria_address=$(docker-compose exec -T Gloria lncli -n regtest getinfo | jq .identity_pubkey)
+alice_address=$(docker-compose exec -T Alice bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
+bob_address=$(docker-compose exec -T Bob bash -c "lightning-cli getinfo | jq .id")
+wei_address=$(docker-compose exec -T Wei bash -c "eclair-cli -s -j -p eclair getinfo| jq .nodeId")
+gloria_address=$(docker-compose exec -T Gloria bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
 ----
 
 If you have followed the first part of the chapter you will recognise these commands and be able to "decipher" their meaning. It looks quite complex, but we will walk through it step-by-step and you'll quickly get the hang of it.
@@ -1058,8 +1058,8 @@ The following three lines do the same for each of the other nodes. Because they 
 Next, we tell each node to establish a network connection to the next node and open a channel:
 
 ----
-docker-compose exec -T Alice lncli -n regtest connect ${bob_address}@Bob
-docker-compose exec -T Alice lncli -n regtest openchannel ${bob_address} 1000000
+docker-compose exec -T Alice lncli -n regtest connect ${bob_address//\"}@Bob
+docker-compose exec -T Alice lncli -n regtest openchannel ${bob_address//\"} 1000000
 ----
 
 Both of the commands are directed to the +Alice+ container since the channel will be opened _from_ +Alice+ _to_ +Bob+, and +Alice+ will initiate the connection.
@@ -1072,20 +1072,20 @@ We do the same with the other nodes, setting up connections and channels. Each n
 
 To Bob's node (c-lightning), we send the command:
 ----
-lightning-cli connect ${wei_address}@Wei
-lightning-cli fundchannel ${wei_address} 1000000
+docker-compose exec -T Bob lightning-cli connect ${wei_address//\"}@Wei 
+docker-compose exec -T Bob lightning-cli fundchannel ${wei_address//\"} 1000000
 ----
 
 To Wei's node (Eclair), we send:
 ----
-eclair-cli -p eclair connect --uri=${gloria_address}@Gloria
-eclair-cli -p eclair open --nodeId=${gloria_address} --fundingSatoshis=1000000
+docker-compose exec -T Wei eclair-cli -p eclair connect --uri=${gloria_address//\"}@Gloria
+docker-compose exec -T Wei eclair-cli -p eclair open --nodeId=${gloria_address//\"} --fundingSatoshis=1000000
 ----
 
 Now, on Gloria's node, we create a new invoice, for 10,000 satoshi:
 
 ----
-lncli -n regtest addinvoice 10000 | jq .payment_request
+gloria_invoice=$(docker-compose exec -T Gloria lncli -n regtest addinvoice 10000 | jq .payment_request)
 ----
 
 The +addinvoice+ command creates an invoice for the specified amount (in satoshis) and produces a JSON object with the invoice details. From that JSON object, we only need the actual bech32-encoded payment request, and we use +jq+ to extract it.
@@ -1095,7 +1095,7 @@ Next, we have to wait. We just created a bunch of channels, which means that our
 The final command is the actual payment. We connect to Alice's node and present Gloria's invoice for payment.
 
 ----
-lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice}
+docker-compose exec -T Alice lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice//\"}
 ----
 
 We ask Alice's node to pay the invoice, but also ask for +inflight_updates+ in +json+ format. That will give us detailed output about the invoice, the route, the HTLCs and the final payment result, so we can study and learn!
