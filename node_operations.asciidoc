@@ -613,6 +613,20 @@ Some examples:
 
 ==== Re-balancing channels
 
+In the course of transacting and routing other payments on Lightning, the combination of inbound and outbound capacity can become undesirable.
+For example, the user could have two channels both with an inbound capacity of 0.05 BTC and an outbound capacity of 0.05 BTC.
+While the total inbound capacity and outbound capacity are both 0.1 BTC,the user cannot send or receive payments greater than the capacity of a single channel i.e. 0.05 BTC.
+In the future, this problem will be solved through the implementation of Atomic Multipath Payments (AMP), which will allow multiple channels to be involved in a single payment.
+For now, there is a need to rebalance channels.
+
+One of the methods rebalancing a channel is to "loop out".
+A user can pay an invoice to itself of 0.05 BTC.
+This payment will exit one of the channels, resulting in an inbound capacity of 0.1 BTC and an outbound capacity of 0, and enter the other channel, resulting in an inbound capacity of 0 and an outbound capacity of 0.1 BTC
+(minus, of course, the routing fees that will need to be paid).
+This can be repeated with an arbitrary number of channels until the required channel balances are obtained.
+It could even be automated through autopilot.
+
+
 === Routing fees
 
 * Earning fees from routing
