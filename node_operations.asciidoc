@@ -400,6 +400,30 @@ Restart your Bitcoin and/or Lighting node and repeat the open port test with one
 
 ===== Using TOR for incoming connections
 
+The Onion Router (TOR) is a virtual private network with the special property that it encrypts communications between hops, such that any intermediary node cannot determine the origin or destination of a packet. Both Bitcoin and Lightning nodes support operation over TOR, which enables you to operate a node without revealing your IP address or location. An added benefit of running TOR is that because it operates as a VPN, it resolves the problem of port forwarding from your internet router. Incoming connections are received over the TOR tunnel, and your node can be found through an _onion address_ instead of an IP address.
+
+Enabling TOR requires two steps: First you must install the TOR router and proxy on your computer. Second, you must enable the use of the TOR proxy in your Bitcoin or Lightning configuration.
+
+To install TOR on a Ubuntu Linux system that uses the +apt+ package manager, run:
+
+----
+sudo apt install tor
+----
+
+Next, we configure our Lightning node to use TOR for it's external address. Here's an example configuration if we're running LND:
+
+----
+[Tor]
+tor.active=true
+tor.v3=true
+tor.streamisolation=true
+listen=localhost
+----
+
+This will enable TOR (+tor.active+), establish a v3 onion service (+tor.v3=true+), use a different onion stream for each connection (+tor.streamisolation+) and restrict listening for connections to the local host only, to avoid leaking your IP address (+listen=localhost+).
+
+Due to the nature of TOR, you can't use an external service to check if your node is reachable via an onion address. You should see your TOR onion address in the logs of your Lightning node, as a long string of letters and numbers followed by the suffix +.onion+. Your node should now be reachable from the internet, with the added bonus of privacy!
+
 ===== Manual port forwarding
 
 This is the most complex process and requires quite a bit of technical skill. The details depend on the type of internet router you have, your service provider settings and policies and a lot of other context. Try UPNP or TOR first, before you try this much more difficult mechanism.
@@ -414,6 +438,7 @@ But the basic steps are as follows:
 
 . Finally, set up "Port Forwarding" on your internet router.
 
+Now, repeat the port check using one of the websites from the previous sections.
 
 === Security of your node
 
@@ -499,10 +524,34 @@ Closing channels will incur an on-chain fee and will reduce your Lightning node'
 
 ===== Off-chain sweep
 
-Another technique you can use involves running a second Lightning node that is not advertised on the network. You can establish large capacity channels from your public node (e.g. the one running you shop) to your less-public (hidden) node. On a regular basis, "sweep" funds by making a Lightning payment to your hidden node. Once all the capacity of the channel moves to the hidden node side, you close the channel (as in the on-chain sweep above) and open a new channel from the public node.
+Another technique you can use involves running a second Lightning node that is not advertised on the network. You can establish large capacity channels from your public node (e.g. the one running you shop) to your less-public (hidden) node. On a regular basis, "sweep" funds by making a Lightning payment to your hidden node.
+
+The avantage of this technique lies in the fact that the Lightning node that receives payments for your shop will be publicly known. This makes it a target for hackers, as any Lightning node associated with a shop would be assumed to have large amounts of money in its balance. A second node that is not associated with your shop will not easily be identified as a valuable target.
+
+As an additional measure of security, you can make your second node a hidden TOR service, so that it's IP address is not known. That further reduces the opportunity for attack and increases your privacy.
+
+You will need to setup a script that runs at regular intervals that creates an invoice on your hidden node and then pays that invoice from your shop node, thereby shifting the funds over to your hidden node.
+
+Keep in mind that this technique does not move funds into cold storage. Both Lightning nodes are hot wallets. The effect of this is to move funds from a very well known hot wallet to an obscure hot wallet.
+
+===== Submarine swap sweep
+
+Another way to reduce your Ligthning hot-wallet balance is to use a technique called a _submarine swap_. A submarine swap is a mechanism to swap off-chain with on-chain funds. Essentially, you send a Lightning payment to an intermediary who makes an on-chain Bitcoin transaction for the same amount to an address of your choice.
+
+The advantage of a submarine swap for sweeping funds is that we do not close a channel. That means that we preserve our channel capacity and re-balance our channels through this operation. As we send a Lightning payment out, we shift balance from local to remote on one or more of our channels. Not only does that reduce the balance exposed in our node's hot wallet, it also increases the balance available for future incoming payments.
+
+Now, you could do this by trusting the intermediary to act as a gateway for your funds and not steal them. But in the case of a submarine swap, the operation does not require trust. Submarine swaps are non-custodial _atomic_ operations. That means that the intermediary cannot steal your funds, because the on-chain payment depends on the completion of the off-chain payment and vice-versa. We will discuss submarine swaps in more detail in <<submarine_swaps>>.
+
+One example of a submarine swap service is _Loop_ by Lightning Labs, the company that builds the LND Lightning node. Loop comes in two variations: _Loop In_, which accepts a Bitcoin on-chain payment and converts it into a Lightning off-chain payment and _Loop Out_, which converts a Lightning payment to a Bitcoin payment.
+
+[NOTE]
+====
+To use Loop, you must be running an LND Lightning node.
+====
+
+For the purpose of reducing the balance of our Lightning hot wallet, we would use the Loop Out service. To use the Loop service, we need to install some additional software on our node.
 
 
-===== Loop-out sweep
 
 ==== Watchtowers
 
