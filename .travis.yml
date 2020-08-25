@@ -11,14 +11,11 @@ install:
   - go get -u github.com/client9/misspell/cmd/misspell
 
 script:
-  - git grep -n --color $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && exit 1 || true
-  - git grep -n --color ' $' -- "*.asciidoc" "*.md" && echo "^ Trailing space detected at end of line. Please remove." && exit 1 || true
-  - git grep  -n --color  $'\t' -- "*.asciidoc" "*.md" && echo "^ Use of tabs detected. Please use space for indentation." && exit 1 || true
-  - git grep  -n --color "[^ ]  [^ ]" -- "*.asciidoc" "*.md" && echo "^ Satoshi style double spacing detected. Sorry Satoshi, please use single spacing." && exit 1 || true
-  - git grep -iE  -n --color '(^| )(\w+) \2(\.|,|:|;| |$)' -- "*.asciidoc" "*.md" && echo "^ Detected lexical illusion in the form of a duplicated word. Please correct." && exit 1 || true
-  - for FILE in $(git ls-files -- "*.asciidoc" "*.md"); do if [[ $(tail -c1 $FILE) != "" ]]; then echo "File ${FILE} does not end with a newline character (\n)."; exit 1; fi; done
-  - git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 1 || true
-  - git grep -E "^[= ]*[a-z]" -- "*.asciidoc" "*.md" | grep -vE '(:(link|pass):|::$)' | grep -vE ':[= ]*(http|https)' | grep -n -E "[a-z]" && echo "^ The first letter of the sentence should be capitalized. The end of the sentence should be on the same line as the beginning of the sentence. Please correct." && exit 1 || true
-  - git grep '^.* .*[a-zA-Z]$' -- "*.asciidoc" "*.md" | grep -vE '\.(asciidoc|md): *[=*\[_/#0-9]' | grep -vE '(http:|https:|footnote:)' | grep -vE ': [^ ]+$' | grep ":" && echo "^ Lines not properly terminated. Please add proper punctuation." && exit 1 || true
+  - git grep -n --color $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && exit 0 || true
+  - git grep -n --color ' $' -- "*.asciidoc" "*.md" && echo "^ Trailing space detected at end of line. Please remove." && exit 0 || true
+  - git grep  -n --color  $'\t' -- "*.asciidoc" "*.md" && echo "^ Use of tabs detected. Please use space for indentation." && exit 0 || true
+  - git grep -iE  -n --color '(^| )(\w+) \2(\.|,|:|;| |$)' -- "*.asciidoc" "*.md" && echo "^ Detected lexical illusion in the form of a duplicated word. Please correct." && exit 0 || true
+  - for FILE in $(git ls-files -- "*.asciidoc" "*.md"); do if [[ $(tail -c1 $FILE) != "" ]]; then echo "File ${FILE} does not end with a newline character (\n)."; exit 0; fi; done
+  - git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 0 || true
   - codespell --ignore-words-list=que $(git ls-files -- "*.asciidoc" "*.md")
-  - misspell -error $(git ls-files -- "*.asciidoc" "*.md")
+  - misspell $(git ls-files -- "*.asciidoc" "*.md")

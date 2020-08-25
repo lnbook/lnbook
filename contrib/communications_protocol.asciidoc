@@ -1,0 +1,47 @@
+[[communications_protocol]]
+== The communication protocol
+After you discovered the overview of how the lightning network protocol worked in the last chapter we now want to present a few more details about the actual communication that takes place between the nodes to fulfill the most important tasks like opening a channel, forwarding a payment and closing the channel.
+All communication takes place over a secure, encrypted and authenticated connection.
+
+[NOTE]
+====
+While the specification of how to set up such a connection is part of the lightning network protocol and can be read upon in BOLT08 we will omit this in the book.
+The reason is that BOLT08 mainly follows the handshake patterns from the noise protocol framework which is a standard template system for secure cryptographic handshakes.
+This protocol framework is also used by Whatsapp and Wireguard and is very well documented.
+If you want to learn more we suggest you check out http://www.noiseprotocol.org/
+====
+
+=== Lightning Messages
+
+Each Lightning Message contains 2 bytes indicating the *type* of message, and a variable-length *payload*.
+A *payload* needs to be interpreted according the *type*.
+
+A Lightning Message falls into one of the following groups:
+
+[cols="3,3,10",options="header"]
+|=======
+| Group           | Type        | Description
+| Setup & Control | 0~31        | Messages related to connection setup, control, supported features, and error reporting
+| Channel         | 32~127      | Messages related to setup and close channels
+| Commitment      | 128~255     | Messages related to updating the current commitment transaction
+| Routing         | 256~511     | Messages related to node and channel announcements, or active route explorations
+| Custom          | 32768~65535 | Experimental or custom messages
+|=======
+
+Lightning Messages follows two forethoughtful rules: "it's OK to be odd" rule and "ignore additional data" rule. Both of them allow for future extension of Lightning Messages.
+
+==== "It's OK to be odd" rule
+
+Lightning Message type follows the _it's ok to be odd_ rule. A node is allowed to send a message of an _odd_-numbered type, but not _even_-numbered type without prior negotiation. Once a node receives an _oddly_-but-unknown-typed message, it should ignore it. However, if it receives an _evenly_-but-unknown-typed message, it is expected to fail the channels.
+
+==== "Ignore additional data" rule
+
+The length of a Lightning Message is a 2-byte unsigned int, so the maximum message size is 65535 bytes.
+
+If a node receives a message with additional data longer than it expects for the corresponding type, the exceeding part will be discarded. On the contrary, if a node receives a message shorter than it expects, it fails the channels.
+
+=== Opening a Payment channel
+
+=== forwarding, making and receiving a payment
+
+=== closing the channel
