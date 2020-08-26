@@ -1,18 +1,30 @@
 [[routing_on_a_network_of_payment_channels]]
 == Routing on a Network of Payment channels
-In this section you will finally understand how payment channels can be connected to a network of payment channels.
-This allows our gamer Gloria to receive funds from her viewers without being required to maintain a separate channel with every of her viewers who want to tip her.
-As long as there exists a path of well funded payment channels from a fan to Gloria she will be able to receive money.
-Despite the fact that the nodes along the path forward the money to Gloria they are not able to steal the money and run with it.
-Similarly, they cannot lose money while participating in the routing process.
-They are however entitled to charge a routing fee for their service.
-In particular due to the used Onion routing intermediary nodes will not know who is the initiator of the payment and who is the final recipient.
-Being able to connect payment channels yields the main value proposition behind the lightning network.
-While a single channel between two users already takes load from the Bitcoin network if those users were to financially interact often a network as described allows off chain payments between arbitrary participants without the need of opening and maintaining a direct payment channel between them.
-In this chapter you will first learn in a non technical way how the Bitcoin Network changes its role of being a transaction settlement layer to being a contract settlement layer.
-Afterwards the technical Hashed Time Locked Contracts are introduced and explained.
-You will learn how they are included into the commitment transactions and how neighboring nodes communicate with each other to set the HTLCs up and settle them.
-Finally, you will learn about the SPHINX mix Format that enables onion routing which grants payments with a high degree of privacy.
+In this section we will finally unpack how payment channels can be connected to a network of other users' payment channels.
+This allows our gamer Gloria to receive funds from her fans without being required to maintain a separate channel with every one of her fans who want to tip her.
+Instead Gloria will be able to receive payment from a fan as long as there exists a path of well-funded channels from that viewer to Gloria.
+The nodes along the path from the fan to Gloria are intermediaries and called "routing nodes" for the purpose of routing a payment.
+
+[[gloria-routing-diagram]]
+.Any one of Gloria's fans in the diagram can pay her by routing via the nodes in between them and Gloria
+image:images/gloria-routing-diagram.PNG["Any one of Gloria's fans in the diagram can pay her by routing via the nodes in between them and Gloria"]
+
+Importantly, the routing nodes are unable to steal the funds while routing a payment from a fan to Gloria.
+Furthermore, routing nodes cannot lose money while participating in the routing process.
+They can however charge a routing fee for acting as an intermediary (although they don't have to. It is possible to route payments for free!).
+
+Another important detail is that, due to the use of Onion routing, intermediary nodes will not know who is the initiator of the payment and who is the final recipient.
+This enables fans to use intermediary nodes to pay Gloria, without leaking private information and without risking theft.
+This ability to connect payment channels in a route is the main value proposition behind the lightning network.
+
+This also provides scaling benefits to the Bitcoin network.
+A single open channel between two users already allows those users to transact off-chain an arbitrary number of times without making an on-chain payment.
+But a network of channels allows any two arbitrary users to transact on the Lightning Network, without the need to open further channels, as long as there is a well-funded path between them.
+
+In this chapter we will first discuss in a non technical way how, for the purposes of Lightning, the Bitcoin Network is not a _transaction settlement_ layer but a _contract settlement_ layer.
+Later in the chapter, technical concepts such as Hashed Time Locked Contracts (HTLCs) are explained.
+We will discuss how they are included in the commitment transactions and how neighboring nodes communicate with each other to set the HTLCs up and settle them.
+Finally, we will discuss the SPHINX mix Format that enables onion routing, which is what grants payments a high degree of privacy.
 
 
 === Creating a Network of payment channels
