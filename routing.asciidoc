@@ -144,7 +144,61 @@ After that, we'll explore how a user is able to use an HTLC to "route" a payment
 In the Lightning Network today, we use a technique called source-based onion routing, though it's also possible to route payment with alternative techniques.
 Finally, we'll dive into the precise details concerning the exact mechanics of forward, settle ling, and cancelling HTLCs in the network.
 
-===Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment
+= Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment =
+
+Our example in the prior section using "golden coins", was intended to lay same base intuition which we'll leverage in this section to explain how HTLCs work in practice.
+HTLC is actually an acronym that stands for "Hash Time-Locked Contracts". 
+A HTLC is a _specific_ instantiation of a Conditional Chained End to End Secure Payment (CCESP, don't use this acronym?).
+As we'll see in the later chapters, given a set of adequate cryptographic constructs, many other instantiations are possible as well.
+
+Before we dive into the specifics of HTLCs, it may be helpful to first build intuition on an abstraction over this concrete concept.
+First, let's unpack what it means for something to be a conditional chained end to end secure payment:
+
+== Conditional End to End Secure Payments by Construction ==
+
+=== Conditional Payments ===
+
+A payment can be said to be conditional, if the completion of the payment relies on the completion of a certain event. 
+In the golden coins example, this "condition" was the reveal of a hash pre-image. 
+We could feasibly substitute this hash pre-image reveal for any other construct with "hardness" properties. Namely: it should be infeasible for a party that doesn't know the proper "solution" of the condition to satisfy it, the "description" of the condition shouldn't give away any information about the true "solution", and once a solution has been chosen and a description created from it, it shouldn't be possible to "alter" that solution and have it still be a valid condition for the description. 
+
+The payment should _only_ be able to be redeemed if a valid solution is revealed. Critical, all conditions need to be timed in order to allow the construct to return the funds back to the sender if a solution to this condition isn't revealed.
+The combination of the condition, and a timeout on the condition gives the payment a trait we commonly refer to as atomicity: either the payment happens, or the receiver if refunded the funds.
+
+=== Conditional Chained Payment ===
+
+Building upon our conditional payment, it may be possible to *chain* this payment, allowing it to involve the payer, the payee, and possibly several intermediaries. 
+Each intermediary, is able to present a _slightly_ modified version of the condition (without invalidating it all together), and so so in an iterated manner until the conditional payment reaches the payee.
+Once it reaches the payee, then the payment should be able to be _iteratively_ resolved, starting at the payee all the way back to the payer. 
+
+Each chaining creates an "incoming" and "outgoing" conditional payment.
+A node receives a conditional payment from a party (incoming condition), and then extends the conditional payment to the next party in the chain (outgoing condition).
+The payment is extended in from payer to payee, but settled from payee to payer, as each of the intermediaries gain the solution to the outgoing condition, and use that (possibly augmenting it) to satisfy the incoming solution.
+
+Typically the payer rewards the intermediaries by sending slightly more than the payment amount, in order to allow the intermediaries to send out less with their outgoing payment than what they received from the incoming payment.
+The difference between these two payment values makes up the "forwarding fee" collected by the intermediary.
+
+=== Conditional Chained End to End Secure Payment === 
+
+With our final addition, we'll achieve "end to end security".
+By this we mean that: no intermediaries are able to "claim" the payment without first obtaining the solution from someone further down from them in the chain.
+Additionally, we also require that the amount the payer intended to send is fully received by the payee.
+Finally, we require that non of the intermediaries are able to "contaminate" the payment beyond giving incorrect directions to the party that directly follows them.
+In other words, the intermediary shouldn't be able to materially affect the propagation of the payment several hops away from it.
+
+== Hash Time Locked Contracts ==
+
+In this section, we'll construct a conditional chained end to end payment known as the HTLC. 
+At each step we'll add a new component, then examine it in light of our original definition to ensure all requirements and security properties are reached.
+
+First, the "condition". For an HTLC, the condition is typically the reveal of a hash pre-image that matches a particular hash.
+This hash is typically referred to as the "payment hash", with the pre-image being called the "payment pre-image".
+If the name didn't give too much away, for an HTLC, we'll use a _cryptographically secure_ hash function as one part of our condition.
+By using a cryptographic hash function, we ensure that it's infeasible for another party to "guess" the solution of our condition, it's easy for anyone to verify the solution, and there's only one "solution" to the condition.
+
+In order to implement the "refund" functionality, we rely on the "absolute time lock" functionality of Bitcoin script.
+
+With all that said, a basic Bitcoin script implementing a hash time-locked contract would look something like the following:
 
 outine:
   * break down each word in the above contract
