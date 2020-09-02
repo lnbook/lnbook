@@ -231,13 +231,13 @@ In the next few sections we will briefly describe how to install and configure a
 
 For those accustomed to running applications on their desktop or smartphone, an application always has a graphical user interface even if it may sometimes run in the background. The Bitcoin and Lightning node applications, however, are very different. These applications do not have a graphical user interface built in. Instead, they run as _headless_ background services, meaning they are always operating in the background and do not interact with the user directly.
 
-This can create some confusion for users who are not used to running background services. How do you know if such a service is currently running? How do you start and stop it? How do you interact with it? The answers to these questions depend on the operating system you are using, but for now we will assume you are using some Linux variant and answer them in that context.
+This can create some confusion for users who are not used to running background services. How do you know if such a service is currently running? How do you start and stop it? How do you interact with it? The answers to these questions depend on the operating system you are using. For now we will assume you are using some Linux variant and answer them in that context.
 
 ==== Process isolation
 
 Background services usually run under a specific user account in order to isolate them from the operating system and each other. For example, Bitcoin Core is configured to run as user +bitcoin+. You will need to use the command-line to create a user for each of the services you run.
 
-In addition, if you have connected an external drive, you will need to tell the operating system to relocate the user's home directory to that drive. That's because a service like Bitcoin Core will create files under the user's home directory. If you are setting it up to download the full Bitcoin blockchain, these files will take up several hundred GB. Here, we assume you have connected the external drive and it is located on the +/external_drive/+ path of the operating system.
+In addition, if you have connected an external drive, you will need to tell the operating system to relocate the user's home directory to that drive. That's because a service like Bitcoin Core will create files under the user's home directory. If you are setting it up to download the full Bitcoin blockchain, these files will take up several hundred Gigabytes. Here, we assume you have connected the external drive and it is located on the +/external_drive/+ path of the operating system.
 
 On most Linux systems you can create a new user with the +useradd+ command, like this:
 
@@ -249,9 +249,9 @@ The +d+ flag assigns the user's home directory. In this case, we put it on the e
 
 ==== Node startup
 
-For both Bitcoin and Lightning node services, "installation" also involves creating a so called _startup script_ to make sure that the node starts when the computer boots. Startup and shutdown of background services is handled by an operating system process, which in Linux is called _init_ or _systemd_. You can usually find a system startup script in the +contrib+ sub-directory of each project. For example, if you are on a modern Linux OS that uses +systemd+, you would find a script called +bitcoind.service+, that can start the Bitcoin Core node service.
+For both Bitcoin and Lightning node services, "installation" also involves creating a so called _startup script_ to make sure that the node starts when the computer boots. Startup and shutdown of background services is handled by an operating system process, which in Linux is called _init_ or _systemd_. You can usually find a system startup script in the +contrib+ sub-directory of each project. For example, if you are on a modern Linux OS that uses +systemd+, you would find a script called +bitcoind.service+, that can start and stop the Bitcoin Core node service.
 
-Here's an example (from the Bitcoin Core code repository) of what a Bitcoin node's startup script looks like:
+Here's an example of what a Bitcoin node's startup script looks like, taken from the Bitcoin Core code repository:
 
 .From bitcoin/contrib/init/bitcoind.service
 ----
@@ -314,7 +314,7 @@ Next, enable the service:
 $ sudo systemctl enable bitcoind
 ----
 
-You can now start and stop the service (don't do this yet, as we haven't configured the Bitcoin node):
+You can now start and stop the service. Don't start it yet, as we haven't configured the Bitcoin node.
 
 ----
 $ sudo systemctl start bitcoind
@@ -330,16 +330,16 @@ To configure your node, you need to create and reference a configuration file. B
 
 These configuration files are text files with each line expressing one configuration option and its value. Default values are assumed for anything not defined in the configuration file. You can see what options can be set in the configuration in two ways. First, running the node application with a +help+ argument will show the options that can be defined on the command-line. These same options can be defined in the configuration file. Second, you can usually find an example configuration file, with all the default options, in the code repository of the software.
 
-You can see one example of a configuration file in each of the docker images we saw in <<set_up_a_lightning_node>>. For example, the file +code/docker/bitcoind/bitcoind/bitcoin.conf+:
+You can find one example of a configuration file in each of the docker images we used in <<set_up_a_lightning_node>>. For example, the file +code/docker/bitcoind/bitcoind/bitcoin.conf+:
 
 .Configuration file for docker bitcoind (code/docker/bitcoind/bitcoind/bitcoin.conf)
 ----
 include::code/docker/bitcoind/bitcoind/bitcoin.conf[]
 ----
 
-That particular configuration file configures Bitcoin Core for operation as a +regtest+ node and provides a weak username and password for remote access, so you shouldn't use it for your node configuration. However, it serves to illustrate the syntax of a configuration file and you can make adjustments to it in the docker container to experiment with different options. See if you can use the +bitcoind -help+ command to understand what each of the options does in the context of the docker network we build in <<set_up_a_lightning_node>>
+That particular configuration file configures Bitcoin Core for operation as a +regtest+ node and provides a weak username and password for remote access, so you shouldn't use it for your node configuration. However, it serves to illustrate the syntax of a configuration file and you can make adjustments to it in the docker container to experiment with different options. See if you can use the +bitcoind -help+ command to understand what each of the options does in the context of the docker network we build in <<set_up_a_lightning_node>>.
 
-Often, the defaults suffice and with a few modifications, your node software can be configured quickly. To get a Bitcoin Core node running for example, you only need four lines of configuration:
+Often, the defaults suffice, and with a few modifications your node software can be configured quickly. To get a Bitcoin Core node running with minimal customization, you only need four lines of configuration:
 
 ----
 server=1
@@ -359,21 +359,21 @@ bitcoin-rpcuser=USERNAME
 bitcoin-rpcpassword=PASSWORD
 ----
 
-In general, it is a good idea to minimize the amount of customization of these systems. The default configuration is carefully designed to support the most common deployments. If you modify a default value, it may cause problems later on, or reduce the performance of your node. So, modify only when necessary!
+In general, it is a good idea to minimize the amount of customization of these systems. The default configuration is carefully designed to support the most common deployments. If you modify a default value, it may cause problems later on or reduce the performance of your node. In short, modify only when necessary!
 
 ==== Network configuration
 
 Network configuration is normally not an issue when configuring a new application. However, peer-to-peer networks like Bitcoin and the Lightning network present some unique challenges for network configuration.
 
-In a centralized service, your computer connects to the "big servers" of some corporation, and not vice-versa. Your home Internet connection is actually configured on the assumption that you are simply a consumer of services provided by others. But in a peer-to-peer system, every peer both consumes from and provides services to other nodes. If you're running a Bitcoin or Lightning node at your home, you are providing a service to other computers on the internet. Your internet service is not configured to allow you to run servers and may need some additional configuration to work.
+In a centralized service, your computer connects to the "big servers" of some corporation, and not vice-versa. Your home Internet connection is actually configured on the assumption that you are simply a consumer of services provided by others. But in a peer-to-peer system, every peer both consumes from and provides services to other nodes. If you're running a Bitcoin or Lightning node at your home, you are providing a service to other computers on the internet. Your internet service by default is not configured to allow you to run servers and may need some additional configuration to enable others to reach your node.
 
-If you want to run a Bitcoin or Lightning node, you need to make it possible for other nodes on the internet to connect to you. That means enabling incoming TCP connections to the Bitcoin port (port 8333 by default), or Lightning port (port 9735 by default). While you can run a Bitcoin node without incoming connectivity, you can't do that with a Lightning node - it needs to be accessible from outside your network.
+If you want to run a Bitcoin or Lightning node, you need to make it possible for other nodes on the internet to connect to you. That means enabling incoming TCP connections to the Bitcoin port (port 8333 by default) or Lightning port (port 9735 by default). While you can run a Bitcoin node without incoming connectivity, you can't do that with a Lightning node. A Lightning node must be accessible to others from outside your network.
 
-By default, your home internet router does not expect incoming connections from the outside, and in fact incoming connections are blocked. Your internet router IP address is the only externally accessible IP address, and all the computers you run inside your home network use that single IP address. This is achieved by a mechanism called _Network Address Translation (NAT)_ which allows your internet router to act as an intermediary for all outbound connections. If you want to allow an inbound connection you have to set up _Port Forwarding_, which tells your internet router that incoming connections on specific ports should be forwarded to specific computers inside the network. You can do this manually by changing your internet router configuration, or through an automatic port forwarding mechanism called called Universal Plug and Play (UPNP) if your router supports it.
+By default, your home internet router does not expect incoming connections from the outside, and in fact incoming connections are blocked. Your internet router IP address is the only externally accessible IP address, and all the computers you run inside your home network share that single IP address. This is achieved by a mechanism called _Network Address Translation (NAT)_ which allows your internet router to act as an intermediary for all outbound connections. If you want to allow an inbound connection you have to set up _Port Forwarding_, which tells your internet router that incoming connections on specific ports should be forwarded to specific computers inside the network. You can do this manually by changing your internet router configuration or,  if your router supports it, through an automatic port forwarding mechanism called _Universal Plug and Play (UPNP)_.
 
-An alternative mechanism to port forwarding s is to enable The Onion Router (TOR), which provides a kind of virtual private network overlay that allows incoming connections to an _onion address_. If you run TOR, you don't need to do port forwarding.
+An alternative mechanism to port forwarding is to enable The Onion Router (TOR), which provides a kind of virtual private network overlay that allows incoming connections to an _onion address_. If you run TOR, you don't need to do port forwarding nor enable incoming connections to Bitcoin or Lightning ports. If you run your nodes using TOR, all traffic goes through TOR and no other ports are used.
 
-Let's look at different ways you can make it possible for others to connect to your node. We'll look at these mechanisms in order from easiest to most difficult.
+Let's look at different ways you can make it possible for others to connect to your node. We'll look at these alternatives in order, from easiest to most difficult.
 
 ===== It just works!
 
