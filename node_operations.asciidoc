@@ -780,25 +780,37 @@ In the current design of the Lightning Network, it is more typical for users to 
 They will do so by opening a channel with another node, and more often they'll be able to spend Bitcoin before they can receive it.
 There are three typical ways of getting inbound liquidity:
 
-* Open a channel with outbound liquidity, and then spend some of that Bitcoin
-* Request that someone else opens a channel with you, into which they load outbound liquidity from their side
-* Pay a third party service to open a channel with you. For example, ACINQ offers this feature in Eclair Mobile Wallet and Bitrefill offers an inbound liquidity service called Thor
+* Open a channel with outbound liquidity, and then spend some of those funds. Now the balance is on the other end of the channel, which means it can be used to send payments to you.
 
-This can sometimes create bottlenecks for earners on the Lightning Network.
-For example, merchants who sell goods for Lightning BTC could have a busy day and exhaust their inbound capacity, and then find themselves unable to receive more payments.
-Furthermore this is unintuitive from a UX perspective.
-Users typically expect to receive funds *before* they spend them, and not the other way around.
+* Ask someone to open a channel to your node. Offer to reciprocate, so that both of your nodes become better connected and balanced.
 
-In the future these challenges can be partially mitigated by the implementation of dual-funded channels, which are funded from both sides and offer both inbound and outbound capacity.
-This could also be mitigated by autopilot, which could request and pay for inbound capacity as needed.
-Ultimately, however, Lightning power users will have to strategize about channel management to ensure that sufficient inbound capacity is available to meet their inbound liquidity needs.
+* Use a submarine swap (e.g. Loop-In) to exchange on-chain BTC for an inbound channel to your node.
 
-==== On-chain fees for channel management
+* Pay a third party service to open a channel with you. Several such services exist, some charging a fee to provide liquidity, some for free.
 
-==== Inactive channels and nodes
-==== When to force-close
+Here's a list of currently available liquidity providers who (for a fee) will open a channel to your node:
+
+* Bitrefill's Thor service at https://www.bitrefill.com/thor-lightning-network-channels/
+
+* Lightning To Me at https://lightningto.me/
+
+* LNBig at https://lnbig.com/
+
+* Lightning Conductor at https://lightningconductor.net/channels
+
+
+Creating inbound liquidity is challenging from both a practical and user experience perspective. Inbound liquidity does not happen automatically, so you have to find ways to build it for your node. This asymmetry of payment channels is also not intuitive - after all in most payment systems you get paid first (inbound) before you pay others (outbound).
+
+The challenge of creating inbound liquidity is most noticeable if you are a merchant or sell your services for Lightning payments. In that case, you need to be vigilant to ensure that you have enough inbound liquidity to be able to continue to receive payments. What if there is a surge of buyers on your store, but they can't actually pay you because there's no more inbound capacity?
+
+In the future these challenges can be partially mitigated by the implementation of dual-funded channels, which are funded from both sides and offer balanced inbound and outbound capacity. This could also be mitigated by more sophisticated autopilot software, which could request and pay for inbound capacity as needed.
+
+Ultimately, however, Lightning users need to be strategic about channel management to ensure that sufficient inbound capacity is available to meet their needs.
+
+==== Closing channels
 
 As discussed earlier in the book, Mutual Close is the preferred way of closing a channel, however there are instances where a Force Close is neccessary.
+
 Some examples:
 
 * Your channel partner is offline and cannot be contacted to initiate a mutual close
@@ -807,19 +819,21 @@ Some examples:
 
 ==== Re-balancing channels
 
-In the course of transacting and routing other payments on Lightning, the combination of inbound and outbound capacity can become undesirable.
-For example, the user could have two channels both with an inbound capacity of 0.05 BTC and an outbound capacity of 0.05 BTC.
-While the total inbound capacity and outbound capacity are both 0.1 BTC,the user cannot send or receive payments greater than the capacity of a single channel i.e. 0.05 BTC.
-In the future, this problem will be solved through the implementation of Atomic Multipath Payments (AMP), which will allow multiple channels to be involved in a single payment.
-For now, there is a need to rebalance channels.
+In the course of transacting and routing payments on Lightning, the combination of inbound and outbound capacity can become unbalanced.
 
-One of the methods rebalancing a channel is to "loop out".
-A user can pay an invoice to itself of 0.05 BTC.
-This payment will exit one of the channels, resulting in an inbound capacity of 0.1 BTC and an outbound capacity of 0, and enter the other channel, resulting in an inbound capacity of 0 and an outbound capacity of 0.1 BTC
-(minus, of course, the routing fees that will need to be paid).
-This can be repeated with an arbitrary number of channels until the required channel balances are obtained.
-It could even be automated through autopilot.
+For example, if one of your channel partners is frequently routing payments through your node, you will exhaust the inbound capacity on that channel, while also exhausting the outbound capacity on the outgoing channels. Once that happens, you can no longer route payments through that route.
 
+There are many ways to re-balance channels, with different advantages and disadvantages. One way is to use a submarine swap (e.g. Loop-out), as described previously in this chapter. Another way to re-balance is to wait for routed payments that flow in the opposite direction. If your node is well connected, when a specific route becomes exhausted in one direction, the opposite-direction route becomes available. Other nodes may "discover" that opposite-direction route and use it as part of their payment path, re-balancing the funds again.
+
+Another way to re-balance channels is to purposely create a _circular route_ that sends a payment from your node to your node, via the Lightning Network. By sending a payment out on a channel with large local capacity and arranging the path so that it returns to your node on a channel with large remote capacity, both of those channels will become more balanced. An example of a circular route re-balancing strategy can be seen in <<circular-rebalancing>>.
+
+[[circular-rebalancing]]
+.Circular route re-balancing
+image::images/circular-rebalancing.png[]
+
+Circular re-balancing is supported by most Lightning node implementations and can be done on the command-line or via one of the web management interfaces such as _Ride the Lightning (RTL)_ (see <<rtl>>).
+
+Channel rebalancing is a complex issue that is the subject of active research and covered in more detail in <<rebalancing_channels>>.
 
 === Routing fees
 
