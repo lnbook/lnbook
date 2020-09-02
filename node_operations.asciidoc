@@ -705,13 +705,13 @@ Another way to find well connected nodes is to use a Lightning Explorer, such as
 The task of opening channels can be automated, somewhat, with the use of an _autopilot_, which is software that opens channels automatically based on some heuristic rules. Autopilot software is still relatively new and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
 Autopilots currently exist in 3 forms.
 
-- Originally lnd published an autopilot that is fully integrated with lnd and runs constantly in the background while turned on
-- lib_autopilot.py which can technically operate autopilot operations on the gossip and channel data from any implementation.
+- Originally lnd published an autopilot that is fully integrated with lnd and runs constantly in the background while it is turned on.
+- lib_autopilot.py can technically offer autopilot computations on the gossip and channel data from any implementation.
 - A clighting plugin based on lib_autopilot.py exists that provides an easy to use interface for c-lightning users.
 
-The main thing to watch out when running the lnd autopilot is that as soon as it is turned on the config file it will run automatically in the background and it will start to open channels if you have onchain outputs in your lnd wallet.
+The main thing to watch out when running the lnd autopilot is that as soon as it is turned on via the config file it will automatically run in the background and it will start to open channels if you have onchain outputs in your lnd wallet.
 If you want to have full controll over the bitcoin transactions that you make and the channels that you open make sure to turn off the autopilot before you load your lnd wallet with bitcoin funds.
-If the autopilot was previously turned on you might have to restart your lnd before you top up your wallet with an onchain transaction.
+If the autopilot was previously turned on you might have to restart your lnd before you top up your wallet with an onchain transaction or before you lose channels which effectively gives you on chain funds again..
 Another thing to keep in mind is to set the most important config values if you want to run the autopilot.
 here you can find an example configuration: 
 
@@ -728,17 +728,19 @@ autopilot.heuristic=top_centrality:1.0
 This config file would activate the autopilot.
 It would open channels as long as the following two conditions are met:
 
-1. The amount of channels that you have does not exceed 40
+1. The amount of channels that your node currently has open does not exceed 40.
 2. Not more than 70% of your total funds are offchain in payment channels.
 
-The numbers 40 and 0.7 are chosen completely arbitrary here as we cannot really make a recommendation that goes for everyone about how many channels one should have and how manu percent of their funds should be off chain.
-The autopilot in lnd will not take into account to run when on chain fees are alow. It will make channel recommendations when ever the conditions are met and will directly try to open a channel by using the appropriate fees.
+The numbers 40 and 0.7 are chosen completely arbitrary here as we cannot really make a recommendation that goes for everyone about how many channels one should have and how many percent of their funds should be off chain.
+The autopilot in lnd will not take into account to run when onchain fees are low.
+Thus you might spend quite some funds on transactions fees.
+It will make channel recommendations when ever the conditions are met and will directly try to open a channel by using the appropriate fees.
 According to this configuration file channels will be between 5 and 50 mBTC.
 The size is actually as most of the time on the lightning network depicted in satoshi but we converted the amount for you.
 It has become clear that too small channels below 1 mBTC are not very usefull and we do not recommend to open too small channels.
 With the wider adoption of multipath payments smaller channels are less of a burden but we still stick to our recommendation.
 
-The c-lightning plugin works very different to the lnd autopilot.
+The c-lightning plugin works very differently in comparison to the lnd autopilot.
 Not only from the used algorithms to make the recommendations - which we do not discuss here - but also from the user interface.
 First you will need to download the autopilot plugin from the c-lightning plugin repository at https://github.com/lightningd/plugins/tree/master/autopilot and activate it.
 We have already explained how to activate plugins in c-lightning.
@@ -753,22 +755,17 @@ autopilot-min-channel-size-msat=100000000msat
 
 These values are the actual default config and you do not need to set them at all.
 The autopilot will not autoamatically run in the background like lnd.
-Instead you have to start a run specifically with `lightning-cli autopilot-run-once`.
-If you do not want the autopilot to open the recommended channels but want it to just make recommendations to you from which you can handpick the nodes you can add the optional `dryrun` argument.
+Instead you have to start a run specifically with `lightning-cli autopilot-run-once` if you do not want the autopilot to open the recommended channels.
+But if you want it to just make recommendations to you from which you can handpick the nodes you can add the optional `dryrun` argument.
 
 A key difference between the lnd and the c-lightning autopilot is that the c-lightning autopilot will also make a recommendation for the channel size.
 For example if the autopilot recommends to open a channel with a small node that only has small channels it will not recommend to open a large channel.
 However if it opens a channel with a well connected node that also has many large channels it will probably recommend a larger channel size.
 
 As you can see the c-lightning autopilot is not as automatic as lnd but gives you a little bit more control.
+These differences are of personal preference and could actually be the deciding factor for you why you chose one implementation over the other.
 
-
-Luckily the c-lightning autopilot has a dryrun option that will just list some potential channel partners for you and you can then by hand decide if you want to open channels with these nodes.
-
-
-
-
-Current autopilots will mainly use public information from the gossip protocol about the current topology of the lightning network.
+Keep in mind that current autopilots will mainly use public information from the gossip protocol about the current topology of the lightning network.
 It is very obvious that your personal requirements for channels can and will only be reflected to a certain degree.
 More advanced autopilots would use information that your node already has gatherd by running in the past about routing successes and who you have paid in the past.
 Such autopilots might in the future also use the knowledge and statistics that they have collected to make recommendations to close channels and allocate the funds in another way.
