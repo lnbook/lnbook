@@ -1,4 +1,4 @@
-Chapter overview:
+.Chapter overview:
   * How path finding works in the network
 
 Relevant questions to answer:
@@ -8,7 +8,499 @@ Relevant questions to answer:
   * Why must path finding happen backwards (receiver to sender)?
   * How is the information contained in a channel update used in path finding?
   * How can errors sent during payment routing help the sender to narrow their search space?
-  * What is payment splitting? How does it work?
+  * What is payment splitting? How does it work? What alternatives exist?
   * What information can be sent to intermediate and the final node aside from the critical routing data?
   * What are multi-hop locks? What addition privacy and security guarantees to they offer?
   * How can the flexible onion space be used to enabled packet switching in the network?
+
+==== Finding a path
+
+Payments on the Lightning Network are forwarded along a path of channels from one participant to another.
+Thus, a path of payment channels has to be selected.
+If we knew the exact channel balances of every channel we could easily compute a payment path using any of the standard path finding algorithms taught in any computer science program.
+Actually when we consider multipath payments it is rather a flow problem than a path finding problem.
+Since flows consist of several paths we conveniently talk about path finding.
+With exact information about channel balances available we could solve those problems in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
+However, as discussed the balance information of all channels is and cannot be available to all participants of the network.
+Thus, we need to have one or more innovative path finding strategy.
+These strategies must relate closely to the routing algorithm that is used.
+As we will see in the next section, the Lightning Network uses a source based onion routing protocol for routing payments.
+This means in particular that the sender of the payment has to find a path through the network.
+With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
+The fact that the path finding problem is not fully solved for the case of the Lightning Network is a major point of criticism towards the technology.
+The path finding strategy currently implemented in Lightning nodes is to probe paths until one is found that has enough liquidity to forward the payment.
+While this is not optimal and certainly can be improved, it should be noted that even this simplistic strategy works well.
+This probing is done by the Lightning node or wallet and is not directly seen by the user of the software.
+The user might only realize that probing is taking place if the payment is not going through instantly.
+The algorithm currently also does not necessarily result in the path with the lowest fees.
+
+
+=== What is "Source-Based" routing and why does the Lightning Network use it?
+
+Source-based routing is a method of path-finding where the sender (i.e. the source) plans the path from itself, through the intermediary nodes, and finally to the destination.
+Once a path has been selected, the sender sends the payment to the first intermediary node, who sends it to the second intermediary node and so on, until it reaches the destination.
+While a payment is in-flight along a path, the path typically does not get changed by any of the intermediary nodes, even if a shorter path or a cheaper path (in terms of routing fees) exists.
+
+The Lightning Network uses source-based routing at the time of writing in order to protect user privacy.
+As discussed in the chapter on Onion Routing, the intermediary nodes transmitting the payment are not aware of the full path of the payment; they only know the node they received it from and the node they are sending it to.
+
+We also cannot expect the destination to find a path.
+Even if it specifies a path in the invoice, that path may no longer be viable by the time the invoice is paid, which could be several minutes or several days later.
+The recipient can, however, specify "routing hints" in the invoice that may assist the sender in finding a possible path.
+
+Furthermore, source-based routing comes with some inherent drawbacks.
+The sender chooses the path based on their current understanding of the topological map of the Lightning network.
+As discussed in previous chapters, this map is necessarily incomplete; the sender may not be aware of all the channels, and even if they are they will almost certainly not know the latest balances in each of the channels.
+And even if the sender did have a complete topological map at one point in time, the balances of channels change with every payment, and so in a short space of time the map would become obsolete.
+The standard path finding mechanism with source based onion routing that is implemented in all Lightning Network implementations is the following:
+
+. Select an arbitrary path of payment channels which connects sender and receiver of the payment and for which all channels have a capacity of at least the payment amount and accept HTLCs of this amount.
+. Construct the onion from destination to sender according to the meta data (basefee, feerate, CLTV delta) of the channels.
+. Send out the onion and see if the payment settles by nodes sending back preimages or if the payment fails.
+. If the payment fails use this knowledge to select a different path by starting at step 1.
+
+This means that with every attempted payment nodes actually probe the network and will also learn some information about how balances are distributed.
+Implementations will usually prioritise cheaper paths or exclude channels which recently have failed.
+In that sense the selection is not completely arbitrary.
+Still even with such heuristics in place it could still be considered as a random process or random walk through the channel graph. 
+There can be several reasons why the payment may fail along the way.
+For example one of the nodes becomes unreachable, doesn't have the channel balance, can't accept new htlcs, has updated its fees to a higher amount, or the channel is closed in the interim.
+Furthermore, there is no guarantee that the route chosen was the cheapest in terms of fees, or if a shorter path existed.
+As at the time of writing, this is a design trade-off made to protect user privacy.
+
+=== Paths are constructed from Destination to Source
+Let us assume our standard example in which Alice wants to send a payment of 100k satoshi on a path via Bob and Wei to Gloria.
+The Path obviously looks like (Alice)-->(Bob)-->(Wei)-->Gloria.
+However Bob and Wei will charge routing fees to forward the onion.
+As you already know nodes can charge two types of fees.
+First the base fee that will be charged for any successfull forwarding and settlement of and htlc.
+This fee is constant and does not depend on the amount that the node is supposed to forward.
+Additionally nodes might charge a freerate.
+The name rate alredy indicates that this fee depends on the amount that a node is supposed to forward.
+Let us for the simplicity of assume that the feerate of Bob and Wei is very expensive with 1% for Bob and 2% for Wei.
+However Bob and Wei will not take a base fee to keep things simple in our example.
+If Alice constructs the Onion she has to include the routing fees as the differnce of the incoming htlc and the outgoing htlc.
+Let us assume she falsely computes the following to construct the onions with the routing fees.
+Alice knows that 1% of 100k satoshi is 1k satoshi which she belives she should include in Bob's onion.
+Similarly she knows that 1% of 100k satoshi is 2k satoshi which she belives she should include in Wei's onion.
+She would find out that Bob would not forward the onion, if she believed that she would have to pay a total of 3k satoshi and construct an onion that looks like this:
+
+----
+"route": [
+      {
+         "id": "Bob",
+         "channel": "357",
+         "direction": 1,
+         "satoshi": 103000,
+         "dealy": 187,
+      },
+      {
+         "id": "Wei", 
+         "channel": "74",
+         "direction": 1,
+         "satoshi": 102000,
+         "dealy": 183,
+      },
+      {
+         "id": "Gloria",
+         "channel": "452",
+         "direction": 0,
+         "satoshi": 100000,
+         "dealy": 153,
+      }
+   ]
+}
+----
+
+The reason for Bob to not forward the onion is that he expects the incoming amount to be 1% larger then the amount he is supposed to forward.
+Thus he would like to have an incoming ammount of `103020` satoshi which is 20 satoshi more than Alice sent him.
+According to his fee schedual Bob will have to reject the Onion.
+If Alice constructed the onion from she would have computed 1% of the to forward amount correctly as 1% from 102k satoshi which is 1020 sat.
+Adding 1020 to the 102000 satoshi that Wei needs to have on his incoming channel will result in the right value of 103020 satoshi that Bob requires.
+As the routing fees can increase the amount that is being forwarded even beyond the capacity of small channels it makes sense to start the construction of the onion and the pathfinding from the destination to the sender.
+
+[NOTE]
+====
+While onions are also constructed from inside to outside and thus start with the destination this is not the reason why pathfinding has to start with the destination node. 
+====
+
+=== Fundamentals about path finding
+Finding a path through a graph is a problem modern computers can solve rather efficiently.
+Mostly developers choose bredth first search (if the edges are all of equal weight) or the Dijkstra Algorithm in cases where the edges are not of equal weight.
+In our case the weights of the edges could be the routing fees and only edges will be included where the capacity is larger than the amount that is to be sent.
+In this basic form pathfinding on the lightning network is very simple and straight forward.
+However as we have already discussed in the introduction channel balances cannot be shared with every participant every time a payment takes place as the system would not scale.
+Thus our easy computer science problem for which we know a solution turns into a rather complex problem.
+We now have to solve a path finding problem with only partial knowledge.
+For example we know which edges might be able to forward a payment because their capacity seems big enough but we can't know it for sure
+unless we try it out or ask the channel owners directly.
+Even if we where able to ask the channel owners directly their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
+Thus we do not only have partial information but the information we have is highly dynamic and might change before we can use it.
+
+One general observation that everyone can easily make is that if every node along a path is able to forward a certain amount of satoshis these nodes will also be able to forward a lower amount of satoshis.
+This is why many people intuitively belive that multipath payments might be a good strategy.
+Instead of finding one path where every node owns a large amount of liquidity the task is split into smaller ones.
+Another reason is of course that the sender of a payment might just not have the amount they wish to send in one single channel but split over several channels.
+We leave it to later sections of this chapter to discuss the strengths and weaknesses of multipath payments.
+However we note that multi path payments are equivalent to finding a flow between the source and the destination.
+While finding flows in a graph with full knowledge that is static is computationally a little bit more heavy than computing a shortest path it still seams to be a feasable problem.
+Given the reality of the Lightning Network and the fact that we do not need to compute a max flow we currently do not know if the problem is more or less difficult as finding a path.
+It seems to be about equally difficult and the problems are somewhat connect as we will see in the following sections.
+
+=== Probing based path finding algorithm on the Lightning Network
+As discussed in order to reliably find a path nodes would need to know the balance of remote payment channels and the balances would have to be static.
+As both is not given nodes currently use a probing based algorithm.
+In its most basic form the algorithm works as follows:
+
+. Select a random path to the destination node
+. Construct and send the onion
+. wait for the response of the onion
+. If response == preimage -> success
+. If response == feilure -> start over from step one.
+
+Nodes will use various sources of information to improve the selection of a random path.
+The main source of information is the gossip protocol.
+From the gossip protocol a node learns which other nodes exist and which channels have been opened.
+This will basically provide a network view that can be used to run graph algorithms that generate plausible paths.
+For example a breadth first seach traversal.
+The graph algorithm will usually be constrained to channels that have at least the capacity of the amount to be sent.
+In practice due to channel reserve and the assumption that the capacity in the channel will not be sitting completely on one side it is saver to prefer larger channels.
+
+The second source of information is the blockchain itself.
+If channels are closed this is not announced via the gossip protocol.
+However as the funding transaction is encoded by the short channel id of the channel and as it will be spent if the channel is closed nodes have to use this information to update their knowledge about the network of channels.
+
+Another source of information are the past payments themselves.
+Onions can return with errors.
+Knowing for example that the third hop along a path returns an error means that the first two channels had enough balance and that the third channel - depending on the error - did not have enough balance.
+Such edges can be removed from the set of edges similarly to the edges that do not have enough capacity.
+Similarly nodes could use such information from previous payment attempts.
+It is important that nodes are carefull with this data.
+As the capacity information of channels from the gossip protocol and blockchain data is verifiably correct the data from our third source of information can be incorrect.
+Nodes might just send an error back because they do not want to reveal balance information.
+Also the data might just change over time as the balances in the lightning network are not static and changing with every payment attempt that is being made.
+Thus nodes should only use such data if it is not to far in the past or use it only with a certain confidence.
+
+The fourth source of information that the node will use are the routing hints in the BOLT 11 invoice.
+Remember that a regular payment process starts with the person who wants to receive money coming up with a random secret and hashing it as the payment hash.
+This hash is usually transported to the sender via an invoice.
+Invoices usually contain some meta data and in particular routing hints.
+This is necessary if the person who wants to be paid does not have announced channels. In that case it will speciefie some unannounced channels within the invoice.
+Otherwise the payer would not even be able to find a path to the "hidden" node.
+Routing hints might also be used by the receiving node to indicate which public channels have enough inbound capacity for the payment and thus the ability to receive funds.
+In general the further away from the originating peer the payment goes the more likely it becomes to select a channel with insufficient balance.
+Thus indicating on which channels a node wishes to receive funds would actually be quite nice for the sender.
+
+
+=== Improvements on Source based onion routing
+
+The probing based approach that is used in the Lightning Network has several flaws.
+Sending out an onion usually takes a certain amount of time.
+The time depends on how many hops the onion is supposed to be forwarded and of course on the speed of nodes processing the onion and the topology on the web.
+In the following diagram you can see how the time for onions to return in general increase with the amount of hops that the onion has encoded.
+
+[[pathfinding-probing]]
+.Research showing the times that onions take to return depending on the distance (CC-BY-SA Tikhomirov, Sergei & Pickhardt, Rene & Biryukov, Alex & Nowostawski, Mariusz. (2020). Probing Channel Balances in the Lightning Network.)
+image:images/probingtimes.ppm[]
+Of course this diagram was just a snapshot from an experiment in early 2020 and things might change.
+We can learn from the Diagram that payments can take several seconds while the node tries to probe several paths.
+This is due to the fact that the fact that single onions can easily take a few seconds to return and a sender might have to send several onions in a row while probing for a sucessfull path.
+in generall this will still be much faster than waiting for confirmations on a bitcoin block but it is not sufficient in an environment where payments need to settle fast.
+If people stand in a line at the cash register for their groceries this would be such a setting.
+Thus lightnign developers 
+
+
+==== Probing based improvements
+The last source of information that nodes could use is to probe the network themselves.
+Instead of making the actual payment nodes could send out many fake payments which are onions to a random payment hash.
+Given the properties of the hashfunction it is save to assume that noone would know the preimage.
+In that sense the payment will only fail at the destination and nodes can learn a lot about the balances.
+Of course this produces spam and heavy load on the network and it is not recommended that nodes do this.
+However participants cannot really be stopped from doing this.
+unless channel partners see a lot of traffic coming on a channel which always fails and never settles.
+In this case channel partners could decide to close the channel. 
+
+[Note]
+====
+We want you to understand that Lightning Network by design does not have perfect privacy.
+While a lot of information is not easily accessible every time a path is probed the node learns something about the state of the network at that point in time. 
+====
+
+We note that one should not send two onions at the same time with the same payment hash for which the recipient knows the preimage.
+As long as the onion is being processed and routed the payment is out of controll of the sender.
+In case two onions are sent at the same time the recipient could very well release the preimage twice and get paid twice.
+That was the reason why probing should be conducted with a fake payment hash.
+in that case the sender can probe concurrently as long as the sender has enough funds to pay for all the HTLCs.
+However there is a problem.
+Assume an onion returns indicating that the payment hash was unknown to the recipient but otherwise the path would have been possible.
+The sender would now use this exact path to send the payment with the corrent payment hash.
+Meanwhile the balances of some channels along the path might have changed and the path does not exist anymore.
+In this case the sender would have to start from the beginning all over again.
+Admittedly the risk for this to happen is rather small but there is a chance.
+
+A better way and potential improvement for the future of the Lightning network are stuckless payments.
+There is a proposal for a system called stuckless payments that receives high appriciation by developers.
+This proposal will probably not be implemented before the lightning network switches from Hashed Timelocked Contracts to Point time locked contracts which won't come before Schnorr Signatures are activated on the Bitcoin Network.
+What stuckless payments can do is to give controll back to the sender of an Onion.
+Without explaining the details here we just say that the sender can now cancle an onion.
+This is great for redundant and concurrent pathfinding.
+The sender could send out several real onions.
+The first ones that arrives at the recipient will be settled.
+All others will be cancled.
+This increases the usuability of the Lightning Network on several levels.
+One advantage is that the sender can try several paths at the same time.
+The second advantage is that the path is locked after it is found and until it is settled.
+This means that the sender can either cancle the onion or help to release the preimage (as senders have to do with the stuckless payment construction)
+In particular the probed path cannot change or used by other routing requests between probing and setting up the htlcs that are used to fullfill the request.
+The time for a a successfull payment will reduce drastically.
+The distadvante is that the sender has to lock more bitcoin during the path finding process.
+Due to timeouts these bitcoin can be locked for a couple of days before they can be used again.
+This should not happen too often.
+Also it utilizes more resources of other nodes.
+
+
+==== Multipath payments
+Everyone can easily make the following observation:
+
+----
+Let's say your node has discovered a path along which a certain amount of Satoshis for example 100k could be routed.
+Then any onion along that path on the same time with an lower amount of Satoshis would also have been successfull.
+One can easily conclude that lower amounts have a higher likelyhood to be routed successfully to the destination than larger amounts.
+----
+
+Researchers and developers have already tested and confirmed this emperically over and over again.
+
+With this assumption in mind it seems natural to split a payment amount and send several smaller payments along various paths.
+With if a small payment fails it will be retried and probed just as one would do with a single larger payment.
+While the main idea is very easy to understand we want to discuss the details, advantages and disadvantages of this mechanism in the following.
+
+Usually a receiving node will see an incoming HTLC for a certain payment hash.
+If the onion signals that the node is the final recipient and that the amount of the HTLC is less than the one specified in the invoice the node would not accept the HTLC and send back an erring onion.
+However with the TLV format of onions a sender can specify the total_amount of the payment which can be bigger than the HTLC.
+The recipient can safely accept the HTLC and wait for more HTLCs to arrive.
+In this way all parts of the payment will use the same payment hash.
+The recipient will only release the preimage if the sum of all incoming HTLCs is at least the speciefied payment amount.
+
+[Note]
+====
+**Multi path or multi part payments?** You might have realized that we named the chapter multipath payments but mentioned in the last paragraph that such a payment consists of several parts.
+The protocol specification uses the abbrivation MPP for multi part payments.
+This is in fact always correct as all parts could technically - though this would not make much sense - be delivered over the same path.
+As we are introducing MPP in the pathfinding section of the book and as they are also used for path finding we take the liberty to also abbriviate multi path payments with MPP.
+====
+
+It is important to recognize that a node that forwards HTLCs via onions does not have to bother if the payment is a single payment or one of several multi part payments.
+The only node who needs to be ready to accept multi part payments is the receiving node.
+In the BOLT 11 invoice there is space for feature bits.
+If ia node wishes to accept multipart payments it has to signal this by setting the corresponding feature bit (16 / 17).
+If a node wishes to send a multi part payment it can also do so if the receiving node has signaled their willingess to accept such payments.
+Currently there is no way for routing nodes to split the payment amount and onion into several parts or merge several incoming HTLCs into a single path.
+
+Besides the potentially better chances to find smaller routes the sender might want to use a multipart payment because it does not have enough balance in a single payment channel.
+If the channel had enough capacity this could be resolved with a circular rebalancing - which we will discuss in the next section.
+However if the payment amount is bigger than the largest capacity of a channel that the sender has the sender can only pay the invoice if the recipient allows and supports multipart payments.
+Similarly a recipient might not be able to receive a single payment of the requested amount and would have the interest of signaling multi part payments.
+Luckily nodes will do this automatically and practially always signal the support for multi part payments if the implementation supports this feature.
+The standard Lightning Network implementations which follow BOLT 1.1 all support this feature.
+
+Multipart payments will almost always be more expensive than a single payment.
+You will remember that the fees that routing nodes charge consist of a fee rate and of a base fee.
+The total fee rate of a multipart payment stays roughly the same as a single payment.
+However the base fee is added independent of the amount making multipart payments in most cases more expensive.
+As the sender pays the fees the sender will not necessarily have the interest of splitting the payment in too many parts.
+Thus implementations usually integrate multi part payments into the probing based approach.
+For example after a single payment would not got through the node might split the amount into two payments and try a multipart payment with smaller amounts.
+Those mulitpart payments could again be split down if they are not successfull along a route.
+
+The advantages of multi part payments are quite obvious:
+
+. bigger payment sizes
+. higher success rates
+
+On the other side we have a couple of downsides:
+
+. Higher fees
+. More HTLCs locked / more load on the network
+. Potentially longer times. If only a single part gets stuck all the other HTLCs in flight have to wait locking liquidity of many nodes for a potentially longer time
+. Leaks more information as the network is practically probed more heavily.
+
+
+==== Rebalancing
+
+In this chapter you have already learnt that the path finding problem on the lightning network is actually rather a problem of finding a flow - which consists of several paths.
+Very early research about pathfinding in payment channel networks suggests \footnote{FIND LINK} that rebalancing channels does not change the flow properties between nodes.
+With rebalancing we mean shifting liquidity from one channel to another channel for example via a circular payment.
+There is also the notion of offchain / onchain swaps with swapping services.
+This form of rebalancing certainly changes also the topological properties like the flow of the network.
+As rebalancing via circular self payments would not change the overall amount that an arbitrary node can send to any other node people thought that rebalancing is not very useful.
+However in practice a node hardly wants to find the perfect flow or multipath to be able to send the absolute maximum amount to another node.
+Nodes are rather interested in quickly finding a sufficient large flow so that they can make a reasonable payment.
+Research conducted by Rene Pickhardt (one of the authors of this book) indicated that circular rebalancing operations improve the overall successrate in the network for arbitrary payments.
+It turns out that there is various ways how rebalancing can be used and in some form it even resembles the functionality of a multi path payment.
+Thus we decided to devote a section here on basics about rebalancing and how it can be used to improve the pathfinding abilities of the network.
+
+We made the experience that most people call their payment channel balanced if they own the same amount of bitcoin in that channel as their channel partner.
+While this seems intuitive we want to show that this intuition does not seem to be the best intuition for our goals.
+In order to see this let us assume the Lightning Network at some point in time looks exactly like that.
+All channels split the capacity 50 - 50 dividing it into half between the channel partners.
+
+[[rebalancing-1]]
+.A part of the Lightning Network where all the channel balances are distributed 50/50.
+image:images/rebalancing-1.png[]
+
+It is quite clear that after already one single payment such a 50 - 50 state would be destroyed.
+You can see this in the following graph.
+
+[[rebalancing-2]]
+.The Bob - Wei channel becomes now imbalanced
+image:images/rebalancing-2.png[]
+
+you can see that after Bob made a payment of 1 million satoshi to Wei the channel balance was shifted.
+Bob now has 1.5 million satoshi on the channel and wei has 3.5 million satoshi on the channel.
+The balance ratio went from 50/50 to 30/70.
+The other 2 channels however styed with 50/50.
+
+Wei decides that he wants to have a 50/50 channel with Bob.
+There are 3 ways of how he can achieve this.
+
+. He can send back 1 milion satoshi to Bob
+. He can use an onchain swapping service
+. He can send a circular onion
+
+Sending back the money would be quite expensive and does not seem to be a realistic option.
+Using an onchain swapping service after every payment to rebalance channels seems also problematic.
+The entire idea of creating the Lightning Network was to have less on chain transaction and be able to send money between people without the necessity to do on chain transactions.
+Thus there is only the last option which means that Wei could move the money from the Bob-Wei channel via the Bob-Erica channel to hhis Erica-Wei channel. 
+
+[[rebalancing-4]]
+.Wei tries to rebalance the Bob-Wei channel in the unbalanced network via a circular onion of 1 mio Satoshi.
+image:images/rebalancing-4.png[]
+
+The problem in the new network can easily be seen on the next picture.
+While the Bob-Wei channel now becomes 50/50 again all the other channel turned into a 30/70 split ratio. 
+
+[[rebalancing-5]]
+.Rebalancing one channel produces imbalanced other channels
+image:images/rebalancing-5.png[]
+
+An interesting oversvation about this rebalancing can be made though!
+After the payment and the rebalancing it looked like Bob initially had sent Money not via the Bob-Wei channel but via the path along Erica. 
+
+[[rebalancing-6]]
+.Rebalancing is equivalent to having selected a different payment path to begin with.
+image:images/rebalancing-6.png[]
+
+This observation is actually quite interesting.
+While the math theory tells us that rebalancing channels does not change the max flow between two nodes we see that it has changed the selected path of a payment.
+Due to the onion routing and the privacy goals that are implemented in it we have a source based routing and thus assume the sender always has to select and thus find the path.
+However this is not true!
+When rebalancing comes into place we can use the local knowledge of the distribution of balances that nodes might have to help with selection of paths and finding a total payment path / multi path or flow.
+We will explore this idea a little bit more in the upcoming section about JIT routing.
+
+Remember in our example after Bob has paid Wei Bob had a total amount of 4 million satoshi, Wei had a total of 6 million satoshi and Erica still had 5 million satoshi as before.
+Of course it would be possible to have payment channels between these three people with that distribution of funds so that everyone has 50% of the capacity on their side of the payment channel.
+
+[[rebalancing-7]]
+.50/50 balances with upteded capacities.
+image:images/rebalancing-7.png[]
+
+While the above picture shows that it is possible to have 50/50 channls after the payment this could only be achieved if the capacities would have been changed.
+Changing the capacity of channels is only possible by closing and opening the channel or with the help of a technique called splicing.
+The later is not widely deployed yet and would also depend on onchain transactions.
+
+We hope that you have seen from this example a few things:
+
+. Off-chain rebalancing does not change the fact how much money can flow from sender to receiver.
+. Making payments changes how much money sender and receiver can send or receive. This is similar to the physical world where you also can only spend the cash that you have received first.
+. The goal to have channels in a 50/50 state is not possible for all the nodes all the time and thus probably not a good one.
+. Rebalancing in combination with payments changes the way money flew from the sender to the recipient. In particular it shifts can shift the responsability to find a path from the sender to several nodes on the network - even they don't know which path they are trying to find.
+. Thus rebalancing can be a nice tool to support path finding.
+
+With these conclusings let us look more precisely what would be good rebalancing strategies for nodes.
+
+The main problem with Lightning network channels from a routing and pathfinding perspective is that the liquidity is not known.
+From that perspective the 50/50 approach which is not achievable makes sense.
+If nodes could assume that other nodes always have a certain amount of the capacity on their side they could use that fraction of the capacity to make path finding decisions.
+Initially all the channel balance of newly opened channels is on one side.
+Thus if there is a new node which has opened some channels and received some channels all the channels are unbalanced and routing is always only possible in one direction.
+
+Nodes and node operators could look at the channel balance coefficient which is defined as the ratio between the balance they hold on that channel divided by the capacity of that channel.
+As the balance can never be below zero and never exceed the capacity this channel balance coefficient will always be between 0 and 1.
+A node can easily compute the channel balance coefficient for all its channels.
+By the way in the case of the 50/50 rebalancing the coefficients would all have the value of 0.5.
+
+Researchers demonstrated that the overall likelihood to find a path increases if nodes aim to rebalance their channels in a way that their local channel balance coefficients all take the same value.
+This target value can easily be computed as the amount of total funds that a node owns on the network devided by the sum of all capacities of channels that the node maintains.
+We call this target value the node balance coefficient \nu.
+Nodes can check wich channels have channel balance coefficient that is bigger than \nu and which have a channel balance coeffcient that is smaller than \nu.
+after identifying such channels it makes sense to make circular self payments from the channels with too mcuh liquidity to the channels with too little liquidity.
+
+This approach has an economical drawback.
+Doing a circular self payment is not for free.
+The nodes along the circular path will charge routing fees which always have to be paid by the initiator of the payment.
+This would be your node if you wanted to rebalance your channels.
+It might be justified for you to pay those fees upfront because you might earn them back with the routing fees that you charge if you can successfully forward payments.
+However you do not really know in which direction you will have to route payments later.
+In the worst cast you moved liquidity from a channel which you could have used perfectly to fulfill routing requests along that edge in this direction.
+Not only would you have paid routing fees for a rebalancing operation you would also have depleeted your channel more quickly and might face the need to rebalance again.
+
+We hope that you are not discouraged at this moment.
+Rebalancing is still a viable thing.
+While proactive rebalancing increases the reliablity of the network it is currently economically not viable.
+However you could rebalance reactively or Just in Time at the moment when necessary.
+Imagine you have a an incoming HTLCs and the onion says you are supposed to forward the payment along a channel where you lack sufficient balance.
+The standard case of the protocol would be to return the onion with an onion and remove the incoming HTLC.
+However noone stops your node from shortly interrupting the routing process and conduct a rebalancing operation to provide yourself with sufficient liquidity on the channel in question.
+This method is called JIT-Routing as it helps nodes to reactively provide themselves with enough liquidity just in time.
+
+The just in time Routing scheme has 2 major advantages over source based routing.
+
+. It increases the privacy of channels. If nodes that do not have sufficient liquidity return the onions an attacker can use that behavior to probe for the channel balance. However if nodes rebalance their channels they will always be able to forward the payment and protect themselves from probing attacks.
+. More importantly it resembles multipart payments in which the splitting of the payment is not been decided by the sender who would not know how balances remotely are distributed but the splitting would be achieved by the routing node that knows its local topology.
+
+Let us elaborate on the second point and take the example in which Bob was supposed to forward the onion from Alice to Wei but does have enough liquidity on the channel with Wei.
+If Bob now does a cebalancing operation through Erica and is able to afterwards forward the payment along to Bob he has effectively split the payment at his node to flow along two paths.
+One part flows directly to Wei and the other part takes the path over Erica to Wei.
+It is obvious that splitting a payment at the node that can't forward the entire payment is much more reliable and effective than letting the sender decide how to split a payment and into which amounts.
+
+We thus can see that with the help of JIT-Routing rebalancing and multipart payments are actually not so different concepts and ideas.
+There is another way how mutlipart payments and rebalancing can be combined.
+Let us recall that nodes should always aim to have similar channel balance coefficients.
+So if a node wants to make a multipart payment it could split the payment in such a way that it rebalances its channels.
+Meaning it would only pay from channels on which it currently has too much liquidity.
+Also it would use larger parts for the channels that have way too much liquidity and smaller amount for the channels that have just a little bit too much liquidity.
+The optimal amounts can easily be computed with the following formulars.
+
+
+
+TODO: somehow describe this better without being too scientific. Tool and code can be found at: https://github.com/lightningd/plugins/pull/83
+
+```
+new_funds = sum(b) - a
+
+# assuming all channels have capacity of 1 btc
+cap = len(b)
+nu = float(new_funds) / cap
+ris = [1*(float(x)/1 - nu) for x in b]
+
+real_ris = [x for x in ris if x > 0]
+s = sum(real_ris)
+payments = [a*x/s for x in real_ris]
+```
+
+In fact this multipath rebalancing could also be utilized in the process of JIT routing.
+Instead of shifting all the funds from one channel to the destination channel a node could use a circular multipart payment.
+
+
+
+* (proactive / reactive) Rebalancing
+* Imbalance measures
+* goals for rebalancing (low Gini coefficient and not 50 / 50)
+* optimization problem / game theory
+* JIT Routing
+
+==== Optimizations for Multi path payments
+The rebalancing goal with local channel balance coefficients could actually be integrated into multi path payments.
+Thus if a node decides to send a payment along several paths it could very well use this opportunity to split the payment in a way that it improves the imbalance of its own channels.
+So instead of splitting payments by 2 in a divide and conquorer strategy the node could use the following formula ...
+

@@ -10,3 +10,107 @@ Relevant questions to answer:
     * donation addrs
     * keysend
     * custom data
+
+
+=== What information does an invoice contain?
+
+A Lightning Network invoice is a request for payment issued by the receiver and contains all the information the sender needs to successfully execute the payment.
+Usually it will be in the form of a QR code or an alphanumeric string that looks something like this:
+
+_lnbc9150n1p05hx8upp5ug254f9nhymhu2kctm5j9qq28pvvfsqrdaj6fnxzhln023vyka6sdzz2pshjmt9de6zqen0wgsrjvf4ypcxj7r9d3ejqct5ypekzar0wd5xjuewwpkxzcm99cxqzjccqp2sp5k8nxp5jy26c00ny8asampc03z2edl3z784d80hz873g4jkkuqtvqrzjqgmkp5859l5tn0h6rlal5d44vlkl9r6hf03v6e3pnumr96rak85jqztsugqqkvcqqqqqqquyqqqqqqgq9q9qy9qsqwar8ak9hh4cu3evy6z0nzwpq7ax6mdums6utatejnzak78a9vfyq4ya9gnwsquaq5e257qc3fw2tdxqyk2k9fzgmldfd3urskyuzxmqpyy8tke_
+
+Invoice encoding and decoding is defined by BOLT #11
+footnote:[BOLT11 Github: https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md].
+The above string is composed of two sections, split by a seperator.
+
+The first part, _lnbc9150n_, is the human-readable part of the invoice.
+The _lnbc_ tells us that the invoice is for Lightning Network Bitcoin
+(it could be for Lightning Testnet or a different cryptocurrency).
+The _9150n_ tells us the invoice is for 915 satoshis (expressed here as 91500 millisatoshis).
+The last _1_ character in the string indicates the end of the human-readable section.
+
+Everything after the _1_ is the data part and contains the following information:
+
+* *Destination*: the ID of the node receiving the payment.
+* *Timestamp*: the date and time the invoice was created, measured in seconds past since 1970.
+* *Payment Hash*: the hash of the payment pre-image. Pre-images were discussed in the earlier chapter on Routing.
+* *Expiry Time*: the amount of time, in seconds, after which the invoice expires and can no longer be paid.
+* *CLTV Delta*: the delta to be used in the final HTLC in the path. Discussed in the earlier chapter on Routing.
+* *Signature*: a digital signature by the invoice issuer. If anything in the invoice is changed, the signature check will fail and the invoice will no longer be valid. This prevents attackers tampering with invoices.
+* _(Optional)_ *Description*: a human-readable explanation of what the payment is for.
+* _(Optional)_ *Backup Bitcoin Address*: an on-chain payment address in case payment of the invoice fails.
+* _(Optional)_ *Routing Hints*: to assist the payer in finding a path for the payment. Discussed in the earlier chapter on Path Finding.
+
+An invoice also contains other useful information.
+In the next section, we'll break down the above invoice and identify each individual part.
+
+
+==== Anatomy of a Lightning Invoice
+
+If we enter the above invoice into a invoice decoding tool, such as https://lndecode.com/, we get the following output:
+
+* *Network*: bitcoin mainnet
+* *Amount*: 0.00000915 BTC
+* *Date*: Sun, 30 Aug 2020 12:18:04 GMT
+* *Payment Hash*: e2154aa4b3b9377e2ad85ee922800a3858c4c0036f65a4ccc2bfe6f54584b775
+* *Description*: Payment for 915 pixels at satoshis.place.
+* *Expiration Time*: 600 seconds
+* *Min Final CLTV Expiry*: 10
+* *Payment Secret*: b1e660d24456b0f7cc87ec3bb0e1f112b2dfc45e3d5a77dc47f451595adc02d8
+* *Routing Info*:
+** _Public Key_: 023760d0f42fe8b9befa1ffbfa36b567edf28f574be2cd66219f3632e87db1e920
+** _Short Channel Id_: 0970e2000b330000
+** _Fee Base Msat_: 900
+** _Fee Proportional Millimonths_: 1
+** _CLTV Expiry Delta_: 40
+* *Feature Bits*: 00101000001000000000
+* *Signature*:
+** _R value_: 77467ed8b7bd71c8e584d09f313820f74dadb79b86b8beaf3298bb6f1fa56248
+** _S value_: 0a93a544dd0073a0a6554f03114b94b69804b2ac54891bfb52d8f070b138236c
+** _Recovery Flag_: 1
+* *Signing Data*: 6c6e6263393135306e0be9731f810d388552a92cee4ddf8ab617ba48a0028e16313000dbd9693330aff9bd51612ddd41a212830bcb6b2b73a103337b9101c989a903834bc32b6399030ba1039b0ba37b9b434b997383630b1b2970600a58c002a806963ccc1a488ad61ef990fd87761c3e22565bf88bc7ab4efb88fe8a2b2b5b805b00314808dd8343d0bfa2e6fbe87fefe8dad59fb7ca3d5d2f8b3598867cd8cba1f6c7a48025c388002ccc000000000e100000000400a02808504000
+* *Checksum*: yy8tke
+
+
+
+
+=== What are some unique things that can be done with LN?
+
+**Micropayments**: The current financial system in most countries is divisible to a certain extent and not lower (E.g. $1 = 100c).
+However it is usually not viable to send small amounts, e.g. $1 and less, due to transaction fees and other friction in the system.
+Bitcoin has similar issues due to transaction fees, and fees are likely to increase in the long-term.
+The Lightning Network can reasonably accommodate payments of the value of 1 satoshi i.e. one hundred millionth of a Bitcoin.
+Even at an obscenely high Bitcoin value of $1m per Bitcoin, this would still allow the transfer of 1 US cent worth of value.
+As many Lightning implementations track values to the thousandth of a Satoshi (i.e. one milli-satoshi), payments could conceivably be even smaller than this.
+This would allow for micropayment business models such as "pay-per-article", which are not viable in the current system.
+
+**Anonymous Payments**: Bitcoin is pseudonymous at best and transactions are permanently stored on the public Bitcoin blockchain.
+Hence there is always a risk that transactions can be linked back to users post-hoc.
+Technologies like CoinJoin and Pay-to-EndPoint can assist in giving Bitcoin users a greater degree of anonymity but cannot completely solve this problem.
+In contrast, users of the Lightning Network are not aware of other users' payments and, since channels can be private, they may not even be aware of other users' channels.
+Users are only aware of other users' payments insofar as they assist in routing payments; in this case they are unaware of both the source and the destination of the payment.
+As such, the Lightning Network has a strong use case for anonymous purchases.
+This would be of particular benefit to online stores and exchanges that accept Bitcoin as malicious attackers can monitor their addresses on the Bitcoin network to try and determine how much bitcoin the businesses owns; something that is not possible on the Lightning Network
+footnote:[One variant of this is called a "dust attack", whereby an attacker can send a very small amount of Bitcoin (called a "dust output") to an address it knows is owned by a store or exchange.
+By monitoring where this small amount of bitcoin moves, it can determine which other addresses the exchange to store owns.
+This kind of attack is not possible on the Lightning Network].
+
+**Multiplayer Games**: Lightning Payments can be integrated into online and collaborative games.
+One example of this is Satoshi's Place, an online billboard where users can pay 1 satoshi to paint 1 pixel on a million pixel canvas.
+What emerges is a constantly changing picture where anyone add, remove, or paint over by paying.
+This example can be extended to many other kinds of collaborative games where users can pay to participate.
+The Lightning Network can also be implemented directly into online games, such as MMORPGs, to facilitate in-game transactions.
+As Lightning wallets and Lightning invoices can be built directly into the games themselves, this completely bypasses the need for the credit cards and the traditional financial system.
+While all of this is technically possible on Bitcoin, confirmation times and fees make this unfeasible.
+Transactions are confirmed on average every ten minutes, although it could potentially take even longer.
+This exposes the merchant to the risk of accepting unconfirmed transactions.
+Lightning transactions, on the other hand, settle instantly and so are better from a user experience standpoint for.
+
+**Earning "interest" on Bitcoin trustlessly**
+While Bitcoin may increase or decrease in value in terms of fiat currencies, it is an asset that does not offer a return in and off itself simply by holding it.
+The amount of Bitcoin one holds remains constant, and actually decreases as one moves it around due to transaction fees.
+Those wishing to earn a return on their holdings in Bitcoin terms can do so by opening channels and routing payments in return for routing fees.
+In this way, users can earn a return (i.e. "interest") by locking their Bitcoin into channels and offering liquidity to other users wishing to transact on the Lightning Network.
+Users doing so will need to pay the fees to open and close channels, as well as the cost of maintaining any hardware to run a Lightning Node.
+However, as channels can be left open indefinitely, they could earn a profit as long as there are sufficient users of the Lightning Network such that their routing fees are in excess of their channel fees and maintenance costs over the long term.
+This is trustless as users do not need to loan or send anyone their Bitcoin; they only need to take the risks of operating a Lightning node and storing Bitcoin in a hot wallet.

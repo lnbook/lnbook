@@ -40,7 +40,7 @@ _I (Alice) will give you (Bob) 10 golden coins if you pass them on to Wei_
 While this contract is nice in the real world Alice yields the issue that Bob might just breach the contract and hope not to get caught by law enforcement.
 Even if Bob got caught by law enforcement Alice faces the risk that he might be bankrupt and her 10 golden coins would be gone anyway.
 Assuming these issues are magically solved it would still be unclear to from a contract point of view that Wei also has to have a contract with Gloria to deliver the coins.
-Thus we improove our contract:
+Thus we improve our contract:
 
 _I (Alice) will reimburse you (Bob) with 10 golden coins if you can proof to me (for example via a receipt) that you already have delivered 10 golden coins to Wei_
 
@@ -64,23 +64,23 @@ We call this hash the payment hash.
 In reality Gloria would come up with a large random number as a secret.
 This is to be really secure and prevent others from guessing it.
 But let us assume that in our case Glorias secret take reads `*Glorias secret*`.
-She would commit to the secret by computing the sha256 hash which reads `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`.
-You can verify this by typing `echo "Glorias secret" | sha256sum` to your linux command line.
+She would commit to the secret by computing the sha256 hash which reads `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`.
+You can verify this by typing `echo -n "Glorias secret" | sha256sum` to your linux command line.
 
 As Alice wants to send 10 golden coins to Gloria she is told by Gloria to use this payment hash to receive a proof of payment.
 Alice now sets up a contract that reads:
 
-_I (Alice) will reimburse you (Bob) with 12 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. You can acquire this message by setting up a similar Contract with Wei who has to set up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 12 Golden coins to an trusted escrow before you set up your next contract._
+_I (Alice) will reimburse you (Bob) with 12 golden coins if you can show me a valid message - we call it preimage - that hashes to `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`. You can acquire this message by setting up a similar Contract with Wei who has to set up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 12 Golden coins to an trusted escrow before you set up your next contract._
 
 After Bob and Alice agree to the contract and Bob receives the message from the escrow that Alice has deposited the 12 golden coins Bob negotiates a very similar contract with Wei.
 Note that due to the service fees he will only forward 11 golden coins to Wei and demand from Wei who also wants to earn a fee of 1 golden coin to show proof that 10 golden coins have been delivered to Gloria.
 
-_I (Bob) will reimburse you (Wei) with 11 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. You can acquire this message by setting up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 11 Golden coins to an trusted escrow before you set up your next contract._
+_I (Bob) will reimburse you (Wei) with 11 golden coins if you can show me a valid message - we call it preimage - that hashes to `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`. You can acquire this message by setting up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 11 Golden coins to an trusted escrow before you set up your next contract._
 
 
 As Wei gets message from the escrow that Bob has deposited the 10 golden coins Wei sets up a similar contract with Gloria:
 
-_I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message - we call it preimage - that hashes to `*70c87220dd901a004804b49e9ec2fd73283fad127cf112fefa67e6b79b8739b7*`. In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 Golden coins to an trusted escrow._
+_I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message - we call it preimage - that hashes to `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`. In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 Golden coins to an trusted escrow._
 
 As Gloria learns from the escrow that the coins where deposited she reveals the secret preimage to Wei.
 Since she initially came up with the secret and committed to it in form of the payment hash she obviously is able to provide the secrete to Wei and their escrow service.
@@ -167,8 +167,8 @@ cltv stands for OP_CHECKTIMELOCKVERIFY and is the OP_CODE that will be used in t
 Finally in the last data field there are 1336 Bytes of data included which is an `onion routing packet`.
 The format of this packet will be discussed in the last section of this chapter.
 For now it is important to note that it includes encrypted routing hints and information of the payment path that can only be partially decrypted by the recipient of the onion routing packet to extract information to whom to forward the payment or to learn that one as the final recipient.
-In any case the onion roting packet is always of the same size preventing the possability to guess the position of an intermediary node within a path.
-In our particular case Bob will be able to decrypt the first couple bytes of the onion routing packet and learn that the payment is not to be forwored but intendet to be for him.
+In any case the onion roting packet is always of the same size preventing the possibility to guess the position of an intermediary node within a path.
+In our particular case Bob will be able to decrypt the first couple bytes of the onion routing packet and learn that the payment is not to be forwarded but intended to be for him.
 
 The received information is enough for Bob to create a new commitment transaction.
 This commitment transaction now has not only 2 outputs encoding the balance between Alice and Bob but a third output which encodes the hashed time locked contract.
@@ -178,10 +178,10 @@ This commitment transaction now has not only 2 outputs encoding the balance betw
 image:images/routing-setup-htlc-1.png[]
 
 We can see that Bob Assumes that Alice will agree to lock 15 mBTC of her previous balance and assign it to the HTLC output.
-Creating this HTLC output can be compared to giving Alices golden coins to the escrow service.
+Creating this HTLC output can be compared to giving Alice golden coins to the escrow service.
 In our situation the bitcoin network can enforce the HTLC as Bob and Alice have agreed upon.
 Bob's Balance has not changed yet.
-In Bitcoin outpus are mainly described by scripts.
+In Bitcoin outputs are mainly described by scripts.
 The received HTLC in Bob's commitment transaction will use the following bitcoin script to define the output:
 
 
@@ -205,11 +205,11 @@ The received HTLC in Bob's commitment transaction will use the following bitcoin
 We can see that there are basically three conditions to claim the output.
 
 1. Directly if a revocation key is known. This would happen if at a later state Bob fraudulently publishes this particular commitment transaction. As a newer state could only be agreed upon if Alice has learnt Bob's half of the revocation secret she could directly claim the funds and keep them even if Bob was later able to provide a proof of payment. This is mainly described in this line `OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL` and can be down by using `<revocation_sig> <revocationpubkey> as a witness script.
-2. If Bob has successfully delivered the payment and learnt the preimage he can spend the HTLC output with the help of the preimage and his `local_HTLC_secret`. This is to make sure that only Bob can spend this output if the commitment transaction hits the chain and not any other third party who might know the preimage because they had been included in the routing process. Claiming this output requires an HTLC-success transaction whih we describe later.
-3. Finally Alice can use her `remote_HTLC_secret` to spend the HTLC output after the timeoput of `cltv_expiry` was passed by using the following witness script `<remoteHTLCsig> 0`
+2. If Bob has successfully delivered the payment and learnt the preimage he can spend the HTLC output with the help of the preimage and his `local_HTLC_secret`. This is to make sure that only Bob can spend this output if the commitment transaction hits the chain and not any other third party who might know the preimage because they had been included in the routing process. Claiming this output requires an HTLC-success transaction which we describe later.
+3. Finally Alice can use her `remote_HTLC_secret` to spend the HTLC output after the timeout of `cltv_expiry` was passed by using the following witness script `<remoteHTLCsig> 0`
 
-As the commitment transaction spends the 2 out of 2 multisig fundin transaction Bob needs two signatures after he constructed this commitment transaction.
-He can obviosly compute his own signature but he needs also the signature from Alice.
+As the commitment transaction spends the 2 out of 2 multisig funding transaction Bob needs two signatures after he constructed this commitment transaction.
+He can obviously compute his own signature but he needs also the signature from Alice.
 As Alice initiated the payment and wanted the HTLC to be set up she will be reluctant to provide a signature.
 
 
@@ -234,10 +234,10 @@ At this time he would be able to publish either the old one or the new one witho
 However this is save for Alice as Bob has less money in this old state and is economically not incentivised to publish the old commitment transaction.
 Alice on the other side has no problem if Bob publishes the new commitment transaction as she wanted to send him money.
 If Bob can provide the preimage he is by their agreement and expectation entitled to claim the HTLC output.
-Should Bob decide to sabotatge to future steps of the protocol Alice can either publish her commitment transaction without Bob being able to punish her.
+Should Bob decide to sabotage to future steps of the protocol Alice can either publish her commitment transaction without Bob being able to punish her.
 He will just not have received the funds from Alice.
 This is important!
-Despitethe fact that Bob has a new commitment transaction with two valid signatures and an HTLC output inside he cannot seen his HTLC as being set up successfully.
+Despite the fact that Bob has a new commitment transaction with two valid signatures and an HTLC output inside he cannot seen his HTLC as being set up successfully.
 He first needs to have Alice invalidate her old state.
 That is why - in the case that he is not the final recipient of the funds - he should not forward the HTLC yet by setting up a new HTLC on the next channel with Wei.
 Alice will not invalidate her commitment transaction yet as she has to first get her new commitment transaction and she wants Bob to invalidate his old commitment transaction which he can safely do at this time.
@@ -252,13 +252,13 @@ The `revoke_and_ack` Lightning message contains three data fields.
 * [`point`:`next_per_commitment_point`]
 
 While it is really simple and straight forward it is very crucial.
-Bob shares the the `per_commitment_secret` of the old commitment transaction which serves as the revocation key and would allow Alice in future to penalize Bob if he publishes the old commitment transactio without the HTLC output.
+Bob shares the the `per_commitment_secret` of the old commitment transaction which serves as the revocation key and would allow Alice in future to penalize Bob if he publishes the old commitment transaction without the HTLC output.
 As in a future Alice and Bob might want to negotiate additional commitment transactions he already shares back the `next_per_commitment_point` that he will use in his next commitment transaction.
 
 Alice checks that the `per_commitment_secret` produces the last `per_commitment_point` and constructs her new commitment transaction with the HTLC output.
 Alice's version of the HTLC output is slightly different to the one that Bob had.
-The reason is the asymmetrie of the pentalty based payment channel construction protocol.
-Alice is offering in her commitment transaction an HTLC to the `remote` partner of the channl while Bob as accepting and offered HTLC to himself the `local` partner of the channel.
+The reason is the asymmetries of the penalty based payment channel construction protocol.
+Alice is offering in her commitment transaction an HTLC to the `remote` partner of the channel while Bob as accepting and offered HTLC to himself the `local` partner of the channel.
 Thus the Bitcoin script is adopted slightly.
 It is a very good exercise to go through both scripts and see where they differ.
 You could also try to use Bob's HTLC output script to come up with Alice's and vice versa and check your result with the following script.
@@ -279,7 +279,7 @@ You could also try to use Bob's HTLC output script to come up with Alice's and v
         OP_ENDIF
     OP_ENDIF
 
-Bob can redeem the HTLC with `<remoteHTLCsig> <payment_preimage>` as the whitness script and in case the commitment tranaction is revoked but published by alice Bob can trigger the penality by spending this output immediately with the following witness script `<revocation_sig> <revocationpubkey>`.
+Bob can redeem the HTLC with `<remoteHTLCsig> <payment_preimage>` as the witness script and in case the commitment transaction is revoked but published by Alice, Bob can trigger the penality by spending this output immediately with the following witness script `<revocation_sig> <revocationpubkey>`.
 
 [[routing-setup-htlc-4]]
 .Bob knows how Alice's commitment transaction will look like and sends over the necessary signatures.
@@ -287,8 +287,8 @@ image:images/routing-setup-htlc-4.png[]
 
 This process is completely symmetrical to the one where Alice sent her signatures for Bob's new commitment transaction.
 Now Alice is the one having two valid commitment transactions.
-Technically she can still abort the payment by publishing her old commitment transaction to the bitcon network.
-Noone would lose anything as Bob knows that the contract is still being set up and not fully set up yet.
+Technically she can still abort the payment by publishing her old commitment transaction to the bitcoin network.
+No one would lose anything as Bob knows that the contract is still being set up and not fully set up yet.
 This is a little bit different than how the situation would look like in a real world scenario.
 Recall Alice and Bob both have set up a new commitment transaction and have exchanged signatures.
 In the real world one would argue that this contract is now valid.
@@ -298,7 +298,7 @@ In the real world one would argue that this contract is now valid.
 image:images/routing-setup-htlc-5.png[]
 
 Now Bob and Alice both have a new commitment transaction with and additional HTLC output and we have achieved a major step towards updating a payment channel.
-The new Balance of Alice and Bob does not reflect yet that Alice has succesfully send 15 mBTC to Bob.
+The new Balance of Alice and Bob does not reflect yet that Alice has successfully send 15 mBTC to Bob.
 However the hashed time locked contracts are now set up in a way that secure settlement in exchange for the proof of payment will be possible.
 This yields another round of communication with Lightning messages and setting up additional commitment transactions which in case of good cooperation remove the outstanding HTLCs.
 Interestingly enough the `commitment_signed` and `revoke_and_ack` mechanism that we described to add an HTLC can be reused to update the commitment transaction.
@@ -313,13 +313,13 @@ This message has the type 130 and only 3 data fields:
 As other messages Bob uses the `channel_id` field to indicates for which channel he returns the preimage.
 The htlc that is being removed is identified by the same `id` that was used to set up the HTLC in the commitment transaction initially.
 You might argue that Alice would not need to know the id of the HTLC for which Bob releases the preimage as the preimage and payment hash could be unique.
-However with this design the protocoll supports that a payment channel has several htlcs with the same preimage but only settles one.
-One could argue that this does not make too much sense and it is good to be criticle but this is how the protcol is designed and what it supports.
+However with this design the protocol supports that a payment channel has several htlcs with the same preimage but only settles one.
+One could argue that this does not make too much sense and it is good to be critical but this is how the protocol is designed and what it supports.
 Finally in the last field Bob provides the `payment_preimage` which Alice can check hashes to the payment hash.
 
 [WARNING]
 ====
-When designing, implementing or studying a protocol one should ask: Is it safe to this or that in this moment of the protocol and can this be abused. We discussed for example the messages that where necessary for an HTLC to become valid. We pointed out that Bob should not see the received HTLC as valid even though he already has a new commitment transaction with signatures and invalidated his old commitment transaction before Alice also revoked her old commitment transaction. We also saw that noone is able to mess with the protocol of setting up a commitment transaction as in the worst case the protocol could be aborted and any dispute could be resolved by the Bitcoin Netwok. In the same way we should ask ourselves is it safe for Bob to just send out and release the preimage even though neither he nor alice have created the new pair of commitment transactions in which the HTLCs are removed. It is important to take a short break and ask yourself if Bob will in any case be able to claim the funds from the HTLC if the preimage is correct?
+When designing, implementing or studying a protocol one should ask: Is it safe to this or that in this moment of the protocol and can this be abused. We discussed for example the messages that where necessary for an HTLC to become valid. We pointed out that Bob should not see the received HTLC as valid even though he already has a new commitment transaction with signatures and invalidated his old commitment transaction before Alice also revoked her old commitment transaction. We also saw that no one is able to mess with the protocol of setting up a commitment transaction as in the worst case the protocol could be aborted and any dispute could be resolved by the Bitcoin Network. In the same way we should ask ourselves is it safe for Bob to just send out and release the preimage even though neither he nor alice have created the new pair of commitment transactions in which the HTLCs are removed. It is important to take a short break and ask yourself if Bob will in any case be able to claim the funds from the HTLC if the preimage is correct?
 ====
 
 It is safe for Bob to tell Alice the preimage.
@@ -337,7 +337,7 @@ Isn't it remarkable that even though the process of exchanging funds for an prei
 === Source based Onion Routing
 
 So far you have learnt that payment channels can be connected to a network which can be utilized to send payment from one participant to another one through a path of payment channels.
-You have seen that with the use of HTLCs the intemediary nodes along the path are not able to steal any funds that they are supposed to forward and you have also learnt how a node can set up and settle an HTLC.
+You have seen that with the use of HTLCs the intermediary nodes along the path are not able to steal any funds that they are supposed to forward and you have also learnt how a node can set up and settle an HTLC.
 While this is all great it leaves a couple of questions open:
 
 - Who chooses the path?
@@ -347,58 +347,58 @@ While this is all great it leaves a couple of questions open:
 The short answer to the first questions is that only the sender decides which path to choose.
 Despite the fact that the Lightning Network is currently running the second question is still not answered in an optimal way and became a serious research topic.
 For now we will only say that in the standard case the sender more or less randomly selects and tries paths of channels until it is possible to send the amount along that selected path.
-With multi path payments the sender can split the amount and use the same strategy with multiple pahts.
-More deails will be discuss in the advanced section about path finding.
+With multi path payments the sender can split the amount and use the same strategy with multiple paths.
+More details will be discuss in the advanced section about path finding.
 There we explore and explain the current approach which seems to work good enough most of the time.
 You will also learn about potential improvements that are currently being researched in that chapter.
 
 The short answer to the third question is that no other node in the network learns about this path.
 Nodes along the path only learn on which channel they received a payment and on which channel they are supposed to forward it.
 Neither do they know whether the peer on the receiving channel initiated the payment nor do they know whether the peer on the outgoing channel is the final recipient of the payment.
-We exepect you to be surprised that it is actually possible to create such an algorithm with modern cryptography.
+We expect you to be surprised that it is actually possible to create such an algorithm with modern cryptography.
 This is why we will now devote quite some space to write and discuss about source based onion routing.
 This technique is fundamentally different to the best effort routing approach that is implemented on the internet protocol.
 Best effort routing is know to have poor privacy protection of the transfered data and needs end to end encryption on the upper layers to be secure.
-As many upper layer protocols did not include end to end encryption we learnt from the Snoweden revelations that spying agencies have been massivily collecting data that was transfered over the internet together with the meta data like IP addresses of senders and recipients.
+As many upper layer protocols did not include end to end encryption we learnt from the Snoweden revelations that spying agencies have been massively collecting data that was transfered over the internet together with the meta data like IP addresses of senders and recipients.
 To get rid of these problems the Lightning Network utilizes a sourced base onion routing based on the SPHINX Mix format.
-The SHINX mix format was originally designed to allow email remails to offer the possability to send an answer without creating a security threat of the remailer service being able to know who was communicating with whom.
+The SHINX mix format was originally designed to allow email remails to offer the possibility to send an answer without creating a security threat of the remailer service being able to know who was communicating with whom.
 In that sense and very roughly speaking the SPHINX Mix format can be compared with the onion routing that is well known from the TOR network.
 
 [NOTE]
 ====
-While the Lightning Network also uses an onion routing scheme it is actually very differnt to the onion routing scheme that is used in the TOR network.
-The biggest difference is that TOR is being used for arbitrary data to be exchanged between two participants where on the Lightning Network the main usecase is to pay people and transfer data that encodes monitary value.
-On the Lightning Network there is no analogy to the exit nodes of the Tor Network which on the TOR network produce a security risk. Lightning user should still not get theimpression that their data and information is perfectly secure. Knowing the announced  fee rates and CLTV deltas a node might be able to guess the destination of an onion.
+While the Lightning Network also uses an onion routing scheme it is actually very different to the onion routing scheme that is used in the TOR network.
+The biggest difference is that TOR is being used for arbitrary data to be exchanged between two participants where on the Lightning Network the main use case is to pay people and transfer data that encodes monetary value.
+On the Lightning Network there is no analogy to the exit nodes of the Tor Network which on the TOR network produce a security risk. Lightning user should still not get the impression that their data and information is perfectly secure. Knowing the announced  fee rates and CLTV deltas a node might be able to guess the destination of an onion.
 In TOR the security can be compromised if all randomly chosen TOR hops are acting together. In Lightning the payment hash identifies a payment and thus not every node along the path needs to be compromised in order to attack the security.
 On the TOR network nodes are basically connected via a full graph as every node could create an encrypted connection with every other node on top of the Internet Protocol almost instantaneously and at no cost. On the Lightning Network payments can only flow along existing payment channels. Removing and adding of those channels is a slow and expensive process as it requires onchain bitcoin transactions.
-On the Lightnign Network nodes might not be able to forwad a payment package because they do not own enough funds on their side of the payment channel. On the other hand there are hardly any plausible reasons other then its wish to act malliciously why a TOR node might not be able to forward an onion.
-Last but not least the Lightning Network can actuly run on TOR.
+On the Lightning Network nodes might not be able to forward a payment package because they do not own enough funds on their side of the payment channel. On the other hand there are hardly any plausible reasons other then its wish to act maliciously why a TOR node might not be able to forward an onion.
+Last but not least the Lightning Network can actually run on TOR.
 This means that all connections of a node with its peers and the resulting communication will by obfuscated once more through the TOR network.
 ====
 
 Lets stick to our example in which Alice still wants to tip Gloria and has decided to use the path via Bob and Wei.
 We note that there might have been alternative paths from Alice to Gloria but for now we will just assume it is this path that Alice has decided to use.
 You have already learnt that Alice needs to set up an HTLC with Bob via and `update_add_htlc` message.
-As discussed the `update_add_htlc` message containes a data field of 1366 Bytes in length that is the onion package.
-This onion cointains all the information about the path that Alice intends to use to send the payment to Gloria.
+As discussed the `update_add_htlc` message contains a data field of 1366 Bytes in length that is the onion package.
+This onion contains all the information about the path that Alice intends to use to send the payment to Gloria.
 However Bob who receives the onion cannot read all the information about the path as most of the onion is hidden from him through a sequence of encryptions.
-The name onion comes from the analogy to an onion that consits of several layers. In our case every layer corresponds to one round of encryption.
+The name onion comes from the analogy to an onion that consists of several layers. In our case every layer corresponds to one round of encryption.
 Each round of encryption uses different encryption keys.
 They are chosen by Alice in a way that only the rightful recipient of an onion can peel of (decrypt) the top layer of the onion.
 
-For example after Bob received the onion from Alice he will be able to decrypt the first layer and he will only see the information that he is supposed to forward the onion to Wai by setting up an HTLC with Wei.
+For example after Bob received the onion from Alice he will be able to decrypt the first layer and he will only see the information that he is supposed to forward the onion to Wei by setting up an HTLC with Wei.
 The HTLC with Wei should use the same Payment Hash as the receiving HTLC from Alice.
 The amount of the forwarded HTLC was specified in Bob decrypted layer of the onion.
-It will be slightly smaller than the imount of his incoming HTLC from Alice.
+It will be slightly smaller than the amount of his incoming HTLC from Alice.
 The difference of these two amounts has to be at least as big as to cover the routing fees that Bob's node announced earlier on the gossip protocol.
 
 In order to set up the HTLC Bob will modify the onion a little bit.
 He removes the information that he could read from it and passes it along to Wei.
 
-Wei in turn is only able to see that he is supposed to forwad the package to Gloria.
-Wai knows he recieved the onion from Bob but has no clue that it was actually Alice who initiated the onion in the first place.
+Wei in turn is only able to see that he is supposed to forward the package to Gloria.
+Wei knows he received the onion from Bob but has no clue that it was actually Alice who initiated the onion in the first place.
 In this way every participant is only able to peel of one layer of the onion by decrypting it.
-Each participant will only learn the information it has to learn to fullfil the routing request.
+Each participant will only learn the information it has to learn to fulfill the routing request.
 For example Bob will only know that Alice offered him an HTLC and sent him an onion and that he is supposed to offer an HTLC to Wei and forward a slightly modified onion.
 Bob does not know if Alice is the originator of this payment as she could also just have forwarded the payment to him.
 Due to the layered encryption he cannot see the inside of Wei's, and Gloria's layer.
@@ -412,17 +412,17 @@ Let us now look at the construction of the Onion that Alice has to follow and at
 The onions are a data structure that at every hop consists of four parts:
 
 1. The version byte
-2. The header consisting of a public key that can be used by the recipient to produce the shared secret for decrypting the outer layer and to derieve the public key that has to be put in the header of the modified onion for the next recipient.
+2. The header consisting of a public key that can be used by the recipient to produce the shared secret for decrypting the outer layer and to derive the public key that has to be put in the header of the modified onion for the next recipient.
 3. The payload
 4. an authentication via an HMAC.
 
 For now we will ignore how the public keys are derived and exchanged and focus on the payload of the onion.
 Only the payload is actually encrypted and will be peeled of layer by layer.
-The payload consits of a sequence of a sequence of per hop data.
+The payload consists of a sequence of a sequence of per hop data.
 This data can come in two formats the legacy one and the Type Length Value (TLV) Format.
-While the TLV format offers more flexability in both cases the routing information that is encoded into the onion is the same for every but the last hop.
+While the TLV format offers more flexibility in both cases the routing information that is encoded into the onion is the same for every but the last hop.
 On the last hop the TLV information departs from the legacy information as it allows to include a preimage.
-This is nice as it allow a payer to initiate a payment without the neccessity to ask the payer for an invoice and payment hash first.
+This is nice as it allow a payer to initiate a payment without the necessity to ask the payer for an invoice and payment hash first.
 We will this feature called key send in a different chapter.
 
 A node needs three pieces of information to forward the package:
@@ -444,12 +444,12 @@ On the incoming HTLCs David should have seen that exact amount.
 Usually this amount is intended to say how many satoshis should be forwarded.
 Since the short channel id was set to zero in this particular case it is interpreted as the payment amount.
 Finally the CLTV delta which David should use to forward the payment is also set to zero as David is the final hop.
-These data fields consit of 20 Bytes.
+These data fields consist of 20 Bytes.
 The Lightning Network protocol actually allows to store 65 Bytes of data the Onion for every hope.
 
 - 1 Byte Realm which signals nodes how to decode the following 32 Bytes.
 - 32 Byte for routing hints (20 of which we have already used).
-- 32 Byte of a Hasched Message Authentication code.
+- 32 Byte of a Hashed Message Authentication code.
 
 Since the additional 12 Byte of data for the routing hints were not needed at this time they are set to zero.
 In the next diagram we can see how the per hop payload for David looks like.
@@ -460,7 +460,7 @@ image:images/routing-onion-2.png[]
 
 On important feature to protect the privacy is to make sure that onions are always of equal length independ of their position along the payment path.
 Thus onions are always expected to contain 20 entries of 65 Bytes with per hop data.
-As David is the final recipient there is only reasonable data for 65 Bytes ofth per hop data.
+As David is the final recipient there is only reasonable data for 65 Bytes of the per hop data.
 This is not a problem as the other 19 fields are filled with junk data.
 You could also see this in the previous diagram.
 
@@ -481,13 +481,13 @@ However others cannot derive the same shared secrete as they neither know Alice'
 [NOTE]
 ====
 Let `(d,D)` be the secret and Public key of David and let G be the generator point of the elliptic curve so that `D = d*G`.
-similarily let `(ek_d, EPK_D)` the ephemeral keys that Alice has generated for David such that the Publikc ephemeral Key `EPK_D = ek_d*G`.
+Similarly let `(ek_d, EPK_D)` the ephemeral keys that Alice has generated for David such that the Public ephemeral Key `EPK_D = ek_d*G`.
 Alice computed the shared secret as ss_`d =  ek_d*D`.
 Using the definition of public keys this is the same as `ek_d*(d*G)=(ek_d*d)*G`.
 Since multiplication with the generator point is a group homomorphism we can apply the law of associativity.
 And because the secretes are just numbers modulo some prime we can change the order of the multiplication resulting in `ss_d = (d*ek_d)*G`.
 With the same argument as before we apply the law of associativity and apply the definition of public keys resulting in `(d*ek_d)*G = d*(ek_d*G) = d*EPK_D`.
-We just saw why `ek_d*D = d*EPK_D = ss_d` and why Alice and Davide will be able to derive the same shared secrete if Alice puts the ephmeral pubilic key inside the onion.
+We just saw why `ek_d*D = d*EPK_D = ss_d` and why Alice and Davide will be able to derive the same shared secrete if Alice puts the ephemeral public key inside the onion.
 ====
 
 After the encrypted Onion for David is created Alice will create the next outer layer by creating the onion for Wei.
@@ -511,7 +511,7 @@ image:images/routing-onion-4.png[]
 We emphasize that Wei has no chance to decrypt the inner part of the onion.
 However the information for Wei should also be protected from others.
 Thus Alice conducts another ECDH.
-This time with Wei's public key and and emphemeral keypair that she has generated particularly for Wei.
+This time with Wei's public key and and ephemeral keypair that she has generated particularly for Wei.
 She uses the shared secret to encrypt the onion payload.
 She would be able to construct the entire onion for Wei - which actually Bob does while he forwards the onion.
 The Onion that Wei would receive can be seen in the following diagram:
@@ -520,29 +520,29 @@ The Onion that Wei would receive can be seen in the following diagram:
 .`per_hop` payload of Glorias onion and the encrypted
 image:images/routing-onion-5.png[]
 
-Note that in the entire onion there will be Wei's empheral public key.
+Note that in the entire onion there will be Wei's ephemeral public key.
 David ephemeral public key is not stored anywhere in the onion.
 Neither in the header, nor in the payload data.
 However we have seen that David needed to have this key in the header of the Onion that he received.
-Luckily the ephemeral keys that Alice used for the ECDH with david can be derived from the ephmeral key that she used for Wei.
-Thus after Wei decrypts his layer he can use the shared secrete and his emphermal public key to derrive the Empheral public key that David is supposed to use and store it in the header of the Onion that he forwards to David.
-The exact progress to generate the empheral keys for every hope will be explained at the very end of the chapter.
+Luckily the ephemeral keys that Alice used for the ECDH with David can be derived from the ephemeral key that she used for Wei.
+Thus after Wei decrypts his layer he can use the shared secrete and his ephemeral public key to derive the ephemeral public key that David is supposed to use and store it in the header of the Onion that he forwards to David.
+The exact progress to generate the ephemeral keys for every hope will be explained at the very end of the chapter.
 Similarly it is important to recognize that Alice removed data from the end of Davids onion payload to create space for the per hop data in Wei's onion.
-Thus when Wei has received his onion and removed his routing hints and per hopd data the onion would be to short and he somehow needs to be able to append the 65 Bytes of filled junk data in a way that the HMACs will still be valid.
-This process is of filler generation as well as the process of derriving the emphemeral keys is described in the end of this chapter.
+Thus when Wei has received his onion and removed his routing hints and per hop data the onion would be to short and he somehow needs to be able to append the 65 Bytes of filled junk data in a way that the HMACs will still be valid.
+This process is of filler generation as well as the process of deriving the ephemeral keys is described in the end of this chapter.
 What is important to know is that every hope can derive the Ephemeral Public key that is necessary for the next hop and that the onions save space by always storing only one ephemeral key instead of all the keys for all the hops.
 
 
 Finally after Alice has computed the encrypted version for Wei she will use the exact same process to compute the encrypted version for Bob.
-For Bobs onion she actually computes the header and provides the emphemeral public key herself.
+For Bobs onion she actually computes the header and provides the ephemeral public key herself.
 Note how Wei was still supposed to forward 3000 satoshis but How Bob was supposed to forward a different amount.
-The difference is the routing fee for Wai.
-Bob on the other hand will only forward the onion if the difference between the mount to forward and the HTLC that Alice sets up while transfering the Onion to him is large enough to cover for the fees that he would like to earn.
+The difference is the routing fee for Wei.
+Bob on the other hand will only forward the onion if the difference between the mount to forward and the HTLC that Alice sets up while transferring the Onion to him is large enough to cover for the fees that he would like to earn.
 
 [NOTE]
 ====
-We have not discussed the exact cryptographic algorithms and schemes that are being used to compute the cypthertext from the plain text.
-Also we have not discussed how the HMACs are being computed at every step and how everything fits together while the Onions are always being trucated and modified on the outer layer.
+We have not discussed the exact cryptographic algorithms and schemes that are being used to compute the ciphertext from the plain text.
+Also we have not discussed how the HMACs are being computed at every step and how everything fits together while the Onions are always being truncated and modified on the outer layer.
 If everything until here made perfect sense to you and you want to learn about those details we believe that you have all the necessary tools at hand to read BOLT 04 which is why we decided not to include all those technical details here in the book.
 BOLT 04 is the open source specification of the onion routing scheme that is being used on the Lightning Network and a perfect resource for the missing details.
 ====
@@ -551,15 +551,15 @@ TODO: everything from here on will most likely change and could even be redundan
 
 Onions are being constructed from the inside to the outside.
 As the inside of the onion is decrypted last it has to correspond to the recipient which in our case is Gloria.
-As every layer of the Onion is encrypted by Alice in such a way that only the respective recpient can decrypt their layer Alice needs to come up with a sequence of encryption keys that she will use for each and every hop.
-The main concept that is being used is the shared secret computation via an elliptic Courve Diffie Helmann Key exchange (ECDH) between Alice and each of the hops.
+As every layer of the Onion is encrypted by Alice in such a way that only the respective recipient can decrypt their layer Alice needs to come up with a sequence of encryption keys that she will use for each and every hop.
+The main concept that is being used is the shared secret computation via an elliptic Curve Diffie Hellmann Key exchange (ECDH) between Alice and each of the hops.
 However for the recipients to be able to to compute their shared secrete they have to know a public key which they can use.
 If Alice used the same private key for the computation of each of the shared secrets Alice would have to send the same public key with the onion.
 
 the different payments could be linked together by an attacker that is why
 
 Every layer of the onion has 32 Bytes of `per_hop` data.
-This data is split into 4 data filds
+This data is split into 4 data fields
 
 - The 8 Byte `short_channel_id` indicates on which channel the onion should be forwarded next
 - The 8 Bytes `amt_to_forward` is a 64 Bit unsigned integer that encodes an amount in millisatoshi and indicates the amount that is supposed to be forwarded
@@ -576,20 +576,20 @@ This data is split into 4 data filds
 image:images/routing-onion-6.png[]
 
 
-Interestingly enough Alice can construct the onion with different encryption keys for Bob, Wei and Gloria without the necessity to estable a peer connection with them.
+Interestingly enough Alice can construct the onion with different encryption keys for Bob, Wei and Gloria without the necessity to establish a peer connection with them.
 She only needs a public key from each participant which is the public `node_id` of the lightning node and known to Alice.
-As other nodes she has learnt about the existance of public payment cannels and the public `node_id` of other participants via the gossip protocol which we described in its own chapter.
-In order to have a different encryption key for every layer Alice produces a shared secrete with each hop using the public `node_id` of each node and conduct an Elliptic Curve Diffi Hellmann Key exchange (ECDH).
+As other nodes she has learnt about the existence of public payment channels and the public `node_id` of other participants via the gossip protocol which we described in its own chapter.
+In order to have a different encryption key for every layer Alice produces a shared secrete with each hop using the public `node_id` of each node and conduct an Elliptic Curve Diffie Hellmann Key exchange (ECDH).
 
 She starts by generating a temporary session key.
 This key will also be called the ephemeral key.
 This private key multiplied with the generator Point of the Elliptic curve that is being used in Bitcoin produces a public key.
 This happens in the same way how the nodes public key is generated from the secrete private key of the node.
-Alice could use this session keys to conduct the diffi hellmann key exchange if she would send the public key with the onion.
-However she wishes to use a different session key to conduct the diffie Hellmann key exchange with each of the nodes along the path.
+Alice could use this session keys to conduct the Diffie Hellmann key exchange if she would send the public key with the onion.
+However she wishes to use a different session key to conduct the Diffie Hellmann key exchange with each of the nodes along the path.
 **TODO**: WHY?!
 Yet she does not want to add a public key (which consumes quite some space) into every layer of the onion.
-Luckily there is a nice deterministic way in which she can derive different sessions keys for every hop and execute the Diffi Hellmann and allow the hops to use their shared secrete to derieve the next session public key.
+Luckily there is a nice deterministic way in which she can derive different sessions keys for every hop and execute the Diffie Hellmann and allow the hops to use their shared secrete to derive the next session public key.
 Lets explore this in detail with the following example:
 
 
@@ -608,13 +608,13 @@ However with that information nodes would know that Alice was the originator of 
 In the first part of the routing chapter you have learnt that payments securely flow through the network via a path of HTLCs.
 You saw how a single HTLC is negotiated between two peer and added to the commitment transaction of each peer.
 In the second part you have seen how the necessary information for setting up HTLCs along a path of hops are being transfered via onions from the source to the sender.
-A mechanism that protocets the privacy of payer and payee.
+A mechanism that protects the privacy of payer and payee.
 However there are quite some challenges and things that can go not as expected.
 This is why we we want to discuss how errors are being handled and what users and developers should take into consideration.
 
-Most importantnly it is absolutely necessary that you anderstand that once your node sent out an onion on your behalf (most likely because you wanted to pay someone) Everything that happens to the onion is now out of your control.
+Most importantly it is absolutely necessary that you understand that once your node sent out an onion on your behalf (most likely because you wanted to pay someone) Everything that happens to the onion is now out of your control.
 
-* You cannot force nodes to forward the onion immediatly.
+* You cannot force nodes to forward the onion immediately.
 * You cannot force nodes to send back an error if they cannot forward the onion because of missing liquidity or other reasons.
 * You cannot be sure that the recipient has the preimage to the payment hash or releases it as soon as the HTLCs of the correct amount arrived.
 
@@ -627,7 +627,7 @@ While our user experience is that most payments find a path and settle in far le
 
 [NOTE]
 ====
-There are ideas out that might solve this issue to some degree by allowing the payer to abort a payment. You can find more about that under the terms `cancable payments` or `stuckless payments`. However the proposals that exist only reverse the problem as now the sender can misbehave and the recipient looses control. Another solution is to use many paths in a multipath payment and include some reduncancy and ignore the problem that a path takes longer to complete.
+There are ideas out that might solve this issue to some degree by allowing the payer to abort a payment. You can find more about that under the terms `cancelable payments` or `stuckless payments`. However the proposals that exist only reverse the problem as now the sender can misbehave and the recipient looses control. Another solution is to use many paths in a multipath payment and include some redundancy and ignore the problem that a path takes longer to complete.
 ====
 
 Despite these principle problems there are plausible situations in which the routing process fails and in which honest nodes can and should react.
@@ -641,35 +641,35 @@ Some - but not all - of the reasons for errors could be:
 * The recipient might not have issued an invoice and does not know the payment details.
 * The amount of the final HTLC is too low and the recipient does not want to release the preimage.
 
-If errors like those occure a node should send back a reply onion.
+If errors like those occur a node should send back a reply onion.
 The reply onion will be encrypted at each hop with the same shared secrets that have been used to construct the onion or decrypt a layer.
 These shared keys are all known to the originator of the payment.
 The onion innermost onion contains the error message and an HMAC for the error message.
 The process makes sure that the sender of the onion and recipient of the reply can be sure that the error really originated from the node that the error messages says.
-Another important step in the process of handeling errors is to abort the routing process.
+Another important step in the process of handling errors is to abort the routing process.
 We discussed that the sender of a payment cannot just remove the HTLC on the channel along which the sender sent the payment.
 Recall for example the situation in which Alice sent and onion to Bob who set up an HTLC with Wei.
-If Alices wanted to remove the HTLC with Bob this would put a financiel risk on Bob.
-He fears that his HTLC with Wei still might be fullfilled meaning that he could not claim the reimbursement from Alice.
+If Alice wanted to remove the HTLC with Bob this would put a financial risk on Bob.
+He fears that his HTLC with Wei still might be fulfilled meaning that he could not claim the reimbursement from Alice.
 Thus Bob would never agree to remove the HTLC with Alice unless he already has removed his HTLC with Wei.
 If however the HTLC between Alice and Bob are set up and the HTLC between Bob and Wei are set up but Wei encounters problems with forwarding the onion it is perfectly Wei has more options than Alice.
 While sending back the error Onion to Bob Wei could ask him to remove the HTLC.
 Bob has no risk in removing the HTLC with Wei and Wei also has no risk as there is no downstream HTLC.
 Removing an HTLC is happening very similar to adding HTLCs.
-Due to the just presented argument only peers who have accepted an offered HTLC can initate the removal of HTLCs.
+Due to the just presented argument only peers who have accepted an offered HTLC can initiate the removal of HTLCs.
 In the case of errors peers signals that they wish to remove the HTLC by sending an `update_fail_htlc` or `update_fail_malformed_htlc` message.
 These messages contain the id of an HTLC that should be removed in the next version of the commit transaction.
 In the same handshake like process that was used to exchange `commitment_signed` and `revoke_and_ack` messages the new state and thus pair of commitment signatures has to be negotiated and agreed upon.
-This also means while the balance of a channel thas was involved in a failed routing process will not have changed at the end it will have negotiated two new commitment transactions.
+This also means while the balance of a channel that was involved in a failed routing process will not have changed at the end it will have negotiated two new commitment transactions.
 Despite having the same balance it must not got back to the previous commitment transaction which did not include the HTLC as this commitment transaction was revoked.
-If it was used to force close the channel the channel partner would have the ability to create a pentality transaction and get all the funds.
+If it was used to force close the channel the channel partner would have the ability to create a penalty transaction and get all the funds.
 
-==== Setteling HTLCs
+==== Settling HTLCs
 In the last section you you understood the error cases that can happen with onion routing via the chain of HTLCs.
 You have learnt how HTLCs are removed if there is an error.
 Of course HTLCs also need to be removed and the balance needs to be updated if the chain of HTLCs was successfully set up to the destination and the preimage is being released.
 Not surprisingly this process is initiated with anther lightning message called `update_fulfill_htlc`.
-You will remember that HTLCs are set up and supposed to be removed with a new balance for the recipient in exachange for a secrete `preimage`.
+You will remember that HTLCs are set up and supposed to be removed with a new balance for the recipient in exchange for a secrete `preimage`.
 Recalling the complex protocol with `commitment_signed` and `revoke_and_ack` messages you might wonder how to make this exchange `preimage` for new state atomic.
 The cool thing is it doesn't have to be.
 Once a channel partner with an accepted incoming HTLC knows the preimage can savely just pass it to the channel partner.
@@ -677,28 +677,28 @@ That is why the `update_fulfill_htlc` message contains only the `channel_id` the
 You might wonder that channel partner could now refuse to sign a new channel state by sending `commitment_siged` and `revoke_and_ack` messages.
 This is not a problem though.
 In that case the recipient of the offered HTLC can just go on chain by force closing the channel.
-Once that has happend the preimage can be used to claim the HTLC output.
+Once that has happened the preimage can be used to claim the HTLC output.
 
 ==== Some Considerations for routing nodes
 Accepting and HTLC removes funds from a peer that the peer cannot utilize unless the HTLC is removed due to success or failure.
 Similarly forwarding an HTLC binds some funds from your nodes payment channel until the HTLC is being removed again.
 As we explained in the very beginning of the chapter engaging into the forwarding process of HTLCs does neither yield a direct risk to loose funds nor does it gain the chance to gain funds.
-However the funds in jepordy could be locked for some time.
+However the funds in jeopardy could be locked for some time.
 In the worst case the routing process needs to be resolved on chain as the payment channel was forced close due to some other circumstances.
 In that case outstanding HTLCs produce additional onchain food print and costs.
-Thus there are two small economic risks envolved with the participation in the routing process.
+Thus there are two small economic risks involved with the participation in the routing process.
 
 . Higher onchain fees in case of forced channel closes due to the higher footprint of HTLCs
 . Opportunity costs of locked funds. While the HTLC is active the funds cannot be used otherwise.
 
-In economics and financial mathmatics the idea to pay another person that takes a risk is widly spread and seems reasonable.
-Owners of routing nodes might want to monitor the routing behavior and opportinuties and compare them to the onchain costs and the opportunity costs in order to compute their own routing fees that they wish to charge to accept and forward HTLCs.
+In economics and financial mathematics the idea to pay another person that takes a risk is widely spread and seems reasonable.
+Owners of routing nodes might want to monitor the routing behavior and opportunities and compare them to the onchain costs and the opportunity costs in order to compute their own routing fees that they wish to charge to accept and forward HTLCs.
 
 Also one should notice that HTLCs are outputs in the commitment transaction.
 Lightning network protocol allows users to pay a single satoshi.
 However it is impossible to set up HTLCs for this amount.
 The reason is that the corresponding outputs in the commitment transaction would be below the dust limit.
-Such cases are solved in practise with the following trick:
+Such cases are solved in practice with the following trick:
 Instead of setting up an HTLC the amount is taken from the output of the sender but not added to the output of the recipient.
 Thus the HTLCs which are below the dust limit can understood as additional fees in the commitment transaction.
 Most Lightning Nodes support the configuration of minimum accepted HTLC values.
