@@ -126,14 +126,11 @@ cold storage::
     Refers to keeping a reserve of bitcoin offline. Cold storage is achieved when Bitcoin private keys are created and stored in a secure offline environment. Cold storage is important for anyone with bitcoin holdings. Online computers are vulnerable to hackers and should not be used to store a significant amount of bitcoin.
 
 Commitment Transaction::
-    Commitment Transactions encode the balance of the payment channel with the help of one output for each channel partner by spending the funding transaction.
-    When payments are being made or forwarded through the channel, a double-spend of the commitment transactions is made by creating a new pair of commitment transactions.
-    One output also holds a Revocable Sequence Maturity Contract which is made to disincentivize a channel partner to broadcast an old commitment transaction to the Bitcoin network.
-    This effectively invalidates old commitment transactions.
-    Broadcasting a commitment transaction forces an unilateral channel close.
-    Up to 483 Hashed Time Lock Contracts can be stored as additional outputs in the commitment transaction to allow the routing of payments.
-    In order to be able to ascribe blame in the case of unilateral channel closes, each channel partner has a slightly different commitment transaction.
-    // TODO probably don't explain the difference with the RSMC here
+     A commitment transaction is a Bitcoin transaction, signed by both channel partners, that encodes the latest balance of a channel.
+     Every time a new transaction is made or forwarded using the channel, the channel balance will update, and a new commmitment transaction will be signed by both parties.
+     Importantly, for a channel between Alice and Bob, both Alice and Bob keep their own version of the commitment transaction, that is also signed by the other party.
+     At any point, the channel can be closed by either Alice or Bob if they submit their commitment transaction to the Bitcoin blockchain.
+     Submitting an older (outdated) commitment transaction is considered "cheating" (i.e. protocol breach) in the Lightning network and can be penalized by the other party claiming all the funds in the channel for themselves.     
 
 computationally easy::
     A problem is considered to be computationally easy if there exists an algorithm that is able to compute the solution to the problem rather quickly.
