@@ -21,3 +21,48 @@ Relevant questions to answer:
   * Protocol Extensions via Feature Bits and TLV:
       - How can the channel graph be upgraded using feature bits and TLV fields?
       - How does a receiver signal that they can accept MPP/AMP payments?
+
+
+### Gossip Announcements
+
+#### How does a peer announce a new channel to the network?
+Let's assume that Alice and Bob have just opened a channel together.
+How do they let the rest of the network know, so that the channel can be used for forwarding payments?
+Well firstly, they don't need to.
+Alice and Bob can choose not to announce the channel and simply use it to transfer bitcoin between each other.
+In this case, they won't earn any fees for forwarding payments.
+However, assuming they do want the channel to be public, they will have marked the channel as public when they initially agreed to open it.
+
+First, they'll have to wait until the funding transaction is confirmed (usually six confirmations).
+Once it's confirmed, Alice's and Bob's nodes will now use the `channel_announcement` message to let the rest of the network know the good news.
+This announcement message contains some important information:
+
+* *Channel ID*: a short description of the channel that tells users which outputs in which transaction in which Bitcoin block were used to fund the channel
+* *Signatures from Alice and Bob*: Remember that the channel funds are locked in a 2-of-2 multisignature address, for which Alice and Bob each hold one of the two keys.
+Alice and Bob will each sign from their key, proving that their nodes control the funds in the channel.
+
+They will then send this `channel_announcement` message to each of their peers.
+
+Note that while the `channel_announcement` message makes their peers aware of their channel, their peers won't yet be able to use the channel for forwarding payments.
+First, Alice or Bob will have to communicate other information, such as their fee policy, which we will discuss below.
+But first, how do their peers verify that the channel announcement is legitimate?
+
+#### Verifying the channel
+
+Let's assume Wei receives this announcement from Bob.
+How does he know that this is a real channel, and why should he even bother to check it?
+
+Well, verifying a channel is pretty important.
+If Wei tries to forward any payments through a channel that doesn't exist, his payments are going to fail.
+Even if the channel does exist, Wei still needs assurances that Bob and Alice actually control the funds inside of it.
+Alice and Bob could potentially dupe him by claiming ownership of a channel that actually belongs to someone else.
+So Wei will definintely want to verify before he updates his channel graph.
+
+Firstly, Wei will check the channel ID to discover which Bitcoin transaction contains the channel funds.
+He will then look up this transaction on the Bitcoin blockchain and he should discover a P2WSH bitcoin UTXO that is signed by both Alice and Bob.
+Secondly, Wei will verify the signatures in the channel annoucenment message and confirm that the two nodes who signed the channel announcement are actually Alice and Bob.
+Once he's done so, he's convinced that the channel is funded and that Alice and Bob are the funders and owners of that channel.
+If any of these checks fail, he'll ignore the channel announcement.
+
+Once Wei is satisifed that the channel announcement checks out, he'll update his channel graph.
+He will also send information about this channel to his peers, and they will verify it for themselves.
