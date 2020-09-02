@@ -377,13 +377,13 @@ Let's look at different ways you can make it possible for others to connect to y
 
 ===== It just works!
 
-There's a possibility that your internet service provider is configured to support UPNP by default and everything just works automatically. Let's try this approach first, just in case we are lucky.
+There is a possibility that your internet service provider or router is configured to support UPNP by default and everything just works automatically. Let's try this approach first, just in case we are lucky.
 
 Assuming you already have a Bitcoin or Lightning node running, we will try and see if they are accessible from the outside.
 
 [NOTE]
 ====
-For this test to work, you have to have either a Bitcoin or Lightning node (or both) up and running on your home network. If your router supports UPNP, the node services will automatically use it to forward incoming connections to the corresponding ports on the computer running the node.
+For this test to work, you have to have either a Bitcoin or Lightning node (or both) up and running on your home network. If your router supports UPNP, the incoming traffic will automatically be forwarded to the corresponding ports on the computer running the node.
 ====
 
 You can use some very popular and useful websites to find out what is your external IP address and whether it allows and forwards incoming connections to a known port. Here are two that are reliable:
@@ -392,7 +392,7 @@ https://canyouseeme.org/
 
 https://www.whatismyip.com/port-scanner/
 
-By default, these services only allow you to check incoming connections to the IP address from which you are connecting - this prevents you from using the service to scan other people's networks and computers. You will see your router's external IP address and a field for entering a port number. If you haven't changed the default ports on your node configuration, try port 8333 (Bitcoin) and/or 9735 (Lightning).
+By default, these services only allow you to check incoming connections to the IP address from which you are connecting. This is done to prevent you from using the service to scan other people's networks and computers. You will see your router's external IP address and a field for entering a port number. If you haven't changed the default ports in your node configuration, try port 8333 (Bitcoin) and/or 9735 (Lightning).
 
 [[ln_port_check]]
 . Checking for incoming port 9735
@@ -404,9 +404,9 @@ In <<ln_port_check>> you can see the result of checking port 9735 on a server ru
 
 Sometimes, even if your internet router supports UPNP, it may be turned off by default. In that case you need to change your internet router configuration from its web administration interface:
 
-. Connect to your internet router's configuration website. Usually this can be done by connecting to the _gateway address_ of your home network using a web browser. You can find the gateway address by looking at the IP configuration of any computer on your home network. It is often the first address in one of the non-routable networks, like 192.168.0.1, or 10.0.0.1.
+. Connect to your internet router's configuration website. Usually this can be done by connecting to the _gateway address_ of your home network using a web browser. You can find the gateway address by looking at the IP configuration of any computer on your home network. It is often the first address in one of the non-routable networks, like 192.168.0.1 or 10.0.0.1. Check all stickers on your router as well for the _gateway address_. Once found, open a browser and enter the IP address into the browser URL/Search box, e.g. "192.168.0.1" or "http://192.168.0.1".
 
-. Find the administrator username and password for the web configuration panel of the router. This is often written on a sticker on the router itself and may be as simple as "admin" and "password". A quick web search for your ISP and router model can also help you find this information
+. Find the administrator username and password for the web configuration panel of the router. This is often written on a sticker on the router itself and may be as simple as "admin" and "password". A quick web search for your ISP and router model can also help you find this information. 
 
 . Find a setting for UPNP and turn it on.
 
@@ -414,7 +414,7 @@ Restart your Bitcoin and/or Lighting node and repeat the open port test with one
 
 ===== Using TOR for incoming connections
 
-The Onion Router (TOR) is a virtual private network with the special property that it encrypts communications between hops, such that any intermediary node cannot determine the origin or destination of a packet. Both Bitcoin and Lightning nodes support operation over TOR, which enables you to operate a node without revealing your IP address or location. An added benefit of running TOR is that because it operates as a VPN, it resolves the problem of port forwarding from your internet router. Incoming connections are received over the TOR tunnel, and your node can be found through an _onion address_ instead of an IP address.
+_The Onion Router (TOR)_ is a virtual private network with the special property that it encrypts communications between hops, such that any intermediary node cannot determine the origin or destination of a packet. Both Bitcoin and Lightning nodes support operation over TOR, which enables you to operate a node without revealing your IP address or location. Hence, it provides a high level of privacy to your network traffic. An added benefit of running TOR is that because it operates as a VPN, it resolves the problem of port forwarding from your internet router. Incoming connections are received over the TOR tunnel, and your node can be found through an ad-hoc generated _onion address_ instead of an IP address.
 
 Enabling TOR requires two steps: First you must install the TOR router and proxy on your computer. Second, you must enable the use of the TOR proxy in your Bitcoin or Lightning configuration.
 
@@ -424,7 +424,7 @@ To install TOR on a Ubuntu Linux system that uses the +apt+ package manager, run
 sudo apt install tor
 ----
 
-Next, we configure our Lightning node to use TOR for it's external address. Here's an example configuration if we're running LND:
+Next, we configure our Lightning node to use TOR for its external connectivity. Here is an example configuration for LND:
 
 ----
 [Tor]
@@ -434,9 +434,17 @@ tor.streamisolation=true
 listen=localhost
 ----
 
-This will enable TOR (+tor.active+), establish a v3 onion service (+tor.v3=true+), use a different onion stream for each connection (+tor.streamisolation+) and restrict listening for connections to the local host only, to avoid leaking your IP address (+listen=localhost+).
+This will enable TOR (+tor.active+), establish a v3 onion service (+tor.v3=true+), use a different onion stream for each connection (+tor.streamisolation+), and restrict listening for connections to the local host only, to avoid leaking your IP address (+listen=localhost+).
 
-Due to the nature of TOR, you can't use an external service to check if your node is reachable via an onion address. You should see your TOR onion address in the logs of your Lightning node, as a long string of letters and numbers followed by the suffix +.onion+. Your node should now be reachable from the internet, with the added bonus of privacy!
+You can check if TOR is correctly installed and working by running a simple one-line command. This command should work on most flavors of Linux:
+
+----
+curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs
+----
+
+If everything is working properly, the response of this command should be +"Congratulations. This browser is configured to use Tor."+.
+
+Due to the nature of TOR, you can't easily use an external service to check if your node is reachable via an onion address. Nonetheless, you should see your TOR onion address in the logs of your Lightning node. It is a long string of letters and numbers followed by the suffix +.onion+. Your node should now be reachable from the internet, with the added bonus of privacy!
 
 ===== Manual port forwarding
 
