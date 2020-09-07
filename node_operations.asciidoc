@@ -605,23 +605,35 @@ Note that your maximum fee, which represents a worst-case scenario, will depend 
 
 === Lightning node uptime and availability
 
-Unlike Bitcoin, Lightning nodes need to be online almost continuously. Your node needs to be online to receive payments, open channels, close channels (cooperatively) and monitor protocol violations. Node availability is such an important requirement in the Lightning Network, that it is a metric used by various automatic channel management tools (e.g. autopilot) to decide with which nodes to open channels. You can even see "availability" as a node metric on popular node explorers such as +1ml.com+.
+Unlike Bitcoin, Lightning nodes need to be online almost continuously. Your node needs to be online to receive payments, open channels, close channels (cooperatively), and monitor protocol violations. Node availability is such an important requirement in the Lightning Network that it is a metric used by various automatic channel management tools (e.g. +autopilot+) to decide with which nodes to open channels. You can also see "availability" as a node metric on popular node explorers such as +1ml.com+.
 
-Node availability is especially important because of potential protocol violations (i.e. revoked commitments). While you can afford short interruptions (hour or days), you cannot have your node offline for longer periods of time without risking loss of funds.
+Node availability is especially important to mitigate and resolve potential protocol violations (i.e. revoked commitments). While you can afford short interruptions from an hour up to one or two days, you cannot have your node offline for longer periods of time without risking loss of funds.
 
-Keeping a node online is not easy, as various bugs and resource limitations will occasionally cause downtime. Especially if you run a busy and popular node, you will run into limitations of memory, swap space, number of open files, disk space etc. A whole host of different problems will cause your node or your server to crash.
+Keeping a node online continuously is not easy, as various bugs and resource limitations can and will occasionally cause downtime. Especially if you run a busy and popular node, you will run into limitations of memory, swap space, number of open files, disk space, and so forth. A whole host of different problems will cause your node or your server to crash.
+
+==== Tolerate faults and automate
+
+If you have the time and skills you should test some basic fault scenarios on the Lightning testnet. On the testnet you will learn valuable lessons without risking any funds. Any step you perform to automate your system will improve your availability.
+
+- Automatic computer server restart: What happens when your server or the operating system crashes? What happens when there is a power outage? Simulate this fault by pressing the "reset" button on your PC or by unplugging the power cable. After crash, reset, or power failure the computer should automatically restart itself. Some computers have a setting in their BIOS to specify how the computer should react on power failures. Test it to make sure the computer really restarts automatically on power failure without human intervention. 
+
+- Automatic node restart: What happens when your node or one of your nodes crashes? Simulate this fault by killing the corresponding node processes. If a node crashes it should automatically restart itself. Test it to make sure the node or nodes really restart automatically on failure without human intervention. If this is not the case, most likely your node is not set up correctly as an operating system service.
+
+- Automatic network reconnection: What happens if your network goes down? What happens when your ISP goes temporarily down? What happens when your ISP assigns a new IP address to your router or your computer? When the network comes back, does the node or do the nodes automatically reconnect to the network? Simulate this fault by unplugging and later re-plugging the Ethernet cable from and to your PC. The nodes should automatically reconnect and continue operation without human intervention.
+
+- Configure your log files: All of the above failures should leave textual entries behind in the corresponding log files. Turn up the verbosity of logging if needed. Find these error entries in the log files and use them for monitoring. 
 
 ==== Monitoring node availability
 
 Monitoring your node is an important part of keeping it running. You need to monitor not only the availability of the computer itself, but also the availability and correct operation of the Lightning node software.
 
-There are a number of ways to do this, but most require some customization. You can use generic infrastructure monitoring or application monitoring tools, but you have to customize them specifically to query the Lightning node API, to ensure it is running, synchronized to the blockchain and connected to channel peers.
+There are a number of ways to do this, but most require some customization. You can use generic infrastructure monitoring or application monitoring tools, but you have to customize them specifically to query the Lightning node API to ensure the node is running, synchronized to the blockchain, and connected to channel peers.
 
-There is a specialized service that offers Lightning node monitoring, using a Telegram bot to notify you of any interruptions in service. This is a free service, though you can pay (over Lightning of course) to get faster alerts. Find more information at:
+There is a specialized service that offers Lightning node monitoring. It uses a Telegram bot to notify you of any interruptions in service. This is a free service, though you can pay (over Lightning of course) to get faster alerts. Find more information at:
 
 https://lightning.watch
 
-Over time, we expect more third-party services to provide specialized Lightning node monitoring, most likely charging a micro-payment. Perhaps such services and their APIs will become standardized and be directly supported by Lightning node software.
+Over time, we expect more third-party services to provide specialized Lightning node monitoring payable via micro-payments. Perhaps such services and their APIs will become standardized and will one day be directly supported by Lightning node software.
 
 ==== Watchtowers
 
