@@ -520,23 +520,23 @@ Channel backup mechanisms are still a work-in-progress and a weakness in most Li
 
 ==== Static Channel Backups (SCB)
 
-At the time of writing this book, only LND offers a built-in mechanism for channel backups. Eclair has no backup on the server side, although Eclair mobile does offer optional backup to a Google Drive. C-lightning recently merged the necessary interfaces for a plugin to implement channel backups, but there is no agreed on backup mechanism.
+At the time of writing this book, only LND offers a built-in mechanism for channel backups. Eclair has no backup on the server side, although Eclair mobile does offer optional backup to a Google Drive. C-lightning recently merged the necessary interfaces for a plugin to implement channel backups. Unfortunately, there is no consistent, agreed upon backup mechanism across different node implementations.
 
-File-based backups of the Lightning node databases are  partial solution, but you run the risk of data corruption because those backups may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, ensuring data consistency.
+File-based backups of the Lightning node databases are at best a partial solution because you run the risk of backing up an inconsistent database state. In addition, you may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, thereby ensuring data consistency.
 
-To set up static channel backups in LND, set the +backupfilepath+ parameter, either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only part of the solution. Now, you have to setup a mechanism that copies that file off-site each time it changes, which is beyond the scope of this book. Any sophisticated backup solution should be able to handle this.
+To set up static channel backups in LND, set the +backupfilepath+ parameter either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to setup a mechanism that monitors this file for changes. Each time the file changes the backup mechanism must copy this file to another, possibly "off-site" disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this sceanrio. Recall, the backup files should be encrypted too.
 
 ==== Hot wallet risk
 
-As we've discussed previously, the Lightning Network consists of a network of _hot wallets_. The funds you store in a Lightning wallet are *online all the time*. You should not store large amounts in a Lightning wallet, as it is quite vulnerable. Large amounts should be kept in a cold wallet that is not online and transacts on-chain.
+As we've discussed previously, the Lightning Network consists of a network of _hot wallets_. The funds you store in a Lightning wallet are *online all the time*. This makes them vulnerable. Hence, you should not store large amounts in a Lightning wallet. Large amounts should be kept in a _cold_ wallet that is _not_ online and can transact only on-chain.
 
-But given that warning, you may still find you have a significant amount of money in a Lightning wallet. Such is the case for example if you use a Lightning node for e-commerce operations like running a shop, while not having significant expenses you can pay on Lightning. If that is the case, your wallet will likely receive funds often but send funds rarely. You will therefore have two problems simultaneously: Your channels will be imbalanced inwards (more local balance than remote balance) and you will have too much money in the wallet. Fortunately, you can solve both of these problems simultaneously.
+Even if you start small, as time passes you may still find you have a significant amount of money in a Lightning wallet. This is a typical scenario for store owners. If you use a Lightning node for an e-commerce operations, your wallet will likely receive funds often but send funds rarely. You will therefore end up having two problems simultaneously: First, your channels will be imbalanced with large local balances outweighing small remote balances. Secondly, you will have too much money in the wallet. Fortunately, you can solve both of these problems simultaneously.
 
-Let's look at some of the solutions you can use to reduce the funds exposed on a hot wallet.
+Let's look at some of the solutions you can use to reduce the funds exposed in a hot wallet.
 
 ==== Sweeping funds
 
-If you Lightning wallet balance becomes too large for your risk appetite, you will need to "sweep" funds out of the wallet. You can do so in three ways: on-chain, off-chain, and loop-out. Let's look at each of those in the next few sections.
+If your Lightning wallet balance becomes too large for your risk tolerance, you will need to "sweep" funds out of the wallet. You can do so in three ways: on-chain, off-chain, and loop-out. Let's look at each one of these options in the next few sections.
 
 ===== On-chain sweep
 
