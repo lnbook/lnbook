@@ -625,15 +625,15 @@ Over time, we expect more third-party services to provide specialized Lightning 
 
 ==== Watchtowers
 
-Watchtowers are a mechanism for outsourcing the monitoring and penalty resolution of Lightning protocol violations.
+_Watchtowers_ are a mechanism for outsourcing the monitoring and penalty resolution of Lightning protocol violations.
 
 As we mentioned in previous chapters, the Lightning protocol maintains security through a penalty mechanism. If one of your channel partners broadcasts an old commitment transaction, your node will need to exercise the revocation clause and broadcast a penalty transaction to avoid losing money. But if your node is down during the protocol violation, you might lose money.
 
-To solve this problem, we can use one or more _watchtowers_ to outsource the job of monitoring protocol violations and issuing penalty transactions. There are two parts to a watchtower setup: a watchtower server (or simply "watchtower") that monitors the blockchain and a watchtower client that asks the watchtower server for monitoring service.
+To solve this problem, we can use one or more _watchtowers_ to outsource the job of monitoring protocol violations and issuing penalty transactions. There are two parts to a watchtower setup: a watchtower server (or simply "watchtower") that monitors the blockchain and a watchtower client that asks the watchtower server for this monitoring service.
 
-Watchtower technology, is still in the early stages of development and is not widely supported. However there are some experimental implementations that you can try, below.
+Watchtower technology is still in the early stages of development and is not widely supported. However, below we list some experimental implementations that you can try.
 
-LND can run both a watchtower server and a watchtower client. You can activate the watchtower server by adding the following configuration options:
+LND software includes both a watchtower server and a watchtower client. You can activate the watchtower server by adding the following configuration options:
 
 ----
 [watchtower]
@@ -673,32 +673,32 @@ OPTIONS:
 
 C-lightning has the API hooks necessary for a watchtower client plugin, though no such plugin has been implemented yet.
 
-Finally, a popular standalone watchtower server is The Eye of Satoshi (TEOS), which can be found here:
+Finally, a popular standalone watchtower server is _The Eye of Satoshi_ (TEOS). It can be found here:
 
 https://github.com/talaia-labs/python-teos
 
 === Channel management
 
-As a Lightning node operator, one of the recurring tasks you will need to perform is management of your channels. This means opening outbound channels from your node to other nodes, as well as getting other nodes to open inbound channels to your node. In the future, cooperative channel construction may be possible, so you can open symmetric channels that have funds committed on both ends. For now however, new channels only have funds on one end - on the originator's side. So to make your node _balanced_ with both inbound and outbound capacity, you need to open channels to others and entice others to open channels towards your node.
+As a Lightning node operator, one of the recurring tasks you will need to perform is management of your channels. This means opening outbound channels from your node to other nodes, as well as getting other nodes to open inbound channels to your node. In the future, cooperative channel construction may be possible, so you can open symmetric channels that have funds committed on both ends on creation. For now, however, new channels only have funds on one end, on the originator's side. Hence, to make your node _balanced_ with both inbound and outbound capacity, you need to open channels to others and entice others to open channels to your node.
 
 ==== Opening outbound channels
 
 As soon as you get your Lightning node up and running, you can fund its Bitcoin wallet and then start opening channels with those funds.
 
-This task can be automated, somewhat, with the use of an _autopilot_, which is software that opens channels automatically based on some heuristic rules. Autopilot software is still relatively new and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
+This task can be partially automated with the use of an _autopilot_, which is a software module that opens channels automatically based on some heuristic rules. Autopilot software is still in its infancy and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
 
-You must choose channel partners carefully, as your node's ability to send payments depends on who your channel partners are and how well connected they are to the rest of the Lightning Network. You also want to have more than one channel - so your node isn't susceptible to single point of failure. Since Lightning now supports multi-path payments, you can split your initial funds into several channels and route bigger payments by combining their capacity. Don't make your channels too small, however. Since you need to pay Bitcoin transaction fees to open and close a channel, the channel balance should not be so small that the on-chain fees consume a big portion. It's all about balance!
+You must choose channel partners carefully as your node's ability to send payments depends on who your channel partners are and how well connected they are to the rest of the Lightning Network. You also want to have more than one channel to avoid being susceptible to a single point of failure. Since Lightning now supports multi-path payments, you can split your initial funds into several channels and route bigger payments by combining their capacity. At the same time, avoid making your channels too small. Since you need to pay Bitcoin transaction fees to open and close a channel, the channel balance should not be so small that the on-chain fees consume a significant portion. It's all about balance!
 
 To summarize:
 
-* Find a few well connected nodes
+* Connect to few, but to well connected nodes
 * Open more than one channel
 * Don't open too many channels
 * Don't make the channels too small
 
-One way to find well connected nodes is to open a channels to merchants selling something on the Lightning Network. These nodes tend to be well funded and well connected. So when you are ready to make your first payment, you can open a channel directly to the merchant's node. The merchant's node ID will be in the invoice you will receive when you try to buy something, so that makes it easy.
+One way to find well connected nodes is to open a channel to a popular merchant selling products on the Lightning Network. These nodes tend to be well funded and well connected. So, when you are ready to buy something online via Lightning, you can open a channel directly to the merchant's node. The merchant's node ID will be in the invoice you will receive when you try to buy something. That makes it easy.
 
-Another way to find well connected nodes is to use a Lightning Explorer, such as +1ml.com+ and browse the list of nodes sorted by channel capacity and number of channels. Don't go for the biggest nodes, as that encourages centralization. Go for a node in the middle of the list, so that you can help them grow.
+Another way to find well connected nodes is to use a Lightning Explorer such as +1ml.com+ and browse the list of nodes sorted by channel capacity and number of channels. Don't go for the biggest nodes as that encourages centralization. Go for a node in the middle of the list, so that you can help them grow. Another factor to consider might be the time span a node is in operation. Nodes having been established more than a year ago tend to be more reputable and less risky than nodes that started operation a week ago.
 
 ===== Autopilot
 
