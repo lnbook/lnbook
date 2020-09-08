@@ -215,7 +215,7 @@ In Mastering Bitcoin Andreas states it very elegantly:
 
 Now that we understand _why_ a penalty mechanism is needed and how it will prevent cheating, let's see _how_ it works in detail.
 
-Usually, the commitment transaction has at least two outputs, paying each channel partner. We change this to add a _timelock delay_ and a _revocation secret_, to one of the payments. The timelock prevents the owner of the output from spending it immediately once the commitment transaction is included in a block. The revocation secret, allows either party to immediately spend that payment, bypassing the timelock.
+Usually, the commitment transaction has at least two outputs, paying each channel partner. We change this to add a _timelock delay_ and a _revocation secret_, to one of the payments. The timelock prevents the owner of the output from spending it immediately once the commitment transaction is included in a block. The revocation secret allows either party to immediately spend that payment, bypassing the timelock.
 
 So, in our example, Bob holds a commitment transaction which pays Alice _immediately_, but his own payment is delayed and revocable. Alice also holds a commitment transaction, but hers is the opposite: it pays Bob immediately but her own payment is delayed and revocable.
 
@@ -252,12 +252,12 @@ By contrast, the channel partners may decide not to announce the channel, making
 
 [NOTE]
 ====
-You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, it's existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction. It's existence can also leak in a variety of other ways, so we avoid calling it "private"
+You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, its existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction. Its existence can also leak in a variety of other ways, so we avoid calling it "private"
 ====
 
 Unannounced channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes an unannounced channel.
 
-When a channel and its capacity is publicly announced using the gossip protocol, the announcement can also include information about the channel (metadata), such as it's routing fees and timelock duration.
+When a channel and its capacity is publicly announced using the gossip protocol, the announcement can also include information about the channel (metadata), such as its routing fees and timelock duration.
 
 When new nodes join the Lightning Network they collect the channel announcements propagated via the gossip protocol from their peers, building an internal "map" of the Lightning Network. This map can then be used to find paths for payments, connecting channels together end-to-end.
 
@@ -280,14 +280,14 @@ There are 3 ways to close a payment channel:
 
 
 Which way you close a channel will depend on the circumstances. For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
-Usually, you Lightning Network software will automatically select the best closing mechanism available under the circumstances.
+Usually, your Lightning Network software will automatically select the best closing mechanism available under the circumstances.
 
 Whether you (the user) issue a command to close a channel or the Lightning Network software automatically closes a channel due to a detected anomaly (e.g. cheating partner), it is usually the Lightning Network software that chooses the appropriate way to close the channel.
 
 
 ===== The good way - Mutual close
 
-The good way to close a channel is the mutual close and this way is always preferred, if possible. When you decide that you want to close a channel, your Lightning Network node will inform your channel partner about your intention. Now both your node and the channel parter's node work together to close the channel.  No new routing attempts will be accepted from either channel partner and any ongoing routing attempts will be settled or removed after they time-out. Finalizing the routing attempts takes time, so a mutual close can also take some time to complete.
+The good way to close a channel is the mutual close and this way is always preferred, if possible. When you decide that you want to close a channel, your Lightning Network node will inform your channel partner about your intention. Now both your node and the channel partner's node work together to close the channel.  No new routing attempts will be accepted from either channel partner and any ongoing routing attempts will be settled or removed after they time-out. Finalizing the routing attempts takes time, so a mutual close can also take some time to complete.
 
 Once there are no pending routing attempts, the nodes cooperate to prepare a _closing transaction_. This transaction is similar to the commitment transaction, in that it distributes the channel balance to each channel partner according to their last commitment. Unlike the last commitment transaction, the outputs are not encumbered with a time lock.
 
@@ -495,7 +495,7 @@ The onion routing protocol used in Lightning is called the _SPHINX mixformat_ an
 
 [NOTE]
 ====
-Lightning's onion routing SPHINX mixformat is only similar to the TOR network routing in concept, but both the protocol and the implementation are entirely different from those use in the TOR network.
+Lightning's onion routing SPHINX mixformat is only similar to the TOR network routing in concept, but both the protocol and the implementation are entirely different from those used in the TOR network.
 ====
 
 A payment package used for routing is called an "onion". footnote:[The term "onion" was originally used by the TOR project. Moreover, the Tor network is also called the Onion network and the project uses an onion as its logo. The top level domain name used by TOR services on the internet is ".onion".]
@@ -589,7 +589,7 @@ Some of these differences are differences of terminology. There are also archite
 
 ==== Addresses vs Invoices, Transactions vs Payments
 
-In typical payment using Bitcoin, a user receives a Bitcoin address (e.g. scanning a QR code on a webpage, or receiving it in an instant message or email from a friend). They then use their Bitcoin wallet to create a transaction to send funds to this address.
+In a typical payment using Bitcoin, a user receives a Bitcoin address (e.g. scanning a QR code on a webpage, or receiving it in an instant message or email from a friend). They then use their Bitcoin wallet to create a transaction to send funds to this address.
 
 On the Lightning Network, the recipient of a payment creates an invoice. A Lightning invoice can be seen as analogous to a Bitcoin address. The intended recipient gives the Lightning invoice to the sender, as a QR code or character string, just like a Bitcoin address.
 
@@ -706,7 +706,7 @@ The synchronous and always-online nature of the Lightning network is probably th
 
 On Bitcoin the smallest amount is a _satoshi_ which cannot be divided any further. Lightning is a bit more flexible, and Lightning nodes work with _milli-satoshis_ (thousandths of a satoshi). This allows tiny payments to be sent via Lightning. A single milli-satoshi payment can be sent across a payment channel, an amount so small it should properly be characterized as a _nanopayment_.
 
-The milli-satoshi unit cannot, of course, be settled on the Bitcoin blockchain at that granularity. Upon channel closure, balances are rounded to the nearest satoshi. But over the lifetime of a channel, millions of nanopayments are possible at milli-satoshi levels. The Lightning network breaks throught the micropayment barrier.
+The milli-satoshi unit cannot, of course, be settled on the Bitcoin blockchain at that granularity. Upon channel closure, balances are rounded to the nearest satoshi. But over the lifetime of a channel, millions of nanopayments are possible at milli-satoshi levels. The Lightning network breaks through the micropayment barrier.
 
 === Commonality of Bitcoin and Lightning
 
