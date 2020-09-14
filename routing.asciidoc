@@ -199,20 +199,35 @@ By using a cryptographic hash function, we ensure that it's infeasible for anoth
 In order to implement the "refund" functionality, we rely on the "absolute time lock" functionality of Bitcoin script.
 
 With all that said, a basic Bitcoin script implementing a hash time-locked contract would look something like the following:
+```
+OP_SIZE 32 OP_EQUAL
 
-outine:
-  * break down each word in the above contract
-  * introduce commitments as instantiation of the "conditional" aspect
-  * factor in time locks to make it secure (alice doesn't lose funds)
-  * layer in the three hop example, chaining each of the payments
-  * explain decrementing time locks to round it all out
-  * analyze final properties of system, along with time-lock risk
+OP_IF
+    OP_HASH160 <ripemd(payHash)> OP_EQUALVERIFY
+    <receiver key>
+OP_ELSE
+   OP_CHECKLOCKTIMEVERIFY <timeout>
+   OP_DROP
+   <sender key>
 
-# TODO(roasbeef): fill in chapter based on remaining contents
+OP_CHECKSIGVERIFY
+```
 
-=== source based Onion Routing
+Alice can present this script to Bob in order to kick off the conditional payment.
+For the chained aspect, Alice needs to be able to communicate the proper payment details to each hop in the route.
+Recall that each hop will specify a forwarding fee rate, as well as other parameters that express their forwarding policy.
+In addition to this forwarding rate, Alice also needs to be conceded about what time locks to use.
+Each node in the hop needs some time to be able to settle the outgoing, then incoming payment on-chain in the worst case.
+As a result, when constructing the final route, we need to give each node some buffer time, we call this before time, the "time lock delta".
+Factoring in this time-lock delta, the time-lock of the outgoing HTLC will decrease as the route progresses, as the outgoing HTLC will expire before the incoming HTLC.
+This set of decrementing time-locks is critical to the operation of the system, as it ensure out atomicity property for each hop, assuming they're able to get into the chain in time.
 
-# TODO(Roasbeef): introduce source routing first as an alternative to path finding, then go into lack of privacy
+In the next section, we'll go into the exact mechanism of how Alice is able to deliver forwarding details to each hop in the route.
+In addition, we'll dive further into proper time-lock construction, as incorrect time-lock set up can violate our atomicity property and lead to a loss of funds.
+
+=== HTLC Packet Forwarding: Source Based Onion Routing
+
+# TODO(roasbeef): onion routing in the abstract first
 
 So far you have learnt that payment channels can be connected to a network which can be utilized to send payment from one participant to another one through a path of payment channels.
 You have seen that with the use of HTLCs the intermediary nodes along the path are not able to steal any funds that they are supposed to forward and also how a node can set up and settle an HTLC.
@@ -257,19 +272,28 @@ In the Lightning Network, we use a specific onion routing _packet_ format called
 [NOTE]
 ====
 While the Lightning Network also uses an onion routing scheme it is actually very different to the onion routing scheme that is used in the TOR network.
-The biggest difference is that TOR is being used for arbitrary data to be exchanged between two participants where on the Lightning Network the main use case is to pay people and transfer data that encodes monetary value.
-On the Lightning Network there is no analogy to the exit nodes of the Tor Network which on the TOR network produce a security risk. Lightning user should still not get the impression that their data and information is perfectly secure. Knowing the announced  fee rates and CLTV deltas a node might be able to guess the destination of an onion.
-In TOR the security can be compromised if all randomly chosen TOR hops are acting together. In Lightning the payment hash identifies a payment and thus not every node along the path needs to be compromised in order to attack the security.
-On the TOR network nodes are basically connected via a full graph as every node could create an encrypted connection with every other node on top of the Internet Protocol almost instantaneously and at no cost. On the Lightning Network payments can only flow along existing payment channels. Removing and adding of those channels is a slow and expensive process as it requires onchain bitcoin transactions.
-On the Lightning Network nodes might not be able to forward a payment package because they do not own enough funds on their side of the payment channel. On the other hand there are hardly any plausible reasons other then its wish to act maliciously why a TOR node might not be able to forward an onion.
-Last but not least the Lightning Network can actually run on TOR.
+Aside from the distinct cryptographic techniques they use, the biggest difference is that TOR is being used for arbitrary data to be exchanged between two participants where on the Lightning Network the main use case is to pay people and transfer data that encodes monetary value.
+In the Lightning Network, we're only concerned with transmitting the details that are needed for a successful payment.
+On the Lightning Network there is no analogy to the exit nodes of the Tor Network as there's no need to "exit" the network: all payments flow within the network. 
+Although, in an idea model only a precise amount of information is leaked by a route, in practice several "side channels' exist, that may allow an adversary to deduce more information about a route.
+As an example, information about CTLV deltas, or the set of possible routes in the network may give away additional information about a given route.
+Similar to Tor, onion routing in the Lightning Network isn't secure against a global passive adversary (one that can monitor all links and information flows in the network).
+Today in the network, every node in the route sees the same payment hash, meaning that if two nodes are "compromised" more details of the route are leaked.
+On the TOR network nodes can theoretically be connected via a full graph as every node could create an encrypted connection with every other node on top of the Internet Protocol almost instantaneously and at no cost. 
+On the Lightning Network payments can only flow along existing payment channels. 
+Removing and adding of those channels is a slow and expensive process as it requires onchain bitcoin transactions.
+On the Lightning Network nodes might not be able to forward a payment package because they do not own enough funds on their side of the payment channel. 
+On the other hand there are hardly any plausible reasons other then its wish to act maliciously why a TOR node might not be able to forward an onion.
+Last but not least the Lightning Network can actually run on Tor to use it as a message transport layer.
 This means that all connections of a node with its peers and the resulting communication will by obfuscated once more through the TOR network.
 ====
 
 Lets stick to our example in which Alice still wants to tip Gloria and has decided to use the path via Bob and Wei.
 We note that there might have been alternative paths from Alice to Gloria but for now we will just assume it is this path that Alice has decided to use.
-You have already learnt that Alice needs to set up an HTLC with Bob via and `update_add_htlc` message.
-As discussed the `update_add_htlc` message contains a data field of 1366 Bytes in length that is the onion package.
+In order to kick off the transfer, Alice needs to send a special message to Bob to kick off the multi-hop transfer.
+You'll learn about the specific structure of this message in later chapters, but for now we'll call it an "HTLC Add" message.
+Aside from the amount, the payment hash, and the time-lock, this message also contains an opaque field use to store encrypted forwarding information.
+Today in the network, this field is 1366 bytes, as that's the _fixed_ size length of the onion packet. #TODO(roasbeef): explain security properties earlier
 This onion contains all the information about the path that Alice intends to use to send the payment to Gloria.
 However Bob who receives the onion cannot read all the information about the path as most of the onion is hidden from him through a sequence of encryptions.
 The name onion comes from the analogy to an onion that consists of several layers. In our case every layer corresponds to one round of encryption.
@@ -282,18 +306,17 @@ The amount of the forwarded HTLC was specified in Bob decrypted layer of the oni
 It will be slightly smaller than the amount of his incoming HTLC from Alice.
 The difference of these two amounts has to be at least as big as to cover the routing fees that Bob's node announced earlier on the gossip protocol.
 
-In order to set up the HTLC Bob will modify the onion a little bit.
+In order to set up the HTLC Bob will modify the onion a little bit in a deterministic manner.
 He removes the information that he could read from it and passes it along to Wei.
 
 Wei in turn is only able to see that he is supposed to forward the package to Gloria.
 Wei knows he received the onion from Bob but has no clue that it was actually Alice who initiated the onion in the first place.
 In this way every participant is only able to peel of one layer of the onion by decrypting it.
 Each participant will only learn the information it has to learn to fulfill the routing request.
-For example Bob will only know that Alice offered him an HTLC and sent him an onion and that he is supposed to offer an HTLC to Wei and forward a slightly modified onion.
-Bob does not know if Alice is the originator of this payment as she could also just have forwarded the payment to him.
+For example Bob will explicitly be told that Alice offered him an HTLC and sent him an onion and that he is supposed to offer an HTLC to Wei and forward a slightly modified onion.
+Bob isn't explicitly told if Alice is the originator of this payment as she could also just have forwarded the payment to him.
 Due to the layered encryption he cannot see the inside of Wei's, and Gloria's layer.
-Thus he cannot know that Gloria is the final destination of the payment. **TODO: Is this actually true, given the CLTV deltas?** )
-The only thing Bob knows is that he was involved in a path that involved Alice, him and Wei.
+The only thing Bob is told explicitly is that he was involved in a path that involved Alice, him and Wei.
 
 While the Onion is decrypted layer by layer while it travels along the path from Alice via Bob and Wei to Gloria it is created from the inside layer to the outside layers via several rounds of encryption.
 Being created from the inside means that the construction starts with the Onion Package that Gloria is supposed to receive in plain text.
@@ -311,7 +334,7 @@ Only the payload is actually encrypted and will be peeled of layer by layer.
 The payload consists of a sequence of a sequence of per hop data.
 This data can come in two formats the legacy one and the Type Length Value (TLV) Format.
 While the TLV format offers more flexibility in both cases the routing information that is encoded into the onion is the same for every but the last hop.
-On the last hop the TLV information departs from the legacy information as it allows to include a preimage.
+For example, with the new TLV format, the sender can actually included the preimage in the payload for the last hop.
 This is nice as it allow a payer to initiate a payment without the necessity to ask the payer for an invoice and payment hash first.
 We will this feature called key send in a different chapter.
 
