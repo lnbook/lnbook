@@ -263,7 +263,14 @@ When new nodes join the Lightning Network they collect the channel announcements
 
 ==== Closing the channel
 
-The best way to close a channel is... to not close it! Opening and closing channels requires an on-chain transaction, which will incur transaction fees. So it's best to keep channels open as long as possible. You can keep using your channel to make and forward payments, as long as you have sufficient capacity on your end of the channel. But even if you send all the balance to the other end of the channel, you can then use the channel to receive payments from your channel partner. This concept of using a channel in one direction and then using it in the opposite direction is called "re-balancing" and we will examine it in more detail in another chapter. By re-balancing a channel, it can be kept open almost indefinitely and used for essentially unlimited number of payments.
+The best way to close a channel is... to not close it! 
+Opening and closing channels requires an on-chain transaction, which will incur transaction fees. 
+So it's best to keep channels open as long as possible. 
+You can keep using your channel to make and forward payments, as long as you have sufficient capacity on your end of the channel. 
+But even if you send all the balance to the other end of the channel, you can then use the channel to receive payments from your channel partner. 
+This concept of using a channel in one direction and then using it in the opposite direction is called "re-balancing" and we will examine it in more detail in another chapter. 
+By re-balancing a channel, it can be kept open almost indefinitely and used for essentially unlimited number of payments.
+
 
 However, sometimes closing a channel is desirable or necessary. For example:
 
@@ -274,80 +281,112 @@ However, sometimes closing a channel is desirable or necessary. For example:
 
 There are 3 ways to close a payment channel:
 
-* The good way - Mutual close
-* The bad way - Force close
-* The ugly way - Protocol breach
+* Mutual close (the good way)
+* Force close (the bad way)
+* Protocol breach (the ugly way)
+
+Each of these methods is useful for different circumstances which we will explore in the next section of this chapter. 
+For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
+Usually, your Lightning Network software will automatically select the best closing mechanism available under the circumstances.
 
 
-Which way you close a channel will depend on the circumstances. For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
-Usually, you Lightning Network software will automatically select the best closing mechanism available under the circumstances.
+===== Mutual close (the good way)
 
-Whether you (the user) issue a command to close a channel or the Lightning Network software automatically closes a channel due to a detected anomaly (e.g. cheating partner), it is usually the Lightning Network software that chooses the appropriate way to close the channel.
+Mutual Close is when both channel partners agree to the closure of a channel and is the preferred method of channel close.
+
+When you decide that you want to close a channel, your Lightning Network node will inform your channel partner about your intention.
+Now both your node and the channel parter's node work together to close the channel.
+No new routing attempts will be accepted from either channel partner and any ongoing routing attempts will be settled or removed after they time-out.
+Finalizing the routing attempts takes time, so a mutual close can also take some time to complete.
+
+Once there are no pending routing attempts, the nodes cooperate to prepare a _closing transaction_.
+This transaction is similar to the commitment transaction; it encodes the last balance of the channel but the outputs are NOT encumbered with a time lock.
+
+The on-chain transaction fees for the closing transaction are paid by the channel partner who opened the channel and not by the one who initiated the closing procedure.
+Using the on-chain fee estimator, the channel partners agree on the appropriate fee and both sign the closing transaction.
+
+Once the closing transaction is broadcast and confirmed by the Bitcoin network, the channel is effectively closed and each channel partner has received their share of the channel balance.
+Depsite the waiting time, a mutual close is typically faster than a force close.
 
 
-===== The good way - Mutual close
+===== Force close (the bad way)
 
-The good way to close a channel is the mutual close and this way is always preferred, if possible. When you decide that you want to close a channel, your Lightning Network node will inform your channel partner about your intention. Now both your node and the channel parter's node work together to close the channel.  No new routing attempts will be accepted from either channel partner and any ongoing routing attempts will be settled or removed after they time-out. Finalizing the routing attempts takes time, so a mutual close can also take some time to complete.
+A Force Close is when one channel partner attempts to close a channel without the other channel partner's consent.
 
-Once there are no pending routing attempts, the nodes cooperate to prepare a _closing transaction_. This transaction is similar to the commitment transaction, in that it distributes the channel balance to each channel partner according to their last commitment. Unlike the last commitment transaction, the outputs are not encumbered with a time lock.
+This is usually in the case that one of the channel partners is unreachable, and so a mutual close is not possible.
+In this case, you would initiate a force close to unilaterally close the channel and "free" the funds.
 
-The on-chain transaction fees for the closing transaction are paid by the channel partner who opened the channel and not by the one who initiated the closing procedure. Using the on-chain fee estimator, the channel partners agree on the appropriate fee and both sign the closing transaction.
+To initiate a force close, you can simply publish the last commitment transaction your node has.
+After all, that's what commitment transactions are for - they offer a guarantee that you don't need to trust your channel to retrieve the balance of your channel.
 
-Once the closing transaction is broadcast and confirmed by the Bitcoin network, the channel is effectively closed and each channel partner has received their share of the channel balance. A mutual close is usually the fastest way to close a channel.
-
-===== The bad way - Force close
-
-Mutual close is not always possible. Sometimes, for example if your channel partner cannot be reached, you have to unilaterally close the channel in order to "free" the funds. Closing the channel unilaterally is called a _force close_. To do a force close, Alice can simply publish the last commitment transaction. After all, that's what commitment transactions are for - they offer a guarantee that Alice doesn't need to trust Bob to retrieve the balance of the channel that belongs to her.
-
-Once Alice broadcasts the last commitment transaction she has to the Bitcoin network and it is confirmed, it will create two spendable outputs, one for Alice and one for Bob. As we discussed previously, because this commitment transaction is held by Alice, it gives a slight "advantage" to Bob.  Alice's output will have a timelock delay and Bob's will be spendable immediately. This is to protect Bob, so that Alice can't broadcast an old commitment transaction and steal some of the balance. The timelock delay gives Bob the opportunity to "dispute" the transaction using the revocation secret and punish Alice for cheating.
+Once you broadcast the last commitment transaction the Bitcoin network and it is confirmed, it will create two spendable outputs, one for you and one for your partner.
+As we discussed previously, the Bitcoin network has no way of knowing if this was the most recent commitment transaction or an old one which was published to steal from your partner.
+Hence this commitment transaction will give a slight "advantage" to your partner.
+The partner who initiated the force close will their output encumbered by a timelock, and the other partner's output will be spendable immediately.
+In the case that you broadcasted an earlier commitment transaction, the timelock delay gives your partner the opportunity to "dispute" the transaction using the revocation secret and punish you for cheating.
 
 When publishing a commitment transaction during a force close, the on-chain fees will be higher than a mutual close for several reasons:
 
 . When the commitment transaction was negotiated, the channel partners didn't know how much the on-chain fees would be at the future time the transaction would be broadcast. Since the fees cannot be changed without changing the outputs of the commitment transaction (needs both signatures) and since the force close happens when a channel partner is not available to sign, the protocol developers decided to be very generous with the fee rate included in the commitment transactions. It can be up to 5 times higher than the fee estimators suggest at the time the commitment transaction is negotiated.
-. The commitment transaction includes additional outputs for any pending routing attempts (HTLCs), which makes the commitment transaction bigger than a mutual close transaction. Bigger transactions incur more fees.
+. The commitment transaction includes additional outputs for any pending routing attempts (HTLCs), which makes the commitment transaction larger (in terms of bytes) than a mutual close transaction. Larger transactions incur more fees.
 . Any pending routing attempts will have to be resolved on-chain causing additional on-chain transactions.
 
 [NOTE]
 ====
-Hash Time-Locked Contracts (HTLCs) will be covered in detail in <<htlcs>>. For now, assume that these are payments that are routed across the Ligntning Network, rather than payments made directly between the two channel partners. These HTLCs are carried as additional outputs in the commitment transactions, thereby increasing the transaction size and on-chain fees.
+Hash Time-Locked Contracts (HTLCs) will be covered in detail in <<htlcs>>.
+For now, assume that these are payments that are routed across the Ligntning Network, rather than payments made directly between the two channel partners.
+These HTLCs are carried as additional outputs in the commitment transactions, thereby increasing the transaction size and on-chain fees.
 ====
 
-In general, you should not do a "force close" unless absolutely necessary. Your funds will be locked for a longer time and the person who opened the channel will have to pay higher fees. Furthermore, you might have to pay on-chain fees to abort or settle routing attempts even if you haven't opened the channel.
+In general, a force close is not recommended unless absolutely necessary.
+Your funds will be locked for a longer time and the person who opened the channel will have to pay higher fees.
+Furthermore, you might have to pay on-chain fees to abort or settle routing attempts even if you didn't open the channel.
 
 If the channel partner is known to you, you might consider contacting that individual or company and inquire why their Lightning Node is down and request that they restart it so that you can achieve a mutual close of the channel.
 
-You should consider a force close, only as the last resort.
+You should consider a force close only as the last resort.
 
-===== The ugly way - Protocol breach
+===== Protocol Breach (the ugly way)
 
-If your channel partner broadcasts an old (revoked) commitment transaction - whether deliberately or not - your node should be able to detect this protocol breach. Your node must be online and watching new blocks and transactions on the Bitcoin blockchain to detect this. Because your channel partner's payment will be encumbered by a timelock, your node has some time to act, before your channel partner can spend the payment and profit from the protocol breach.
+A Protocol Breach is when your channel partner tries to cheat you, whether deliberately or not, by publishing an outdated commitment transaction to the Bitcoin blockchain, essentially initiating a (dishonest) force close from their side.
 
-During the timelock, your node can broadcast a _punishment transaction_ that takes your own balance and uses the revocation secret to also take the balance of your channel partner.
+Your node must be online and watching new blocks and transactions on the Bitcoin blockchain to detect this.
+Because your channel partner's payment will be encumbered by a timelock, your node has some time to act.
+You have until the time lock expires to detect a protocl breach and publish a _punishment transaction_.
+If you successfully detect the protocol breach and enforce the penalty, you will receive all of the funds in channel, including your channel partner's funds.
 
-In this scenario the channel closure will be rather fast. You will have to pay on-chain fees to publish the punishment transaction, but your node can set these fees according to the fee estimation and not overpay. Furthermore, you will be taking the funds from your channel partner's balance too, so in a way the fees are unlikely to be a factor.
+In this scenario the channel closure will be rather fast.
+You will have to pay on-chain fees to publish the punishment transaction, but your node can set these fees according to the fee estimation and not overpay.
+You will generally want to pay higher fees to guarantee confirmation as soon as possible.
+However, as you will eventually receive all of the cheater's funds, it is essentially the cheater who will be paying for this transaction.
 
-If your node is not online and the timelock expires, your channel partner will be able to take whatever balance was allocated to them in that old commitment, perhaps as much as the entire channel balance. If there is any balance allocated to you, you will have to pay on-chain fees to collect that balance.
+If you fail to detect the protocol breach and the timelock expires, you will receive only the funds allocated to you by the commitment transaction your partner published.
+Any funds you received after this will have been stolen by your partner.
+If there is any balance allocated to you, you will have to pay on-chain fees to collect that balance.
 
-Also all pending routing attempts will have to be resolved just as we saw in the force close scenario.
+As with a force close, all pending routing attempts will also have to be resolved in the commitment transaction.
 
-The "ugly way" of channel closure can be executed faster than both the "good" and "bad" ways, because you can immediately publish the punishment transaction and collect all the funds.
+A Protocol Breach can be executed faster than a mutual close, as you do not wait to negotiate a close with your partner, and faster than a force close as you do not need to wait for your timelock to expire.
 
-Game theory predicts that cheating is not a successful strategy because it is easy to detect a cheater and the cheater will lose all funds committed in the channel.
+Game theory predicts that cheating is not an appealing strategy because it is easy to detect a cheater, and the cheater risks losing _all_ of their funds while only standing to gain what they had in an earlier state.
+Furthermore, as the Lightning Network matures, and watchtowers become widely available, cheaters will be able to be detected by a third party even if the cheated channel partner is offline.
 
-Hence, we do not recommend cheating. We do, however, recommend that anyone catching a cheater punish them by taking their funds.
+Hence, we do not recommend cheating.
+We do, however, recommend that anyone catching a cheater punish them by taking their funds.
 
 So, how do you catch a cheat or a protocol breach in your day-to-day activities?
+You do so by running software that monitors the public Bitcoin blockchain for on-chain transactions that correspond to any commitment transactions for any of your channels.
+This software is either:
 
-You do so by running software that monitors the public Bitcoin blockchain for on-line transactions that correspond to any commitment transactions for any of your channels. This software is either:
-
-* A properly maintained Lightning node, running 24x7.
+* A properly maintained Lightning node, running 24/7.
 * A single-purpose _watchtower_ node that you run to watch your channels.
 * A third-party watchtower node that you pay to watch your channels.
 
 We will look at watchtowers in more detail in <<watchtowers>>.
 
-Remember that the commitment transaction has a timeout period specified in a given number of blocks, up to a maximum of 2016.
-As long as you run your Lightning node once before the timeout period is reached, it will catch all cheats. It is not advisable to take this kind of risk; it is just as easy to keep a well maintained node running continuously.
+Remember that the commitment transaction has a timeout period specified in a given number of blocks, up to a maximum of 2016 blocks.
+As long as you run your Lightning node once before the timeout period is reached, it will catch all cheating attempts.
+It is not advisable to take this kind of risk; it is just as easy to keep a well maintained node running continuously.
 
 === Invoices
 

@@ -6,13 +6,24 @@ Welcome to Mastering the Lightning Network!
 
 The Lightning Network, abbreviated with LN, is a protocol for using Bitcoin in a smart and non-obvious way.
 Thus it is a second layer technology on top of Bitcoin.
-It is changing the way people exchange value online and it's one of the most exciting advancements to happen to the Bitcoin network over the past few years. Right now, the Lightning Network is in its infancy. In concept it's about 5 years old, in implementation about 3 years old. We're only beginning to see the opportunities the Lightning Network provides including improved privacy, speed, and scale. With core knowledge of the Lightning Network, you can help shape the future of the network while building opportunities for yourself as well. Some basic knowledge about Bitcoin is assumed but can be readily acquired by reading the first two chapters of _Mastering Bitcoin_ which are available for free online.
+It is changing the way people exchange value online and it's one of the most exciting advancements to happen in Bitcoin's history.
+Today, in 2020, the Lightning Network is in its infancy.
+In concept it was first proposed in 2015 and the first implementation was launched in 2018.
+As of 2020, we're only beginning to see the opportunities the Lightning Network provides including improved privacy, speed, and scale.
+With core knowledge of the Lightning Network, you can help shape the future of the network while building opportunities for yourself as well.
+Some basic knowledge about Bitcoin is assumed but can be readily acquired by reading the first two chapters of _Mastering Bitcoin_ which are available for free online.
 
 While the bulk of this book is written for programmers, the first two chapters are written to be approachable by anyone regardless of technical experience. In order to better understand how the technology actually works, and why people use it, we'll be following a number of users and their stories. But first, we'll introduce some of the key concepts in the Lightning Network. Let's get started with why the Lightning Network was proposed in the first place.
 
 === Motivation for the Lightning Network
 
-As Bitcoin and the demand for transactions grows, the number of transactions in each block will increase until it eventually hits the block size limit. When blocks are full, excess transactions are left to wait in a queue. Many users increase the fees they're willing to pay in order to buy space for their transaction in the next block. At the same time, an increasing number of users are left behind. Their transactions, e.g. microtransactions such as common small spendings, are not economically qualified to be on the network. However, increasing block size simply shifts the problem to node operators, where each increase in blocksize results in a resource increase multiplied by an order of magnitude.
+As Bitcoin and the demand for transactions grows, the number of transactions in each block will increase until it eventually hits the block size limit.
+When blocks are full, excess transactions are left to wait in a queue.
+Many users will increase the fees they're willing to pay in order to buy space for their transaction in the next block.
+At the same time, an increasing number of users are left behind.
+Their transactions, e.g. microtransactions such as common small spendings, are not economically qualified to be on the network.
+We could increase the block size to create space for these smaller transactions.
+However increasing block size simply shifts the problem to node operators, and requires them to expend resources to faciliate these additional transactions.
 
 Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. Furthermore, once validated, each transaction and block must be propagated to the node's "neighbors", multiplying the bandwidth requirements. As such, the greater the block size, the greater the bandwidth, processing, and storage requirements for each individual node, effectively limiting the amount of scaling that can be done this way. Furthermore, scaling in this fashion has an undesirable side effect of centralizing the network by reducing the number of nodes and node operators. Since node operators are not compensated for running nodes, if nodes are very expensive to run, only a few well funded node operators will continue to run nodes.
 
@@ -22,18 +33,25 @@ The side effects of increasing the block size or decreasing the block time with 
 Let us assume the usage of Bitcoin grows so that the network has to process 40,000 transactions per second.
 Assuming 250 Bytes on average per transaction this would result in a data stream of 10 Megabyte per second or 80 Mbit/s just to be able to receive all the transactions.
 This does not include the traffic overhead of forwarding the transaction information to other peers.
-While single hosts on the internet could handle such a load of traffic our current internet would not be able to support this traffic for a large fraction of hosts.
-Also storing this information locally would result in 864,000 Megabyte per day. This is roughly 1 Terabyte of data or the size of a hard drive.
+While 10 MB/s does not seem extreme in the context of high speed fibre and 5G mobile speeds, it would effectively exclude anyone who cannot meet this requirement from running a node, especially in countries where high-performance internet is not affordable or widely available.
+Users also have many other demands on their bandwidth and cannot be expected to expend this much only to receieve transactions. 
+Furthermore storing this information locally would result in 864,000 Megabyte per day. This is roughly 1 Terabyte of data or the size of a hard drive.
 While verifying 40,000 ECDSA signatures per second seems barely feasible (c.f.: https://bitcoin.stackexchange.com/questions/95339/how-many-bitcoin-transactions-can-be-verified-per-second) nodes could hardly catch up initial sync of the blockchain. 
 ====
 
 But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?
 
-In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_ footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network:
-Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-network-paper.pdf).] In the meanwhile outdated whitepaper, Poon and Dryja estimate that in order for Bitcoin to reach the 47,000 transactions per second processed at peak by Visa, it would require 8 GB blocks. This would make running a node completely untenable for anyone but large scale enterprises and industrial grade operations. The result would be a network in which only a few users can actually validate the state of the ledger, which ultimately breaks the trust model of Bitcoin.
+In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_
+footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-network-paper.pdf).]
+In the meanwhile outdated whitepaper, Poon and Dryja estimate that in order for Bitcoin to reach the 47,000 transactions per second processed at peak by Visa, it would require 8 GB blocks.
+This would make running a node completely untenable for anyone but large scale enterprises and industrial grade operations.
+The result would be a network in which only a few users can actually validate the state of the ledger.
+Bitcoin relies on users validating the ledger for themselves, without explicitly trusting third parties, in order to stay decentralized.
+Pricing users out of running nodes forces the average user to trust third parties to discover the state of the ledger, ultimately breaking the trust model of Bitcoin.
 
 The Lightning Network proposes a new network, a "second layer", where users can make payments to each other peer-to-peer, without the necessity to publish a transaction to the Bitcoin blockchain for each payment.
-Users may pay each other on the Lightning Network as many times as they want, making use of the Bitcoin blockchain only in order to load bitcoin onto the Lightning network initially and to "settle", that is: remove bitcoin from the Lightning Network.
+Users may pay each other on the Lightning Network as many times as they want, without creating additional bitcoin transactions or incurring on-chain fees.
+They will only make use of the Bitcoin blockchain in order to load bitcoin onto the Lightning network initially and to "settle", that is: remove bitcoin from the Lightning Network.
 The result is that many more Bitcoin payments can take place "off-chain", with only the initial loading and final settlement transactions needing to be validated and stored by Bitcoin nodes.
 Aside from reducing the burden on nodes, payments on the Lightning Network will be cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published to all participants of the network and furthermore not stored permanently. 
 
@@ -71,7 +89,7 @@ The Lightning Network is a network that operates as a "second layer" protocol on
  * Once a payment on the Lightning Network has completed, usually within a few seconds, it is final and cannot be reversed. Like a Bitcoin transaction, a payment on the Lightning Network can only be refunded by the recipient.
  * While "on-chain" Bitcoin transactions are broadcast and verified by all nodes in the network, payments routed on the Lightning Network are transmitted between pairs of nodes and are not visible to everyone, resulting in much greater privacy. 
  * Unlike transactions on the Bitcoin Network, payments routed on the Lightning Network do not need to be stored permanently. Lightning thus uses fewer resources, hence it is cheaper. This property also has benefits for privacy. 
- * The Lightning Network uses onion routing, similar to the protocol used by The Onion Router (TOR) privacy network, so that even the nodes involved in routing a payment are only directly aware of their predecessor and successor in the payment route.
+ * The Lightning Network uses onion routing, similar to the protocol used by The Onion Router (Tor) privacy network, so that even the nodes involved in routing a payment are only directly aware of their predecessor and successor in the payment route.
 
 [[user-stories]]
 === Lightning Network Use Cases, Users, and Their Stories
@@ -91,7 +109,11 @@ web designer::
 Saanvi is a web designer and developer in Bangalore, India. She accepts bitcoin for her work, but would prefer to get paid more frequently and so uses the Lightning Network to get paid incrementally for each small milestone she completes. With the Lightning Network, she can do more small jobs for more clients without worrying about fees or delays.
 
 content creator / curator::
-John is a 9-year-old boy from New Zealand, who wanted a games console just like his friends. However, his dad told him that in order to buy it, he had to earn the money himself. Now John is an aspiring artist, so he knows that while he is still improving, he can't charge much for his artwork. After learning about Bitcoin, he managed to set up a website to sell his drawings across the internet. By using the Lightning Network, John was able to charge as little as $1 for one of his drawings, which would normally be considered a micro-payment and, as such, not possible with other payment methods. Furthermore, by using a global currency such as bitcoin, John was able to sell his artwork to customers all over the world and, in the end, buy the games console he so desperately wanted.
+John is a 9-year-old boy from New Zealand, who wanted a games console just like his friends. However, his dad told him that in order to buy it, he had to earn the money himself. Now John is an aspiring artist, so he knows that while he is still improving, he can't charge much for his artwork.
+After learning about Bitcoin, he managed to set up a website to sell his drawings across the internet.
+By using the Lightning Network, John was able to charge as little as $1 for one of his drawings, which would normally be considered a micro-payment and, as such, would typically be impossible on traditional systems.
+Furthermore, most legacy financial systems wouldn't even allow a 9-year old like John to open an account!
+By using a global currency such as bitcoin, John was able to sell his artwork to customers all over the world, store the money he's earned without a bank account and, in the end, buy the games console he so desperately wanted.
 
 gamer::
 Gloria is a teenage gamer from the Philippines. She plays many different computer games, but her favorite ones are those that have an "in-game economy" based on real money. As she plays games, she also earns money by acquiring and selling virtual in-game items. The Lightning Network allows her to transact in small amounts for in-game items as well as earn small amounts for completing quests.
