@@ -19,8 +19,26 @@ Relevant questions to answer:
       - What is the "gossip query" system?
       - Does a node need to keep up with all gossip updates? Does this change if they're a routing node or mobile client?
   * Protocol Extensions via Feature Bits and TLV:
-      - How can the channel graph be upgraded using feature bits and TLV fields?
-      - How does a receiver signal that they can accept MPP/AMP payments?
+      * How can the channel graph be upgraded using feature bits and TLV fields?
+      * How does a receiver signal that they can accept MPP/AMP payments?
+      
+      
+### What are "Zombie" channels and why do they matter?
+
+A zombie channel can be defined as a channel in which your channel partner has been inactive for so long, that you do not expect them come back online in the future.
+This could be because your channel partner has lost access to their or has permanently shut down that node.
+As such, a zombie channel is technically still an open channel, but cannot be used to route payments.
+
+Zombie channels offer no benefit to the user but have several downsides:
+
+* Any capacity you have locked in the channel is useless for routing payments and could be allocated elsehwere
+* If you lose access to your own node and restore it with only your private key, you will lose access to funds in open zombie channels
+* If you lose access to your own node and restore it with your private key and channel backups, you will not be able to contact your channel partner to cooperatively close the channel and may also lose the funds
+* Public zombie channels are a burden on the network, as information about them is communicated to the rest of the network, but they cannot be used to route payments
+
+Identifying zombie channels is a challenge as it is not always clear if the channel partner is permanently offline.
+A partner node that is offline for a long period may eventually return online in the future.
+However, once a zombie channel is identified, it is recommended to close them and a force close is generally required.
 
 
 ### Gossip Announcements
