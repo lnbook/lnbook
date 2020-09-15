@@ -1,15 +1,17 @@
 Chapter overview:
+
   * presentation layer, applications, how payment details are exchanged
 
 Relevant questions to answer:
+
   * What is BOLT 11?
   * What information does an invoice contain?
   * How can invoices be extended to integrate new protocol features?
   * What are some unique things that can be done with LN?
-    * recurring payments
-    * donation addrs
-    * keysend
-    * custom data
+    - recurring payments
+    - donation addrs
+    - keysend
+    - custom data
 
 
 === What information does an invoice contain?
@@ -76,41 +78,51 @@ If we enter the above invoice into a invoice decoding tool, such as https://lnde
 
 === What are some unique things that can be done with LN?
 
-**Micropayments**: The current financial system in most countries is divisible to a certain extent and not lower (E.g. $1 = 100c).
-However it is usually not viable to send small amounts, e.g. $1 and less, due to transaction fees and other friction in the system.
+**Micropayments**: The currencies in most countries are divisible to a certain extent and not lower (e.g. $1 = 100c).
+However, it is usually not viable to send small amounts, e.g. $1 and less, due to transaction fees and other friction in the system.
 Bitcoin has similar issues due to transaction fees, and fees are likely to increase in the long-term.
-The Lightning Network can reasonably accommodate payments of the value of 1 satoshi i.e. one hundred millionth of a Bitcoin.
+The Lightning Network can reasonably accommodate payments of the value of 1 satoshi, i.e. one hundred millionth of a Bitcoin.
 Even at an obscenely high Bitcoin value of $1m per Bitcoin, this would still allow the transfer of 1 US cent worth of value.
 As many Lightning implementations track values to the thousandth of a Satoshi (i.e. one milli-satoshi), payments could conceivably be even smaller than this.
-This would allow for micropayment business models such as "pay-per-article", which are not viable in the current system.
+This would allow for micropayment business models such as "pay-per-article" or "pay-per-minute", which are not viable in the current financial system.
 
 **Anonymous Payments**: Bitcoin is pseudonymous at best and transactions are permanently stored on the public Bitcoin blockchain.
-Hence there is always a risk that transactions can be linked back to users post-hoc.
+Hence, there is always a risk that transactions can be linked back to users post-hoc.
 Technologies like CoinJoin and Pay-to-EndPoint can assist in giving Bitcoin users a greater degree of anonymity but cannot completely solve this problem.
 In contrast, users of the Lightning Network are not aware of other users' payments and, since channels can be private, they may not even be aware of other users' channels.
 Users are only aware of other users' payments insofar as they assist in routing payments; in this case they are unaware of both the source and the destination of the payment.
-As such, the Lightning Network has a strong use case for anonymous purchases.
-This would be of particular benefit to online stores and exchanges that accept Bitcoin as malicious attackers can monitor their addresses on the Bitcoin network to try and determine how much bitcoin the businesses owns; something that is not possible on the Lightning Network
+As such, the Lightning Network provides for strong use cases for anonymous purchases.
+This would be of particular benefit to online stores and exchanges that accept Bitcoin as malicious attackers can monitor their addresses on the Bitcoin network to try and determine how much bitcoin the businesses owns
 footnote:[One variant of this is called a "dust attack", whereby an attacker can send a very small amount of Bitcoin (called a "dust output") to an address it knows is owned by a store or exchange.
 By monitoring where this small amount of bitcoin moves, it can determine which other addresses the exchange to store owns.
 This kind of attack is not possible on the Lightning Network].
+This is not possible on the Lightning Network
 
 **Multiplayer Games**: Lightning Payments can be integrated into online and collaborative games.
-One example of this is Satoshi's Place, an online billboard where users can pay 1 satoshi to paint 1 pixel on a million pixel canvas.
-What emerges is a constantly changing picture where anyone add, remove, or paint over by paying.
-This example can be extended to many other kinds of collaborative games where users can pay to participate.
+One example of this is _Satoshi's Place_, an online billboard where users can pay 1 satoshi to paint 1 pixel on a one-million-pixel canvas.
+What emerges is a constantly changing picture, where anyone can add, remove, or paint over pixels by paying.
+This example can be extended to many other kinds of collaborative games, where users can pay to participate.
 The Lightning Network can also be implemented directly into online games, such as MMORPGs, to facilitate in-game transactions.
-As Lightning wallets and Lightning invoices can be built directly into the games themselves, this completely bypasses the need for the credit cards and the traditional financial system.
+As Lightning wallets and Lightning invoices can be built directly into the games themselves, this completely bypasses the need for credit cards and the traditional financial system.
 While all of this is technically possible on Bitcoin, confirmation times and fees make this unfeasible.
-Transactions are confirmed on average every ten minutes, although it could potentially take even longer.
+Bitcoin transactions are confirmed on average every ten minutes, although it could potentially take even longer.
 This exposes the merchant to the risk of accepting unconfirmed transactions.
-Lightning transactions, on the other hand, settle instantly and so are better from a user experience standpoint for.
+Lightning transactions, on the other hand, settle instantly and so are better from a user experience standpoint.
 
 **Earning "interest" on Bitcoin trustlessly**
 While Bitcoin may increase or decrease in value in terms of fiat currencies, it is an asset that does not offer a return in and off itself simply by holding it.
 The amount of Bitcoin one holds remains constant, and actually decreases as one moves it around due to transaction fees.
-Those wishing to earn a return on their holdings in Bitcoin terms can do so by opening channels and routing payments in return for routing fees.
-In this way, users can earn a return (i.e. "interest") by locking their Bitcoin into channels and offering liquidity to other users wishing to transact on the Lightning Network.
-Users doing so will need to pay the fees to open and close channels, as well as the cost of maintaining any hardware to run a Lightning Node.
-However, as channels can be left open indefinitely, they could earn a profit as long as there are sufficient users of the Lightning Network such that their routing fees are in excess of their channel fees and maintenance costs over the long term.
-This is trustless as users do not need to loan or send anyone their Bitcoin; they only need to take the risks of operating a Lightning node and storing Bitcoin in a hot wallet.
+
+Third-party services exist that provide interest on Bitcoin, but these services are in general not trustless. 
+Those wishing to earn a return on their Bitcoin holdings _trustlessly_ can do so by opening channels and routing payments in return for routing fees.
+This way, users can earn a return (i.e. "interest") by locking their Bitcoin into channels and offering liquidity to other users wishing to transact on the Lightning Network.
+Users doing so will need to pay the fees to open and close channels, as well as the cost of maintaining any hardware and network infrastructure to run a Lightning Node.
+However, as channels can be left open indefinitely, they _could_ earn a profit as long as there are sufficient users of the Lightning Network such that their routing fees are in excess of their channel fees and maintenance costs over the long term.
+This is trustless as users do not need to loan or send anyone their Bitcoin. Users only need to take on the efforts and risks of operating a Lightning node and storing Bitcoin in a hot wallet.
+
+**Use Cases outside of Finance**
+The Lightning Network's principal object is to move payments across a network. 
+Could it move data other than payments across its network too? It can. 
+Some projects such as _Whatsat_, _Sphinx Chat_, and _Juggernaut_ are implementing instant messaging chat apps on top of the Ligtning Network. 
+One can imaging other types of data such as electronic tickets, QR codes, or other forms of tokens flowing across the Lightning Network as well. 
+The use cases are limited only by our imagination and reach beyond finance.
