@@ -854,7 +854,7 @@ Nodes compete for routing fees by setting their desired fee rate on each channel
 
 When sending a Lightning payment, a node will select a path so as to minimize fees, minimize hops or both. As a result, a routing fee market emerges from these interactions. There are many nodes that charge very low or no fees for routing, creating downward pressure on the routing fee "market".
 
-If you make no choices, your Lightning node will set a default base fee and fee rate for each new channel. The default values depend on the node implementation you use. Routing fees are set as millisatoshi (thousandths of a satoshi) for the base fee and millionths per satoshi for the proportional fee rate. For example, a base fee of 1000 (millisatoshi) and fee rate of 10 (millionths) would result in the following charges for a 100,000 satoshi payment:
+If you make no choices, your Lightning node will set a default base fee and fee rate for each new channel. The default values depend on the node implementation you use. Routing fees are set as millisatoshi (thousandths of a satoshi) for the base fee and millionths per satoshi for the proportional fee rate. For example, a base fee of 1000 (millisatoshi) and fee rate of 1000 (millionths) would result in the following charges for a 100,000 satoshi payment:
 
 [latexmath]
 ====
@@ -862,14 +862,13 @@ P = 100,000
 
 F_base = 1000 millisatoshi
 
-F_rate = 10/1,000,000 * payment size
+F_rate = 1,000/1,000,000 = 0.001 = 0.1%
 
 F_total = F_base + F_rate * P
 
  \Rightarrow  F_total = 1 satoshi + 100 satoshi
 
  \Rightarrow  F_total = 101 satoshi
-
 ====
 
 Broadly speaking, you can take one of two approaches to routing fees. You can route lots of payments with low fees, making up for low fees by lots of volume. Or you can choose to charge higher fees, expecting you will route fewer payments. If you choose to set higher fees your node will be selected only when other cheaper routes don't exist. Therefore, you will route less often but earn more per successful routing.
