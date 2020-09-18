@@ -754,11 +754,11 @@ The size is actually as most of the time on the lightning network depicted in sa
 It has become clear that too small channels below 1 mBTC are not very usefull and we do not recommend to open too small channels.
 With the wider adoption of multipath payments smaller channels are less of a burden but we still stick to our recommendation.
 
-The c-lightning plugin works very differently in comparison to the lnd autopilot.
-Not only from the used algorithms to make the recommendations - which we do not discuss here - but also from the user interface.
-First you will need to download the autopilot plugin from the c-lightning plugin repository at https://github.com/lightningd/plugins/tree/master/autopilot and activate it.
-We have already explained how to activate plugins in c-lightning.
-The autopilot in c-lightning now gets 3 configuration values which can be set in the config file or as command line arguments when you start lightningd
+The +c-lightning+ plugin works very differently in comparison to the +lnd+ autopilot.
+First, it differs in the algorithms used to make the recommendations. We will not cover this here. Secondly, it differs in its user interface.
+You will need to download the _autopilot plugin_ from the +c-lightning+ plugin repository at https://github.com/lightningd/plugins/tree/master/autopilot and activate it.
+We have already explained how to activate plugins in +c-lightning+.
+The autopilot in +c-lightning+ is controlled via 3 configuration values which can be set in the config file or as command line arguments when you start +lightningd+.
 
 ----
 [c-lightning-autopilot]
@@ -768,22 +768,22 @@ autopilot-min-channel-size-msat=100000000msat
 ----
 
 These values are the actual default config and you do not need to set them at all.
-The autopilot will not autoamatically run in the background like lnd.
-Instead you have to start a run specifically with `lightning-cli autopilot-run-once` if you do not want the autopilot to open the recommended channels.
-But if you want it to just make recommendations to you from which you can handpick the nodes you can add the optional `dryrun` argument.
+The autopilot will not automatically run in the background like in +lnd+.
+Instead, you have to start a run specifically with `lightning-cli autopilot-run-once` if you want the autopilot to open the recommended channels.
+But if you want it to just provide you with recommendations, from which you can handpick the nodes, you can append the optional `dryrun` argument.
 
-A key difference between the lnd and the c-lightning autopilot is that the c-lightning autopilot will also make a recommendation for the channel size.
-For example if the autopilot recommends to open a channel with a small node that only has small channels it will not recommend to open a large channel.
-However if it opens a channel with a well connected node that also has many large channels it will probably recommend a larger channel size.
+A key difference between the +lnd+ and the +c-lightning+ autopilots is that the +c-lightning+ autopilot will also make a recommendation for the channel size.
+For example, if the autopilot recommends to open a channel with a small node that only has small channels, it will not recommend to open a large channel.
+However, if it opens a channel with a well connected node that also has many large channels, it will probably recommend a larger channel size.
 
-As you can see the c-lightning autopilot is not as automatic as lnd but gives you a little bit more control.
-These differences are of personal preference and could actually be the deciding factor for you why you chose one implementation over the other.
+As you can see the +c-lightning+ autopilot is not as automatic as +lnd+'s, but it gives you a little bit more control.
+These differences reflect personal preferences and could actually be the deciding factor for you to chose one implementation over the other.
 
-Keep in mind that current autopilots will mainly use public information from the gossip protocol about the current topology of the lightning network.
-It is very obvious that your personal requirements for channels can and will only be reflected to a certain degree.
-More advanced autopilots would use information that your node already has gatherd by running in the past about routing successes and who you have paid in the past.
-Such autopilots might in the future also use the knowledge and statistics that they have collected to make recommendations to close channels and allocate the funds in another way.
-We mention these things to you as a word of warning to not really to heavily on the autopilot feature at the time of writing this book.
+Keep in mind that current autopilots will primarily use public information from the gossip protocol about the current topology of the Lightning network.
+It is obvious that your personal requirements for channels can and will be reflected only to a certain degree.
+More advanced autopilots would use historical and usage information that your node has gathered by running in the past, including information about routing successes, whom you have paid in the past, and who paid you.
+Such improved autopilots might in the future use this collected data to also make recommendations on closing channels and re-allocating funds.
+Take this as a word of caution to not depend or rely too heavily on the autopilot feature at the time of writing of this book.
 
 ==== Getting inbound liquidity
 
