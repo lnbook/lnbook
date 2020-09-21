@@ -53,14 +53,14 @@ Autopilot::
     Autopilots are not part of the Lightning Network Protocol.
 
 balance::
-    The balance of a payment channel is encoded by the most recent commitment transaction.
-    The balance states the amount of bitcoin that belongs to each channel partner and the amount that are in flying HTLCs (HTLCs which are currently in the routing process and have not been settled yet).
-    The sum of the balance sheet equals the capacity.
-    The channel balance is only known by the channel partners.
-    If the channel balance is completely on one side of the channel, i.e. one channel partner has all of the bitcoin in the channel, this particular partner cannot receive any payments through this channel. This partner can, however, send payments and forward HTLCs.
-    The balance that a node has on its own side of the channel (and is thus able to spend) is called the outbound capacity.
-    The node's channel partner would refer to that balance as its inbound capacity, i.e. the amount that it is able to receive.
-    Nodes should aim to have balanced channels with similar inbound and outbound capacities.
+    The balance of a payment channel is the amount of bitcoin that belongs to each channel partner.
+    For example, Alice could open a channel with Bob for the value of 1 BTC.
+    The channel balance is then 1 BTC to Alice and 0 BTC to Bob.
+    As the users transact the channel balance will update.
+    For e.g. if Alice sends 0.2 BTC to Bob, then the balance is now 0.8 BTC to Alice and 0.2 to Bob.
+    When the channel is closed the bitcoin in the channel will be divided between the two channel partners according to the latest balance encoded in the commitment transaction.
+    In the Lightning Network the ability to send and receive payments is limited by channel balances.
+    See _capacity_.
 
 bech32::
     A checksummed base32 address format, at most 90 characters long, and capable of error correction. It is native to segregated witness (BIP173). Also referred to as "bc1" because of the current starting values of each address. Transactions made using bech32 are smaller in most cases, and therefore, may only require a lower fee.
@@ -72,9 +72,10 @@ bitcoin, Bitcoin::
     Depending on context, could refer to the name of the currency unit (the coin), the network or the underlying enabling protocol. Written as bitcoin with a lowercase "b" usually refers to the currency unit. Bitcoin with an uppercase "B" usually refers to the protocol. See https://www.bitcoin.org for general information. The source code can be found at https://github.com/bitcoin/bitcoin.
 
 Bitcoin mining::
-    Bitcoin mining serves two purposes.
-    Firstly, Bitcoin transactions are validated and fixed in the sense that they cannot be double-spent.
-    Secondly, new bitcoin are being created within the coinbase of each block.
+    Bitcoin mining is the process of constructing a block from recent Bitcoin transactions and then solving a computational problem required as Proof of Work.
+    It is the process by which the shared bitcoin ledger (i.e. the bitcoin blockchain) is updated and by which new transactions are included in the ledger.
+    It is also the process by which new bitcoins are issued.
+    Every time a new block is created, the mining node will receive new bitcoins created within the coinbase transaction of that block.
 
 block::
     A grouping of transactions, marked with a timestamp, and a fingerprint of the previous block. The block header is hashed to produce a proof of work, thereby validating the transactions. Valid blocks are added to the main blockchain by network consensus.
@@ -316,7 +317,11 @@ onion routing::
     https://en.wikipedia.org/w/index.php?title=Onion_routing&oldid=870849217
 
 output::
-    Output, transaction output, or TxOut is an output in a transaction which contains two fields: a value field for transferring zero or more satoshis and a pubkey script for indicating what conditions must be fulfilled for those satoshis to be further spent.
+    The output of a Bitcoin transaction, also called an "Unspent Transaction Output" or "UTXO"
+    An output is essentially an amount of bitcoins that can be spent, as well as a script that defines what conditions need to be fulfilled for that bitcoin to be spent.
+    Every bitcoin transaction consumes the outputs of the sender and creates new outputs that can be spent later by the receiver.
+    A typical bitcoin output will require the signature of the owner to be spent, but outputs can require the fulfillment of more complex scripts.
+    For example, a multisignature script requires that two or more users to sign before an ouput can be spent, which is a fundamental building block of the Lightning Network.
 
 P2PKH::
     P2PKH or Pay-to-PubKey-Hash is a type of transaction that pays a Bitcoin address that contain P2PKH scripts.
@@ -341,24 +346,27 @@ payment::
     The invoice includes a payment hash which is the hash of a secret preimage.
     This payment hash is used by the Hashed Time Lock Contracts during the routing process.
 
-payment channels::
-    A micropayment channel or payment channel is a class of techniques designed to allow users to make multiple Bitcoin transactions without committing all of the transactions to the Bitcoin blockchain. In a typical payment channel, only two transactions are added to the blockchain, but an unlimited or nearly unlimited number of payments can be made between the participants.
-
 payment channel::
-    Payment channels are the core building blocks of the Lightning Network.
-    They can be used to send a predefined amount of bitcoin back and forth between two parties.
-    Sending bitcoin over a payment channel happens off chain, so only the funding transaction and either the commitment or closing transaction is stored in the blockchain.
-    There are currently three methods known to construct a fully duplex bidirectional payment channel.
-    Christian Decker proposed a method in his PhD thesis based on invalidation trees.
-    In the Lightning Network whitepaper, Joseph Poon and Tadge Dryja describe the Revocable Sequence Maturity Contract based method that is currently being implemented on the Lightning Network.
-    Recently Christian Decker et al. came up with the Eltoo mechanism which would require a Bitcoin softfork.
+    A payment channel is a financial relationship between two nodes on the Lightning Network, created using a multi-signature Bitcoin transaction.
+    The channel partners can use the channel to send Bitcoin back and forth between each other without committing all of the transactions to the Bitcoin blockchain. 
+    In a typical payment channel only two transactions, the funding transaction and the commitment transaction, are added to the blockchain.
+    The other transactions are not included in the blockchain and are said to occur "off-chain".
+    There are various methods of constructing a payment channel discussed further in the chapter on channel construction.
 
 peer::
     Two parties which form a payment channel are called peers.
     In particular, they are connected via an encrypted, authenticated communication over a TCP Socket.
 
-Penalty Transaction::
+penalty transaction::
     Look at the Breach Remedy Transaction.
+
+private channel:
+    A channel not announced to the rest of the network. 
+    Technically "private" is a misnomer as these channels can still be identified through routing hints and commitment transactions.
+    We suggest they are better described as "unannounced" channels.
+    With an unannounced channel, the channel partners can send and receive payments between each other as normal.
+    However the rest of the network will not be aware of it and so cannot typically use it to route payments.
+    As the number of and capacity of unanounced channels is unknown, the total public channel count and capacity only accounts for a portion of the total Lightning Network.
 
 preimage::
     In mathematics, given a function $f$ and a value $h$ the preimage of $h$ with respect to $f$ is the set of values $R = \{r_1,r_2,...\}$ such that $f(r_i) = h$ for all $\r_i \in R$.
@@ -368,7 +376,7 @@ preimage::
     Cryptographers use the term preimage for an arbitrary element of $R$.
     In particular, when using SHA-256 we should state that each element has an infinite amount of preimages.
     Yet it is still believed to be computationally hard to find such a preimage.
-    
+
 proof of work::
     A piece of data that requires significant computation to find.
     In Bitcoin, miners must find a numeric solution to the SHA256 algorithm that meets a network-wide target, called the difficulty target.
@@ -486,7 +494,7 @@ transport layer::
     The transport layer provides communication services between computers such as flow control, verification, and multiplexing (to allow multiple applications to work on a computer at the same time).
 
 unspent transaction output (UTXO)::
-    UTXO is an unspent transaction output that can be spent as an input to a new transaction.
+    See _output_
 
 upstream payment::
     TBD.
