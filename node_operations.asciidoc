@@ -716,43 +716,44 @@ Another way to find well connected nodes is to use a Lightning Explorer (see <<l
 
 ===== Autopilot
 
-The task of opening channels can be automated, somewhat, with the use of an _autopilot_, which is software that opens channels automatically based on some heuristic rules. Autopilot software is still relatively new and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
+The task of opening channels can be partially automated with the use of an _autopilot_, which is software that opens channels automatically based on some heuristic rules. Autopilot software is still relatively new and it doesn't always select the best channel partners for you. Especially in the beginning it might be better to open channels manually.
 Autopilots currently exist in 3 forms.
 
-- Originally lnd published an autopilot that is fully integrated with lnd and runs constantly in the background while it is turned on.
-- lib_autopilot.py can technically offer autopilot computations on the gossip and channel data from any implementation.
-- A clighting plugin based on lib_autopilot.py exists that provides an easy to use interface for c-lightning users.
+- +lnd+ incorporates an autopilot that is fully integrated with +lnd+ and runs constantly in the background while turned on.
+- +lib_autopilot.py+ can offer autopilot computations for any node implementation based on the gossip and channel data.
+- A +c-lighting+ plugin based on +lib_autopilot.py+ exists that provides an easy to use interface for +c-lightning+ users.
 
-The main thing to watch out when running the lnd autopilot is that as soon as it is turned on via the config file it will automatically run in the background and it will start to open channels if you have onchain outputs in your lnd wallet.
-If you want to have full control over the bitcoin transactions that you make and the channels that you open make sure to turn off the autopilot before you load your lnd wallet with bitcoin funds.
-If the autopilot was previously turned on you might have to restart your lnd before you top up your wallet with an on-chain transaction or before you close channels which effectively gives you on-chain funds again.
-Another thing to keep in mind is to set the most important config values if you want to run the autopilot.
-Here you can find an example configuration:
+Be aware that the +lnd+ autopilot will start running in the background as soon as it is turned on via the config file. As a result it will start opening channels immediately if you have onchain outputs in your +lnd+ wallet.
+If you want to have full control over the bitcoin transactions that you make and the channels that you open, make sure to turn the autopilot off _before_ you load your +lnd+ wallet with bitcoin funds.
+If the autopilot was previously turned on, you might have to restart your +lnd+ before you top up your wallet with an on-chain transaction or before you close channels, which effectively gives you on-chain funds again.
+It is crucial that you set key configuration values if you want to run the autopilot. 
+Have a look at this example configuration:
+
 
 ----
 [lnd-autopilot]
 autopilot.active=1
 autopilot.maxchannels=40
 autopilot.allocation=0.70
-autopilot.maxchansize=500000
-autopilot.minchansize=5000000
+autopilot.minchansize=500000
+autopilot.maxchansize=5000000
 autopilot.heuristic=top_centrality:1.0
 ----
 
-This config file would activate the autopilot.
+This configuration file would activate the autopilot.
 It would open channels as long as the following two conditions are met:
 
-1. The amount of channels that your node currently has open does not exceed 40.
-2. Not more than 70% of your total funds are offchain in payment channels.
+1. Your node has currently less than 40 channels open.
+2. Less than 70% of your total funds are off-chain in payment channels.
 
-The numbers 40 and 0.7 are chosen completely arbitrary here as we cannot really make a recommendation that goes for everyone about how many channels one should have and how many percent of their funds should be off chain.
-The autopilot in lnd will not take into account to run when onchain fees are low.
-Thus you might spend quite some funds on transactions fees.
-It will make channel recommendations when ever the conditions are met and will directly try to open a channel by using the appropriate fees.
-According to this configuration file channels will be between 5 and 50 mBTC.
-The size is actually as most of the time on the lightning network depicted in satoshi but we converted the amount for you.
-It has become clear that too small channels below 1 mBTC are not very useful and we do not recommend to open too small channels.
-With the wider adoption of multipath payments smaller channels are less of a burden but we still stick to our recommendation.
+The numbers 40 and 0.7 are chosen completely arbitrarily here as we cannot make any recommendations that are valid for everyone about how many channels one should have open and what percentage of one's funds should be off chain.
+The autopilot in +lnd+ will not take into account on-chain fees. In other words, it will not delay opening channels to a time period when fees are low.
+To reduce fees you can manually open channels during a time period when fees are low, e.g. during the weekend.
+The autopilot will make channel recommendations whenever the conditions are met and will immediately try to open a channel by using the appropriate current fees.
+According to the above configuration file, the channels will be between 5 mBTC (minchansize=500000 satoshi) and 50 mBTC (maxchansize=5000000 satoshi) in size.
+As is common, the amounts in the configuration file are enumerated in satoshis.
+Currently channels below 1 mBTC are not very useful and we do not recommend to open channels that are too small and below this amount.
+With the wider adoption of multipath payments smaller channels are less of a burden but for the time being this is our recommendation.
 
 The c-lightning plugin works very differently in comparison to the lnd autopilot.
 Not only from the used algorithms to make the recommendations - which we do not discuss here - but also from the user interface.
