@@ -322,60 +322,75 @@ While the Onion is decrypted layer by layer while it travels along the path from
 Being created from the inside means that the construction starts with the Onion Package that Gloria is supposed to receive in plain text.
 Let us now look at the construction of the Onion that Alice has to follow and at the exact information that is being put inside each layer of the onion.
 
-The onions are a data structure that at every hop consists of four parts:
 
-1. The version byte
+Today the network uses a modification of the Sphinx mix-net packet format which structurally, has four components: 
+
+1. A version byte to allow future structural changes to the packet format.
 2. The header consisting of a public key that can be used by the recipient to produce the shared secret for decrypting the outer layer and to derive the public key that has to be put in the header of the modified onion for the next recipient.
-3. The payload
-4. an authentication via an HMAC.
+3. The payload itself which contains encrypted forwarding information.
+4. An HMAC tag which serves to allow nodes to check the authenticity and integrity of the entire packet. The HMAC tag also convers the _payment hash_ of the HTLC the packet is encoded in, which provides an economic disincentive against replayed packets, as the same payment hash _must_ be used.
 
 For now we will ignore how the public keys are derived and exchanged and focus on the payload of the onion.
 Only the payload is actually encrypted and will be peeled of layer by layer.
 The payload consists of a sequence of a sequence of per hop data.
 This data can come in two formats the legacy one and the Type Length Value (TLV) Format.
-While the TLV format offers more flexibility in both cases the routing information that is encoded into the onion is the same for every but the last hop.
+The TLV format is very flexible as new keys/values can be added in a forwards and backwards compatible manner.
 For example, with the new TLV format, the sender can actually included the preimage in the payload for the last hop.
 This is nice as it allow a payer to initiate a payment without the necessity to ask the payer for an invoice and payment hash first.
 We will this feature called key send in a different chapter.
+
+Before a node starts to forward an HTLC, they should _verify_ the field of the onion against the incoming HTLC.
+A node should reject an incoming HTLC packet if any of the following conditions are violated:
+
+  * The HMAC fails to validate.
+  * Any of the channel policy forwarding constraints are violated. See chapter xxx for more details on the various forwarding policies a node can express.
+  * The HTLC expires "too soon" based on the HTLCs absolute expiry height, and the current absolute block height.
+  * The HTLC expiry is "too long".
+  * The target channel doesn't have enough incoming bandwidth to carry the HTLC.
+  * The implicit fee (the difference between the outgoing and incoming HTLCs) doesn't mach a ndoe's forwarding policy.
+  * The outgoing HTLC's time lock delta doesn't factor a node's `cltv_delta` properly.
 
 A node needs three pieces of information to forward the package:
 
 1. The short channel id of the next channel along which it is supposed to forward the onion by setting up an HTLC with the same payment hash.
 2. The amount that it is supposed to be forwarded and thus being used in the HTLC.
-3. Timelock information encoded to a `cltv_delta` is the last piece of information that is needed as HTLCs are hashed time locked contracts.
+3. Timelock information encoded to a `outgoing_cltv_delta` is the last piece of information that is needed as HTLCs are hashed time locked contracts.
 
-For easier readability we have used just a small integer as `short_channel_ids` in the following example and graphics.
+As we learned in chapter xxx, describes _where_ in the chain a channel was first confirmed using three identifiers: the block height, the transaction index within the block, and the output index within the transaction.
+To make them easier to handle, we'll compress these three attributes into a single integer, which we'll use as the `short_channel_id_ throughout the rest of our examples and graphics.
 
 [[routing-onion-1]]
 .`per_hop` payload of Glorias onion and the encrypted
 image:images/routing-onion-1.png[]
 
 We can see that Alice has created some per hop data for David.
-The short channel id is set to 0 signaling David that this payment is intended to be for him.
+The short channel id is set to 0, which is a special reserved value which signals that the receiver of the payload is the final node in the route. 
 The amount to forward is set to 3000.
-On the incoming HTLCs David should have seen that exact amount.
-Usually this amount is intended to say how many satoshis should be forwarded.
-Since the short channel id was set to zero in this particular case it is interpreted as the payment amount.
-Finally the CLTV delta which David should use to forward the payment is also set to zero as David is the final hop.
+On the incoming HTLCs David should have seen that exact amount. 
+David can use these values to further verify the incoming packet was crafted as intended, usually this amount is intended to say how many satoshis should be forwarded.
+The final CLTV delta itself should be set to the absolute expiry of the incoming HTLC.
+
 These data fields consist of 20 Bytes.
 The Lightning Network protocol actually allows to store 65 Bytes of data the Onion for every hope.
 
+Throughout our examples, we'll assume the new modern TLV paylaod format is used.
+This format differs from the legacy format in that there's no fixed structure, instead a series of key-value pairs are used to communicate forwarding information.
+
 - 1 Byte Realm which signals nodes how to decode the following 32 Bytes.
-- 32 Byte for routing hints (20 of which we have already used).
+- 20 bytes for the base routing information
 - 32 Byte of a Hashed Message Authentication code.
 
-Since the additional 12 Byte of data for the routing hints were not needed at this time they are set to zero.
 In the next diagram we can see how the per hop payload for David looks like.
 
 [[routing-onion-2]]
 .`per_hop` payload of Glorias onion and the encrypted
 image:images/routing-onion-2.png[]
 
-On important feature to protect the privacy is to make sure that onions are always of equal length independ of their position along the payment path.
-Thus onions are always expected to contain 20 entries of 65 Bytes with per hop data.
-As David is the final recipient there is only reasonable data for 65 Bytes of the per hop data.
-This is not a problem as the other 19 fields are filled with junk data.
-You could also see this in the previous diagram.
+On important feature to protect the privacy is to make sure that onions are always of equal length independent of their position along the payment path.
+The onion should always remain a fixed-sized packet throughout the entire route, in order to avoid leaking any path length information.
+This trait is important from the perspective of packet indistinguishably: a short route should "look" the same as a long route.
+If a packet got shorter each time a node processed it, then other nodes would easily be able to deduce their "position" in the route.
+Note that with the TLV format, based on the information given to each node, the individual payload size may vary, but the packet still remains a fixed size throughout the entire route.
 
 After Alice has set all the data she needs to encrypt the onion payload.
 For this she derives a shared secret between Davids public node key and the private secret that she generated for David.
