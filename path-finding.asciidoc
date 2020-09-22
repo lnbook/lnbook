@@ -2,6 +2,7 @@
   * How path finding works in the network
 
 Relevant questions to answer:
+
   * What is packet switching? What is circuit switching? Which one does LN use today?
   * In the abstract what is path finding?
   * What is dijkstra's? What modifications need to be made to apply it to this domain?
@@ -17,22 +18,22 @@ Relevant questions to answer:
 
 Payments on the Lightning Network are forwarded along a path of channels from one participant to another.
 Thus, a path of payment channels has to be selected.
-If we knew the exact channel balances of every channel we could easily compute a payment path using any of the standard path finding algorithms taught in any computer science program.
-Actually when we consider multipath payments it is rather a flow problem than a path finding problem.
+If we knew the exact channel balances of every channel, we could easily compute one or more payment paths using any of the standard path finding algorithms taught in good computer science programs.
+Actually, when we consider multipath payments, it is rather a flow problem than a path finding problem.
 Since flows consist of several paths we conveniently talk about path finding.
-With exact information about channel balances available we could solve those problems in a way to optimize the fees that would have to be paid by the payer to the nodes that kindly forward the payment.
-However, as discussed the balance information of all channels is and cannot be available to all participants of the network.
-Thus, we need to have one or more innovative path finding strategy.
+If exact information about channel balances were available, we could solve those problems in a way as to minimize the fees that would have to be paid by the payer to the nodes forwarding the payment.
+However, as discussed, the balance information of all channels cannot be available to all participants of the network.
+Thus, we need to have one or more innovative path finding strategies.
 These strategies must relate closely to the routing algorithm that is used.
-As we will see in the next section, the Lightning Network uses a source based onion routing protocol for routing payments.
+As we will see in the next section, the Lightning Network uses a source-based onion-routing protocol for routing payments.
 This means in particular that the sender of the payment has to find a path through the network.
 With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
-The fact that the path finding problem is not fully solved for the case of the Lightning Network is a major point of criticism towards the technology.
+The fact that the path finding problem in the Lightning Network is not fully solved is a major point of criticism towards the technology.
 The path finding strategy currently implemented in Lightning nodes is to probe paths until one is found that has enough liquidity to forward the payment.
-While this is not optimal and certainly can be improved, it should be noted that even this simplistic strategy works well.
+While this is not optimal and leaves ample room for improvements, it should be noted that even this simplistic strategy works well.
 This probing is done by the Lightning node or wallet and is not directly seen by the user of the software.
-The user might only realize that probing is taking place if the payment is not going through instantly.
-The algorithm currently also does not necessarily result in the path with the lowest fees.
+The user might suspect that probing is taking place if the payment is not going through instantly.
+The current algorithm also does not necessarily result in the path with the lowest fees.
 
 
 === What is "Source-Based" routing and why does the Lightning Network use it?
