@@ -1,24 +1,36 @@
 [[routing_on_a_network_of_payment_channels]]
 == Routing on a Network of Payment channels
-In this section you will finally understand how payment channels can be connected to a network of payment channels via what we call routing.
-When we say routing, we refer to the series of interactions across the network that allow a payment to _flow_ from point A to point B.
-This differs from _path finding_ which was covered earlier as this refers to the _active_ process of sending payments, while path finding can be seen as a re-processing step.
-An important rule of thumb to remember is that it's possible for a path to exist between Alice and Bob, yet there may be a lack of an active _route_ at any given point.
-On concrete eaxmple of such a scenario can be illustrated by assuming that all the nodes connecting Alice and Bob are currently off-line. 
-In this case, one can examine the _payment graph_ to construct a path for a payment, but the payment cannot be sent as an _active route_ does not exist.
+In this section we will finally unpack how payment channels can be connected to a network of other payment channels via a process called _routing_.
+Note that we separate the concept of _routing_ from the concept of _path finding_.
+Routing refers to the series of interactions across the network that allow a payment to _flow_ from point A to point B, i.e. the _active_ process of process of sending a payment.
+An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
+One example is the scenario where all the nodes connecting Alice and Bob are currently off-line. 
+In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Beb, hence a _path_ exists.
+However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
 
-The innovation of routed payment channels, allows our gamer Gloria to receive funds from her viewers without being required to maintain a separate channel with every of her viewers who want to tip her.
-As long as there exists a path of well funded payment channels from a fan to Gloria she will be able to receive money.
-Despite the fact that the nodes along the path forward the money to Gloria they are not able to steal the money and run with it.
-Similarly, they cannot lose money while participating in the routing process assuming all time-locks along the route are constructed properly relative to the current on-chain fee market.k
-They are however entitled to charge a routing fee for their service.
-In particular due to the use of onion routing, intermediary nodes are only explicitly aware of who came before them in the route, and the node that'll continue to forward the payment after them.
+The innovation of routed payment channels allows our gamer Gloria to receive funds from her fans without maintaining a separate channel with every one of her fans who want to tip her.
+Instead Gloria will be able to receive payment from a fan as long as there exists a path of well-funded channels from that viewer to Gloria.
+The nodes along the path from the fan to Gloria are intermediaries and called "routing nodes" for the purpose of routing a payment.
 
-This process of connecting a series of payment channels with end-to-end security, and the existence of incentives for nodes to _forward_ payments, is considered one of the key innovations of the Lightning Network.
+[[gloria-routing-diagram]]
+.Any one of Gloria's fans in the diagram can pay her by routing via the nodes in between them and Gloria
+image:images/gloria-routing-diagram.PNG["Any one of Gloria's fans in the diagram can pay her by routing via the nodes in between them and Gloria"]
+
+Importantly, the routing nodes are unable to steal the funds while routing a payment from a fan to Gloria.
+Furthermore, routing nodes cannot lose money while participating in the routing process.
+They can however charge a routing fee for acting as an intermediary (although they don't have to. It is possible to route payments for free!).
+
+Another important detail is that due to the use of onion routing, intermediary nodes are only explicitly aware of the nodes before and after them in the route.
+They will not neccessarily know who is the orginator and recipient of the payment.
+This enables fans to use intermediary nodes to pay Gloria, without leaking private information and without risking theft.
+
+This process of connecting a series of payment channels with end-to-end security, and the incentive structure for nodes to _forward_ payments, is one of the key innovations of the Lightning Network.
+
 In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in-which payments flow through the network.
-First, we'll cover the concept of a conditional chained end to end secure payment, most commonly known by the name of the first known working construct: the Hash Time Locked Transaction (HTLC).
-Having learned _how_ payments can be transmitted through the network, we'll then cover the concept of source routing, and the privacy preserving variant (onion routing) used in the network today.
-Finally, we'll explore the exact mechanism of _payment forwarding_ and how the _structure_ (edges, fees, time-locks, etc) of the route is determined by the sender is transmitted to each individual node along the route.
+First, we will cover the concept of a conditional chained end-to-end secure payment, most commonly referred to as a Hash Time Locked Transaction (HTLC).
+Having learned how payments can be transmitted through the network, we will then discuss the concept of source-based routing and contrast it to the privacy preserving onion routing used in the network today.
+Finally, we will explore the exact mechanism of payment forwarding.
+We will discuss how the _structure_ (edges, fees, time-locks, etc) of the route is determined by the sender, and is then transmitted to each individual node along the route.
 
 
 === Creating a Network of payment channels
