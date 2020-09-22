@@ -35,18 +35,18 @@ We will discuss how the _structure_ (edges, fees, time-locks, etc) of the route 
 
 === Creating a Network of payment channels
 
-Before we dive into the concept of a conditional chained end to end secure payment, let's work through an example.
+Before we dive into the concept of a conditional chained end-to-end secure payment, let's work through an example.
 Let us to return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
 Alice now watches a live stream from Gloria the gamer, and wants to send her a tip via the Lightning Network.
 However, Alice has no open channel with Gloria.
-Alice is able to open one, however, this will need liquidity and on-chain fees which could be more than the value of the tip itself.
-Alice might also might wish to minimize the total number of channels she has open.
-Instead, Alice can repurpose her existing open channels to send a tip to Gloria, _without_ the need to open a channel directly with Gloria.
+Alice is able to open one, however, this will require liquidity and on-chain fees which could be more than the value of the tip itself.
+Alice might also wish to minimize the total number of channels she has open.
+Instead, Alice can repurpose her existing open channels to send a tip to Gloria _without_ the need to open a channel directly with Gloria.
 This is possible, as long as there exists some path of channels from Alice to Gloria with sufficient capacity to route the tip.
 
 From previous chapters, we know Alice has an open channel with Bob, the coffee shop owner.
-Bob, in turn, has an open channel with the software developer Wei who helps him with technical issues of the point of sale system he uses in his coffee shop.
-Wei is the owner of a large software company which develops the game that Gloria plays, and they already have an open channel which Gloria uses to pay for the game's license and in game items.
+Bob, in turn, has an open channel with the software developer Wei who helps him with the point of sale system he uses in his coffee shop.
+Wei is also the owner of a large software company which develops the game that Gloria plays, and they already have an open channel which Gloria uses to pay for the game's license and in-game items.
 
 If we draw out this series of payment channels, it's possible to manually trace a _path_ from Alice to Gloria that uses Bob and Wei as intermediary routing nodes.
 Alice can then craft a _route_ from this outlined path, and use it to send a tip of a few thousand satoshis to Gloria, with the payment being _forwarded_ by Bob and Wei.
@@ -74,7 +74,7 @@ _I (Alice) will give you (Bob) 10 gold coins if you pass them on to Wei_
 
 While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might breach the contract and hope to not get caught by law enforcement.
 Even if Bob gets caught by law enforcement, Alice faces the risk that he might be bankrupt and be unable to return her 10 gold coins.
-Assuming these issues are magically solved it, it's still unclear how to leverage such a contract to achieve our desired outcome: the coins ultimately being delivered to Gloria.
+Assuming these issues are magically solved, it's still unclear how to leverage such a contract to achieve our desired outcome: the coins ultimately being delivered to Gloria.
 
 We thus improve our contract:
 
@@ -133,7 +133,7 @@ This valid message that hashes to the required number *f23c83...*` is called a *
 After Bob and Alice agree to the contract, and Bob receives the message from the escrow that Alice has deposited the 12 gold coins, Bob can now negotiate a similar contract with Wei.
 
 Note that since Bob is taking a service fee of 1 coin, he will only forward 11 gold coins to Wei once Wei shows proof that he has paid Gloria.
-Similarly, Wei will also demand a fee and will expect to receive 11 golden coins once he has proved that he has paid Gloria the promised 10 gold coins.
+Similarly, Wei will also demand a fee and will expect to receive 11 gold coins once he has proved that he has paid Gloria the promised 10 gold coins.
 
 Bob's contract with Wei will read:
 
@@ -215,15 +215,15 @@ The pre-condition to this _route_ working at all, is that all parties in the pat
 
 While this seems like a minor detail we will see in later this chapter that this requirement is actually one of the more difficult issues for Lightning Network nodes.
 It becomes progressively more difficult as the size of the payment increases.
-Furthermore, the parties cannot use thier money while it is locked in escrow.
+Furthermore, the parties cannot use their money while it is locked in escrow.
 Thus users forwarding payments face an opportunity cost for locking the money, which is ultimately reimbursed through routing fees, as we saw in the above example.
 
 In the following two sections we will discuss how the Bitcoin scripting language can be used to set up conditional chained end-to-end secure payment contracts _without_ third party escrows, similar to the gold coin contracts described above.
 These are called Hash Time Locked Contracts (HTLCs).
 For HTLCs, there are no trusted third parties who act as an escrow; the Bitcoin Network itself becomes the "escrow" service.
 
-After that, we will discuss how a user is able to use an HTLC to "route" a payment through the network securely.
-In the Lightning Network in 2020, we use a technique called source-based onion routing, although it is also possible to route payment with alternative techniques.
+After that, we will discuss users are able to use an HTLC to "route" a payment through the network securely.
+In the Lightning Network in 2020 we use a technique called source-based onion routing, although it is also possible to route payments with alternative techniques.
 Finally we will discuss the precise details concerning the exact mechanics of forwarding, settling, and cancelling HTLCs in the network.
 
 = Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment =
