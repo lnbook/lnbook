@@ -35,126 +35,196 @@ We will discuss how the _structure_ (edges, fees, time-locks, etc) of the route 
 
 === Creating a Network of payment channels
 
-Before we dive into the concept of a conditional chained end to end secure payment, let's walk through a simple motivating example.
-Let us assume after Alice bought her coffee at Bob's coffee shop using a direction channel, she began to watch the live stream of our gamer Gloria who accepts donations via the Lightning Network from her viewers.
-Alice and Gloria do not have a _direct_ channel connecting them, and don't wish to create one as they'd like to minimize the total number of channels they have open.
-However, they do in fact have an _indirect path_ via the network of connected payment channels that comprises the Lightning Network.
-The structure of our mini-network is as follows.
-Bob has an open channel with his the software developer Wei who helps him with technical issues of the point of sale system he uses in his coffee shop.
-Wei is actually the owner of a large software company which also develops the game that Gloria plays so that she had opened a channel with the company to pay for the game's license, access to the server, and in game items.
-If we draw out this series of payment channels, it's possible to manually trace a _path_ from Alice to Gloria that uses Bob and Wei as supporting intermediary routing nodes.
+Before we dive into the concept of a conditional chained end-to-end secure payment, let's work through an example.
+Let us to return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
+Alice now watches a live stream from Gloria the gamer, and wants to send her a tip via the Lightning Network.
+However, Alice has no open channel with Gloria.
+Alice is able to open one, however, this will require liquidity and on-chain fees which could be more than the value of the tip itself.
+Alice might also wish to minimize the total number of channels she has open.
+Instead, Alice can repurpose her existing open channels to send a tip to Gloria _without_ the need to open a channel directly with Gloria.
+This is possible, as long as there exists some path of channels from Alice to Gloria with sufficient capacity to route the tip.
+
+From previous chapters, we know Alice has an open channel with Bob, the coffee shop owner.
+Bob, in turn, has an open channel with the software developer Wei who helps him with the point of sale system he uses in his coffee shop.
+Wei is also the owner of a large software company which develops the game that Gloria plays, and they already have an open channel which Gloria uses to pay for the game's license and in-game items.
+
+If we draw out this series of payment channels, it's possible to manually trace a _path_ from Alice to Gloria that uses Bob and Wei as intermediary routing nodes.
 Alice can then craft a _route_ from this outlined path, and use it to send a tip of a few thousand satoshis to Gloria, with the payment being _forwarded_ by Bob and Wei.
+Essentially, Alice will pay Bob, who will pay Wei, who will pay Gloria.
+And no direct channel from Alice to Gloria is required.
 
 [[routing-network]]
 .The network of payment channels of our friends can be seen here:
 image:images/routing-network.png[]
 
-The main challenge is to do this in a way that prevents Bob and Wei from stealing the money that Alice wants to be delivered to Gloria.
-To understand how the Lightning Network protects the payment packages that are being routed through the network we compare the situation of indirect payments with physical payments with gold coins in the offline world.
-Let us assume Alice wanted to give 10 gold coins to Gloria and decides to ask Bob and Wei for help.
-How could Alice make sure that Bob and Alice does not run with the gold coins after receiving them?
-In the physical world, traditional legal contracts contracts may be used to safely transmit this cascade of payments.
+The main challenge is to do this in a way that prevents Bob and Wei from stealing the money that Alice wants delivered to Gloria.
+To understand how the Lightning Network protects the payment while being routed, we can compare to an example of routing physical payments with golden coins in the real world.
+
+Assume Alice wants to give 10 gold coins to Gloria, but does not have direct access to Gloria.
+However, Alice knows Bob, who knows Wei, who knows Gloria and so she decides to ask Bob and Wei for help.
+She can pay Bob to pay Wei to pay Gloria, but how does she make sure that Bob or Wei don't run off with the coins after receiving them?
+In the physical world contracts could be used for safely carrying out a series of payments.
 
 Alice could negotiate a contract with Bob which reads:
 
-_I (Alice) will give you (Bob) 10 golden coins if you pass them on to Wei_
+[alice-gloria-routing-1]
+----
+_I (Alice) will give you (Bob) 10 gold coins if you pass them on to Wei_
+----
 
-While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might just breach the contract and hope to not get caught by law enforcement.
-Even if Bob got caught by law enforcement, Alice faces the risk that he might be bankrupt, rendering her unable to actually claim those 10 golden coins.
-Assuming these issues are magically solved it, it's still unclear how to leverage such a contract to achieve our desired outcome: the coins ultimately being delivered to Gloria.
+While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might breach the contract and hope to not get caught by law enforcement.
+Even if Bob gets caught by law enforcement, Alice faces the risk that he might be bankrupt and be unable to return her 10 gold coins.
+Assuming these issues are magically solved, it's still unclear how to leverage such a contract to achieve our desired outcome: the coins ultimately being delivered to Gloria.
 
-Thus we improve our contract:
+We thus improve our contract:
 
-_I (Alice) will reimburse you (Bob) with 10 golden coins if you can proof to me (for example via a receipt) that you already have delivered 10 golden coins to Wei_
+[alice-gloria-routing-2]
+----
+_I (Alice) will reimburse you (Bob) with 10 gold coins if you can prove to me (for example via a receipt) that you already have delivered 10 gold coins to Wei_
+----
 
-Now you might ask yourself why should Bob sign such a contract as Bob now has the risk of _not_ getting reimbursed?
-Typically, in economic systems, participants must be properly compensated for contractual risk (whatever that may be), otherwise, they wouldn't agreed to said contract.
-Even putting aside the risk, Bob must _already_ have 10 gold coins to send to Gloria, otherwise, he wouldn't be able to participate in the contract.
-Therefore Bob must deal with the opportunity cost of allocating his capital to this contract, in addition to the counter party risk that would arise if Alice doesn't hold up her end.
-Adjusting things slightly to compensate Bob, Alice could offer a routing fee of Golden coin to Bob, and another to Wei who bares similar costs.
-Thus we alter the contract yet again, to factor in this new information:
+You might ask yourself why should Bob sign such a contract.
+He has to pay Wei but ultimately gets nothing out of the exchange, and he runs the risk that Alice might not reimburse him.
+Bob could offer Wei a similar contract to pay Gloria, but similarly Wei has no reason to accept it either.
+Even putting aside the risk, Bob abd Wei must _already_ have 10 gold coins to send, otherwise they wouldn't be able to participate in the contract.
+Thus Bob and Wei face both risk and opportunity cost for agreeing to this contract, and they would need to be compensated in order for them to accept it.
 
-_I (Alice) will reimburse you (Bob) with 12 golden coins if you can proof to me (for example via a receipt) that you already have delivered 11 golden coins to Wei_
+Alice can this make this attractive to both Bob and Wei, by offering them fees of 1 gold coin each, if they transmit her payment to Gloria.
+The final contract would instead read:
 
-Alice now promises Bob 12 golden coins.
-10 to be delivered to Gloria and two for the fees.
-She promises 12 to Bob if he shows proof that he has forwarded 11.
-The difference of 1 golden coin is the fee that Bob will earn for helping out with this particular payment process.
+[alice-gloria-routing-3]
+----
+_I (Alice) will reimburse you (Bob) with 12 gold coins if you can prove to me (for example via a receipt) that you already have delivered 11 golden coins to Wei_
+----
 
-As there is still the issue of trust and that even law enforcement does not protect Alice and Bob from malicious behavior they decide to add an escrow service.
-To resolve this issue, all parties opt to add in a 3rd party escrow service.
-This escrow service serves as our "ideal functionality", which will later be replaced by a more trust-minimized mechanism.
+Alice now promises Bob 12 gold coins.
+There are 10 to be delivered to Gloria and 2 for the fees.
+She promises 12 to Bob if he can prove that he has forwarded 11 to Wei.
+The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment.
 
-Of course Alice and Bob both have to trust this escrow service.
-Having such an escrow Alice could already provide the 12 golden coins to that service which would only release them to Bob if Bob shows the proof of delivering 11 golden coins to Wei.
+As there is still the issue of trust and the risk that either Alice or Bob don't honour the contract, all parties decide to use an escrow service.
+At the start of the exchange, Alice could "lock up" these 12 golden coins in escrow that will only be paid to Bob once he proves that he's paid 11 golden coins to Wei.
+This escrow service is an "ideal functionality", which will later be replaced by a more trust-minimized mechanism.
+Let's assume for now that everyone trusts this escrow.
 
-Using a bit of cryptography, it's actually possible for this proof to be contingent on a secret that only Gloria knows, which itself is included in the contract by including the sha256 hash of the secret in the contract.
-We call this hash of the receipt's secret, a payment hash, with the secret that "unlocks" the payment contracting, being known as the payment secret.
+In the Lightning Network, this "proof" of payment could take the form of a secret that only Gloria knows.
+In practice, this secret would be a large random number that is large enough to prevent others from guessing it (typically _very, very_ large number, encoded using 256 bits!).
+The secret could then be committed to the contract by including the sha256 hash of the secret in the contract itself. 
+We call this hash of the payment's secret the payment hash.
+The secret which "unlocks" the payment is called the payment secret.
 
-As Gloria, wants to ensure that no one else can guess this secret, in practice it's chosen to be a _very, very_ large number (typically encoded using 256 bits!).
-For simplicity, let's assume that Gloria's secret is actually just: `*Glorias secret*`.
+For now, we keep things simple and assume that Gloria's secret is simply the text line: `*Glorias secret*`.
 In order to "commit" to this secret, she computes the `sha256` hash which when encoded in hex, can be displayed as: `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`.
-You can verify this by typing `echo -n "Glorias secret" | sha256sum` to your Linux command line shell.
+footnote:[You can verify this by typing `echo -n "Glorias secret" | sha256sum` to your Linux command line shell.]
 
-As Alice wants to send 10 golden coins to Gloria she is told by Gloria to use this payment hash to receive a proof of payment.
-Alice now sets up a contract that reads:
+Since Alice wants to send 10 gold coins to Gloria, she is told by Gloria to use this payment hash to receive proof of payment.
+Alice now amends the previous contract to read:
 
-_I (Alice) will reimburse you (Bob) with 12 golden coins if you can show me a valid message - we call it preimage - that hashes to `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`. You can acquire this message by setting up a similar Contract with Wei who has to set up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 12 Golden coins to an trusted escrow before you set up your next contract._
+[alice-gloria-routing-4]
+----
+_I (Alice) will reimburse you (Bob) with 12 gold coins if you can show me a valid message that hashes to:`*f23c83...*`.
+You can acquire this message by setting up a similar Contract with Wei who has to set up a similar contract with Gloria.
+In order to assure you that you will get reimbursed I will provide the 12 gold coins to an trusted escrow before you set up your next contract._
+----
 
-After Bob and Alice agree to the contract and Bob receives the message from the escrow that Alice has deposited the 12 golden coins Bob negotiates a very similar contract with Wei.
-Note that due to the service fees he will only forward 11 golden coins to Wei and demand from Wei who also wants to earn a fee of 1 golden coin to show proof that 10 golden coins have been delivered to Gloria.
+This new contract now protects Alice from Bob not forwarding to Wei, protects Bob from not being reimbursed by Alice, and ensures that there will be proof that Gloria was ultimately paid via the hash of Gloria's secret.
+This valid message that hashes to the required number *f23c83...*` is called a *pre-image*
 
-_I (Bob) will reimburse you (Wei) with 11 golden coins if you can show me a valid message - we call it preimage - that hashes to `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`. You can acquire this message by setting up a similar contract with Gloria. In order to assure you that you will get reimbursed I will provide the 11 Golden coins to an trusted escrow before you set up your next contract._
+After Bob and Alice agree to the contract, and Bob receives the message from the escrow that Alice has deposited the 12 gold coins, Bob can now negotiate a similar contract with Wei.
 
+Note that since Bob is taking a service fee of 1 coin, he will only forward 11 gold coins to Wei once Wei shows proof that he has paid Gloria.
+Similarly, Wei will also demand a fee and will expect to receive 11 gold coins once he has proved that he has paid Gloria the promised 10 gold coins.
 
-As Wei gets message from the escrow that Bob has deposited the 10 golden coins Wei sets up a similar contract with Gloria:
+Bob's contract with Wei will read:
 
-_I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message - we call it preimage - that hashes to `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`. In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 Golden coins to an trusted escrow._
+[alice-gloria-routing-5]
+----
+_I (Bob) will reimburse you (Wei) with 11 gold coins if you can show me a valid message that hashes to:`*f23c83...*`.
+You can acquire this message by setting up a similar contract with Gloria.
+In order to assure you that you will get reimbursed I will provide the 11 gold coins to an trusted escrow before you set up your next contract._
+----
 
-After Gloria learns that the coins were deposited from the escrow, she reveals the secret preimage to Wei.
-As she was the one that originally committed to the secret in the form of a payment hash, she must know the secret, as otherwise there's no way she can be paid.
-Therefore, Alice provides the secret to Wei and the escrow service.
-Wei takes the preimage as a proof of payment and shows it to Bob.
-The escrow service releases the money so that Wei is reimbursed.
-Now Bob repeats the process by fulfilling the contract between Alice and him with the help of the secret preimage.
+Once Wei gets the message from the escrow that Bob has deposited the 11 gold coins, Wei sets up a similar contract with Gloria:
 
-With such a chain of contracts Bob and Wei were not able to run with the money as an escrow was used to prevent this.
-However if Gloria or anyone along this chain does not release the secret preimage, since everyone has already send golden coins to their escrow service but will never get reimbursed.
+[alice-gloria-routing-6]
+----
+_I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message that hashes to:`*f23c83...*`.
+In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 gold coins to an trusted escrow._
+----
+
+Everything is now in place.
+Alice has a contract with Bob and has placed 12 gold coins in escrow.
+Bob has a contract with Wei and has placed 11 gold coins in escrow
+Wei has a contract with Gloria and has placed 10 gold coins in escrow.
+It is now up to Gloria to reveal the secret, the *pre-image*
+
+Since Gloria is the one who came up with the secret (and committed it to the contract in the form of a payment hash), she now provides it to Wei.
+He checks that it hashes to *f23c83...*` and the escrow releases the 10 golden coins to Gloria.
+Wei now provides the secret to Bob.
+Bob checks it and the escrow releases the 11 gold coins to Wei.
+Bob now provides the secret to Alice.
+Alice checks it and the escrow releases 12 gold coins to Bob.
+
+All the contracts are now settled.
+Alice has paid a total of 12 gold coins, 1 of which was recieved by Bob, 1 of which was recieved by Wei, and 10 of which were received by Gloria. 
+With a chain of contracts like this in place, Bob and Wei would not have been able to run with the money as they actually deposited their money first.
+
+However, one issue still remains.
+If Gloria refused to release her secret pre-image, then Wei, Bob, and Alice would all have their coins stuck in escrow but wouldn't be reimbursed.
+And similarly if anyone else along the chain failed to pass on the secret, the same thing would happen.
 So while no one can steal money from Alice everyone can still lose money.
-This is obviously not desirable.
+
 Luckily, this can be resolved by adding a deadline to the contract.
-With this new deadline, the contract has to be fulfilled in time, or it expires, with the escrow refunding the money to the party that made the original deposit.
-We call this deadline a "time lock "as the deposit is locked with the escrow service for a certain amount of time and then released if no proof of payment was provided.
 
-In order to factor this in, the Contract between Alice and Bob is once again amended with a new clause:
+We could amend the contract so that if it is not fulfilled by a certain deadline, then the contract expires and the escrow service returns the money to the person who made the original deposit.
+We call this deadline a "time lock". 
+The deposit is locked with the escrow service for a certain amount of time, and is eventually released even if no proof of payment was provided.
 
-_Bob has 24 hours to show the secret after the contract was signed. If the time has passed Alice will get her deposit back from the escrow service and the contract becomes invalid._
+In order to factor this in, the contract between Alice and Bob is once again amended with a new clause:
 
-Bob of course now has to make sure to receive the proof of payment before 24 hours is up.
-If he would receive this proof after 24 hours, the contract between him and Alice would already be nullified and Bob would not get reimbursed.
-After he signed the contract with Alice he creates a new (altered) original contract between him and Wei that reads:
+[alice-gloria-routing-7]
+----
+_Bob has 24 hours to show the secret after the contract was signed.
+If he does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
+----
 
-_Wei has 22 hours to show the secret after the contract was signed. If the time has passed Bob will get his deposit back from the escrow service and the contract becomes invalid._
+Bob, of course, now has to make sure he receives the proof of payment within 24 hours.
+Even if he successfully pays Wei, if he receives the proof of payment later than 24 hours he will not be reimbursed.
+In turn, he will alter his contract with Wei in the following way:
 
-As you have guessed Wei is now incentivised create a _new_ (altered) contract with Gloria:
+[alice-gloria-routing-8]
+----
+_Wei has 22 hours to show the secret after the contract was signed.
+If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
+----
 
-_Gloria has 20 hours to show the secret after the contract was signed. If the time has passed Wei will get his deposit back from the escrow service and the contract becomes invalid._
+	As you might have guessed, Wei is now incentiviced to also alter his contract with Gloria:
 
-With such a chain of contracts we can be sure that after 24 hours of setting up the first contract that the payment was either successfully delivered from Alice via Bob and Wei to Gloria or that the payment has failed and was not conducted at all.
+[alice-gloria-routing-9]
+----
+_Gloria has 20 hours to show the secret after the contract was signed.
+If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
+----
+
+With such a chain of contracts we can ensure that, after 24 hours, the payment will succesfully deliver from Alice to Bob to Wei to Gloria, or it will fail and everyone will be refunded.
 Either the contract failed or succeeded, there's no middle ground. 
 In the context of the Lightning Network, we call this "all or nothing" property "atomicity".
 
 As long as the escrow is trustworthy and faithfully performs its duty, then no party will have their coins stolen in the process.
 The pre-condition to this _route_ working at all, is that all parties in the path already needed to have enough money to satisfy the required series of deposits.
-While this seems like a minor detail we will see in this chapter, this requirement is actually one of the harder issues for Lightning Network nodes.
-As parties are required to deposit the funds used for the payment in escrow, they aren't able to use this money for anything else while the contract is active.
-However, as discussed earlier, they're compensated for this opportunity cost in the forms of earned routing fees when they successfully forward the payment.
 
-In the next section, we'll dive into the details of the "HTLC", exploring the properties that allow it to implement the concept of a conditional chained end to end secure payment _without_ involving the 3rd party escrow.
-You'll see how the Bitcoin network can be seen as a stand-in for a trusted third party to ensure proper HTLC contract execution. 
-After that, we'll explore how a user is able to use an HTLC to "route" a payment through the network securely.
-In the Lightning Network today, we use a technique called source-based onion routing, though it's also possible to route payment with alternative techniques.
-Finally, we'll dive into the precise details concerning the exact mechanics of forward, settle ling, and cancelling HTLCs in the network.
+While this seems like a minor detail we will see in later this chapter that this requirement is actually one of the more difficult issues for Lightning Network nodes.
+It becomes progressively more difficult as the size of the payment increases.
+Furthermore, the parties cannot use their money while it is locked in escrow.
+Thus users forwarding payments face an opportunity cost for locking the money, which is ultimately reimbursed through routing fees, as we saw in the above example.
+
+In the following two sections we will discuss how the Bitcoin scripting language can be used to set up conditional chained end-to-end secure payment contracts _without_ third party escrows, similar to the gold coin contracts described above.
+These are called Hash Time Locked Contracts (HTLCs).
+For HTLCs, there are no trusted third parties who act as an escrow; the Bitcoin Network itself becomes the "escrow" service.
+
+After that, we will discuss users are able to use an HTLC to "route" a payment through the network securely.
+In the Lightning Network in 2020 we use a technique called source-based onion routing, although it is also possible to route payments with alternative techniques.
+Finally we will discuss the precise details concerning the exact mechanics of forwarding, settling, and cancelling HTLCs in the network.
 
 = Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment =
 
