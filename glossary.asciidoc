@@ -33,6 +33,14 @@ Some additional definitions, to be cleaned up and moved into alphabetic order ar
 address::
     A Bitcoin address looks like +1DSrfJdB2AnWaFNgSbv3MZC2m74996JafV+. It consists of a string of letters and numbers. It's really an encoded base58check version of a public key 160-bit hash. Just as you ask others to send an email to your email address, you would ask others to send you bitcoin to one of your Bitcoin addresses.
 
+AMP::
+   Atomic Multipath Payments.
+   A method for payments where the sender can use more than one of their channels to forward a payment.
+   By default, a sender uses one channel to forward payment. 
+   This can cause issues, for example, where a sender has an two channels with an outgoing capacity of 0.5 BTC but wishes to forward a payment of 0.8 BTC.
+   By default, this payment would fail without rebalancing. 
+   With AMP, the sender can split the payment between these channels and either have the entire payment succeed or fail, with no partial payment possible. 
+
 Asymmetric Cryptographic System::
     Asymmetric cryptography, or public-key cryptography, is a cryptographic system that uses pairs of keys: public keys which may be disseminated widely, and private keys which are known only to the owner.
     The generation of such keys depends on cryptographic algorithms based on mathematical problems to produce one-way functions.
@@ -45,14 +53,14 @@ Autopilot::
     Autopilots are not part of the Lightning Network Protocol.
 
 balance::
-    The balance of a payment channel is encoded by the most recent commitment transaction.
-    The balance states the amount of bitcoin that belongs to each channel partner and the amount that are in flying HTLCs (HTLCs which are currently in the routing process and have not been settled yet).
-    The sum of the balance sheet equals the capacity.
-    The channel balance is only known by the channel partners.
-    If the channel balance is completely on one side of the channel, i.e. one channel partner has all of the bitcoin in the channel, this particular partner cannot receive any payments through this channel. This partner can, however, send payments and forward HTLCs.
-    The balance that a node has on its own side of the channel (and is thus able to spend) is called the outbound capacity.
-    The node's channel partner would refer to that balance as its inbound capacity, i.e. the amount that it is able to receive.
-    Nodes should aim to have balanced channels with similar inbound and outbound capacities.
+    The balance of a payment channel is the amount of bitcoin that belongs to each channel partner.
+    For example, Alice could open a channel with Bob for the value of 1 BTC.
+    The channel balance is then 1 BTC to Alice and 0 BTC to Bob.
+    As the users transact the channel balance will update.
+    For e.g. if Alice sends 0.2 BTC to Bob, then the balance is now 0.8 BTC to Alice and 0.2 to Bob.
+    When the channel is closed the bitcoin in the channel will be divided between the two channel partners according to the latest balance encoded in the commitment transaction.
+    In the Lightning Network the ability to send and receive payments is limited by channel balances.
+    See _capacity_.
 
 bech32::
     A checksummed base32 address format, at most 90 characters long, and capable of error correction. It is native to segregated witness (BIP173). Also referred to as "bc1" because of the current starting values of each address. Transactions made using bech32 are smaller in most cases, and therefore, may only require a lower fee.
@@ -64,9 +72,10 @@ bitcoin, Bitcoin::
     Depending on context, could refer to the name of the currency unit (the coin), the network or the underlying enabling protocol. Written as bitcoin with a lowercase "b" usually refers to the currency unit. Bitcoin with an uppercase "B" usually refers to the protocol. See https://www.bitcoin.org for general information. The source code can be found at https://github.com/bitcoin/bitcoin.
 
 Bitcoin mining::
-    Bitcoin mining serves two purposes.
-    Firstly, Bitcoin transactions are validated and fixed in the sense that they cannot be double-spent.
-    Secondly, new bitcoin are being created within the coinbase of each block.
+    Bitcoin mining is the process of constructing a block from recent Bitcoin transactions and then solving a computational problem required as Proof of Work.
+    It is the process by which the shared bitcoin ledger (i.e. the bitcoin blockchain) is updated and by which new transactions are included in the ledger.
+    It is also the process by which new bitcoins are issued.
+    Every time a new block is created, the mining node will receive new bitcoins created within the coinbase transaction of that block.
 
 block::
     A grouping of transactions, marked with a timestamp, and a fingerprint of the previous block. The block header is hashed to produce a proof of work, thereby validating the transactions. Valid blocks are added to the main blockchain by network consensus.
@@ -118,14 +127,11 @@ cold storage::
     Refers to keeping a reserve of bitcoin offline. Cold storage is achieved when Bitcoin private keys are created and stored in a secure offline environment. Cold storage is important for anyone with bitcoin holdings. Online computers are vulnerable to hackers and should not be used to store a significant amount of bitcoin.
 
 Commitment Transaction::
-    Commitment Transactions encode the balance of the payment channel with the help of one output for each channel partner by spending the funding transaction.
-    When payments are being made or forwarded through the channel, a double-spend of the commitment transactions is made by creating a new pair of commitment transactions.
-    One output also holds a Revocable Sequence Maturity Contract which is made to disincentivize a channel partner to broadcast an old commitment transaction to the Bitcoin network.
-    This effectively invalidates old commitment transactions.
-    Broadcasting a commitment transaction forces an unilateral channel close.
-    Up to 483 Hashed Time Lock Contracts can be stored as additional outputs in the commitment transaction to allow the routing of payments.
-    In order to be able to ascribe blame in the case of unilateral channel closes, each channel partner has a slightly different commitment transaction.
-    // TODO probably don't explain the difference with the RSMC here
+     A commitment transaction is a Bitcoin transaction, signed by both channel partners, that encodes the latest balance of a channel.
+     Every time a new transaction is made or forwarded using the channel, the channel balance will update, and a new commmitment transaction will be signed by both parties.
+     Importantly, for a channel between Alice and Bob, both Alice and Bob keep their own version of the commitment transaction, that is also signed by the other party.
+     At any point, the channel can be closed by either Alice or Bob if they submit their commitment transaction to the Bitcoin blockchain.
+     Submitting an older (outdated) commitment transaction is considered "cheating" (i.e. protocol breach) in the Lightning network and can be penalized by the other party claiming all the funds in the channel for themselves.     
 
 computationally easy::
     A problem is considered to be computationally easy if there exists an algorithm that is able to compute the solution to the problem rather quickly.
@@ -182,10 +188,9 @@ ephemeral key::
     Even if an ephemeral key leaks, only information about a single payment becomes public.
 
 fees::
-    The sender of a transaction often includes a fee to the network for processing the requested transaction.
-    Not to be confused with a routing fee for payments on the Lightning Network.
-    Nodes on the Lightning Network are allowed to take a routing fee for forwarding payments.
-    The routing fee is the sum of a fixed _base_fee_ and a _fee_rate_ which depends on the payment amount.
+    In the context of Bitcoin, the sender of a transaction includes a fee paid to miners for including the transaction in a block. 
+    In the context of the Lightning Network, nodes will charge routing fees for forwarding other users' payments.
+    Individual nodes can set their own fee policies which will be calculated as the sum of a fixed _base_fee_ and a _fee_rate_ which depends on the payment amount.
 
 funding transaction::
     The funding transaction is used to open a payment channel.
@@ -240,6 +245,12 @@ invoice::
     Invoices include the payment hash, the amount, a description and the expiry time.
     Invoices can also include a fallback Bitcoin address to which the payment can be made in case no route can be found, as well as hints for routing a payment through a private channel.
 
+JIT Routing::
+   "Just in Time" Routing. 
+   An alternative to source-based routing first proposed by co-author René Pickhardt.
+   With JIT routing, intermediary nodes along a path can pause an in-flight payment to rebalance their channels. 
+   This might allow them to successfully forward payments that might otherwise have failed due to lack of outgoing capacity. 
+
 Lightning message::
    A Lightning message is an encrypted data string that can be sent between two peers on the Lightning Network. Similar to other communication protocols Lightning messages consist of a header and a body. The header and the body have their own HMAC. This ensures that the headers of fixed length will also be encrypted and adversaries won't be able to figure out what messages are being sent by inspecting the length.
 
@@ -249,8 +260,11 @@ Lightning Network, Lightning Network Protocol, Lightning Protocol::
    Other components of the Lightning Network are the gossip protocol, the transport layer, and payment requests.
    The source code is available at https://github.com/lightningnetwork.
 
-Lightning Network Node, Lightning Node, node::
-    TBD.
+Lightning Network Node, Lightning Node::
+    A participant on the Lightning Network.
+    A Lightning user will run Lightning node software in order to interact with other Lightning nodes.
+    Lightning nodes have the ability to open channels with other nodes, send and receive payments, and route payments from other users.
+    Typically a Lightning node user will also run a Bitcoin node.
 
 lnd::
     Implementation of the Lightning Network Protocol by the San Francisco based company https://lightning.engineering[Lightning Labs].
@@ -278,8 +292,12 @@ node::
     See Lightning Network Node
 
 network capacity::
-    Lightning network capacity is the value of bitcoin locked and circulated inside Lightning Network and is the sum of capacities of each channel.
-    It is a mesurement of the maximum value a user can transfer in Lightning Network because routing nodes will need to have sufficient balances. It also reflects the usage of Lightning Network to some extent, because the higher value is circulated inside Lightning Network the more likely that more people are using it.
+    Lightning network capacity is the total amount of bitcoin locked and circulated inside the Lightning Network. 
+    It is the sum of capacities of each public channel.
+    It reflects the usage of the Lightning Network to some extent because we expect that people lock bitcoin into Lightning channels in order to spend it or forward other users' payments.
+    Hence the higher the amount of bitcoin locked in channels, the higher the expected usage of the Lightning Network.
+    Note that since only public channel capacity can be observed, the true network capacity is unknown.
+    See private channel.
 
 Noise_XK::
     The template of the Noise protocol framework to establish an authenticated and encrypted communication channel between two peers of the Lightning Network.
@@ -299,7 +317,11 @@ onion routing::
     https://en.wikipedia.org/w/index.php?title=Onion_routing&oldid=870849217
 
 output::
-    Output, transaction output, or TxOut is an output in a transaction which contains two fields: a value field for transferring zero or more satoshis and a pubkey script for indicating what conditions must be fulfilled for those satoshis to be further spent.
+    The output of a Bitcoin transaction, also called an "Unspent Transaction Output" or "UTXO"
+    An output is essentially an amount of bitcoins that can be spent, as well as a script that defines what conditions need to be fulfilled for that bitcoin to be spent.
+    Every bitcoin transaction consumes the outputs of the sender and creates new outputs that can be spent later by the receiver.
+    A typical bitcoin output will require the signature of the owner to be spent, but outputs can require the fulfillment of more complex scripts.
+    For example, a multisignature script requires that two or more users to sign before an ouput can be spent, which is a fundamental building block of the Lightning Network.
 
 P2PKH::
     P2PKH or Pay-to-PubKey-Hash is a type of transaction that pays a Bitcoin address that contain P2PKH scripts.
@@ -324,24 +346,27 @@ payment::
     The invoice includes a payment hash which is the hash of a secret preimage.
     This payment hash is used by the Hashed Time Lock Contracts during the routing process.
 
-payment channels::
-    A micropayment channel or payment channel is a class of techniques designed to allow users to make multiple Bitcoin transactions without committing all of the transactions to the Bitcoin blockchain. In a typical payment channel, only two transactions are added to the blockchain, but an unlimited or nearly unlimited number of payments can be made between the participants.
-
 payment channel::
-    Payment channels are the core building blocks of the Lightning Network.
-    They can be used to send a predefined amount of bitcoin back and forth between two parties.
-    Sending bitcoin over a payment channel happens off chain, so only the funding transaction and either the commitment or closing transaction is stored in the blockchain.
-    There are currently three methods known to construct a fully duplex bidirectional payment channel.
-    Christian Decker proposed a method in his PhD thesis based on invalidation trees.
-    In the Lightning Network whitepaper, Joseph Poon and Tadge Dryja describe the Revocable Sequence Maturity Contract based method that is currently being implemented on the Lightning Network.
-    Recently Christian Decker et al. came up with the Eltoo mechanism which would require a Bitcoin softfork.
+    A payment channel is a financial relationship between two nodes on the Lightning Network, created using a multi-signature Bitcoin transaction.
+    The channel partners can use the channel to send Bitcoin back and forth between each other without committing all of the transactions to the Bitcoin blockchain. 
+    In a typical payment channel only two transactions, the funding transaction and the commitment transaction, are added to the blockchain.
+    The other transactions are not included in the blockchain and are said to occur "off-chain".
+    There are various methods of constructing a payment channel discussed further in the chapter on channel construction.
 
 peer::
     Two parties which form a payment channel are called peers.
     In particular, they are connected via an encrypted, authenticated communication over a TCP Socket.
 
-Penalty Transaction::
+penalty transaction::
     Look at the Breach Remedy Transaction.
+
+private channel:
+    A channel not announced to the rest of the network. 
+    Technically "private" is a misnomer as these channels can still be identified through routing hints and commitment transactions.
+    We suggest they are better described as "unannounced" channels.
+    With an unannounced channel, the channel partners can send and receive payments between each other as normal.
+    However the rest of the network will not be aware of it and so cannot typically use it to route payments.
+    As the number of and capacity of unanounced channels is unknown, the total public channel count and capacity only accounts for a portion of the total Lightning Network.
 
 preimage::
     In mathematics, given a function $f$ and a value $h$ the preimage of $h$ with respect to $f$ is the set of values $R = \{r_1,r_2,...\}$ such that $f(r_i) = h$ for all $\r_i \in R$.
@@ -351,8 +376,11 @@ preimage::
     Cryptographers use the term preimage for an arbitrary element of $R$.
     In particular, when using SHA-256 we should state that each element has an infinite amount of preimages.
     Yet it is still believed to be computationally hard to find such a preimage.
+
 proof of work::
-    A piece of data that requires significant computation to find. In Bitcoin, miners must find a numeric solution to the SHA256 algorithm that meets a network-wide target, the difficulty target.
+    A piece of data that requires significant computation to find.
+    In Bitcoin, miners must find a numeric solution to the SHA256 algorithm that meets a network-wide target, called the difficulty target.
+    See _bitcoin mining_
 
 Relative Timelock::
     Relative Timelock is a kind of timelock that allows an input to specify the earliest time it can be added to a block based on how long ago (which is relative) the output referred by that input was included in a block. Such a feature is jointly achieved by nSequence field and CheckSequenceVerify opcode, which are introduced by BIP68/112/113.
@@ -466,12 +494,25 @@ transport layer::
     The transport layer provides communication services between computers such as flow control, verification, and multiplexing (to allow multiple applications to work on a computer at the same time).
 
 unspent transaction output (UTXO)::
-    UTXO is an unspent transaction output that can be spent as an input to a new transaction.
+    See _output_
 
 upstream payment::
     TBD.
 
 wallet::
     Software that holds all your Bitcoin addresses and secret keys. Use it to send, receive, and store your bitcoin.
+    
+watchtower::
+    Watchtowers are a security service on the Lightning network that monitor channels.
+    In the case that one of the channel partners goes offline or loses their backup, a watchtower keep their own backups and can restore their channel information.
+    They also monitor the Bitcoin blockchain and can submit a penalty transaction in the case that one of the partners tries to "cheat" by broadcasting an outdated state.
+    Watchtowers can be run by the channel partners themselves, or as a paid service offered by a third party.
+    Wathctowers have no control over the funds in the channels themselves.
+    
+
+zombie channel::
+    An open channel where one of the channel partners has gone permanently offline. 
+    Zombie channels cannot be used to route payments and have only downsides to the online partner.
+    Zombie channels are better off closed but they are tricky to classify as the online partner can't always be sure if the offline party will stay offline. 
 
 Some contributed definitions have been sourced under a CC-BY license from the https://en.bitcoin.it/wiki/Main_Page[Bitcoin Wiki], https://en.wikipedia.org[Wikipedia], https://github.com/bitcoinbook/bitconbook[Mastering Bitcoin] or from other open source documentation sources.

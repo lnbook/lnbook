@@ -1,21 +1,86 @@
 Chapter overview:
+
   * explains the channel graph, and how it's modified+verified
 
 Relevant questions to answer:
+
   * Gossip announcements:
-      * How does a peer announce a new channel to the network?
-      * How do nodes verify a channel announcement? Why should they verify one in the first place?
-      * How does a node control _how_ a payment is routed through its channel?
-      * What knobs exist for a node to set in their channel updates?
-      * How often are channel updates sent?
-      * How does a node update its node in the channel graph? Do we we need to verify this?
-      * How quickly does an update propagate?
-      * What are "zombie" channels? Why do they matter?
+      - How does a peer announce a new channel to the network?
+      - How do nodes verify a channel announcement? Why should they verify one in the first place?
+      - How does a node control _how_ a payment is routed through its channel?
+      - What knobs exist for a node to set in their channel updates?
+      - How often are channel updates sent?
+      - How does a node update its node in the channel graph? Do we we need to verify this?
+      - How quickly does an update propagate?
+      - What are "zombie" channels? Why do they matter?
   * Channel graph syncing:
-      * What are the various ways a node can sync the channel graph?
-      * Which is the most efficient?
-      * What is the "gossip query" system?
-      * Does a node need to keep up with all gossip updates? Does this change if they're a routing node or mobile client?
+      - What are the various ways a node can sync the channel graph?
+      - Which is the most efficient?
+      - What is the "gossip query" system?
+      - Does a node need to keep up with all gossip updates? Does this change if they're a routing node or mobile client?
   * Protocol Extensions via Feature Bits and TLV:
       * How can the channel graph be upgraded using feature bits and TLV fields?
       * How does a receiver signal that they can accept MPP/AMP payments?
+      
+      
+### What are "Zombie" channels and why do they matter?
+
+A zombie channel can be defined as a channel in which your channel partner has been inactive for so long, that you do not expect them come back online in the future.
+This could be because your channel partner has lost access to their or has permanently shut down that node.
+As such, a zombie channel is technically still an open channel, but cannot be used to route payments.
+
+Zombie channels offer no benefit to the user but have several downsides:
+
+* Any capacity you have locked in the channel is useless for routing payments and could be allocated elsehwere
+* If you lose access to your own node and restore it with only your private key, you will lose access to funds in open zombie channels
+* If you lose access to your own node and restore it with your private key and channel backups, you will not be able to contact your channel partner to cooperatively close the channel and may also lose the funds
+* Public zombie channels are a burden on the network, as information about them is communicated to the rest of the network, but they cannot be used to route payments
+
+Identifying zombie channels is a challenge as it is not always clear if the channel partner is permanently offline.
+A partner node that is offline for a long period may eventually return online in the future.
+However, once a zombie channel is identified, it is recommended to close them and a force close is generally required.
+
+
+### Gossip Announcements
+
+#### How does a peer announce a new channel to the network?
+Let's assume that Alice and Bob have just opened a channel together.
+How do they let the rest of the network know, so that the channel can be used for forwarding payments?
+Well firstly, they don't need to.
+Alice and Bob can choose not to announce the channel and simply use it to transfer bitcoin between each other.
+In this case, they won't earn any fees for forwarding payments.
+However, assuming they do want the channel to be public, they will have marked the channel as public when they initially agreed to open it.
+
+First, they'll have to wait until the funding transaction is confirmed (usually six confirmations).
+Once it's confirmed, Alice's and Bob's nodes will now use the `channel_announcement` message to let the rest of the network know the good news.
+This announcement message contains some important information:
+
+* *Channel ID*: a short description of the channel that tells users which outputs in which transaction in which Bitcoin block were used to fund the channel
+* *Signatures from Alice and Bob*: Remember that the channel funds are locked in a 2-of-2 multisignature address, for which Alice and Bob each hold one of the two keys.
+Alice and Bob will each sign from their key, proving that their nodes control the funds in the channel.
+
+They will then send this `channel_announcement` message to each of their peers.
+
+Note that while the `channel_announcement` message makes their peers aware of their channel, their peers won't yet be able to use the channel for forwarding payments.
+First, Alice or Bob will have to communicate other information, such as their fee policy, which we will discuss below.
+But first, how do their peers verify that the channel announcement is legitimate?
+
+#### Verifying the channel
+
+Let's assume Wei receives this announcement from Bob.
+How does he know that this is a real channel, and why should he even bother to check it?
+
+Well, verifying a channel is pretty important.
+If Wei tries to forward any payments through a channel that doesn't exist, his payments are going to fail.
+Even if the channel does exist, Wei still needs assurances that Bob and Alice actually control the funds inside of it.
+Alice and Bob could potentially dupe him by claiming ownership of a channel that actually belongs to someone else.
+So Wei will definintely want to verify before he updates his channel graph.
+
+Firstly, Wei will check the channel ID to discover which Bitcoin transaction contains the channel funds.
+He will then look up this transaction on the Bitcoin blockchain and he should discover a P2WSH bitcoin UTXO that is signed by both Alice and Bob.
+Secondly, Wei will verify the signatures in the channel annoucenment message and confirm that the two nodes who signed the channel announcement are actually Alice and Bob.
+Once he's done so, he's convinced that the channel is funded and that Alice and Bob are the funders and owners of that channel.
+If any of these checks fail, he'll ignore the channel announcement.
+
+Once Wei is satisifed that the channel announcement checks out, he'll update his channel graph.
+He will also send information about this channel to his peers, and they will verify it for themselves.
