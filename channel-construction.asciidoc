@@ -1,46 +1,43 @@
-Payment channels are the core and most fundamental building block of the Lightning Network.
+After you have learnt about payment channels in the first half of the book and after we explained how they can be connected to a network we want to finally dig down and explain the construction of payment channels in detail.
 Of course, every detail of a technology exists for a reason and is important.
-However the Lightning Network is literally built around the idea and concept of payment channels.
+But we believe that payment channels are the core and most fundamental building block of the Lightning Network around.
+It is literally built around the idea and concept of payment channels.
+Thus in order master the Lightning Network you should to be able to understand how payment channels will be constructed.
+As several methods for channels exist we stress that it is not important to remember all the details of every method.
+As with most technologies it is important to understand the core concepts and building blocks which we will try to lay out for you as clearly as possible while still emphasizing on the technical details.
+
 In the previous chapters you have already learned that payment channels
 
 * allow two peers who created it to send and receive Bitcoin up to the amount specified by the capacity of the channel as often as they want to.
-* split the capacity of the channel into a balance between the two peers which - as long as the channel is open is only known by the owners of the channel and increases privacy.
+* split the capacity of the channel into a balance between the two peers which - as long as the channel is open - is only known by the owners of the channel and increases privacy.
 * do not require peers to do any additional onchain transactions other than the one needed to open and - potentially at a later state - to close the channel.
 * can stay open for an arbitrary time. Potentially in the best case forever.
-* do not require peers to trust each other as any attempt by a peer to cheat would enable the other peer to receive all the funds in the channel as a panality.
-* can be connected to a network and allow peers to send money a long a path of connected channels without the necessity to trust the intermediary nodes as they have no ability to steal the Bitcoin that are being forwarded.
-*
+* do not require peers to trust each other as any attempt by a peer to cheat would enable the other peer to take all the funds in the channel as a penalty.
+* can be connected to a network and allow peers to send money a long a path of connected channels without the necessity to trust the intermediary nodes as they do not have the ability to steal the Bitcoin that are being forwarded.
 
 In this chapter we will dig deeper into the protocol details that are needed to open and close payment channels.
-Working through this rather technical chapter you will be able to understand how the protocol design achieves the properties of payment channels.
+Especially with the opening part of a payment channel the ideas for updating a channel should already become clear but we will defer to explain the details how HTLCs are being used in the channel operation chapter which comes directly after this chapter.
+Working through this rather technical chapter you will be able to understand how the protocol design achieves the main properties of payment channels.
 Where necessary some information from the first chapters of this book will be repeated.
 If you are new to the topic we highly encourage you to start there first.
 If you however already know a fair share about bitcoin script, OP_CODES and protocol design it might be sufficient to skip the previous chapter and start here with us.
 This books follows the construction of payment channels as described in BOLT 02 which is titled `peer protocol` and describes how two peers communicate to open, maintain and close a channel.
-There will be one big difference though.
-We will only discuss opening and closing a channel.
-The operation and maintainance of a channel which means either making or forwarding a payment is discussed in our chapter about routing.
-Also other constructions of payment channels are known and being discussed by the developers.
-Historically speaking these are the Duplex Micropayment channels introduced by Christian Decker during his time as a PhD student at ETH Zuric and the eltoo channels which where also introduced by Christian Decker.
-The eltoo channels are certainly a more elgant and cleaner why of achieving payment channels with the afore mentioned properties.
-However they require the activation of BIP 118 and a softfork and are - at the time of writing - a potential future protocol change.
-Thus this chapter will only focus on the pentalty based channels as described in the Lightning Network Whitepaper and specified in BOLT 02 which are currently supported by the protocol and the implementations.
+As stated we will only discuss opening and closing a channel in this chapter and
+The operation and maintainance of a channel which means either attempting to make or forward a payment as well as failing or settling such attempts is the normal operation and will be discussed in the next chapter.
 
-[NOTE]
-====
-The Lightning Network does not need consensus of features across it's participants.
-If the Bitcoin Softfork related to BIP 118 activates and people implement eltoo channels nodes that support eltoo can create payment channels and the onion routing of payments a long a path of channels would work just fine even if some of the channels are the modern eltoo channels or some channels are the legacy channels.
-Actually when Lightning network connections are established nodes signal feature bits of global and local features that they support.
-Thus havning the ability to create eltoo channels would just be an additional feature bit.
-In this sense upgrading the Lightnign Network is much easier than upgrading Bitcoin where consensus among all stakeholders is needed.
-====
+=== Summary of what you (should) know about payment channels and Bitcoin
 
-Let's quickly summarize what you should already know about payment channels on a technical level and for what you will learn the details in this chapter.
-A payment channel is encoded as an unspent 2-of-2 multisignature transaction output.
-The capacity of the channel relates to the amount that is bound to the unspent 2-of-2 multisignature transaction output.
-It is opened with the help of a funding transaction that sends bitcoin to a 2-of-2 multisignature output together with a communication protocol that helps to initialize and maintain its state.
-The balance of the channel encodes how the capacity is split between the two peers who maintain the channel.
-Technically the balance is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
+Let's quickly summarize what you hopefully already know about payment channels on a technical level after reading the book thus far.
+Let us emphasize that knowing does not necessarily mean understanding yet.
+
+1. A payment channel is encoded as an unspent 2-of-2 multisignature transaction output.
+2. The capacity of the channel relates to the amount that is bound to the unspent 2-of-2 multisignature transaction output.
+3. It is opened with the help of a funding transaction that sends bitcoin to a 2-of-2 multisignature output.
+4. The funding tx can only be broadcasted to the Bitcoin network if a refund or settlement transaction exist.
+5. The channel also consists of a communication protocol that helps to initialize and maintain its state.
+6. The balance of the channel encodes how the capacity is split between the two peers who maintain the channel. Technically the balance is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
+7. The commitment transaction will include scripts and contracts that allow owners of the channel to take all funds in case the other party tries breach the protocol
+8. There are three ways of closing a channel, the good, the bad and the ugly which refer to the mutual close, forced close and the penalty close respectively.
 
 .Bitcoin, Lightning and "Ownership" of funds
 ****
@@ -48,16 +45,32 @@ When someone says they 'own' bitcoin they typically mean that they know the priv
 The private key allows the owner to produce a signature for a transaction that spends the bitcoin by sending it to a different address.
 Thus 'ownership' of bitcoin can be defined as the ability to spend that bitcoin.
 
-If you have an unpublished but signed transaction from a 2-of-2 multisignature address, where some outputs are sent to an address you own, and additionally you own one of the private keys of the multisignature address, then you effectively own the bitcoin of that output.
-Without your help no other transaction from the 2-of-2 multisignature address can be produced.
+If you have an unpublished but signed transaction from a 2-of-2 multisignature address, where some outputs are sent to an address you own, and additionally you exclusively know one of the private keys of the multisignature address, then you effectively own the bitcoin of that output.
+Without your help no other transaction from the 2-of-2 multisignature address can be produced (as only you possesess one of the needed keys to sign a transaction that spends from this address)
 However, without the help of anybody else you can transfer the funds to an address which you control.
+You do that by broadcasting the transaction to the bitcoin network which will accept it as it has valid signatures.
+As the funds in this transaction go to a regular address for which you controll the private key you can again move the funds and thus you effectively own them.
 On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-of-2 multisignature address.
+While your funds on the lightning network are called to be "off-chain" they are actually very much on chain and very much owned by you just like you might own other bitcoin.
 
+One thing about the Lightning Network is however messing with this understanding of ownership.
+On the Lightning network there exist several presigned Transactions which allocate some of the bitcoin to you and some to your channel partner.
+Without the the ability to sequence transaction and invalidate old ones via the penalty based revocation mechanism (or other techniques) we could not define clear ownership as the funds would be distributed among its two owners according to which ever transaction would first be broadcasted and succesfully mined.
+
+If the last paragraph of this summary was confusing: No worries! We are getting there now!
 ****
 
-These commitment transactions should never hit the blockchain and serve as a safty net for the participants in case the channel partner becomes unresponsive of disappears.
-They are also the reason why the Lightning Network is called an offchain scaling solution.
+## Opening a channel
+
+At the time of writing this book payment channels the protocol only supports the opening of the channel by one peer.
+
+[Note]
+====
+These commitment transactions should never hit the blockchain and serve as a safety net for the participants in case the channel partner becomes unresponsive of disappears.
+They are also the reason why the Lightning Network is called an off-chain scaling solution.
 Each channel partner has both signatures for one of the commitment transactions from the sequence of pairs.
+=====
+
 The split of the capacity is realized by a `to_local` and a `to_remote` output that is part of every commitment transaction.
 The `to_local` output goes to an address that is controlled by the peer that holds this fully signed commitment transaction.
 `to_local` outputs, which also exist in the second stage HTLC transactions - which we discuss in the routing chapter - have two spending conditions.
@@ -251,222 +264,31 @@ Once the channel is open Alice will be able to send 99k satoshi along this chann
 Bob on the other side will be able to receive 99k satoshi along that channel.
 This means that initially Alice will not be able to recieve Bitcoins on this channel and that Bob initially will not be able to send Bitcoin along that channel.
 
-=== Forwarding payments with HTLCs
-In previous chapters we have seen that payment channels are maintained by two nodes by keeping two disjoint sequences of commitment transactions.
-The pair of latest commitment transactions in both sequences encodes the current, agreed upon balance in the channel.
-We have stated that two channel partners negotiate a new commitment transaction in order to change the balance and conduct a payment from one to another.
-We are finally at the point to explain the communications protocol via Lightning messages and the usage of HTLCs that is executed within a payment channel to change the balance.
-The same protocol will be executed along a path of channels if the network of channels is being utilized to make a payment between two participants without requiring them to have a dedicated payment channel connecting them directly.
 
-Let us start with the payment channel with a capacity of 100 mBTC between Alice and Bob.
-at its current state Alice and Bob have agreed that 20 mBTC belong to Bob and 80 mBTC belong to Alice.
-As Alice bought a coffee flatrate for the week she has to pay 15 mBTC to Bob and wants to use this channel.
-Just creating a new pair of commitment transactions and signing them is not so easy as the old ones have to be invalidated by sharing the revocation secret.
-This process should be executed in a way that it is atomic meaning the nodes will either be able to negotiate a new state without giving the other side the chance to play tricks or it should fail.
+== Other payment channel constuctions
 
-[[routing-setup-htlc-0]]
-.Let us look at the initial pair of most recent commitment transactions for Alice and Bob:
-image:images/routing-setup-htlc-0.png[]
-
-Alice sends the `update_add_HTLC` Lightning message to Bob.
-The message type is 128 and has the following data fields:
-
-* [`channel_id`:`channel_id`]
-* [`u64`:`id`]
-* [`u64`:`amount_msat`]
-* [`sha256`:`payment_hash`]
-* [`u32`:`cltv_expiry`]
-* [`1366*byte`:`onion_routing_packet`]
-
-As Bob and Alice might have more than one channel thus the `channel_id` is included to the message.
-The `id` counter counts starts with 0 for the first HTLC that Alice offers to Bob and is increased by 1 with every subsequent offer.
-The id of the HTLC is used to compute the derivation path of the bitcoin key that is used for the output of this particular HTLC.
-In this way addresses changes with every payment and cannot be monitored by a third party.
-Next the amount that Alice wants to send to Bob is entered to the `amount_msat` field.
-As the name suggests the amount is depicted in millisatoshi even those cannot be enforced within the commitment transaction and within bitcoin.
-Still Lightning nodes keep track of subsatoshi amounts to avoid rounding issues.
-As in the offline example Alice includes the `payment_hash` in the next data field.
-This was told to Alice by Bob in case she wants to just send money to him.
-If Alice was to send Money to Gloria the Payment hash would have been given to Alice by Gloria.
-We discussed the potential of time lock or deadline of the contract.
-This is encoded in the `cltv_expiry`.
-cltv stands for OP_CHECKTIMELOCKVERIFY and is the OP_CODE that will be used in the HTLC output and serve as the deadline in which the contract is valid.
-Finally in the last data field there are 1336 Bytes of data included which is an `onion routing packet`.
-The format of this packet will be discussed in the last section of this chapter.
-For now it is important to note that it includes encrypted routing hints and information of the payment path that can only be partially decrypted by the recipient of the onion routing packet to extract information to whom to forward the payment or to learn that one as the final recipient.
-In any case the onion roting packet is always of the same size preventing the possibility to guess the position of an intermediary node within a path.
-In our particular case Bob will be able to decrypt the first couple bytes of the onion routing packet and learn that the payment is not to be forwarded but intended to be for him.
-
-The received information is enough for Bob to create a new commitment transaction.
-This commitment transaction now has not only 2 outputs encoding the balance between Alice and Bob but a third output which encodes the hashed time locked contract.
-
-[[routing-setup-htlc-1]]
-.Lets look at the newly created commitment transaction for Bob:
-image:images/routing-setup-htlc-1.png[]
-
-We can see that Bob Assumes that Alice will agree to lock 15 mBTC of her previous balance and assign it to the HTLC output.
-Creating this HTLC output can be compared to giving Alice golden coins to the escrow service.
-In our situation the bitcoin network can enforce the HTLC as Bob and Alice have agreed upon.
-Bob's Balance has not changed yet.
-In Bitcoin outputs are mainly described by scripts.
-The received HTLC in Bob's commitment transaction will use the following bitcoin script to define the output:
-
-
-   # To remote node with revocation key
-    OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
-    OP_IF
-        OP_CHECKSIG
-    OP_ELSE
-        <remote_HTLCpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
-        OP_IF
-            # To local node via HTLC-success transaction.
-            OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
-            2 OP_SWAP <local_HTLCpubkey> 2 OP_CHECKMULTISIG
-        OP_ELSE
-            # To remote node after timeout.
-            OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
-            OP_CHECKSIG
-        OP_ENDIF
-    OP_ENDIF
-
-We can see that there are basically three conditions to claim the output.
-
-1. Directly if a revocation key is known. This would happen if at a later state Bob fraudulently publishes this particular commitment transaction. As a newer state could only be agreed upon if Alice has learnt Bob's half of the revocation secret she could directly claim the funds and keep them even if Bob was later able to provide a proof of payment. This is mainly described in this line `OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL` and can be down by using `<revocation_sig> <revocationpubkey> as a witness script.
-2. If Bob has successfully delivered the payment and learnt the preimage he can spend the HTLC output with the help of the preimage and his `local_HTLC_secret`. This is to make sure that only Bob can spend this output if the commitment transaction hits the chain and not any other third party who might know the preimage because they had been included in the routing process. Claiming this output requires an HTLC-success transaction which we describe later.
-3. Finally Alice can use her `remote_HTLC_secret` to spend the HTLC output after the timeout of `cltv_expiry` was passed by using the following witness script `<remoteHTLCsig> 0`
-
-As the commitment transaction spends the 2 out of 2 multisig funding transaction Bob needs two signatures after he constructed this commitment transaction.
-He can obviously compute his own signature but he needs also the signature from Alice.
-As Alice initiated the payment and wanted the HTLC to be set up she will be reluctant to provide a signature.
-
-
-[[routing-setup-htlc-2]]
-.Alice sends the `commitment_signed` Lightning Message to Bob:
-image:images/routing-setup-htlc-2.png[]
-
-We can see in the diagram that Bob now has two valid commitment transactions.
-Let us have a quick look at the `commitment_signed` Lightning message which has the type 132.
-It has 4 data fields:
-
-* [`channel_id`:`channel_id`]
-* [`signature`:`signature`]
-* [`u16`:`num_HTLCs`]
-* [`num_HTLCs*signature`:`HTLC_signature`]
-
-First it again states which for which of the channels between Alice and Bob this message is intended.
-Then it has included a signature for the entire commitment transaction.
-As commitment transactions can have several HTLCs and HTLC success transactions need signatures which might not be provided at the time when they are needed those signatures are all already send over to Bob.
-If all signatures are valid Bob has a new commitment transaction.
-At this time he would be able to publish either the old one or the new one without getting a penality as the old one is not yet revoked and invalidated.
-However this is save for Alice as Bob has less money in this old state and is economically not incentivised to publish the old commitment transaction.
-Alice on the other side has no problem if Bob publishes the new commitment transaction as she wanted to send him money.
-If Bob can provide the preimage he is by their agreement and expectation entitled to claim the HTLC output.
-Should Bob decide to sabotage to future steps of the protocol Alice can either publish her commitment transaction without Bob being able to punish her.
-He will just not have received the funds from Alice.
-This is important!
-Despite the fact that Bob has a new commitment transaction with two valid signatures and an HTLC output inside he cannot seen his HTLC as being set up successfully.
-He first needs to have Alice invalidate her old state.
-That is why - in the case that he is not the final recipient of the funds - he should not forward the HTLC yet by setting up a new HTLC on the next channel with Wei.
-Alice will not invalidate her commitment transaction yet as she has to first get her new commitment transaction and she wants Bob to invalidate his old commitment transaction which he can safely do at this time.
-
-[[routing-setup-htlc-3]]
-.Bob sends a `revoke_and_ack` Lighting message to Alice:
-image:images/routing-setup-htlc-3.png[]
-
-The `revoke_and_ack` Lightning message contains three data fields.
-* [`channel_id`:`channel_id`]
-* [`32*byte`:`per_commitment_secret`]
-* [`point`:`next_per_commitment_point`]
-
-While it is really simple and straight forward it is very crucial.
-Bob shares the the `per_commitment_secret` of the old commitment transaction which serves as the revocation key and would allow Alice in future to penalize Bob if he publishes the old commitment transaction without the HTLC output.
-As in a future Alice and Bob might want to negotiate additional commitment transactions he already shares back the `next_per_commitment_point` that he will use in his next commitment transaction.
-
-Alice checks that the `per_commitment_secret` produces the last `per_commitment_point` and constructs her new commitment transaction with the HTLC output.
-Alice's version of the HTLC output is slightly different to the one that Bob had.
-The reason is the asymmetries of the penalty based payment channel construction protocol.
-Alice is offering in her commitment transaction an HTLC to the `remote` partner of the channel while Bob as accepting and offered HTLC to himself the `local` partner of the channel.
-Thus the Bitcoin script is adopted slightly.
-It is a very good exercise to go through both scripts and see where they differ.
-You could also try to use Bob's HTLC output script to come up with Alice's and vice versa and check your result with the following script.
-
-    # To remote node with revocation key
-    OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
-    OP_IF
-        OP_CHECKSIG
-    OP_ELSE
-        <remote_HTLCpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
-        OP_NOTIF
-            # To local node via HTLC-timeout transaction (timelocked).
-            OP_DROP 2 OP_SWAP <local_HTLCpubkey> 2 OP_CHECKMULTISIG
-        OP_ELSE
-            # To remote node with preimage.
-            OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
-            OP_CHECKSIG
-        OP_ENDIF
-    OP_ENDIF
-
-Bob can redeem the HTLC with `<remoteHTLCsig> <payment_preimage>` as the witness script and in case the commitment transaction is revoked but published by Alice, Bob can trigger the penality by spending this output immediately with the following witness script `<revocation_sig> <revocationpubkey>`.
-
-[[routing-setup-htlc-4]]
-.Bob knows how Alice's commitment transaction will look like and sends over the necessary signatures.
-image:images/routing-setup-htlc-4.png[]
-
-This process is completely symmetrical to the one where Alice sent her signatures for Bob's new commitment transaction.
-Now Alice is the one having two valid commitment transactions.
-Technically she can still abort the payment by publishing her old commitment transaction to the bitcoin network.
-No one would lose anything as Bob knows that the contract is still being set up and not fully set up yet.
-This is a little bit different than how the situation would look like in a real world scenario.
-Recall Alice and Bob both have set up a new commitment transaction and have exchanged signatures.
-In the real world one would argue that this contract is now valid.
-
-[[routing-setup-htlc-5]]
-.However Bob knows that Alice has to invalidate her previous commitment transaction which she does
-image:images/routing-setup-htlc-5.png[]
-
-Now Bob and Alice both have a new commitment transaction with and additional HTLC output and we have achieved a major step towards updating a payment channel.
-The new Balance of Alice and Bob does not reflect yet that Alice has successfully send 15 mBTC to Bob.
-However the hashed time locked contracts are now set up in a way that secure settlement in exchange for the proof of payment will be possible.
-This yields another round of communication with Lightning messages and setting up additional commitment transactions which in case of good cooperation remove the outstanding HTLCs.
-Interestingly enough the `commitment_signed` and `revoke_and_ack` mechanism that we described to add an HTLC can be reused to update the commitment transaction.
-
-If Bob was the recipient of the 15 mBTC and knows the preimage to the payment hash Bob can settle the HTLCs by sending and `update_fulfill_htlc` Lightning message to Alice.
-This message has the type 130 and only 3 data fields:
-
-* [`channel_id`:`channel_id`]
-* [`u64`:`id`]
-* [`32*byte`:`payment_preimage`]
-
-As other messages Bob uses the `channel_id` field to indicates for which channel he returns the preimage.
-The htlc that is being removed is identified by the same `id` that was used to set up the HTLC in the commitment transaction initially.
-You might argue that Alice would not need to know the id of the HTLC for which Bob releases the preimage as the preimage and payment hash could be unique.
-However with this design the protocol supports that a payment channel has several htlcs with the same preimage but only settles one.
-One could argue that this does not make too much sense and it is good to be critical but this is how the protocol is designed and what it supports.
-Finally in the last field Bob provides the `payment_preimage` which Alice can check hashes to the payment hash.
-
-[WARNING]
-====
-When designing, implementing or studying a protocol one should ask: Is it safe to this or that in this moment of the protocol and can this be abused. We discussed for example the messages that where necessary for an HTLC to become valid. We pointed out that Bob should not see the received HTLC as valid even though he already has a new commitment transaction with signatures and invalidated his old commitment transaction before Alice also revoked her old commitment transaction. We also saw that no one is able to mess with the protocol of setting up a commitment transaction as in the worst case the protocol could be aborted and any dispute could be resolved by the Bitcoin Network. In the same way we should ask ourselves is it safe for Bob to just send out and release the preimage even though neither he nor alice have created the new pair of commitment transactions in which the HTLCs are removed. It is important to take a short break and ask yourself if Bob will in any case be able to claim the funds from the HTLC if the preimage is correct?
-====
-
-It is safe for Bob to tell Alice the preimage.
-Imagine Alice decides that she would not want to pay Bob anymore and does not respond anymore to create a new pair of commitment transactions with the removed HTLC and the Balance on Bob's end.
-In that case Bob could just force close the channel and publish his latest version of the commitment transaction.
-As the time lock of the HTLC is not over yet with an onchain success transaction Bob would be able to claim and settle his 15 mBTC as he is the only person who is able to spend the HTLC output in the commitment transaction.
-The other way around meaning Bob and Alice would negotiate a new commitment transaction with the removed HTLC would never be save for Alice.
-If the signatures for the new commitment transaction are exchanged Bob has received the money and could decide not to release the preimage.
-
-[NOTE]
-====
-Isn't it remarkable that even though the process of exchanging funds for an preimage seems to be happening concurrently at the same moment in time in reality it is actually happening one step after another but in the right order.
-====
+Other constructions of payment channels are known and being discussed by the developers.
+Historically speaking these are the Duplex Micropayment channels introduced by Christian Decker during his time as a PhD student at ETH Zuric and the eltoo channels which where also introduced by Christian Decker.
+The eltoo channels are certainly a more elgant and cleaner why of achieving payment channels with the afore mentioned properties.
+However they require the activation of BIP 118 and a softfork and are - at the time of writing - a potential future protocol change.
+Thus this chapter will only focus on the pentalty based channels as described in the Lightning Network Whitepaper and specified in BOLT 02 which are currently supported by the protocol and the implementations.
 
 
 [NOTE]
 ====
+The Lightning Network does not need consensus of features across it's participants.
+If the Bitcoin Softfork related to BIP 118 activates and people implement eltoo channels nodes that support eltoo can create payment channels and the onion routing of payments a long a path of channels would work just fine even if some of the channels are the modern eltoo channels or some channels are the legacy channels.
+Actually when Lightning network connections are established nodes signal feature bits of global and local features that they support.
+Thus havning the ability to create eltoo channels would just be an additional feature bit.
+In this sense upgrading the Lightnign Network is much easier than upgrading Bitcoin where consensus among all stakeholders is needed.
+====
+
+=== Multiparty channels and channel factories
 The current construction could be generalized to multiparty channels and channel factories.
 However the communication protocol would suffer from increased complexity.
-====
+Especially the simplifications in the protocol that might result from eltoo will lead to such features.
+A channel factory is a...
+A multi party channel is a...
 
 Chapter overview:
   * describes how channels are put together at the script+transaction level

@@ -1,0 +1,210 @@
+
+=== Forwarding payments with HTLCs
+In previous chapters we have seen that payment channels are maintained by two nodes by keeping two disjoint sequences of commitment transactions.
+The pair of latest commitment transactions in both sequences encodes the current, agreed upon balance in the channel.
+We have stated that two channel partners negotiate a new commitment transaction in order to change the balance and conduct a payment from one to another.
+We are finally at the point to explain the communications protocol via Lightning messages and the usage of HTLCs that is executed within a payment channel to change the balance.
+The same protocol will be executed along a path of channels if the network of channels is being utilized to make a payment between two participants without requiring them to have a dedicated payment channel connecting them directly.
+
+Let us start with the payment channel with a capacity of 100 mBTC between Alice and Bob.
+at its current state Alice and Bob have agreed that 20 mBTC belong to Bob and 80 mBTC belong to Alice.
+As Alice bought a coffee flatrate for the week she has to pay 15 mBTC to Bob and wants to use this channel.
+Just creating a new pair of commitment transactions and signing them is not so easy as the old ones have to be invalidated by sharing the revocation secret.
+This process should be executed in a way that it is atomic meaning the nodes will either be able to negotiate a new state without giving the other side the chance to play tricks or it should fail.
+
+[[routing-setup-htlc-0]]
+.Let us look at the initial pair of most recent commitment transactions for Alice and Bob:
+image:images/routing-setup-htlc-0.png[]
+
+Alice sends the `update_add_HTLC` Lightning message to Bob.
+The message type is 128 and has the following data fields:
+
+* [`channel_id`:`channel_id`]
+* [`u64`:`id`]
+* [`u64`:`amount_msat`]
+* [`sha256`:`payment_hash`]
+* [`u32`:`cltv_expiry`]
+* [`1366*byte`:`onion_routing_packet`]
+
+As Bob and Alice might have more than one channel thus the `channel_id` is included to the message.
+The `id` counter counts starts with 0 for the first HTLC that Alice offers to Bob and is increased by 1 with every subsequent offer.
+The id of the HTLC is used to compute the derivation path of the bitcoin key that is used for the output of this particular HTLC.
+In this way addresses changes with every payment and cannot be monitored by a third party.
+Next the amount that Alice wants to send to Bob is entered to the `amount_msat` field.
+As the name suggests the amount is depicted in millisatoshi even those cannot be enforced within the commitment transaction and within bitcoin.
+Still Lightning nodes keep track of subsatoshi amounts to avoid rounding issues.
+As in the offline example Alice includes the `payment_hash` in the next data field.
+This was told to Alice by Bob in case she wants to just send money to him.
+If Alice was to send Money to Gloria the Payment hash would have been given to Alice by Gloria.
+We discussed the potential of time lock or deadline of the contract.
+This is encoded in the `cltv_expiry`.
+cltv stands for OP_CHECKTIMELOCKVERIFY and is the OP_CODE that will be used in the HTLC output and serve as the deadline in which the contract is valid.
+Finally in the last data field there are 1336 Bytes of data included which is an `onion routing packet`.
+The format of this packet will be discussed in the last section of this chapter.
+For now it is important to note that it includes encrypted routing hints and information of the payment path that can only be partially decrypted by the recipient of the onion routing packet to extract information to whom to forward the payment or to learn that one as the final recipient.
+In any case the onion roting packet is always of the same size preventing the possibility to guess the position of an intermediary node within a path.
+In our particular case Bob will be able to decrypt the first couple bytes of the onion routing packet and learn that the payment is not to be forwarded but intended to be for him.
+
+The received information is enough for Bob to create a new commitment transaction.
+This commitment transaction now has not only 2 outputs encoding the balance between Alice and Bob but a third output which encodes the hashed time locked contract.
+
+[[routing-setup-htlc-1]]
+.Lets look at the newly created commitment transaction for Bob:
+image:images/routing-setup-htlc-1.png[]
+
+We can see that Bob Assumes that Alice will agree to lock 15 mBTC of her previous balance and assign it to the HTLC output.
+Creating this HTLC output can be compared to giving Alice golden coins to the escrow service.
+In our situation the bitcoin network can enforce the HTLC as Bob and Alice have agreed upon.
+Bob's Balance has not changed yet.
+In Bitcoin outputs are mainly described by scripts.
+The received HTLC in Bob's commitment transaction will use the following bitcoin script to define the output:
+
+
+   # To remote node with revocation key
+    OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
+    OP_IF
+        OP_CHECKSIG
+    OP_ELSE
+        <remote_HTLCpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
+        OP_IF
+            # To local node via HTLC-success transaction.
+            OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
+            2 OP_SWAP <local_HTLCpubkey> 2 OP_CHECKMULTISIG
+        OP_ELSE
+            # To remote node after timeout.
+            OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
+            OP_CHECKSIG
+        OP_ENDIF
+    OP_ENDIF
+
+We can see that there are basically three conditions to claim the output.
+
+1. Directly if a revocation key is known. This would happen if at a later state Bob fraudulently publishes this particular commitment transaction. As a newer state could only be agreed upon if Alice has learnt Bob's half of the revocation secret she could directly claim the funds and keep them even if Bob was later able to provide a proof of payment. This is mainly described in this line `OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL` and can be down by using `<revocation_sig> <revocationpubkey> as a witness script.
+2. If Bob has successfully delivered the payment and learnt the preimage he can spend the HTLC output with the help of the preimage and his `local_HTLC_secret`. This is to make sure that only Bob can spend this output if the commitment transaction hits the chain and not any other third party who might know the preimage because they had been included in the routing process. Claiming this output requires an HTLC-success transaction which we describe later.
+3. Finally Alice can use her `remote_HTLC_secret` to spend the HTLC output after the timeout of `cltv_expiry` was passed by using the following witness script `<remoteHTLCsig> 0`
+
+As the commitment transaction spends the 2 out of 2 multisig funding transaction Bob needs two signatures after he constructed this commitment transaction.
+He can obviously compute his own signature but he needs also the signature from Alice.
+As Alice initiated the payment and wanted the HTLC to be set up she will be reluctant to provide a signature.
+
+
+[[routing-setup-htlc-2]]
+.Alice sends the `commitment_signed` Lightning Message to Bob:
+image:images/routing-setup-htlc-2.png[]
+
+We can see in the diagram that Bob now has two valid commitment transactions.
+Let us have a quick look at the `commitment_signed` Lightning message which has the type 132.
+It has 4 data fields:
+
+* [`channel_id`:`channel_id`]
+* [`signature`:`signature`]
+* [`u16`:`num_HTLCs`]
+* [`num_HTLCs*signature`:`HTLC_signature`]
+
+First it again states which for which of the channels between Alice and Bob this message is intended.
+Then it has included a signature for the entire commitment transaction.
+As commitment transactions can have several HTLCs and HTLC success transactions need signatures which might not be provided at the time when they are needed those signatures are all already send over to Bob.
+If all signatures are valid Bob has a new commitment transaction.
+At this time he would be able to publish either the old one or the new one without getting a penality as the old one is not yet revoked and invalidated.
+However this is save for Alice as Bob has less money in this old state and is economically not incentivised to publish the old commitment transaction.
+Alice on the other side has no problem if Bob publishes the new commitment transaction as she wanted to send him money.
+If Bob can provide the preimage he is by their agreement and expectation entitled to claim the HTLC output.
+Should Bob decide to sabotage to future steps of the protocol Alice can either publish her commitment transaction without Bob being able to punish her.
+He will just not have received the funds from Alice.
+This is important!
+Despite the fact that Bob has a new commitment transaction with two valid signatures and an HTLC output inside he cannot seen his HTLC as being set up successfully.
+He first needs to have Alice invalidate her old state.
+That is why - in the case that he is not the final recipient of the funds - he should not forward the HTLC yet by setting up a new HTLC on the next channel with Wei.
+Alice will not invalidate her commitment transaction yet as she has to first get her new commitment transaction and she wants Bob to invalidate his old commitment transaction which he can safely do at this time.
+
+[[routing-setup-htlc-3]]
+.Bob sends a `revoke_and_ack` Lighting message to Alice:
+image:images/routing-setup-htlc-3.png[]
+
+The `revoke_and_ack` Lightning message contains three data fields.
+* [`channel_id`:`channel_id`]
+* [`32*byte`:`per_commitment_secret`]
+* [`point`:`next_per_commitment_point`]
+
+While it is really simple and straight forward it is very crucial.
+Bob shares the the `per_commitment_secret` of the old commitment transaction which serves as the revocation key and would allow Alice in future to penalize Bob if he publishes the old commitment transaction without the HTLC output.
+As in a future Alice and Bob might want to negotiate additional commitment transactions he already shares back the `next_per_commitment_point` that he will use in his next commitment transaction.
+
+Alice checks that the `per_commitment_secret` produces the last `per_commitment_point` and constructs her new commitment transaction with the HTLC output.
+Alice's version of the HTLC output is slightly different to the one that Bob had.
+The reason is the asymmetries of the penalty based payment channel construction protocol.
+Alice is offering in her commitment transaction an HTLC to the `remote` partner of the channel while Bob as accepting and offered HTLC to himself the `local` partner of the channel.
+Thus the Bitcoin script is adopted slightly.
+It is a very good exercise to go through both scripts and see where they differ.
+You could also try to use Bob's HTLC output script to come up with Alice's and vice versa and check your result with the following script.
+
+    # To remote node with revocation key
+    OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
+    OP_IF
+        OP_CHECKSIG
+    OP_ELSE
+        <remote_HTLCpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
+        OP_NOTIF
+            # To local node via HTLC-timeout transaction (timelocked).
+            OP_DROP 2 OP_SWAP <local_HTLCpubkey> 2 OP_CHECKMULTISIG
+        OP_ELSE
+            # To remote node with preimage.
+            OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
+            OP_CHECKSIG
+        OP_ENDIF
+    OP_ENDIF
+
+Bob can redeem the HTLC with `<remoteHTLCsig> <payment_preimage>` as the witness script and in case the commitment transaction is revoked but published by Alice, Bob can trigger the penality by spending this output immediately with the following witness script `<revocation_sig> <revocationpubkey>`.
+
+[[routing-setup-htlc-4]]
+.Bob knows how Alice's commitment transaction will look like and sends over the necessary signatures.
+image:images/routing-setup-htlc-4.png[]
+
+This process is completely symmetrical to the one where Alice sent her signatures for Bob's new commitment transaction.
+Now Alice is the one having two valid commitment transactions.
+Technically she can still abort the payment by publishing her old commitment transaction to the bitcoin network.
+No one would lose anything as Bob knows that the contract is still being set up and not fully set up yet.
+This is a little bit different than how the situation would look like in a real world scenario.
+Recall Alice and Bob both have set up a new commitment transaction and have exchanged signatures.
+In the real world one would argue that this contract is now valid.
+
+[[routing-setup-htlc-5]]
+.However Bob knows that Alice has to invalidate her previous commitment transaction which she does
+image:images/routing-setup-htlc-5.png[]
+
+Now Bob and Alice both have a new commitment transaction with and additional HTLC output and we have achieved a major step towards updating a payment channel.
+The new Balance of Alice and Bob does not reflect yet that Alice has successfully send 15 mBTC to Bob.
+However the hashed time locked contracts are now set up in a way that secure settlement in exchange for the proof of payment will be possible.
+This yields another round of communication with Lightning messages and setting up additional commitment transactions which in case of good cooperation remove the outstanding HTLCs.
+Interestingly enough the `commitment_signed` and `revoke_and_ack` mechanism that we described to add an HTLC can be reused to update the commitment transaction.
+
+If Bob was the recipient of the 15 mBTC and knows the preimage to the payment hash Bob can settle the HTLCs by sending and `update_fulfill_htlc` Lightning message to Alice.
+This message has the type 130 and only 3 data fields:
+
+* [`channel_id`:`channel_id`]
+* [`u64`:`id`]
+* [`32*byte`:`payment_preimage`]
+
+As other messages Bob uses the `channel_id` field to indicates for which channel he returns the preimage.
+The htlc that is being removed is identified by the same `id` that was used to set up the HTLC in the commitment transaction initially.
+You might argue that Alice would not need to know the id of the HTLC for which Bob releases the preimage as the preimage and payment hash could be unique.
+However with this design the protocol supports that a payment channel has several htlcs with the same preimage but only settles one.
+One could argue that this does not make too much sense and it is good to be critical but this is how the protocol is designed and what it supports.
+Finally in the last field Bob provides the `payment_preimage` which Alice can check hashes to the payment hash.
+
+[WARNING]
+====
+When designing, implementing or studying a protocol one should ask: Is it safe to this or that in this moment of the protocol and can this be abused. We discussed for example the messages that where necessary for an HTLC to become valid. We pointed out that Bob should not see the received HTLC as valid even though he already has a new commitment transaction with signatures and invalidated his old commitment transaction before Alice also revoked her old commitment transaction. We also saw that no one is able to mess with the protocol of setting up a commitment transaction as in the worst case the protocol could be aborted and any dispute could be resolved by the Bitcoin Network. In the same way we should ask ourselves is it safe for Bob to just send out and release the preimage even though neither he nor alice have created the new pair of commitment transactions in which the HTLCs are removed. It is important to take a short break and ask yourself if Bob will in any case be able to claim the funds from the HTLC if the preimage is correct?
+====
+
+It is safe for Bob to tell Alice the preimage.
+Imagine Alice decides that she would not want to pay Bob anymore and does not respond anymore to create a new pair of commitment transactions with the removed HTLC and the Balance on Bob's end.
+In that case Bob could just force close the channel and publish his latest version of the commitment transaction.
+As the time lock of the HTLC is not over yet with an onchain success transaction Bob would be able to claim and settle his 15 mBTC as he is the only person who is able to spend the HTLC output in the commitment transaction.
+The other way around meaning Bob and Alice would negotiate a new commitment transaction with the removed HTLC would never be save for Alice.
+If the signatures for the new commitment transaction are exchanged Bob has received the money and could decide not to release the preimage.
+
+[NOTE]
+====
+Isn't it remarkable that even though the process of exchanging funds for an preimage seems to be happening concurrently at the same moment in time in reality it is actually happening one step after another but in the right order.
+====
