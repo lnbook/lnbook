@@ -418,6 +418,81 @@ We hope that you have seen from this example a few things:
 
 With these conclusings let us look more precisely what would be good rebalancing strategies for nodes.
 
+The main problem with Lightning network channels from a routing and pathfinding perspective is that the liquidity is not known.
+From that perspective the 50/50 approach which is not achievable makes sense.
+If nodes could assume that other nodes always have a certain amount of the capacity on their side they could use that fraction of the capacity to make path finding decisions.
+Initially all the channel balance of newly opened channels is on one side.
+Thus if there is a new node which has opened some channels and received some channels all the channels are unbalanced and routing is always only possible in one direction.
+
+Nodes and node operators could look at the channel balance coefficient which is defined as the ratio between the balance they hold on that channel divided by the capacity of that channel.
+As the balance can never be below zero and never exceed the capacity this channel balance coefficient will always be between 0 and 1.
+A node can easily compute the channel balance coefficient for all its channels.
+By the way in the case of the 50/50 rebalancing the coefficients would all have the value of 0.5.
+
+Researchers demonstrated that the overall likelihood to find a path increases if nodes aim to rebalance their channels in a way that their local channel balance coefficients all take the same value.
+This target value can easily be computed as the amount of total funds that a node owns on the network devided by the sum of all capacities of channels that the node maintains.
+We call this target value the node balance coefficient \nu.
+Nodes can check wich channels have channel balance coefficient that is bigger than \nu and which have a channel balance coeffcient that is smaller than \nu.
+after identifying such channels it makes sense to make circular self payments from the channels with too mcuh liquidity to the channels with too little liquidity.
+
+This approach has an economical drawback.
+Doing a circular self payment is not for free.
+The nodes along the circular path will charge routing fees which always have to be paid by the initiator of the payment.
+This would be your node if you wanted to rebalance your channels.
+It might be justified for you to pay those fees upfront because you might earn them back with the routing fees that you charge if you can successfully forward payments.
+However you do not really know in which direction you will have to route payments later.
+In the worst cast you moved liquidity from a channel which you could have used perfectly to fulfill routing requests along that edge in this direction.
+Not only would you have paid routing fees for a rebalancing operation you would also have depleeted your channel more quickly and might face the need to rebalance again.
+
+We hope that you are not discouraged at this moment.
+Rebalancing is still a viable thing.
+While proactive rebalancing increases the reliablity of the network it is currently economically not viable.
+However you could rebalance reactively or Just in Time at the moment when necessary.
+Imagine you have a an incoming HTLCs and the onion says you are supposed to forward the payment along a channel where you lack sufficient balance.
+The standard case of the protocol would be to return the onion with an onion and remove the incoming HTLC.
+However noone stops your node from shortly interrupting the routing process and conduct a rebalancing operation to provide yourself with sufficient liquidity on the channel in question.
+This method is called JIT-Routing as it helps nodes to reactively provide themselves with enough liquidity just in time.
+
+The just in time Routing scheme has 2 major advantages over source based routing.
+
+. It increases the privacy of channels. If nodes that do not have sufficient liquidity return the onions an attacker can use that behavior to probe for the channel balance. However if nodes rebalance their channels they will always be able to forward the payment and protect themselves from probing attacks.
+. More importantly it resembles multipart payments in which the splitting of the payment is not been decided by the sender who would not know how balances remotely are distributed but the splitting would be achieved by the routing node that knows its local topology.
+
+Let us elaborate on the second point and take the example in which Bob was supposed to forward the onion from Alice to Wei but does have enough liquidity on the channel with Wei.
+If Bob now does a cebalancing operation through Erica and is able to afterwards forward the payment along to Bob he has effectively split the payment at his node to flow along two paths.
+One part flows directly to Wei and the other part takes the path over Erica to Wei.
+It is obvious that splitting a payment at the node that can't forward the entire payment is much more reliable and effective than letting the sender decide how to split a payment and into which amounts.
+
+We thus can see that with the help of JIT-Routing rebalancing and multipart payments are actually not so different concepts and ideas.
+There is another way how mutlipart payments and rebalancing can be combined.
+Let us recall that nodes should always aim to have similar channel balance coefficients.
+So if a node wants to make a multipart payment it could split the payment in such a way that it rebalances its channels.
+Meaning it would only pay from channels on which it currently has too much liquidity.
+Also it would use larger parts for the channels that have way too much liquidity and smaller amount for the channels that have just a little bit too much liquidity.
+The optimal amounts can easily be computed with the following formulars.
+
+
+
+TODO: somehow describe this better without being too scientific. Tool and code can be found at: https://github.com/lightningd/plugins/pull/83
+
+```
+new_funds = sum(b) - a
+
+# assuming all channels have capacity of 1 btc
+cap = len(b)
+nu = float(new_funds) / cap
+ris = [1*(float(x)/1 - nu) for x in b]
+
+real_ris = [x for x in ris if x > 0]
+s = sum(real_ris)
+payments = [a*x/s for x in real_ris]
+```
+
+In fact this multipath rebalancing could also be utilized in the process of JIT routing.
+Instead of shifting all the funds from one channel to the destination channel a node could use a circular multipart payment.
+
+
+
 * (proactive / reactive) Rebalancing
 * Imbalance measures
 * goals for rebalancing (low Gini coefficient and not 50 / 50)
