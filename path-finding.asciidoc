@@ -127,26 +127,28 @@ While onions are also constructed from inside to outside and thus start with the
 
 === Fundamentals about path finding
 Finding a path through a graph is a problem modern computers can solve rather efficiently.
-Mostly developers choose bredth first search (if the edges are all of equal weight) or the Dijkstra Algorithm in cases where the edges are not of equal weight.
-In our case the weights of the edges could be the routing fees and only edges will be included where the capacity is larger than the amount that is to be sent.
-In this basic form pathfinding on the lightning network is very simple and straight forward.
-However as we have already discussed in the introduction channel balances cannot be shared with every participant every time a payment takes place as the system would not scale.
-Thus our easy computer science problem for which we know a solution turns into a rather complex problem.
-We now have to solve a path finding problem with only partial knowledge.
-For example we know which edges might be able to forward a payment because their capacity seems big enough but we can't know it for sure
-unless we try it out or ask the channel owners directly.
-Even if we where able to ask the channel owners directly their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
-Thus we do not only have partial information but the information we have is highly dynamic and might change before we can use it.
+Developers mainly choose breadth-first search if the edges are all of equal weight. 
+In cases where the edges are not of equal weight the Dijkstra Algorithm is used.
+In our case the weights of the edges could represent the routing fees.
+Only edges with a capacity larger than the amount to be sent will be included in the search.
+In this basic form pathfinding in the Lightning network is very simple and straight forward.
+However, as we have already discussed in the introduction, channel balances cannot be shared with every participant every time a payment takes place as this  would prevent scaling the network.
+This turns our easy theoretical computer science problem into a rather complex real-world problem.
+We now have to solve a pathfinding problem with only partial knowledge.
+For example, we suspect which edges might be able to forward a payment because their capacity seems big enough.
+But we can't be certain unless we try it out or ask the channel owners directly.
+Even if we were able to ask the channel owners directly, their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
+Not only do we have soley limited information but the information we have is highly dynamic and might change at any point in time without our knowledge.
 
-One general observation that everyone can easily make is that if every node along a path is able to forward a certain amount of satoshis these nodes will also be able to forward a lower amount of satoshis.
-This is why many people intuitively belive that multipath payments might be a good strategy.
-Instead of finding one path where every node owns a large amount of liquidity the task is split into smaller ones.
-Another reason is of course that the sender of a payment might just not have the amount they wish to send in one single channel but split over several channels.
+One general observation that everyone can easily make is that if every node along a path is able to forward a certain amount of satoshis, these nodes will also be able to forward a lower amount of satoshis.
+This is why many people intuitively believe that multipath payments might be a good strategy.
+Instead of finding one path where every node has a large amount of liquidity the task is split into smaller ones.
+Another reason is of course that the sender of a payment might just not have the amount they wish to send available in one single channel but distributed over several of his channels.
 We leave it to later sections of this chapter to discuss the strengths and weaknesses of multipath payments.
-However we note that multi path payments are equivalent to finding a flow between the source and the destination.
-While finding flows in a graph with full knowledge that is static is computationally a little bit more heavy than computing a shortest path it still seams to be a feasable problem.
-Given the reality of the Lightning Network and the fact that we do not need to compute a max flow we currently do not know if the problem is more or less difficult as finding a path.
-It seems to be about equally difficult and the problems are somewhat connect as we will see in the following sections.
+We simply note that multipath payments are equivalent to finding a flow between the source and the destination.
+Finding flows in a static graph with full knowledge is computationally marginally more expensive than computing a shortest path.
+On the other hand, given the dynamic reality of the Lightning Network and the fact that we do not need to compute a maximum flow, it is currently not known if the flow problem is more or less difficult than finding a path.
+Both problems seem to have about the same difficulty and the problems are partially related as we will see in the following sections.
 
 === Probing based path finding algorithm on the Lightning Network
 As discussed in order to reliably find a path nodes would need to know the balance of remote payment channels and the balances would have to be static.
