@@ -148,39 +148,40 @@ While finding flows in a graph with full knowledge that is static is computation
 Given the reality of the Lightning Network and the fact that we do not need to compute a max flow we currently do not know if the problem is more or less difficult as finding a path.
 It seems to be about equally difficult and the problems are somewhat connect as we will see in the following sections.
 
-=== Probing based path finding algorithm on the Lightning Network
-As discussed in order to reliably find a path nodes would need to know the balance of remote payment channels and the balances would have to be static.
-As both is not given nodes currently use a probing based algorithm.
+=== Probing-based pathfinding algorithm on the Lightning Network
+In order to deterministically find a path nodes would need to know the balances of remote payment channels and these balances would have to be static.
+As this is not the case in the Lightning Network, nodes use a probing-based algorithm.
 In its most basic form the algorithm works as follows:
 
 . Select a random path to the destination node
 . Construct and send the onion
 . wait for the response of the onion
-. If response == preimage -> success
-. If response == feilure -> start over from step one.
+. If response is a valid preimage, then routing was successful and the algorithm terminates.
+. If response is a failure notification, then start over from step 1.
 
 Nodes will use various sources of information to improve the selection of a random path.
 The main source of information is the gossip protocol.
 From the gossip protocol a node learns which other nodes exist and which channels have been opened.
 This will basically provide a network view that can be used to run graph algorithms that generate plausible paths.
-For example a breadth first seach traversal.
-The graph algorithm will usually be constrained to channels that have at least the capacity of the amount to be sent.
-In practice due to channel reserve and the assumption that the capacity in the channel will not be sitting completely on one side it is saver to prefer larger channels.
+One fitting algorithm is the breadth-first seach traversal.
+The graph algorithm will usually be constrained to channels whose capacity exceeds the payment amount.
+In practice, due to channel reserve and the assumption that the capacity in the channel will not be sitting completely on one side, it is smarter to prefer larger channels.
 
 The second source of information is the blockchain itself.
-If channels are closed this is not announced via the gossip protocol.
-However as the funding transaction is encoded by the short channel id of the channel and as it will be spent if the channel is closed nodes have to use this information to update their knowledge about the network of channels.
+Channel closings are not announced via the gossip protocol.
+However, as the funding transaction is encoded by the short channel id of the channel and as it will be spent on closing the channel, nodes can use this on-chain information to update their knowledge about the network of channels.
 
-Another source of information are the past payments themselves.
+Past payments form a third source of information.
 Onions can return with errors.
-Knowing for example that the third hop along a path returns an error means that the first two channels had enough balance and that the third channel - depending on the error - did not have enough balance.
-Such edges can be removed from the set of edges similarly to the edges that do not have enough capacity.
-Similarly nodes could use such information from previous payment attempts.
-It is important that nodes are carefull with this data.
-As the capacity information of channels from the gossip protocol and blockchain data is verifiably correct the data from our third source of information can be incorrect.
-Nodes might just send an error back because they do not want to reveal balance information.
-Also the data might just change over time as the balances in the lightning network are not static and changing with every payment attempt that is being made.
-Thus nodes should only use such data if it is not to far in the past or use it only with a certain confidence.
+Knowing for example that the third hop along a path returns an error of _insufficient balance_ means that the first two channels had enough balance and that the third channel did not have enough balance.
+In general, edges with errors can be removed from the set of edges similarly to the edges with insufficient capacity.
+Nodes can accumulate knowledge and update their knowledge with every failed or successful payment attempt.
+It is important that nodes are careful with this data.
+As the capacity information of channels from the gossip protocol and the blockchain data are verifiably correct, the data returned in failed onions can be incorrect.
+Nodes might simply send an error back because they do not want to reveal balance information.
+Besides, channel data continuously changes over time as the Lightning Network is very dynamic.
+This implies that nodes should only use such data if it is not too old or use it only with limited confidence.
+As time advances this information becomes stale and outdated and the confidence in this data diminishes.
 
 The fourth source of information that the node will use are the routing hints in the BOLT 11 invoice.
 Remember that a regular payment process starts with the person who wants to receive money coming up with a random secret and hashing it as the payment hash.
