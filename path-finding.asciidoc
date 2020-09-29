@@ -26,7 +26,7 @@ However, as discussed, the balance information of all channels cannot be availab
 Thus, we need to have one or more innovative path finding strategies.
 These strategies must relate closely to the routing algorithm that is used.
 As we will see in the next section, the Lightning Network uses a source-based onion-routing protocol for routing payments.
-This means in particular that the sender of the payment has to find a path through the network.
+In such a protocol it is the responsibility of the sender, i.e. payer, to find a path through the network.
 With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
 The fact that the path finding problem in the Lightning Network is not fully solved is a major point of criticism towards the technology.
 The path finding strategy currently implemented in Lightning nodes is to probe paths until one is found that has enough liquidity to forward the payment.
@@ -38,27 +38,34 @@ The current algorithm also does not necessarily result in the path with the lowe
 
 === What is "Source-Based" routing and why does the Lightning Network use it?
 
-Source-based routing is a method of path-finding where the sender (i.e. the source) plans the path from itself, through the intermediary nodes, and finally to the destination.
-Once a path has been selected, the sender sends the payment to the first intermediary node, who sends it to the second intermediary node and so on, until it reaches the destination.
-While a payment is in-flight along a path, the path typically does not get changed by any of the intermediary nodes, even if a shorter path or a cheaper path (in terms of routing fees) exists.
+_Source-based routing_ is a method of path-finding where the sender, i.e. the source, plans the path from itself, through the intermediary nodes, to the final destination.
+Once a path has been found and selected, the sender sends the payment to the first intermediary node, who sends it to the second intermediary node, and so on until it reaches the destination.
+While a payment is traveling along a path, the path typically does not get changed by any of the intermediary nodes, even if a shorter path or a cheaper path (in terms of routing fees) exists.
 
-The Lightning Network uses source-based routing at the time of writing in order to protect user privacy.
-As discussed in the chapter on Onion Routing, the intermediary nodes transmitting the payment are not aware of the full path of the payment; they only know the node they received it from and the node they are sending it to.
+One of the reasons the Lightning Network uses source-based routing is to protect user privacy.
+As discussed in the chapter on _Onion Routing_, the intermediary nodes transmitting the payment are not aware of the full path of the payment. They only know the node they received it from and the node they are sending it to.
 
-We also cannot expect the destination to find a path.
+The destination, i.e. the payment recipient, is less able to find a good path.
 Even if it specifies a path in the invoice, that path may no longer be viable by the time the invoice is paid, which could be several minutes or several days later.
-The recipient can, however, specify "routing hints" in the invoice that may assist the sender in finding a possible path.
+The recipient can, however, specify "routing hints" in the invoice to assist the sender in finding a possible path.
 
-Furthermore, source-based routing comes with some inherent drawbacks.
-The sender chooses the path based on their current understanding of the topological map of the Lightning network.
-As discussed in previous chapters, this map is necessarily incomplete; the sender may not be aware of all the channels, and even if they are they will almost certainly not know the latest balances in each of the channels.
-And even if the sender did have a complete topological map at one point in time, the balances of channels change with every payment, and so in a short space of time the map would become obsolete.
-The standard path finding mechanism with source based onion routing that is implemented in all Lightning Network implementations is the following:
+On the other hand, source-based routing comes with some inherent drawbacks.
+The sender chooses the path based on its current understanding of the topological map of the Lightning network.
+As discussed in previous chapters, this map is necessarily incomplete. The sender cannot be aware of all the channels. And even if it is aware of them, it  will not always know their latest balances.
+The balances of channels change with every payment. Consequently, any topological knowledge becomes obsolete in a short space of time.
+The standard path finding mechanism in source-based onion-routing that is implemented in all Lightning Network implementations is the following:
 
-. Select an arbitrary path of payment channels which connects sender and receiver of the payment and for which all channels have a capacity of at least the payment amount and accept HTLCs of this amount.
-. Construct the onion from destination to sender according to the meta data (basefee, feerate, CLTV delta) of the channels.
-. Send out the onion and see if the payment settles by nodes sending back preimages or if the payment fails.
-. If the payment fails use this knowledge to select a different path by starting at step 1.
+. Given the limited local topological knowledge the sender tries to find one or more routing paths.
+. Select an arbitrary path of payment channels which satisfies 3 conditions: 
+  * path connects sender and receiver of the payment, 
+  * all channels on path have a presumed capacity of at least the payment amount, 
+  * all channels on path accept HTLCs of the payment amount.
+. Construct the "onion" from destination to sender according to the meta data of the channels (base fee, fee rate, CLTV delta).
+. Send out the "onion" and expect one of two possible results returned:
+  * Preimages are returned by nodes if the payment settles successfully
+  * Error is returned if the payment fails.
+. If the payment settles, the sender updates its topological knowledge based on this new information for future payments. The algorithm terminates.
+. If the payment fails, the sender updates its topological knowledge based on this new information. It then selects a different path and starts the process again from the beginning.
 
 This means that with every attempted payment nodes actually probe the network and will also learn some information about how balances are distributed.
 Implementations will usually prioritise cheaper paths or exclude channels which recently have failed.

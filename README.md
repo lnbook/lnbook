@@ -26,22 +26,24 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | Section | Length (Word Count) |  Status |
 |-------|------|:------:|
 | [Preface and Acknowledgments](preface.asciidoc) | ### | :arrows_clockwise: |
-| [Glossary](glossary.asciidoc) | ############# | :arrows_clockwise: |
-| [Introduction](01_introduction.asciidoc) | ##### | :mag: |
-| [Getting Started](02_getting_started.asciidoc) | ########### | :mag: |
-| [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################## | :mag: |
-| [Intro to LN Routing (HTLCs)](routing.asciidoc) | ###################### | :lock_with_ink_pen: |
+| [Glossary](glossary.asciidoc) | ############## | :arrows_clockwise: |
+| [Introduction](01_introduction.asciidoc) | ###### | :mag: |
+| [Getting Started](02_getting_started.asciidoc) | ############ | :mag: |
+| [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################### | :mag: |
 | [Nodes (LN Clients)](node_client.asciidoc) | #################### | :mag: |
-| [Operating a Node](node_operations.asciidoc) | ################# | :bookmark_tabs: |
-| [P2P Communication](p2p.asciidoc) | # | :bookmark_tabs: |
-| [Channel Construction in Detail](channel-construction.asciidoc) | ######### | :lock_with_ink_pen: |
-| [Channel Graph and Gossip Layer](channel-graph.asciidoc) | # | :bookmark_tabs: |
+| [Operating a Node](node_operations.asciidoc) | ############################ | :bookmark_tabs: |
+| PART 2 | PART 2 | PART2 |
+| [Intro to LN Routing (HTLCs)](routing.asciidoc) | ##################### | :lock_with_ink_pen: |
+| [Channel Construction in Detail](channel-construction.asciidoc) | ########## | :lock_with_ink_pen: |
+| [Channel operation with HTLCs and Statemachine](channel-operation.asciidoc) | ###### | :lock_with_ink_pen: |
 | [Payment Path Finding](path-finding.asciidoc) | ############## | :bookmark_tabs: |
-| [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ## | :bookmark_tabs: |
+| [P2P Communication](p2p.asciidoc) | # | :bookmark_tabs: |
+| [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
+| [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
 | [Lightning Applications (LApps)]() | # | :thought_balloon: |
 | [LN's Future]() | # | :thought_balloon: |
 
-Total Word Count: 71133
+Total Word Count: 81432
 
 Target Word Count: 100,000-120,000
 
