@@ -67,14 +67,14 @@ The standard path finding mechanism in source-based onion-routing that is implem
 . If the payment settles, the sender updates its topological knowledge based on this new information for future payments. The algorithm terminates.
 . If the payment fails, the sender updates its topological knowledge based on this new information. It then selects a different path and starts the process again from the beginning.
 
-This means that with every attempted payment nodes actually probe the network and will also learn some information about how balances are distributed.
-Implementations will usually prioritise cheaper paths or exclude channels which recently have failed.
+This means that with every attempted payment nodes actually probe the network and also learn some information about how balances are distributed.
+Implementations will usually prioritise cheaper paths or exclude channels which have recently failed.
 In that sense the selection is not completely arbitrary.
-Still even with such heuristics in place it could still be considered as a random process or random walk through the channel graph. 
-There can be several reasons why the payment may fail along the way.
-For example one of the nodes becomes unreachable, doesn't have the channel balance, can't accept new htlcs, has updated its fees to a higher amount, or the channel is closed in the interim.
-Furthermore, there is no guarantee that the route chosen was the cheapest in terms of fees, or if a shorter path existed.
-As at the time of writing, this is a design trade-off made to protect user privacy.
+Even with such primitive heuristics in place it could still be considered a random process or a random walk through the channel graph. 
+There can be several reasons why a payment may fail along the way.
+Reasons for failure include: a routing node became unreachable, a routing channel no longer has the required balance, a routing node doesn't accept new HTLCs, the owner of a channel increased the channel fees, or the channel was closed in the interim.
+Furthermore, there is no guarantee that the route chosen was the cheapest in terms of fees or the shortest in terms of channels involved.
+At the time of writing this book, this is a design trade-off made to protect user privacy.
 
 === Paths are constructed from Destination to Source
 Let us assume our standard example in which Alice wants to send a payment of 100k satoshi on a path via Bob and Wei to Gloria.
