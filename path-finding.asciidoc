@@ -192,15 +192,15 @@ Besides, channel data continuously changes over time as the Lightning Network is
 This implies that nodes should only use such data if it is not too old or use it only with limited confidence.
 As time advances this information becomes stale and outdated and the confidence in this data diminishes.
 
-The fourth source of information that the node will use are the routing hints in the BOLT 11 invoice.
-Remember that a regular payment process starts with the person who wants to receive money coming up with a random secret and hashing it as the payment hash.
+The fourth source of information that the node can use are the routing hints in the BOLT 11 invoices.
+Remember that a regular payment process starts with the person who wants to receive money producing a random secret and hashing it to derive the payment hash.
 This hash is usually transported to the sender via an invoice.
-Invoices usually contain some meta data and in particular routing hints.
-This is necessary if the person who wants to be paid does not have announced channels. In that case it will speciefie some unannounced channels within the invoice.
-Otherwise the payer would not even be able to find a path to the "hidden" node.
-Routing hints might also be used by the receiving node to indicate which public channels have enough inbound capacity for the payment and thus the ability to receive funds.
-In general the further away from the originating peer the payment goes the more likely it becomes to select a channel with insufficient balance.
-Thus indicating on which channels a node wishes to receive funds would actually be quite nice for the sender.
+Invoices typically contain some meta data including some routing hints.
+This is imperative if the person who wants to be paid does not have announced channels. In that case some unannounced channels will be specified within the invoice.
+Otherwise the payer would not even be able to find a path to the "hidden" destination node.
+Routing hints might also be used by the receiving node to indicate which public channels have enough inbound capacity to forward the payment.
+In general, the longer a payment path is, the more likely it becomes that a channel with insufficient balance is selected.
+Thus, receiving hints from the receiver indicating on which channels it wishes to receive funds is definitely helpful for the sender.
 
 
 === Improvements on Source based onion routing
