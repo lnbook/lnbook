@@ -221,15 +221,18 @@ If people stand in a line at the cash register for their groceries this would be
 Thus lightnign developers 
 
 
-==== Probing based improvements
-The last source of information that nodes could use is to probe the network themselves.
-Instead of making the actual payment nodes could send out many fake payments which are onions to a random payment hash.
-Given the properties of the hashfunction it is save to assume that noone would know the preimage.
-In that sense the payment will only fail at the destination and nodes can learn a lot about the balances.
-Of course this produces spam and heavy load on the network and it is not recommended that nodes do this.
-However participants cannot really be stopped from doing this.
-unless channel partners see a lot of traffic coming on a channel which always fails and never settles.
-In this case channel partners could decide to close the channel. 
+==== Improvements to probing
+Nodes ordinarily probe the network when making a payment. But nothing prevents them from probing the network periodically.
+Instead of making a real payment, nodes could send out one or multiple _fake_ payments. 
+A fake payment is nothing but an onions with a random payment hash.
+Given the properties of the hash function, it is save to assume that nobody knows the preimage.
+If the payment amount is small enough, a fake payment will fail at the destination and this allows the sending node to learn about the balances on the path.
+There are clear downsides to this approach.
+It produces spam and heavy network load and therefore this behaviour is discouraged.
+However, participants cannot easily be stopped from doing this.
+Channel partners can detect this type of abuse by observing frequent payments that always fail.
+As punishment channel partners can decide to produce errors right away without providing balance information
+or they can decide to close the abused channel. 
 
 [Note]
 ====
