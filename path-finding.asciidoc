@@ -274,12 +274,18 @@ Also it utilizes more resources of other nodes.
 Everyone can easily make the following observation:
 
 ----
-Let's say your node has discovered a path along which a certain amount of Satoshis for example 100k could be routed.
-Then any onion along that path on the same time with an lower amount of Satoshis would also have been successfull.
-One can easily conclude that lower amounts have a higher likelyhood to be routed successfully to the destination than larger amounts.
+Let's say your node has discovered a path along which a certain amount of Satoshis can be routed.
+If so, then any onion with an smaller amount of Satoshis can also be routed successfully along that path at the given time.
+One can conclude that a smaller amount has a higher likelihood to be routed successfully to the destination than a larger amount.
 ----
 
-Researchers and developers have already tested and confirmed this emperically over and over again.
+This supposition ignores some edge cases which we ignore for this discussion. The above observation might not hold true
+for small amounts of Satoshis. Certain node operators might not be interested in routing small amounts because they might 
+consider them as "not profitable enough". Node operators might weigh other node resources against the tiny profit of a
+small payment and simply reject payments below a given threshold or minimum. What is "small" and what to reject will 
+be defined by each operator on its personal preferences. 
+
+But for the general case, researchers and developers have already tested this postulate and confirmed it multiple times emperically.
 
 With this assumption in mind it seems natural to split a payment amount and send several smaller payments along various paths.
 With if a small payment fails it will be retried and probed just as one would do with a single larger payment.
