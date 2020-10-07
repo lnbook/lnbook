@@ -62,7 +62,60 @@ If the last paragraph of this summary was confusing: No worries! We are getting 
 
 ## Opening a channel
 
-At the time of writing this book payment channels the protocol only supports the opening of the channel by one peer.
+A payment channel needs to be established before it can be utilized to send, receive and route bitcoin.
+There is always liquidity tied to the payment channel.
+This liquidity is provided by the person who initiates the opening of the channel.
+We call that person the funder of the channel. 
+At the time of writing this book the protocol only supports funding of a payment channel by the peer who initiates the opening of the channel.
+The funding of the payment channel happens by a regular on chain transaction.
+This funding transaction sends Bitcoin which the funder controlled to a 2-of-2 multisignature output that is controlled by both peers of the channel.
+In order to safely do so several things had to be prepared:
+
+. Both peers needed to have a secure communication channel established.
+. The funder needs to know the public key that is used by the other peer for their multisig address.
+. There needs to be a revokable refund transaction available that sends all the funds back to the funder in case the other peer becomes iresponsive.
+
+We will assume that the secure communication channel has already been established.
+You can learn more about this in the chapter about peer connection establishing.
+
+The second and third points are exactly why a channel opening protocol must exist and cannot be as easy as just sending bitcoin to a 2-of-2 multisig output.
+Especially the third point makes heavy use of the segwit upgrade but we will come to that.
+
+The entire channel opening protocol requires a 6 - way handshake and is thus considerably more complex than establishing a TCP connection.
+The Protocol goes in a sequential way in which every peer sends 3 messages.
+We can see an overview in this diagram (which was taken directly from BOLT2 of the Lightning-rfc):
+
+        +-------+                              +-------+
+        |       |--(1)---  open_channel  ----->|       |
+        |       |<-(2)--  accept_channel  -----|       |
+        |       |                              |       |
+        |   A   |--(3)--  funding_created  --->|   B   |
+        |       |<-(4)--  funding_signed  -----|       |
+        |       |                              |       |
+        |       |--(5)--- funding_locked  ---->|       |
+        |       |<-(6)--- funding_locked  -----|       |
+        +-------+                              +-------+
+
+
+### Step1: Signaling the intent to open a channel.
+
+When Alice wishes to open a channel with Bob she sends an `open_channel` message to Bob.
+This message tells Bob that Alice wishes to create a channel.
+While there is obviously not a unique way of designing a protocol we can think about what kind of information Alice might have to change with Bob, so that they can savely operate a payment channel together.
+In order to find a good answer we remind ourselves that in order for Alice and Bob to safely operate the channel each of them needs to controll a presigned commitment transaction that spends from the output of the funding transaction.
+As the funding transaction will send the funds of the channel to a 2-of-2 multisig output it is very reasonable that Alice needs to tell Bob at some point in the protocol, what her key for that address looks like.
+Thus she can already put that information into the `open_channel` message via the `funding_pubkey` field.
+While the Lightning Network Protocol was created to scale Bitcoin the principles of the Protocol can be used on top of other blockchains as well.
+Thus Alice needs to inform Bob that she will use the Bitcoin Blockchain to secure this channel.
+She can do so by putting the hash of the bitcoin genesis block into the `chain_hash` field of the funding transaction.
+
+
+Obviously Alice needs to share some information with Bob about the channel that she wishes to create.
+Thus this message contains 
+
+
+
+
 
 [Note]
 ====
