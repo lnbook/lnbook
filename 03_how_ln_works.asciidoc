@@ -14,12 +14,30 @@ We'll start with a one sentence definition of what the Lightning Network (LN) is
 
 **The Lightning Network (LN) is a peer-to-peer network of _payment channels_ implemented as smart contracts on the _Bitcoin blockchain_ as well as a communication protocol that defines how participants set up and execute these smart contracts**
 
+=== What is a payment channel?
+
+There are several ways to describe a payment channel, depending on the context. Let's start at a high level and then add some more detail.
+
+A payment channel is a _financial relationship_ between two nodes on the Lightning Network, called the "channel partners". The financial relationship allocates a _balance of funds_ (denominated in milli-satoshis), between the two channel partners.
+
+The payment channel is managed by a _cryptographic protocol_, meaning a pre-defined process based on cryptography, used by the channel partners to re-distribute the balance of the channel in favor of one or the other channel partner. The cryptographic protocol ensures that one channel partner cannot cheat the other, so that the partners do not need to trust each other.
+
+The cryptographic protocol is established by the funding of a 2-of-2 _multi-signature address_ that requires the two channel partners to cooperate and prevents either channel partner from spending the funds unilaterally.
+
+To summarize:
+
+A payment channel is a financial relationship between nodes, allocating funds from a multi-signature address, through a strictly defined cryptographic protocol.
+
 === Payment channels basics
 
-We will see that a payment channel is simply a 2-of-2 multisignature address on Bitcoin, for which you hold one key and your channel partner holds the other key.
+Underlying the payment channel is simply a 2-of-2 multisignature address on the Bitcoin blockchain, for which you hold one key and your channel partner holds the other key.
+
 You and your channel partner negotiate a sequence of transactions that spend from this multisignature address. Instead of transmitting and recording these transactions on the Bitcoin blockchain, you both hold on to them, unspent.
+
 The latest transaction in that sequence encodes the balance of the channel and defines how that balance is divided between you and your channel partner.
+
 Thus, adding a new transaction to this sequence is equivalent to moving some part of the channel balance from one channel partner to the other, without the Bitcoin network being aware of it. As you negotiate each new transaction, changing the allocation of funds in the channel, you also revoke the previous transaction, so that neither party can regress to a previous state.
+
 Each transaction in the sequence makes use of Bitcoin's scripting language, and thus the negotiation of funds between you and your channel partner is managed by a Bitcoin smart contract.
 The smart contract is set up to penalize a channel member if they try to submit a previously revoked state of the channel.
 
@@ -57,12 +75,11 @@ Beyond all the technical primitives, the Lightning Network protocol is a creativ
 === Payment channels
 
 As we saw in the previous chapter, Alice used her wallet software to create a payment channel between her and another Lightning Network participant.
-From a computer science perspective, a payment channel is a cryptographic communication protocol between you and your channel partner.
-It allows the channel partners to send funds back and forth as often as they wish.
 
-A channel is only limited by two things:
+A channel is only limited by three things:
 First, the time it takes for the internet to transfer the few hundred bytes of data that the protocol requires to move funds from one end of the channel to the other.
 Second, the capacity of the channel, meaning the amount of bitcoin that is committed to the channel when it is opened.
+Third, the maximum size limit of a Bitcoin transaction also limits the number of incomplete (in progress) routed payments that can be carried simultaneously over a channel.
 
 Payment channels have a few very interesting and useful properties:
 
@@ -135,7 +152,7 @@ The amount deposited in the multisignature address is called the _channel capaci
 
 [NOTE]
 ====
-The funds sent to the multisignature address in the funding transaction are sometimes referred to as "locked in a Lightning channel". However, in practice, funds in a Lightning channel are not "locked" but rather "unleashed". Lightning channel funds are more liquid than funds on the Bitcoin blockchain as they can be spent faster, cheaper and more privately. Opening a Lightning channel unleashes your Bitcoin!
+The funds sent to the multisignature address in the funding transaction are sometimes referred to as "locked in a Lightning channel". However, in practice, funds in a Lightning channel are not "locked" but rather "unleashed". Lightning channel funds are more liquid than funds on the Bitcoin blockchain as they can be spent faster, cheaper and more privately. There are some disadvantages to moving funds into the Lightning Network (such as the need to keep them in a "hot" wallet), but the idea of "locking funds" in Lightning is misleading.
 ====
 
 ===== Example of a poor channel opening procedure
@@ -263,12 +280,12 @@ When new nodes join the Lightning Network they collect the channel announcements
 
 ==== Closing the channel
 
-The best way to close a channel is... to not close it! 
-Opening and closing channels require an on-chain transaction, which will incur transaction fees. 
-So it's best to keep channels open as long as possible. 
-You can keep using your channel to make and forward payments, as long as you have sufficient capacity on your end of the channel. 
-But even if you send all the balance to the other end of the channel, you can then use the channel to receive payments from your channel partner. 
-This concept of using a channel in one direction and then using it in the opposite direction is called "re-balancing" and we will examine it in more detail in another chapter. 
+The best way to close a channel is... to not close it!
+Opening and closing channels require an on-chain transaction, which will incur transaction fees.
+So it's best to keep channels open as long as possible.
+You can keep using your channel to make and forward payments, as long as you have sufficient capacity on your end of the channel.
+But even if you send all the balance to the other end of the channel, you can then use the channel to receive payments from your channel partner.
+This concept of using a channel in one direction and then using it in the opposite direction is called "re-balancing" and we will examine it in more detail in another chapter.
 By re-balancing a channel, it can be kept open almost indefinitely and used for essentially unlimited number of payments.
 
 
@@ -285,7 +302,7 @@ There are 3 ways to close a payment channel:
 * Force close (the bad way)
 * Protocol breach (the ugly way)
 
-Each of these methods is useful for different circumstances which we will explore in the next section of this chapter. 
+Each of these methods is useful for different circumstances which we will explore in the next section of this chapter.
 For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
 Usually, your Lightning Network software will automatically select the best closing mechanism available under the circumstances.
 
