@@ -1,0 +1,153 @@
+[[security_and_privacy_of_ln]]
+== Security and Privacy of the Lightning network
+In this chapter, we look at the issues related to the security and privacy of the LN.
+
+= Why privacy is important? =
+
+The key value proposition of cryptocurrency is censorship resistant money.
+It has been shown many times that the power of governments over money is often abused.
+Bitcoin offers individuals a possibility of storing and transferring their wealth without restrictions.
+
+Lightning continues this mission.
+It aims at providing a better user experience with instant payments while not sacrificing censorship resistance.
+However, the LN operates under a different security model, which introduces novel security and privacy challenges.
+
+= Definitions of privacy =
+
+There is no direct answer to the question: “Is Lightning private?”.
+First, there is no single metric of privacy.
+Security and privacy researchers derive various models and show that certain systems do or do not uphold them in given circumstances.
+Second, privacy is a spectrum.
+For each privacy definition and security model there is a certain probability that an attacker succeeds.
+This probability depends on various factors.
+What an attacker may want to do:
+
+  * An attacker may aim at different goals, such as:
+  * Learning the payment amount;
+  * Learning the sender and the receiver
+  * Preventing a victim from using the network (DoS attack)
+  * Prevent the whole network from functioning
+  * Break the economic incentives (e.g. deprive victims from routing fees)
+  * ...
+
+=== Anonymity set
+
+Anonymity set is an important notion in privacy research.
+Say, an attacker wants to deanonymize payments.
+This means deriving a correspondence between payments and users (keys, IDs).
+For a given payment, there is a set of users who, from an attacker’s point of view, could have been its senders.
+This set of possible senders is the anonymity set.
+Ideally, the anonymity set consists of all the users of the network.
+This assures that the attacker has no information whatsoever.
+However, the real network leaks information that allows an attacker to narrow down the search.
+The smaller the anonymity set, the higher the chance of successful deanonymization.
+
+=== Differences between LN and Bitcoin in terms of privacy
+Bitcoin was initially perceived as an anonymous currency. Indeed, addresses are not linked to real identities. However, all transactions are broadcast in cleartext and can be analyzed. Multiple companies deanonymize users of Bitcon and other cryptocurrencies.
+
+On the first glance, Lightning provides better privacy because Lightning payments are not broadcast to the whole network. However, novel attack vectors have been described. Not only the privacy of Lightning payments may be compromised under certain circumstances, users can also be denied service, having their channels blocked by the attacker.
+
+The key differences in the security models of Lightning as compared to Bitcoin are:
+Transactions broadcast vs not broadcast
+Nodes have permanent identities, often linked to IP addresses
+It matters what path a payment takes in the network
+The notion of time and being online is important (watchtowers, etc)
+...
+= Attacks on Lightning =
+
+Recent research describes various ways in which the security and privacy of the LN may be compromised.
+
+== Observing payment amounts
+The attacker sees the payment amount in cleartext.
+
+== Linking senders and receivers
+
+Some things that help an attacker link the sender and the receiver:
+  * The same hash value used along the whole path
+  * Graph analysis to decrease the anonymity set (a-la “this payment could not have originated from this sub-graph because there isn’t enough capacity there”)
+  * Timing analysis: how much time it takes for a node to respond to an HTLC request helps estimate the position of the attacker in the path
+  * Even the knowledge of the applied routing algorithm could help excluding certain nodes from being as a sender and/or receiver of a payment.
+
+== Revealing channel balances (probing)
+
+One can send fake payments to determine the distribution of funds in a channel.
+Another paper has shown that…
+Yet another paper…
+
+=== Denial of service
+Capacity-based channel blocking
+HTLC limit channel blocking
+
+= Cross-layer deanonymization =
+
+Computer networks are often layered. Layering allows for separation of concerns and makes the whole thing manageable.
+No one could be able to design a website if it required understanding all the TCP/IP stack up to the physical encoding of bits in an optical cable.
+Every layer is supposed to provide functionality to the layer above in a clean way.
+Ideally, the upper layer should perceive a lower layer as a black box.
+In reality though, implementations are not ideal and the details _leak_ into the upper layer.
+This is the problem of leaky abstractions.
+
+In the context of Lightning, the LN protocol relies on the Bitcoin protocol and the Lightning P2P network.
+However, they may not always behave in accordance with their “idealized” design, which gives valuable information to the attacker.
+
+In particular, these assumptions may not always hold:
+
+  * L1 works as expected
+  * Identities in L1 and L2 are separated
+  * If a transaction pays competitive fees, it will be included in a block
+  * The blockchain is never too congested
+
+= Lightning graph =
+
+As we have seen, many attacks depend on the graph structure of Lightning.
+== How does the Lightning graph look like in reality?
+
+=== What is a graph anyway?
+A graph is a mathematical model that consists of nodes and edges (connections between nodes).
+
+As we have shown, many attacks work best if the LN is “centralized”, that is, if only a few nodes control a large part of what happens on the network.
+Now let us more precisely define the notion of centralization.
+
+=== Lightning graph today
+Now let’s explore the real LN graph.
+Based on a snapshot of publicly announced channels as of (date), the centrality metrics are as follows.
+This means that Lightning is (very? Moderately? Not very?) centralized.
+The tendency goes towards (more? less?) centralization.
+This may lead to (more? fewer?) attacks of these types...
+
+=== Economic incentives and graph structure
+The Lightning graph forms spontaneously.
+Nodes connect to each other based on mutual interest.
+As a result, incentives drive graph development.
+Let’s describe some of the relevant incentives:
+
+  * Rational incentives.
+    - Nodes establish channels to send, receive, and route payments (earn fees).
+    - What makes a channel more likely to be established between two nodes that act rationally?
+  * Altruistic incentives.
+    - Nodes establish channels “for the good of the network”.
+    - While we should not base our security assumptions on altruism, to a certain extent altruistic behavior drives Bitcoin (accepting incoming connections, serving blocks).
+    - What role does it play in Lightning?
+
+How rational are Lightning users now?
+How will the LN graph evolve?
+Can the LN be a mesh-like network? Are there examples of successful mesh networks?
+
+= Practical advice for users to protect their privacy =
+
+Now you may be wondering: how do I protect my privacy as a Lightning user today?
+Here are some tips.
+== Who should I open channels to?
+Should I connect to a large hub? Multiple hubs? Some random small nodes? I want my payments to be reliable but don’t want to contribute to LN centralization - what is the trade-off?
+
+== Accepting incoming channels
+Can it be a bad idea to accept an incoming channel? I’m happy that people want to route through my node! What do I have to lose?
+
+== Setting parameters for routing payments
+The number of allowed HTLCs, the minimal payment amount, trade-offs involved.
+
+= Future of privacy in the LN =
+The Lightning network is an exciting technology but there may be economic forces that drive it to a centralization.
+One paper claims that…
+
+
