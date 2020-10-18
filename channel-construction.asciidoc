@@ -8,19 +8,19 @@ As with most technologies it is important to understand the core concepts and bu
 
 In the previous chapters you have already learned that payment channels
 
-* allow two peers who created it to send and receive Bitcoin up to the amount specified by the capacity of the channel as often as they want to.
+* allow two peers who created it to send and receive bitcoin up to the amount specified by the capacity of the channel as often as they want to.
 * split the capacity of the channel into a balance between the two peers which - as long as the channel is open - is only known by the owners of the channel and increases privacy.
 * do not require peers to do any additional onchain transactions other than the one needed to open and - potentially at a later state - to close the channel.
 * can stay open for an arbitrary time. Potentially in the best case forever.
 * do not require peers to trust each other as any attempt by a peer to cheat would enable the other peer to take all the funds in the channel as a penalty.
-* can be connected to a network and allow peers to send money a long a path of connected channels without the necessity to trust the intermediary nodes as they do not have the ability to steal the Bitcoin that are being forwarded.
+* can be connected to a network and allow peers to send money a long a path of connected channels without the necessity to trust the intermediary nodes as they do not have the ability to steal the bitcoin that are being forwarded.
 
 In this chapter we will dig deeper into the protocol details that are needed to open and close payment channels.
 Especially with the opening part of a payment channel the ideas for updating a channel should already become clear but we will defer to explain the details how HTLCs are being used in the channel operation chapter which comes directly after this chapter.
 Working through this rather technical chapter you will be able to understand how the protocol design achieves the main properties of payment channels.
 Where necessary some information from the first chapters of this book will be repeated.
 If you are new to the topic we highly encourage you to start there first.
-If you however already know a fair share about bitcoin script, OP_CODES and protocol design it might be sufficient to skip the previous chapter and start here with us.
+If you however already know a fair share about Bitcoin script, OP_CODES and protocol design it might be sufficient to skip the previous chapter and start here with us.
 This books follows the construction of payment channels as described in BOLT 02 which is titled `peer protocol` and describes how two peers communicate to open, maintain and close a channel.
 As stated we will only discuss opening and closing a channel in this chapter and
 The operation and maintainance of a channel which means either attempting to make or forward a payment as well as failing or settling such attempts is the normal operation and will be discussed in the next chapter.
@@ -48,7 +48,7 @@ Thus 'ownership' of bitcoin can be defined as the ability to spend that bitcoin.
 If you have an unpublished but signed transaction from a 2-of-2 multisignature address, where some outputs are sent to an address you own, and additionally you exclusively know one of the private keys of the multisignature address, then you effectively own the bitcoin of that output.
 Without your help no other transaction from the 2-of-2 multisignature address can be produced (as only you possesess one of the needed keys to sign a transaction that spends from this address)
 However, without the help of anybody else you can transfer the funds to an address which you control.
-You do that by broadcasting the transaction to the bitcoin network which will accept it as it has valid signatures.
+You do that by broadcasting the transaction to the Bitcoin network which will accept it as it has valid signatures.
 As the funds in this transaction go to a regular address for which you controll the private key you can again move the funds and thus you effectively own them.
 On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-of-2 multisignature address.
 While your funds on the lightning network are called to be "off-chain" they are actually very much on chain and very much owned by you just like you might own other bitcoin.
@@ -68,7 +68,7 @@ This liquidity is provided by the person who initiates the opening of the channe
 We call that person the funder of the channel. 
 At the time of writing this book the protocol only supports funding of a payment channel by the peer who initiates the opening of the channel.
 The funding of the payment channel happens by a regular on chain transaction.
-This funding transaction sends Bitcoin which the funder controlled to a 2-of-2 multisignature output that is controlled by both peers of the channel.
+This funding transaction sends bitcoin which the funder controlled to a 2-of-2 multisignature output that is controlled by both peers of the channel.
 In order to safely do so several things had to be prepared:
 
 . Both peers needed to have a secure communication channel established.
@@ -107,7 +107,7 @@ As the funding transaction will send the funds of the channel to a 2-of-2 multis
 Thus she can already put that information into the `open_channel` message via the `funding_pubkey` field.
 While the Lightning Network Protocol was created to scale Bitcoin the principles of the Protocol can be used on top of other blockchains as well.
 Thus Alice needs to inform Bob that she will use the Bitcoin Blockchain to secure this channel.
-She can do so by putting the hash of the bitcoin genesis block into the `chain_hash` field of the funding transaction.
+She can do so by putting the hash of the Bitcoin genesis block into the `chain_hash` field of the funding transaction.
 
 
 Obviously Alice needs to share some information with Bob about the channel that she wishes to create.
@@ -149,11 +149,11 @@ Alice has heard that payment channel are 2-of-2 multisignature outputs.
 As she wants to have a channel with Bob and since she knows a public key from Bob she decides to open a channel by sending money to a 2-of-2 multisignature address that comes from Bob's and her key.
 We call the transaction that Alices used a **funding transaction** as it is supposed to fund the payment channel.
 However signing and broadcasting this funding transaction would be a huge mistake.
-As we have discussed the Bitcoins from the resulting UTXO can only be spent if Alice and Bob work together and both provide a signature for a transaction spending those coins.
-If Bob would not respond to Alice in future Alice would have lost her Bitcoins forever.
+As we have discussed, the bitcoin from the resulting UTXO can only be spent if Alice and Bob work together and both provide a signature for a transaction spending those coins.
+If Bob would not respond to Alice in the future, Alice would have lost her bitcoin forever.
 That is because the coins would be stuck in the 2-of-2 multisignature address to which she has just sent them.
 
-Luckily Alice has previously read Mastering Bitcoin and she knows all the properties of Bitcoin script and is aware of the risks that are involved with sending Bitcoins to a 2-of-2 multisignature address to which she does not control both keys.
+Luckily Alice has previously read Mastering Bitcoin and she knows all the properties of Bitcoin script and is aware of the risks that are involved with sending bitcoin to a 2-of-2 multisignature address to which she does not control both keys.
 She is also aware of the "Don't trust. Verify" principle that Bitcoiners follow and doesn't want to trust Bob to help her moving or accessing her coins.
 She would much more prefere to keep control over her coins even though they shall be stored in this 2-of-2 multisignature address.
 While this seems like an impossible problem, Alice has an idea:
@@ -171,9 +171,9 @@ On the other side you as a reader might think:
 Why would Alice send money to a multisignature address just to prepare a transaction that sends the money back to her?
 
 We really hope you have wondered about this because this is really the point where the innovation begins.
-Just because in general people are expected to broadcast a transaction to the bitcoin network as soon as they have signed it noone forces you to do that.
+Just because in general people are expected to broadcast a transaction to the Bitcoin network as soon as they have signed it noone forces you to do that.
 
-As Alice would loose access of her Bitcoins once she sends it to a 2-of-2 multisignature output for which she only controls one key, she needs to make sure that she will be able to regain access of her coins in case Bob becomes unresponisive.
+As Alice would loose access to her bitcoin once she sends it to a 2-of-2 multisignature output for which she only controls one key, she needs to make sure that she will be able to regain access of her coins in case Bob becomes unresponisive.
 Thus before Alice publishes the funding transaction she will create another transaction that sends all the bitcoin from the 2-of-2 multisignature output back to an address which she controls.
 
 .The situation can be seen in the following picture
@@ -258,25 +258,25 @@ We call the process of creating a new payment channel "opening a payment channel
 Currently a payment channel can only exists between exactly two peers.
 Therefore you might be surprised to learn that even though two users are owning and maintaining the channel the current construction requires only one user to open the channel.
 This does not mean that only one peer is needed to open a channel.
-It does however mean that the user who opens the channel also has to provide the bitcoins to fund the channel.
+It does, however, mean that the user who opens the channel also has to provide the bitcoin to fund the channel.
 
 Let us stick to our example where Alice opens a channel with Bob with a capacity of 100k satoshi.
 This means that Alice provides 100k satoshi.
 Alice will do that by creating a so called funding transaction.
 This transaction sends 100k satoshi from an address that she - or her lightning node software controls - to a 2-of-2 multisig address for which she and Bob know 1 secret key each.
-The amount of Bitcoin that is sent to the multisig output by Alice is called the capacity of the payment channel.
+The amount of bitcoin that is sent to the multisig output by Alice is called the capacity of the payment channel.
 Thus for the reminder of the chapter in all examples we assume the payment channels that we use as examples already magically exist and the two peers Alice and Bob already have all the necessary data at hand.
 
 [NOTE]
 ====
-Even though Alice and Bob both have a public node key to which they own the private secret opening a payment channel is not as easy as sending bitcoins to the 2 out of 2 multisignature output that belongs to the public keys of Alice and Bob.
+Even though Alice and Bob both have a public node key to which they own the private secret opening a payment channel is not as easy as sending bitcoin to the 2 out of 2 multisignature output that belongs to the public keys of Alice and Bob.
 Let us assume for a moment that Alice would send 100k Satoshi to the Multisig address resulting from hers and Bob's public node id.
 In that case Alice will never be able to maintain her funds back without the help of Bob.
 Of course we want our payment channels to work in a way that Alice does not need to trust Bob.
 Bob could however refuse to sign a transaction that sends all those outputs back to an address that is controled by Alice.
-He would be able to blackmail Alice to assign a significant amount of those Bitcoin to an output address that is controled by him.
 Thus Bob can't steel the coins from Alice directly but he can threten Alice to have her coins lost forever.
-This example shows that unfortunatelly opening a channel will be a little bit more complex than just sending Bitcoins to a multisignature address.
+He would be able to blackmail Alice to assign a significant amount of that bitcoin to an output address that is controlled by him.
+This example shows that, unfortunately, opening a channel will be a little bit more complex than just sending bitcoin to a multisignature address.
 ====
 
 
@@ -315,7 +315,7 @@ This information is necessary to construct the commitment transaction ...
 
 Once the channel is open Alice will be able to send 99k satoshi along this channel.
 Bob on the other side will be able to receive 99k satoshi along that channel.
-This means that initially Alice will not be able to recieve Bitcoins on this channel and that Bob initially will not be able to send Bitcoin along that channel.
+This means that initially Alice will not be able to recieve bitcoin on this channel and that Bob initially will not be able to send bitcoin along that channel.
 
 
 == Other payment channel constuctions
