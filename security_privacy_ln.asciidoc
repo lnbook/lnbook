@@ -14,51 +14,133 @@ However, the LN operates under a different security model, which introduces nove
 
 = Definitions of privacy =
 
-There is no direct answer to the question: “Is Lightning private?”.
-First, there is no single metric of privacy.
-Security and privacy researchers derive various models and show that certain systems do or do not uphold them in given circumstances.
-Second, privacy is a spectrum.
-For each privacy definition and security model there is a certain probability that an attacker succeeds.
-This probability depends on various factors.
-What an attacker may want to do:
+Privacy is a complex topic.
+It is hard to define precisely what we mean by privacy.
+Therefore, the question: "Is Lightning private?" has no direct answer.
+However, privacy researchers approach this question as follows.
+First, they define a _security model_ that specifies what exactly an adversary is capable of and what they aim to achieve.
+Then, they describe the relevant properties of the system and check whether it conforms to the relevant requirements.
+A security model is based on a set of underlying _security assumptions_.
+In cryptographic systems, they are often centered around the mathematical properties of the cryptographic primitives such as ciphers, signatures, and hash functions.
+The security assumptions of the Lightning network are that the ECDSA signatures, SHA-256 hash function, and other cryptographic functions used in the protocol behave within their security definitions.
+For example, we assume that it is practically impossible to find a pre-image of a hash function.
+This allows the LN to rely on the HTLC mechanism for the atomicity of multi-hop payments: nobody except the final recipient can resolve the HTLC before the payment secret is revealed.
+We also assume a degree of connectivity in the network: that Lightning channels form a connected graph (therefore, it is possible to find a path from any sender to any receiver), and that network messages get propagated within certain timeouts.
 
-  * An attacker may aim at different goals, such as:
-  * Learning the payment amount;
-  * Learning the sender and the receiver
-  * Preventing a victim from using the network (DoS attack)
-  * Prevent the whole network from functioning
-  * Break the economic incentives (e.g. deprive victims from routing fees)
-  * ...
+Here are some possible models of adversaries in the Lightning network.
+A regular "honest-but-curious" forwarding node can observe payment amounts, the immediately preceding and following nodes, the graph of announced channels with their capacities.
+A very well-connected node can do the same but to a larger extent: for example, a node belonging to a popular wallet may be responsible for routing a large share of payments to and from the users of that wallet.
+An even stronger adversary model implies that multiple nodes are under adversarial control.
+If it so happens that two colluding nodes are on the same payment path, they would be able to understand that they are forwarding HTLCs belonging to the same payment (they share the same payment hash).
+
+What may be the goals of a Lightning attacker?
+Information security is often described in terms of three main properties: confidentiality, integrity, and availability.
+Confidentiality means that the information only gets to intended recipients.
+Integrity implies that the information does not get altered in transit.
+Availability ensures that users may expect the system to be functioning most of the time.
+
+The important properties of the Lightning network are mostly centered around confidentiality and availability.
+Here are some of the properties we may want to ensure:
+
+* nobody except the sender and the receiver knows the payment amount
+* nobody can link senders and receivers
+* nobody can block an honest user from sending and receiving payments
+
+For each privacy goal and security model, there is a certain probability that an attacker succeeds.
+This probability depends on various factors, such as the size and the structure of the network.
+Other things equal, it is generally easier to attack a small network rather than a large one.
+Similarly, the more centralized the network is, the more capable an attacker can be, if "central" nodes are under their control.
+Of course, the notion of "centralization" must be defined precisely to build security models around it, and there are many possible definitions of how centralized a network is.
+Finally, as a payment network, the LN depends on economic stimuli.
+The size and structure of fees affect the routing algorithm and, therefore, can either aid the attacker by forwarding most payments through their nodes, or prevent this from happening.
+
 
 === Anonymity set
 
-Anonymity set is an important notion in privacy research.
-Say, an attacker wants to deanonymize payments.
-This means deriving a correspondence between payments and users (keys, IDs).
-For a given payment, there is a set of users who, from an attacker’s point of view, could have been its senders.
-This set of possible senders is the anonymity set.
+What does it mean to deanonymize someone?
+In simple terms, deanonymization implies linking some action with a person's "real world" identity, such as their name or physical address.
+In privacy research, the notion of deanonymization is more nuanced.
+First, we are not necessarily talking about names and addresses.
+Discovering someone's IP address or telephone number may also be considered deanonymization.
+A piece of information that allows linking a user's action to their previous actions is referred to as _identity_.
+Second, deanonymization is not binary.
+A user is not either fully anonymous or completely deanonymized.
+Instead, privacy research looks at anonymity compared to the _anonymity set_.
+
+The anonymity set is a central notion in privacy research.
+It refers to the set of identities such that, from an attacker's viewpoint, a given action could correspond to any of them.
+Consider a real-life example.
+Imagine you meet a person on a city street.
+What is their anonymity set from your point of view?
+If you don't know them personally, and without any additional information, their anonymity set roughly equals the population of the city, including travelers.
+If you consider additionally consider their appearance, you may be able to roughly estimate their age and exclude the city residents who are obviously older or younger than the person in question from the anonymity set.
+Furthermore, if you notice that the person walks into the office of Company X using an electronic badge, the anonymity set shrinks to the number of Company X's employees and visitors.
+Finally, you may notice the license number of the car they used to arrive at the place.
+If you are a casual observer, this doesn't give you much.
+However, if you are a city official and have access to the database that matches license plate numbers with names, you can narrow down the anonymity set to just a few people: the car owner and their closest friends and relatives.
+
+This example illustrates a few important points.
+First, every bit of information may bring the adversary closer to their goal.
+It may not be necessary to shrink the anonymity set to the size of one.
+For instance, if the adversary plans a targeted DoS attack and can take down 100 servers, the anonymity set of 100 suffices.
+Second, the adversary can cross-correlate information from different sources.
+Even if a privacy leak looks relatively benign, we never know what it can achieve in combination with other data sources. 
+Finally, especially in cryptographic settings, the attacker always has the "last resort" of brute force search.
+Cryptographic primitives are designed so that it is practically impossible to guess a secret such as a private key.
+Nevertheless, each bit of information brings the adversary closer to this goal, and at some point it becomes attainable.
+
+In terms of Lightning, deanonymizing generally means deriving a correspondence between payments and users identified by node IDs.
+Each payment may be assigned a sender anonymity set and a receiver anonymity set.
 Ideally, the anonymity set consists of all the users of the network.
 This assures that the attacker has no information whatsoever.
 However, the real network leaks information that allows an attacker to narrow down the search.
 The smaller the anonymity set, the higher the chance of successful deanonymization.
 
+
 === Differences between LN and Bitcoin in terms of privacy
-Bitcoin was initially perceived as an anonymous currency. Indeed, addresses are not linked to real identities. However, all transactions are broadcast in cleartext and can be analyzed. Multiple companies deanonymize users of Bitcon and other cryptocurrencies.
 
-On the first glance, Lightning provides better privacy because Lightning payments are not broadcast to the whole network. However, novel attack vectors have been described. Not only the privacy of Lightning payments may be compromised under certain circumstances, users can also be denied service, having their channels blocked by the attacker.
+Bitcoin was initially perceived as an anonymous currency.
+Indeed, addresses are not linked to real identities.
+However, all transactions are broadcast in cleartext and can be analyzed.
+Multiple companies deanonymize users of Bitcoin and other cryptocurrencies.
 
-The key differences in the security models of Lightning as compared to Bitcoin are:
-Transactions broadcast vs not broadcast
-Nodes have permanent identities, often linked to IP addresses
-It matters what path a payment takes in the network
-The notion of time and being online is important (watchtowers, etc)
-...
+At the first glance, Lightning provides better privacy than Bitcoin because Lightning payments are not broadcast to the whole network.
+While this improves the privacy baseline, other properties of the Lightning protocol may make anonymous payments more challenging.
+For instance, larger payments have fewer routing options.
+This may allow an adversary who controls well-capitalized nodes to route most large payments and discover payment amounts and probably other details.
+Another relevant difference between Lightning and Bitcoin is that Lightning nodes maintain a permanent identity, whereas Bitcoin nodes do not.
+A Bitcoin user can easily switch nodes used to receive blockchain data and broadcast transactions.
+A Lightning user, on the contrary, sends and receives payments through the nodes they have opened channels with.
+Moreover, the Lightning protocol assumes that routing nodes announce their IP address in addition to their node ID.
+This creates a permanent link between node IDs and IP addresses, which may be dangerous, considering that an IP address is often an intermediary step in anonymity attacks that is linked to the user's physical location and in most cases real-world identity.
+It is possible to use Lightning over Tor, but a large portion of nodes does not use this functionality.
+
+Finally, Lightning users can also be denied service, having their channels blocked by the attacker.
+Forwarding payments requires capital - a scarce resource! - to be temporarily blocked in in-flight HTLCs along the route.
+An attacker may send many payments but fail to finalize them, occupying honest user's capital for long periods.
+This attack vector is not present (or at least not as obvious) in Bitcoin.
+
+In summary, while some aspects of the Lightning network's architecture suggest that it is a step forward in terms of privacy compared to Bitcoin, other properties of the protocol may make attacks on privacy easier.
+Thorough research is needed to evaluate which privacy guarantees Lightning provides and how to improve the state of affairs.
+We are happy to report that multiple researchers teams are researching Lightning privacy.
+This chapter is in part a summary of the research papers available at the time of writing, in late 2020.
+Now let us review the attacks on the Lightning network privacy that have been described in academic literature.
+
+
 = Attacks on Lightning =
 
 Recent research describes various ways in which the security and privacy of the LN may be compromised.
 
 == Observing payment amounts
-The attacker sees the payment amount in cleartext.
+
+One of the natural goals for a privacy preserving payment system is to hide payment amount from uninvolved parties.
+Lightning network is an improvement over layer-one in this regard.
+While Bitcoin transactions are broadcast in cleartext and can be observed by anyone, Lightning payments only travel through a few nodes along the payment path.
+However, intermediary nodes do see the payment amount.
+This is necessary to create a new HTLC at every hop.
+The availability of payment amount to intermediary nodes does not present an immediate threat.
+However, an _honest-but_curious_ intermediary node may use it as a part of a larger attack.
+
 
 == Linking senders and receivers
 
@@ -70,9 +152,90 @@ Some things that help an attacker link the sender and the receiver:
 
 == Revealing channel balances (probing)
 
-One can send fake payments to determine the distribution of funds in a channel.
-Another paper has shown that…
-Yet another paper…
+The balances of Lightning channels are supposed to be private for privacy and efficiency reasons.
+A Lightning node only knows the balances of its adjacent channels.
+The protocol provides no standard way to query the balance of a remote channel.
+
+However, an attacker can reveal the balance of a remote channel in a _probing attack_.
+In information security, probing refers to the technique of sending requests to a targeted system and making conclusions about its private state based on the received responses.
+
+Lightning channels are prone to probing.
+Recall that a standard Lightning payment starts with the receiver creating a random payment secret and sending its hash to the sender.
+Note for the intermediary nodes all hashes look random.
+There is no way to tell whether a hash corresponds to a real secret or was generated randomly.
+
+The probing attack proceeds as follows.
+Say, the attacker Mallory wants to reveal Alice's balance of a public channel between Alice and Bob.
+Suppose the total capacity of that channel is 1 million satoshis.
+Alice's balance could be anything from zero to 1 million satoshis (to be precise, the estimate is a bit tighter due to channel reserve, but we don't account for it here for simplicity).
+Mallory opens a channel with Alice with 1 million satoshis.
+Mallory then sends a payment of 500 thousand satoshis to Bob via Alice using a _random number_ as the payment hash.
+Of course, this number does not correspond to any known payment secret.
+Therefore, the payment will fail.
+The question is: how exactly will this payment fail?
+
+There are two scenarios.
+If Alice has more than 500 thousand satoshis on her side of the channel to Bob, she forwards the payment to him.
+Bob decrypts the payment onion and realizes that the payment is intended for him.
+He looks up his local store of payment secrets in search of the secret that corresponds to the payment hash but does not find one.
+Following the protocol, Bob returns the "unknown payment hash" error to Alice, who relays it back to Mallory.
+As a result, Mallory knows that the payment _could have succeeded_ if the payment hash was real.
+Therefore, Mallory can update her estimation of Alice's balance from "between zero and 1 million" to "between 500 thousand and one million."
+Another scenario happens if Alice's balance is lower than 500 thousand satoshis.
+In that case, Alice is unable to forward the payment and returns the "insufficient balance" error to Mallory.
+Mallory updates her estimation from "between zero and 1 million" to "between zero and 500 thousand."
+
+Note that in any case, Mallory's estimation becomes twice as precise after just one probing!
+She can continue probing, choosing the amount of the next fake payment such that it divides the current estimation interval in half.
+This well-known search technique is called _binary search_.
+With binary search, the number of probes is _logarithmic_ in the desired precision.
+For example, to obtain Alice's balance in a channel of 1 million satoshis up to a single satoshi, Mallory would only have to perform log2(1000000) ~ 20 probings.
+If one probing takes 3 seconds, one channel can be precisely probed in only about a minute!
+
+Channel probing can be made even more efficient.
+In its simplest variant, Mallory directly connects to the channel she wants to probe.
+Is it possible to probe a channel without opening a channel to one of its endpoints?
+Imagine Mallory now wants to probe a channel between Bob and Charlie but doesn't want to open another channel, which requires paying on-chain fees and waiting for confirmations of the funding transactions.
+Instead, Mallory re-uses her existing channel to Alice and sends a probe along the route Mallory - Alice - Bob - Charlie.
+Mallory can interpret the "unknown payment hash" error in the same way as before: the probe has reached the destination, therefore, all channels along the route have sufficient balances to forward it.
+But what if Mallory receives the "insufficient balance" error?
+Does it mean that the balance is insufficient between Alice and Bob or between Bob and Charlie?
+
+In the current Lightning protocol, error messages report not only _which_ error occurred but _where_ it occurred as well.
+So, with more careful error handling, Mallory now knows which channel failed.
+If this is the target channel, she updates her estimates; if not, she chooses another route to the target channel.
+Note that she even gets _additional_ information about the balances of intermediary channels, on top of that of the target channel.
+
+The probing attack can be enhanced further.
+Mallory can probe the network periodically and reveal the flow of individual payments in the Lightning network.
+In the simplest case, Mallory observes only the following difference between two subsequent snapshots: the balances in a chain of channels have shifted in one direction by the same amount.
+Therefore, Mallory can re-create the payment with high certainty.
+This attack can break both the secrecy of payment amount as well as the sender-receiver relationship.
+Of course, in the real network, multiple payments may happen along intersecting paths during the time between the snapshots.
+Still, mathematical models allow to partially re-create payments even in that case.
+
+At this point, you may ask: why does the Lightning network do such a poor job at protecting its users' private data?
+Wouldn't it be better to not reveal to the sender why and where the payment has failed?
+Indeed, this could be a potential countermeasure, but it has significant drawbacks.
+Lightning has to strike a careful balance between privacy and efficiency.
+Remember that regular nodes don't know balance distributions in remote channels.
+Therefore, payments can (and often do) fail because of insufficient balance at an intermediary hop.
+Error messages allow the sender to exclude the failing channel from consideration when constructing another route.
+A popular Lightning wallet Zap even performs probing internally to check whether a constructed route can really handle a payment.
+
+There are other potential countermeasures against channel probing.
+First, it is hard for an attacker to target unannounced channels.
+Second, nodes that implement JIT routing are less prone to the attack.
+Finally, as multi-part payments make the problem of insufficient capacity less severe, the protocol developers may consider hiding some of the error details without harming efficiency.
+
+References:
+
+* Jordi Herrera-Joancomartí et al. [On the Difficulty of Hiding the Balance of Lightning Network Channels](https://eprint.iacr.org/2019/328)
+* Nisslmueller et al. [Toward Active and Passive Confidentiality Attacks On Cryptocurrency Off-Chain Networks](https://arxiv.org/abs/2003.00003)
+* Tikhomirov et al. [Probing Channel Balances in the Lightning Network](https://arxiv.org/abs/2004.00333)
+* Kappos et al. [An Empirical Analysis of Privacy in the Lightning Network](https://arxiv.org/abs/2003.12470)
+* [Zap source code with the probing function](https://github.com/LN-Zap/zap-desktop/blob/v0.7.2-beta/services/grpc/router.methods.js)
+
 
 === Denial of service
 Capacity-based channel blocking
