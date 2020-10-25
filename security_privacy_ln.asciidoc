@@ -73,7 +73,7 @@ Consider a real-life example.
 Imagine you meet a person on a city street.
 What is their anonymity set from your point of view?
 If you don't know them personally, and without any additional information, their anonymity set roughly equals the population of the city, including travelers.
-If you consider additionally consider their appearance, you may be able to roughly estimate their age and exclude the city residents who are obviously older or younger than the person in question from the anonymity set.
+If you consider additionally their appearance, you may be able to roughly estimate their age and exclude the city residents who are obviously older or younger than the person in question from the anonymity set.
 Furthermore, if you notice that the person walks into the office of Company X using an electronic badge, the anonymity set shrinks to the number of Company X's employees and visitors.
 Finally, you may notice the license number of the car they used to arrive at the place.
 If you are a casual observer, this doesn't give you much.
@@ -115,6 +115,16 @@ Moreover, the Lightning protocol assumes that routing nodes announce their IP ad
 This creates a permanent link between node IDs and IP addresses, which may be dangerous, considering that an IP address is often an intermediary step in anonymity attacks that is linked to the user's physical location and in most cases real-world identity.
 It is possible to use Lightning over Tor, but a large portion of nodes does not use this functionality.
 
+A Lightning user when sends a payment has its neighbors in its anonymity set.
+Specifically, a router node does not know whether the payment originates from the sender or any of its neighbors, or from a neighbor of a neighbor etc.
+Therefore, the anonymity set of a node in Lightning is roughly equals to its neighbors.
+Similar logic applies to payment receivers.
+Many users open only a handful of payment channels, therefore, limiting their anonymity sets.
+Moreover, in Lightning, the anonymity set is static or at least slowly changing.
+In contrast, one can achieve significantly larger anonymity sets in on-chain CoinJoin transactions.
+CoinJoin transactions with anonimity sets larger than 50 are quite frequent and typically the anonymity sets in a CoinJoin transaction correspond to a dynamically changing set of users.
+
+
 Finally, Lightning users can also be denied service, having their channels blocked by the attacker.
 Forwarding payments requires capital - a scarce resource! - to be temporarily blocked in in-flight HTLCs along the route.
 An attacker may send many payments but fail to finalize them, occupying honest user's capital for long periods.
@@ -144,11 +154,43 @@ However, an _honest-but_curious_ intermediary node may use it as a part of a lar
 
 == Linking senders and receivers
 
-Some things that help an attacker link the sender and the receiver:
-  * The same hash value used along the whole path
-  * Graph analysis to decrease the anonymity set (a-la “this payment could not have originated from this sub-graph because there isn’t enough capacity there”)
-  * Timing analysis: how much time it takes for a node to respond to an HTLC request helps estimate the position of the attacker in the path
-  * Even the knowledge of the applied routing algorithm could help excluding certain nodes from being as a sender and/or receiver of a payment.
+An attacker might be interested in learning the sender and/or the receiver of a payment to reveal certain economic relationships.
+This breach to privacy could harm censorship resistance, as an intermediary node could censor payments to/from certain receivers/senders.
+Ideally, linking senders to receivers should not be possible to peers other than the sender or the receiver of the payment.
+In the following, we will consider two types of adversaries: the off-path and the on-path adversary.
+The off-path adversary tries to assess the sender/receiver of a payment without participating in the payment routing process.
+On the other hand, an on-path adversary can leverage any information it might gain by routing the payment, she wants to learn more information about.
+
+First, let us consider the *off-path adversary*.
+In the first step of this attack scenario, a potent off-path adversary deduces the individual balances in each payment channels via probing and forms a network snapshot at time _t_.
+It then runs the attack sometime later at time _t'_ and uses the differences between the two snapshots to infer information about payments that took place by looking at any paths that changed.
+In the simplest case, if only a single payment occurred between time _t'_ and _t_, then the off-path adversary can see a single path in which the balances changed by some amount and thus learn everything about this payment: the sender, the recipient, and the amount.
+If multiple payments overlap in the path they use, then the adversary needs to heuristically identify such overlap and separate the payments accordingly.
+
+Now, we turn our attention to an *on-path adversary*.
+Such an adversary might seem convoluted.
+However, the single most central node is already capable of observing close to 50% of all payments in the network, while the four most central nodes observe an average of 72% payments.
+These findings emphasize the relevance of the on-path attacker model.
+Even though intermediaries in a payment path, only learn their successor and predecessor, there are several leakages that a malicious or honest but curious intermediary could use to infer the sender and/or receiver of a payment.
+
+The on-path adversary can observe the amount of any payment routed through her, as well as time-lock deltas.
+Hence, the adversary can exclude any nodes from a sender's/receiver's anonymity set with lower capacity, than the routed payment amount.
+Therefore, we observe a tradeoff between privacy and payment amounts.
+Typically, the larger the payment amount is, sender and/or receiver obtain smaller anonymity sets.
+We note, that this leakage could be minimized with multi-part payments or with large capacity payment channels.
+Similarly, payment channels with small time-lock deltas could be excluded from a payment path.
+More precisely, a payment channel cannot pertain to a payment if the remaining time the payment might be locked is larger than the time the forwarding node would be willing to accept.
+This leakage could be evicted by adhering to the so-called shadow routes.
+
+One of the most subtle and yet powerful leakage an on-path adversary can foster is the timing analysis.
+An on-path adversary can log for every routed payment how much time it takes for a node to respond to an HTLC request.
+Before starting the attack, the attacker learns latency characteristics of every node in the Lightning network by sending them requests.
+Naturally, this can aid in establishing the adversary's precise position in the payment path.
+Even more, as it was recently shown, an attacker can successfully determine the sender and the receiver of a payment from a set of possible senders and receivers using time-based estimators.
+
+Last but not least, we remark that several, yet unknown, leakages might exist that can aid deanonymizing attempts, for instance, even the knowledge of the applied routing algorithm could help excluding certain nodes from being a sender and/or receiver of a payment.
+We note, that different Lightning wallets apply different routing algorithms.
+Likely, many more leakages exist.
 
 == Revealing channel balances (probing)
 
@@ -239,41 +281,181 @@ References:
 
 === Denial of service
 Capacity-based channel blocking
+
 HTLC limit channel blocking
 
 = Cross-layer deanonymization =
 
 Computer networks are often layered. Layering allows for separation of concerns and makes the whole thing manageable.
 No one could be able to design a website if it required understanding all the TCP/IP stack up to the physical encoding of bits in an optical cable.
-Every layer is supposed to provide functionality to the layer above in a clean way.
+Every layer is supposed to provide the functionality to the layer above in a clean way.
 Ideally, the upper layer should perceive a lower layer as a black box.
-In reality though, implementations are not ideal and the details _leak_ into the upper layer.
+In reality, though, implementations are not ideal and the details _leak_ into the upper layer.
 This is the problem of leaky abstractions.
 
 In the context of Lightning, the LN protocol relies on the Bitcoin protocol and the Lightning P2P network.
-However, they may not always behave in accordance with their “idealized” design, which gives valuable information to the attacker.
+Up to this point, we only considered the privacy guarantees offered by LN in isolation.
+However, creating and closing payment channels are inherently performed on the Bitcoin blockchain.
+Consequently, for a complete analysis of LN's privacy provisions, one needs to consider every layer of the technological stack users might interact with.
+Specifically, a deanonymizing adversary can and will use not only off-chain but also on-chain data to cluster or link LN nodes to corresponding Bitcoin addresses.
 
-In particular, these assumptions may not always hold:
+What might be the goals of a deanonymizing attacker in a cross-layer context?
 
-  * L1 works as expected
-  * Identities in L1 and L2 are separated
-  * If a transaction pays competitive fees, it will be included in a block
-  * The blockchain is never too congested
+  * Cluster Bitcoin addresses owned by the same user (layer-1). We call these Bitcoin entities.
+  * Cluster LN nodes owned by the same user (layer-2).
+  * Unambiguously link sets of Lightning nodes to the sets of Bitcoin entities that control them.
+
+Hereby, we describe several heuristics, usage patterns, that allow an adversary to cluster Bitcoin addresses and LN nodes owned by the same LN users.
+Moreover, these clusters can be linked across layers using other powerful cross-layer linking heuristics.
+The last type of heuristics, cross-layer linking techniques, emphasize the need for a holistic view of privacy.
+
+
+*On-Chain Bitcoin Entity Clustering*
+LN-blockchain interactions are permanently reflected in the Bitcoin entity graph.
+Therefore, even if a channel is closed, it can be observed which address funded the channel or where the coins are spent after closing the channel.
+We differentiate between four entities.
+Opening a channel causes a monetary flow from a _source entity_ to a _funding entity_; closing a channel causes a flow from a _settlement entity_ to a _destination entity_.
+
+https://arxiv.org/pdf/2007.00764.pdf[Romiti et al.] identified four heuristics that allow the clustering of the aforementioned Bitcoin entities.
+Two of them captures certain leaky funding behavior and two describes leaky settlement behaviors.
+
+  * Star Heuristic (Funding): if a component contains one source entity that forwards funds to one or more funding entities, then these funding entities are likely controlled by the same user.
+  * Snake Heuristic (Funding): if a component contains one source entity that forwards funds to one or more entities, which themselves are used as source and funding entities, then all these entities are likely controlled by the same user.
+  * Collector Heuristic (Settlement): if a component contains one destination entity that receives funds from one or more settlement entities, then these settlement entities are likely controlled by the same user.
+  * Proxy Heuristic (Settlement): if a component contains one destination entity that receives funds from one or more entities, which themselves are used as settlement and destination entities, then these entities are likely controlled by the same user.
+
+It is worthwhile pointing it out that these heuristics might produce false positives.
+For instance, if transactions of several unrelated users are combined in a CoinJoin transaction, then the Star or the Proxy heuristic can produce false positives.
+This could happen if users are funding a payment channel from a CoinJoin transaction.
+Another potential source of false positives could be that an entity could represent several users if clustered addresses are controlled by a service (e.g., exchange) or on behalf of their users (custodial wallet).
+However, these false positives can effectively be filtered out.
+
+_Countermeasures_: If outputs of funding transactions are not reused for opening other channels, the snake heuristic would not work.
+If users refrain from funding channels from a single external source and avoid collecting funds in a single external destination entity, the other heuristics would not yield any significant results.
+
+*Off-Chain Lightning Node Clustering*
+LN nodes advertise aliases, for instance, _LNBig.com_.
+Aliases can improve the usability of the system.
+However, users tend to use similar aliases for their own different nodes.
+For example, _LNBig.com Billing_  likely owned by the same user as the node with alias _LNBig.com_.
+Given this observation, one can cluster LN nodes applying their node aliases.
+Specifically, one clusters LN nodes into a single address if their aliases are similar with respect to some string similarity metric.
+
+Another method to cluster LN nodes is applying their IP or Tor addresses.
+If the same IP or Tor addresses correspond to different LN nodes, then these nodes are likely controlled by the same user.
+
+_Countermeasures_: For more privacy, aliases should be sufficiently different from one another.
+While the public announcement of IP addresses may be unavoidable for those nodes that wish to have incoming channels in the LN, linkability across nodes of the same user can be mitigated if the clients for each node are hosted with different service providers and thus IP addresses.
+
+*Cross-Layer Linking: Lightning Nodes and Bitcoin Entities*
+Associating LN nodes to Bitcoin entities is a serious breach to privacy, that is exacerbated by the fact that most LN nodes publicly expose their IP addresses.
+Typically, an IP address can be considered as a unique identifier of a user.
+There are two widely observed behavior patterns that reveal links between LN nodes and Bitcoin entities.
+
+  * Coin reuse: whenever users close payment channels they get back their corresponding coins. However, many users reuse those coins in opening a new channel.
+Those coins can effectively be linked to a common LN node.
+
+  * Entity reuse: typically users fund their payment channels from Bitcoin addresses corresponding to the same Bitcoin entity.
+
+These cross-layer linking algorithms could be foiled if users possess multiple unclustered addresses or use multiple wallets to interact with the LN.
+
+The possible deanonymization of Bitcoin entities hereby presented shows that it is crucial to consider the privacy of both layers simultaneously instead of one of them at a time.
+
+// maybe here we should/could include the corresponding figures from the Romiti et al. paper.
+// it would greatly improve and help the understanding of the section
 
 = Lightning graph =
 
-As we have seen, many attacks depend on the graph structure of Lightning.
-== How does the Lightning graph look like in reality?
+The Lightning network, as its name already suggests, is a network.
+It is a peer-to-peer network of nodes that manage payment channels between each other.
+Therefore, many of its properties (privacy, robustness, connectivity, routing efficiency), are influenced and characterized by its network nature.
 
-=== What is a graph anyway?
+In this section, we discuss and analyse the LN from a network scientific point of view.
+Particularly, we are interested in understanding the LN channel graph, its robustness, connectivity and other important characteristics.
+
+== What is a graph anyway?
 A graph is a mathematical model that consists of nodes and edges (connections between nodes).
+In the LN, nodes represent LN nodes and edges represent payment channels between them.
+In many cases, just like in LN, edges can have attributes, for instance, numerical values.
+In case of LN, these numerical attributes of the edges can represent the capacity of a payment channel.
+We call the degree of a node the number of edges/payment channels it has.
 
-As we have shown, many attacks work best if the LN is “centralized”, that is, if only a few nodes control a large part of what happens on the network.
-Now let us more precisely define the notion of centralization.
+== How does the Lightning graph look like in reality?
+One could have expected that the LN is a random graph, where edges are randomly formed between nodes.
+If this was the case, then the degree distribution of the LN would follow a Gaussian normal distribution.
+In particular, most of the nodes would have approximately the same degree and we would not expect nodes with extraordinarily large degrees.
+This is because the normal distribution exponentially decreases for values not lying in the neighborhood of the average value of the distribution.
+The depiction of a random graph looks like a mesh network topology.
+It looks decentralized and non-hierarchical, namely, every node seems to have equal importance.
+Additionally, random graphs have a large diameter.
+In particular, routing in such graphs is challenging as the shortest path between any two nodes are moderately long.
+
+However, in stark contrast, the LN graph is completely different.
 
 === Lightning graph today
-Now let’s explore the real LN graph.
-Based on a snapshot of publicly announced channels as of (date), the centrality metrics are as follows.
+Lightning is essentially a financial network.
+Thus, the growth and formation of the network is also influenced by economic incentives.
+Whenever a node joins the LN, it may want to maximise its connectivity to other nodes in order to increase its routing efficiency.
+Initially, many Lightning clients were favoring nodes with high degrees in channel establishment.
+By the result of this, it will be even more likely that newly joining nodes will connect to high-degree nodes.
+This phenomenon is called preferential attachment.
+These economic incentives result in a fundamentally different network than a random graph.
+
+Based on snapshots of publicly announced channels, the degree distribution of the LN follows a power-law function.
+In such a graph the vast majority of nodes have very few connections to other nodes, while only a handful of nodes have numerous connections.
+At a high-level, this topology resembles a star topology, in which there are a well-connected core and a loosely connected periphery.
+Networks with power-law degree distribution are also called scale-free networks.
+This topology is advantageous for routing payments efficiently, however, it is prone to certain topology-based attacks.
+
+=== Topology-based attacks
+
+An adversary might want to disrupt the Lightning network.
+Its goal is to dismantle the whole network into many smaller components, making payment routing practically impossible in the whole network.
+A less ambitious, but still malicious and severe goal might be to only take down certain nodes of the network.
+Such a disruption might occur on the node-level or on the edge-level.
+
+Let's suppose an adversary is capable of taking down any node in the LN, for instance, it can DDoS them or make them unoperational by any means.
+It turns out that if the adversary chooses nodes randomly, then scale-free networks like the LN are robust against node-removal attacks.
+This is because a random node lies on the periphery with a small number of connections, therefore playing a negligible role in the network's connectivity.
+However, if the adversary is more prudent, then it can target the most well-connected nodes and only take those down.
+Not surprisingly, the LN and other scale-free networks are _not_ robust against such targeted node-removal attacks.
+
+On the other hand, the adversary could be more stealthy in its attack.
+There are several known topology-based attacks, that target a single node or a single payment channel.
+For example, an adversary might be interested in exhausting the capacity on a certain payment channel on purpose.
+More generally, an adversary can deplete all the outgoing capacity of a node to knock it down from the routing market.
+This could be easily obtained by routing payments through the victim node with amounts equalling to the outgoing capacity of each payment channel.
+After the completion of this so-called node isolation attack, the victim cannot send or route payments anymore, unless it receives a payment or rebalances its channels.
+
+To conclude, even by design, it is possible to remove edges and nodes from the routable LN.
+However, depending on the utilized attack vector, the adversary may have to provide more or fewer resources to carry out the attack.
+
+=== Temporality of the LN
+
+The LN is a dynamically changing, permissionless network.
+Nodes can freely join or leave the network as well as they can open and create payment channels anytime they want.
+Therefore, it is essential to not only consider a single static snapshot of the LN graph but rather one needs to take into consideration the temporality and ever-changing nature of the network.
+We can assert that the LN graph is growing in terms of the number of nodes and payment channels.
+Its effective diameter is also shrinking, that is, nodes become closer to each other.
+
+In social networks, triangle closing behavior is common.
+Specifically, in a graph where nodes represent people and friendships are represented as edges, it is somewhat expected that triangles will emerge in the graph.
+A triangle in this case represents pairwise friendships betwee three people.
+For instance, if Alice knows Bob and Bob knows Charlie, then it is likely that at some point Bob will introduce Alice to Charlie.
+However, this behavior would be strange in the LN.
+Nodes are simply not incentivised to close triangles as they could have just routed payments instaed of opening a new payment channel.
+Surprisingly, in the LN triangle closing is a common practice.
+The number of triangles was steadily growing prior to the implementation of multi-part payments.
+This is counterintuitive and surprising given that nodes could have just routed payments through the two sides of the triangle instead of opening the third channel.
+This may mean that recently there were many routing inefficiencies that incentivised users to close triangles and not fall back on routing.
+Hopefully, multi-part payments help to increase the effectiveness of payment routing.
+
+In general, our understanding is rather limited about the dynamic nature of the LN channel graph.
+It is fruitful to analyse how protocol changes like multi-part paymets, can effect the dynamics of the LN.
+It would be beneficial to explore this area in more depth.
+
+//shall we talk about centrality measures?
+the centrality metrics are as follows.
 This means that Lightning is (very? Moderately? Not very?) centralized.
 The tendency goes towards (more? less?) centralization.
 This may lead to (more? fewer?) attacks of these types...
