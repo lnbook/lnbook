@@ -241,11 +241,13 @@ Usually, the commitment transaction has at least two outputs, paying each channe
 
 So, in our example, Bob holds a commitment transaction that pays Alice _immediately_, but his own payment is delayed and revocable. Alice also holds a commitment transaction, but hers is the opposite: it pays Bob immediately but her own payment is delayed and revocable.
 
-The two channel partners hold half of the revocation secret, so that neither one knows the whole secret. If they share their half, then the other channel partner has the full secret and can use it to exercise the revocation condition. When signing a new commitment transaction, they revoke the previous commitment by exchanging the signature for the revocation secret.
+The two channel partners hold half of the revocation secret, so that neither one knows the whole secret. If they share their half, then the other channel partner has the full secret and can use it to exercise the revocation condition. When signing a new commitment transaction, each channel partner revokes the previous commitment by giving the other party their half of the revocation secret.
+
+We will examine the revocation mechanism in more detail in <<channel_operation>>, where we will learn the details of how revocation secrets are constructed and used.
 
 In simple terms, Alice signs Bob's new commitment transaction only if Bob offers his half of the revocation secret for the previous commitment. Bob only signs Alice's new commitment transaction if she gives him her half of the revocation secret from the previous commitment.
 
-With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use old commitments as they sign the new ones. footnote:[It is still technically possible to use old commitments, but the penalty mechanism makes it economically irrational to do so.]
+With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use old commitments as they sign the new ones. What we mean is that while it still technically possible to use old commitments, the penalty mechanism makes it economically irrational to do so.
 
 The timelock is set to a number of blocks, up to 2016 (approximately two weeks). If either channel partner publishes a commitment transaction without cooperating with the other partner, they will have to wait for that number of blocks (e.g. 2 weeks) to claim their balance. The other channel partner can claim their own balance at any time. Furthermore, if the commitment they published was previously revoked, the channel partner can *also* immediately claim the cheating party's balance, bypassing the timelock and punishing the cheater.
 
