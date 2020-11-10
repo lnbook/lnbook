@@ -84,7 +84,7 @@ First, every bit of information may bring the adversary closer to their goal.
 It may not be necessary to shrink the anonymity set to the size of one.
 For instance, if the adversary plans a targeted DoS attack and can take down 100 servers, the anonymity set of 100 suffices.
 Second, the adversary can cross-correlate information from different sources.
-Even if a privacy leak looks relatively benign, we never know what it can achieve in combination with other data sources. 
+Even if a privacy leak looks relatively benign, we never know what it can achieve in combination with other data sources.
 Finally, especially in cryptographic settings, the attacker always has the "last resort" of brute force search.
 Cryptographic primitives are designed so that it is practically impossible to guess a secret such as a private key.
 Nevertheless, each bit of information brings the adversary closer to this goal, and at some point it becomes attainable.
@@ -278,11 +278,58 @@ References:
 * Kappos et al. [An Empirical Analysis of Privacy in the Lightning Network](https://arxiv.org/abs/2003.12470)
 * [Zap source code with the probing function](https://github.com/LN-Zap/zap-desktop/blob/v0.7.2-beta/services/grpc/router.methods.js)
 
+== Denial of service
+When resources are made publicly available, there is a risk that attackers may attempt to make that resource unavailable by executing a denial-of-service attack.
+Generally, this is achieved by the attacker bombarding a resource with requests, which are indistinguishable from legitimate queries.
+The attacks seldom result in the target suffering financial loss aside from the opportunity cost of their service being down and are merely intended to grief the target.
 
-=== Denial of service
-Capacity-based channel blocking
+Typical mitigations for denial-of-service attacks are to require authentication for requests to separate legitimate users from malicious ones, or to incur a cost that is trivial to regular users but will act as a sufficient deterrent to an attacker launching requests at scale.
+Anti-denial-of-service measures can be seen everywhere on the internet - websites apply rate limits to ensure that no one user can consume all of their server’s attention, film review sites require login authentication to keep angry r/prequelmemes members at bay, and API keys are purchased to allow a limited number of hits.
 
-HTLC limit channel blocking
+=== DoS in Bitcoin
+In Bitcoin, the bandwidth that nodes use to relay transactions and the space that they avail to the network in the form of their mempool are publicly available resources.
+Any node on the network can consume bandwidth and mempool space by sending a valid transaction.
+If this transaction is mined in a valid block, they will pay transaction fees, which adds a cost to using these shared network resources.
+
+In the past, the Bitcoin network faced an attempted denial-of-service attack where attackers spammed the network with low-fee transactions.
+Many of these transactions were not selected by miners, due to their low transaction fees, so the attackers were able to consume network resources without the full financial disincentive of fees in place.
+To address this issue, a minimum transaction relay fee which set a threshold fee that nodes require to propagate transactions was set.
+This measure largely ensured that the transactions that consume network resources will eventually pay their chain fees; a fee which is acceptable to regular users, but would hurt attackers financially if they tried to spam the network.
+While some transactions may not make it into valid blocks during high fee environments, these measures have largely been effective at disincentivizing this type of spam.
+
+=== DoS in Lightning
+Similarly to Bitcoin, the Lightning Network charges fees for use of its public resources, but in this case, the resources are public channels and the fees come in the form of routing fees.
+The ability to route payments through nodes in exchange for fees provides the network with a large scalability benefit - nodes that are not directly connected can still transaction - but it comes at the cost of exposing a public resource which must be protected against DoS attacks.
+
+When a Lightning node forwards a payment on your behalf, it uses bandwidth to update its commitment transaction, and the amount of the payment is reserved in their channel balance until it is settled or failed.
+In the case of successful payments, this is acceptable because the node is eventually paid out its fees.
+Failed payments do not charge fees in the current protocol, which allows nodes to costlessly route failed payments through your node’s channels.
+This is great for legitimate users, who wouldn’t like to pay for failed attempts, but also allows attackers to costlessly consume nodes resources - much like the low-fee transactions on Bitcoin that never ended up paying miner fees.
+
+At the time of writing, a discussion is [ongoing](link?) on the lightning-dev mailing list as to how best address this issue.
+
+=== Known DoS attacks
+There are two known DoS attacks on public Lightning channels which render a target channel, or set of target channels unusable.
+Both attacks involve routine payments through a public channel, then holding them until their timeout, thus maximizing the duration of the attack.
+The requirement to fail payments so as not to pay fees is fairly simple to meet because malicious nodes can simply reroute payments to themselves.
+In the absence of fees for failed payments, the only cost to the attacker is the on-chain cost of opening a channel to dispatch these payments through, which can be trivial in low fee environments.
+
+==== Commitment jamming
+Lightning nodes update their shared state through the use of asymmetric commitment transactions, on which HTLCs are added and removed to facilitate payments.
+Each party is limited to a total of https://github.com/lightningnetwork/lightning-rfc/blob/c053ce7afb4cbf88615877a0d5fc7b8dbe2b9ba0/02-peer-protocol.md#the-open_channel-message[483] on the commitment at a time.
+A channel jamming attack allows an attacker to render a channel unusable by routing 483 payments through the target channel and holding them until they timeout.
+
+It should be noted that this limit is arbitrary, and was chosen in the specification to ensure that all the HTLCs can be swept in a [single justice transaction](ref?).
+While this limit _may_ be increased, transactions are still limited by the block size, so the number of slots available is likely to remain limited.
+
+==== Channel liquidity lockup
+A channel liquidity attack is comparable to a channel jamming attack, in that it routes payments through a channel and holds them so that the channel is unusable.
+Rather than locking up slots on the channel commitment, this attack routes large HTLCs through a target channel which consumes all the available bandwidth on the channel.
+The capital commitment required for this attack is higher than the commitment jamming attack because the attacking node needs more funds to route failed payments through the target.
+
+References:
+
+* Mizrahi, A., Zohar, A. https://arxiv.org/abs/2002.06564[Congestion Attacks in Payment Channel Networks]
 
 = Cross-layer deanonymization =
 
