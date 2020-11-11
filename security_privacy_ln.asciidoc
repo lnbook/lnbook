@@ -72,7 +72,7 @@ It refers to the set of identities such that, from an attacker's viewpoint, a gi
 Consider a real-life example.
 Imagine you meet a person on a city street.
 What is their anonymity set from your point of view?
-If you don't know them personally, and without any additional information, their anonymity set roughly equals the population of the city, including travelers.
+If you don't know them personally, and without any additional information, their anonymity set roughly equals the population of the city, including travellers.
 If you consider additionally their appearance, you may be able to roughly estimate their age and exclude the city residents who are obviously older or younger than the person in question from the anonymity set.
 Furthermore, if you notice that the person walks into the office of Company X using an electronic badge, the anonymity set shrinks to the number of Company X's employees and visitors.
 Finally, you may notice the license number of the car they used to arrive at the place.
@@ -117,13 +117,16 @@ It is possible to use Lightning over Tor, but a large portion of nodes does not 
 
 A Lightning user when sends a payment has its neighbors in its anonymity set.
 Specifically, a router node does not know whether the payment originates from the sender or any of its neighbors, or from a neighbor of a neighbor etc.
-Therefore, the anonymity set of a node in Lightning is roughly equals to its neighbors.
+Therefore, the anonymity set of a node in Lightning roughly equals to its neighbors.
 Similar logic applies to payment receivers.
 Many users open only a handful of payment channels, therefore, limiting their anonymity sets.
 Moreover, in Lightning, the anonymity set is static or at least slowly changing.
 In contrast, one can achieve significantly larger anonymity sets in on-chain CoinJoin transactions.
-CoinJoin transactions with anonimity sets larger than 50 are quite frequent and typically the anonymity sets in a CoinJoin transaction correspond to a dynamically changing set of users.
+CoinJoin transactions with anonymity sets larger than 50 are quite frequent and typically the anonymity sets in a CoinJoin transaction correspond to a dynamically changing set of users.
 
+[[anonymity-set]]
+.The anonymity set of Alice and Bob constitutes their neighbors.
+image:images/anon-set.png[]
 
 Finally, Lightning users can also be denied service, having their channels blocked by the attacker.
 Forwarding payments requires capital - a scarce resource! - to be temporarily blocked in in-flight HTLCs along the route.
@@ -143,7 +146,7 @@ Recent research describes various ways in which the security and privacy of the 
 
 == Observing payment amounts
 
-One of the natural goals for a privacy preserving payment system is to hide payment amount from uninvolved parties.
+One of the natural goals for a privacy-preserving payment system is to hide the payment amount from uninvolved parties.
 Lightning network is an improvement over layer-one in this regard.
 While Bitcoin transactions are broadcast in cleartext and can be observed by anyone, Lightning payments only travel through a few nodes along the payment path.
 However, intermediary nodes do see the payment amount.
@@ -184,7 +187,7 @@ This leakage could be evicted by adhering to the so-called shadow routes.
 
 One of the most subtle and yet powerful leakage an on-path adversary can foster is the timing analysis.
 An on-path adversary can log for every routed payment how much time it takes for a node to respond to an HTLC request.
-Before starting the attack, the attacker learns latency characteristics of every node in the Lightning network by sending them requests.
+Before starting the attack, the attacker learns the latency characteristics of every node in the Lightning network by sending them requests.
 Naturally, this can aid in establishing the adversary's precise position in the payment path.
 Even more, as it was recently shown, an attacker can successfully determine the sender and the receiver of a payment from a set of possible senders and receivers using time-based estimators.
 
@@ -441,7 +444,7 @@ However, in stark contrast, the LN graph is completely different.
 
 === Lightning graph today
 Lightning is essentially a financial network.
-Thus, the growth and formation of the network is also influenced by economic incentives.
+Thus, the growth and formation of the network are also influenced by economic incentives.
 Whenever a node joins the LN, it may want to maximise its connectivity to other nodes in order to increase its routing efficiency.
 Initially, many Lightning clients were favoring nodes with high degrees in channel establishment.
 By the result of this, it will be even more likely that newly joining nodes will connect to high-degree nodes.
@@ -487,10 +490,10 @@ Its effective diameter is also shrinking, that is, nodes become closer to each o
 
 In social networks, triangle closing behavior is common.
 Specifically, in a graph where nodes represent people and friendships are represented as edges, it is somewhat expected that triangles will emerge in the graph.
-A triangle in this case represents pairwise friendships betwee three people.
+A triangle, in this case, represents pairwise friendships between three people.
 For instance, if Alice knows Bob and Bob knows Charlie, then it is likely that at some point Bob will introduce Alice to Charlie.
 However, this behavior would be strange in the LN.
-Nodes are simply not incentivised to close triangles as they could have just routed payments instaed of opening a new payment channel.
+Nodes are simply not incentivised to close triangles as they could have just routed payments instead of opening a new payment channel.
 Surprisingly, in the LN triangle closing is a common practice.
 The number of triangles was steadily growing prior to the implementation of multi-part payments.
 This is counterintuitive and surprising given that nodes could have just routed payments through the two sides of the triangle instead of opening the third channel.
@@ -498,14 +501,14 @@ This may mean that recently there were many routing inefficiencies that incentiv
 Hopefully, multi-part payments help to increase the effectiveness of payment routing.
 
 In general, our understanding is rather limited about the dynamic nature of the LN channel graph.
-It is fruitful to analyse how protocol changes like multi-part paymets, can effect the dynamics of the LN.
-It would be beneficial to explore this area in more depth.
+It is fruitful to analyse how protocol changes like multi-part payments, can affect the dynamics of the LN.
+It would be beneficial to explore the temporal nature of the LN graph in more depth.
 
 //shall we talk about centrality measures?
-the centrality metrics are as follows.
-This means that Lightning is (very? Moderately? Not very?) centralized.
-The tendency goes towards (more? less?) centralization.
-This may lead to (more? fewer?) attacks of these types...
+//the centrality metrics are as follows.
+//This means that Lightning is (very? Moderately? Not very?) centralized.
+//The tendency goes towards (more? less?) centralization.
+//This may lead to (more? fewer?) attacks of these types...
 
 === Economic incentives and graph structure
 The Lightning graph forms spontaneously.
@@ -521,19 +524,27 @@ Let’s describe some of the relevant incentives:
     - While we should not base our security assumptions on altruism, to a certain extent altruistic behavior drives Bitcoin (accepting incoming connections, serving blocks).
     - What role does it play in Lightning?
 
-How rational are Lightning users now?
-How will the LN graph evolve?
-Can the LN be a mesh-like network? Are there examples of successful mesh networks?
+A recent work has shown that LN nodes are mostly altruistic.
+Specifically, the earned routing fees do not compensate well the opportunity costs stemming from liquidity lock-up.
+This might change in the future if LN has significantly larger traffic or if a market for routing fees emerge.
+On the other hand, if a node wishes to optimize its routing fees, then it would try to minimize the average shortest path lengths to every other node.
+Put differently, a profit-seeker node will try to locate itself in the _center_ of the channel graph or close to it.
+Given these incentives and the fact that capital is also unevenly distributed, it is unlikely that LN will evolve into a mesh-like network.
 
 = Practical advice for users to protect their privacy =
 
 Now you may be wondering: how do I protect my privacy as a Lightning user today?
 Here are some tips.
 == Who should I open channels to?
-Should I connect to a large hub? Multiple hubs? Some random small nodes? I want my payments to be reliable but don’t want to contribute to LN centralization - what is the trade-off?
+Should I connect to a large hub?
+Multiple hubs?
+Some random small nodes?
+I want my payments to be reliable but don’t want to contribute to LN centralization - what is the trade-off?
 
 == Accepting incoming channels
-Can it be a bad idea to accept an incoming channel? I’m happy that people want to route through my node! What do I have to lose?
+Can it be a bad idea to accept an incoming channel?
+I’m happy that people want to route through my node!
+What do I have to lose?
 
 == Setting parameters for routing payments
 The number of allowed HTLCs, the minimal payment amount, trade-offs involved.
