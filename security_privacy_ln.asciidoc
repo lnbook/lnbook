@@ -533,24 +533,54 @@ Given these incentives and the fact that capital is also unevenly distributed, i
 
 = Practical advice for users to protect their privacy =
 
-Now you may be wondering: how do I protect my privacy as a Lightning user today?
-Here are some tips.
-== Who should I open channels to?
-Should I connect to a large hub?
-Multiple hubs?
-Some random small nodes?
-I want my payments to be reliable but don’t want to contribute to LN centralization - what is the trade-off?
+We're still in early-stages of the Lightning Network, and many of the concerns listed in this chapter are likely to be addressed as it matures and grows.
+In the meantime, there are some measures that you can take to guard your node against malicious users; something as simple as updating the default parameters that your node runs with can go a long way in hardening your node.
 
-== Accepting incoming channels
-Can it be a bad idea to accept an incoming channel?
-I’m happy that people want to route through my node!
-What do I have to lose?
+== Private channels
+If you primarily intend to use your node for personal sends and receives, there is little need to open public channels to the network.
+Since you are not exposing your public channels to the network, you eliminate the risk of a denial-of-service attack on your node.
 
-== Setting parameters for routing payments
-The number of allowed HTLCs, the minimal payment amount, trade-offs involved.
+== Routing considerations
 
-= Future of privacy in the LN =
-The Lightning network is an exciting technology but there may be economic forces that drive it to a centralization.
-One paper claims that…
+As covered in the <<Denial of service>> section, nodes that open public channels expose themselves to the risk of a series of attacks on their channels.
+While mitigations are being developed on the protocol level, there are many steps that a node can take to protect against denial of service attacks on their public channels.
 
+* Minimum htlc size: on channel open, your node can set the minimum htlc size that it will accept.
+Setting a higher value for this ensures that each one of your available channel slots cannot be occupied by a
+* Rate Limiting: many node implementations allow nodes to dynamically accept or reject htlcs that are forwarded through your node.
+Some useful guidelines for a custom rate limiter are as follows:
+** Limit the number of commitment slots a single peer may consume
+** Monitor failure rates from a single peer, and rate limit if their failures spike suddenly
+* Shadow channels: nodes that wish to open large channels to a single target can instead open a single public channel to the target, and support it with further private channels called [shadow channels](joost on TFTC).
+These channels can still be used for routing, but are not announced to potential attackers.
 
+References:
+
+* Jager, J. https://anchor.fm/tales-from-the-crypt/episodes/197-Joost-Jager-ekghn6[Tales from the Crypt Episode 197]
+
+== Accepting channels
+At present, Lightning nodes struggle with bootstrapping inbound liquidity.
+This issue has lead to an attitude of accepting any channel that another peer attempts to open to your node.
+Other solutions to acquiring inbound liquidity include swap services, channel markets, and paid channel opening services from known hubs.
+However, since these solutions come with a cost, most nodes still gladly accept any inbound liquidity provided free of charge.
+
+Stepping back to the context of Bitcoin, this can be compared to the way that Bitcoin Core treats its incoming and outgoing connections differently out of concern that the node may be eclipsed.
+If a node opens an incoming connection to your Bitcoin node, you have no way of knowing whether the initiator randomly selected you or is specifically targeting your node with malicious intent.
+Your outgoing connections do not need to be treated with such suspicion because the node was either selected randomly from a pool of many potential peers, or you intentionally connected to the peer manually.
+
+The same can be said in Lightning.
+When you open a channel, it is done with intention, but when a remote party opens a channel to your node, you have no way of knowing whether this channel will be used to attack your node or not.
+As several papers note, the relatively low cost of spinning up a node and opening channels to targets is one of the significant factors that make attacks easy.
+If you accept incoming channels, it is prudent to place some restrictions on the nodes you accept incoming channels from.
+Many implementations expose channel acceptance hooks that allow you to tailor your channel acceptance policies to your preferences.
+
+The question of accepting and rejecting channels is a philosophical one.
+What if we end up with a Lightning Network where new nodes cannot participate because they cannot open any channels?
+Our suggestion is not to set an exclusive list of "mega-hubs" from which you will accept channels, but rather to accept channels in a manner that suits your risk preference.
+
+Some potential strategies are:
+
+* No risk: do not accept any incoming channels.
+* Low risk: accept channels from a known set of nodes that you have previously had successful channels open with
+* Medium risk: only accept channels from nodes that have been present in the graph for a longer period, and have some long-lived channels.
+* Higher risk: accept any incoming channels, and implement the mitigations described in the <<Routing considerations>> chapter.
