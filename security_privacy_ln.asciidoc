@@ -156,7 +156,7 @@ While Bitcoin transactions are broadcast in cleartext and can be observed by any
 However, intermediary nodes do see the payment amount.
 This is necessary to create a new HTLC at every hop.
 The availability of payment amounts to intermediary nodes does not present an immediate threat.
-However, an _honest-but_curious_ intermediary node may use it as a part of a larger attack.
+However, an _honest-but-curious_ intermediary node may use it as a part of a larger attack.
 
 
 == Linking senders and receivers
@@ -239,7 +239,7 @@ Note that in any case, Mallory's estimation becomes twice as precise after just 
 She can continue probing, choosing the next probing amount such that it divides the current estimation interval in half.
 This well-known search technique is called _binary search_.
 With binary search, the number of probes is _logarithmic_ in the desired precision.
-For example, to obtain Alice's balance in a channel of 1 million satoshis up to a single satoshi, Mallory would only have to perform log2(1000000) ~ 20 probings.
+For example, to obtain Alice's balance in a channel of 1 million satoshis up to a single satoshi, Mallory would only have to perform stem:[\log_2(1000000) \approx 20] probings.
 If one probing takes 3 seconds, one channel can be precisely probed in only about a minute!
 
 Channel probing can be made even more efficient.
@@ -313,7 +313,7 @@ Failed payments do not incur fees in the current protocol.
 This allows nodes to costlessly route failed payments through any channels.
 This is great for legitimate users, who wouldn't like to pay for failed attempts, but also allows attackers to costlessly consume nodes' resources - much like the low-fee transactions on Bitcoin that never end up paying miner fees.
 
-At the time of writing, a discussion is [ongoing](link?) on the lightning-dev mailing list as to how best address this issue.
+At the time of writing, a discussion is https://lists.linuxfoundation.org/pipermail/lightning-dev/2020-June/002734.html[ongoing] on the lightning-dev mailing list as to how best address this issue.
 
 === Known DoS attacks
 
@@ -328,12 +328,12 @@ Lightning nodes update their shared state using asymmetric commitment transactio
 Each party is limited to a total of https://github.com/lightningnetwork/lightning-rfc/blob/c053ce7afb4cbf88615877a0d5fc7b8dbe2b9ba0/02-peer-protocol.md#the-open_channel-message[483] on the commitment at a time.
 A channel jamming attack allows an attacker to render a channel unusable by routing 483 payments through the target channel and holding them until they timeout.
 
-It should be noted that this limit is arbitrary and was chosen in the specification to ensure that all the HTLCs can be swept in a [single justice transaction](ref?).
+It should be noted that this limit is arbitrary and was chosen in the specification to ensure that all the HTLCs can be swept in a https://github.com/lightningnetwork/lightning-rfc/blob/master/05-onchain.md#penalty-transaction-weight-calculation[single justice transaction].
 While this limit _may_ be increased, transactions are still limited by the block size, so the number of slots available is likely to remain limited.
 
 ==== Channel liquidity lockup
 
-A channel liquidity attack is comparable to a channel jamming attack in that it routes payments through a channel and holds them so that the channel is unusable.
+A channel liquidity lockup attack is comparable to a channel jamming attack in that it routes payments through a channel and holds them so that the channel is unusable.
 Rather than locking up slots on the channel commitment, this attack routes large HTLCs through a target channel that consumes all the channel's available bandwidth.
 This attack's capital commitment is higher than the commitment jamming attack because the attacking node needs more funds to route failed payments through the target.
 
@@ -345,7 +345,7 @@ References:
 = Cross-layer deanonymization =
 
 Computer networks are often layered.
-Layering allows for separation of concerns and makes the whole thing manageable.
+Layering allows for separation of concerns and makes the whole system manageable.
 No one could design a website if it required understanding all the TCP/IP stack up to the physical encoding of bits in an optical cable.
 Every layer is supposed to provide the functionality to the layer above in a clean way.
 Ideally, the upper layer should perceive a lower layer as a black box.
@@ -498,6 +498,10 @@ Rather, one needs to take into consideration the temporality and ever-changing n
 We can assert that the LN graph is growing in terms of the number of nodes and payment channels.
 Its effective diameter is also shrinking; that is, nodes become closer to each other.
 
+[[temporal-ln]]
+.The steady growth of the LN in terms of nodes, channels and locked capacity.
+image:images/ln-over-time.png[]
+
 In social networks, triangle closing behavior is common.
 Specifically, in a graph where nodes represent people and friendships are represented as edges, it is somewhat expected that triangles will emerge in the graph.
 A triangle, in this case, represents pairwise friendships between three people.
@@ -510,15 +514,28 @@ This is counterintuitive and surprising given that nodes could have just routed 
 This may mean that routing inefficiencies incentivized users to close triangles and not fall back on routing.
 Hopefully, multi-part payments will help increase the effectiveness of payment routing.
 
+==== Centralization in the LN
+A common metric to assess the centrality of a node stem:[v] in a graph is its _betweenness centrality_.
+Let stem:[\sigma_{st}] denote the number of shortest paths between node stem:[s] and stem:[t].
+Similarly, stem:[\sigma_{st}(v)] denotes the number of the shortest paths between stem:[s] and stem:[t], that also pass through stem:[v].
+Intuitively, the more shortest paths pass through a certain node stem:[v], the more important and central stem:[v] is.
+Therefore, the ratio stem:[\frac{\sigma_{st}(v)}{\sigma_{st}}] is indicative of stem:[v]'s centrality.
+Betweenness centrality is defined to be the sum of all these ratios for every pair of nodes stem:[s] and stem:[t].
+More formally, the betweenness centrality a node stem:[g(v)] of a node stem:[v] is defined as stem:[g(v)=\sum_{s\ne v \ne t }\frac{\sigma_{st}(v)}{\sigma_{st}}].
+Central point dominance is a metric derived from betweenness centrality, used to assess the centrality of a network.
+For a precise definition of central point dominance, the reader is referred to https://doi.org/10.2307/3033543[Freeman's work].
+The larger the central point dominance of a network is, the more centralized the network is.
+We can observe that the LN has a greater central point dominance, ie. it is more centralized, than a random graph (Erdős-Rényi graph) or a scale-free graph (Barabási-Albert graph) of equal size.
+However, we also note, that over time the central point dominance of the LN gradually decreases as the network grows and densifies.
+
+[[central-point-dominance-ln]]
+.Central point dominance of the LN, a random graph (ER) and a scale-free graph (BA) of equal size.
+image:images/central-point-dominance.png[]
+
 In general, our understanding of the dynamic nature of the LN channel graph is rather limited.
 It is fruitful to analyze how protocol changes like multi-part payments can affect the dynamics of the LN.
 It would be beneficial to explore the temporal nature of the LN graph in more depth.
 
-//shall we talk about centrality measures?
-//the centrality metrics are as follows.
-//This means that Lightning is (very? Moderately? Not very?) centralized.
-//The tendency goes towards (more? less?) centralization.
-//This may lead to (more? fewer?) attacks of these types...
 
 === Economic incentives and graph structure
 The Lightning graph forms spontaneously.
