@@ -533,59 +533,13 @@ Also we have not discussed how the HMACs are being computed at every step and ho
 For readers seeking more details with respect to the cryptographic algorithms used, we invite them to review BOLT 04 itself in full.
 ====
 
-TODO: everything from here on will most likely change and could even be redundant.
-
-Onions are being constructed from the inside to the outside.
-As the inside of the onion is decrypted last it has to correspond to the recipient which in our case is Gloria.
-As every layer of the Onion is encrypted by Alice in such a way that only the respective recipient can decrypt their layer Alice needs to come up with a sequence of encryption keys that she will use for each and every hop.
-The main concept that is being used is the shared secret computation via an elliptic Curve Diffie Hellmann Key exchange (ECDH) between Alice and each of the hops.
-However for the recipients to be able to to compute their shared secret they have to know a public key which they can use.
-If Alice used the same private key for the computation of each of the shared secrets Alice would have to send the same public key with the onion.
-
-the different payments could be linked together by an attacker that is why
-
-Every layer of the onion has 32 Bytes of `per_hop` data.
-This data is split into 4 data fields
-
-- The 8 Byte `short_channel_id` indicates on which channel the onion should be forwarded next
-- The 8 Bytes `amt_to_forward` is a 64 Bit unsigned integer that encodes an amount in millisatoshi and indicates the amount that is supposed to be forwarded
-- The 4 Bytes `cltv_delta` is a 32 Bit unsigned integer that is used for the time locks in the HTLCs.
-- Finally there are 12 Byte left for padding and future versions and updates of the onion package format.
-
-
-
-
-
-
 [[routing-onion-6]]
 .`per_hop` payload of Glorias onion and the encrypted
 image:images/routing-onion-6.png[]
 
-
-Interestingly enough Alice can construct the onion with different encryption keys for Bob, Wei and Gloria without the necessity to establish a peer connection with them.
-She only needs a public key from each participant which is the public `node_id` of the lightning node and known to Alice.
-As other nodes she has learnt about the existence of public payment channels and the public `node_id` of other participants via the gossip protocol which we described in its own chapter.
-In order to have a different encryption key for every layer Alice produces a shared secret with each hop using the public `node_id` of each node and conduct an Elliptic Curve Diffie Hellmann Key exchange (ECDH).
-
-She starts by generating a temporary session key.
-This key will also be called the ephemeral key.
-This private key multiplied with the generator Point of the Elliptic curve that is being used in Bitcoin produces a public key.
-This happens in the same way how the nodes public key is generated from the secret private key of the node.
-Alice could use this session keys to conduct the Diffie Hellmann key exchange if she would send the public key with the onion.
-However she wishes to use a different session key to conduct the Diffie Hellmann key exchange with each of the nodes along the path.
-**TODO**: WHY?!
-Yet she does not want to add a public key (which consumes quite some space) into every layer of the onion.
-Luckily there is a nice deterministic way in which she can derive different sessions keys for every hop and execute the Diffie Hellmann and allow the hops to use their shared secret to derive the next session public key.
-Lets explore this in detail with the following example:
-
-
-[Note]
-====
-Of course the Lightning Network protocol could have been designed in a way that Alice will only use her node's key to conduct the ECDH with every nodes public key.
-However she would have to put her public key in the header of the onion.
-This is necessary for nodes to be able to execute an ECDH and produce the same shared secret that Alice used for the respective layer of the Onion.
-However with that information nodes would know that Alice was the originator of the payment lifting the anonymity of the payer by design.
-====
+Since we use the network itself for transport of these onion packets, Alice is able to construct the entire onion without needing to communicate directly with each node in the route.
+She only needs a public key from each participant which is the public `node_id` of the Lightning node and known to Alice.
+In the network today, Alice learns about the public key via the gossip network, which is described in Chapter N.
 
 ===== CLTV expiry and deltas
 
