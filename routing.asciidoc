@@ -453,11 +453,11 @@ In the next diagram we can see how the per hop payload for David looks like.
 .`per_hop` payload of Glorias onion and the encrypted
 image:images/routing-onion-2.png[]
 
-On important feature to protect the privacy is to make sure that onions are always of equal length independ of their position along the payment path.
+On important feature to protect the privacy is to make sure that onions are always of equal length in depend of their position along the payment path.
 Thus onions are always expected to contain 20 entries of 65 Bytes with per hop data.
-As David is the final recipient there is only reasonable data for 65 Bytes of the per hop data.
-This is not a problem as the other 19 fields are filled with junk data.
-You could also see this in the previous diagram.
+If this wasn't the case, and the onion packet shrank as it was being processed, then this would leak information about the true path length to nodes in the route as the packet would be smaller the further down the route we went.
+Since David is the final recipient of the payment, we only have 65 bytes worth of data to fill with actual content.
+The remaining bytes are filled with random bytes to pad out the packet in an unpredictable manner.
 
 After Alice has set all the data she needs to encrypt the onion payload.
 For this she derives a shared secret between Davids public node key and the private secret that she generated for David.
