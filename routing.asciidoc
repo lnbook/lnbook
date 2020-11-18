@@ -437,15 +437,16 @@ The amount to forward is set to 3000.
 On the incoming HTLCs David should have seen that exact amount.
 Usually this amount is intended to say how many satoshis should be forwarded.
 Since the short channel id was set to zero in this particular case it is interpreted as the payment amount.
-Finally the CLTV delta which David should use to forward the payment is also set to zero as David is the final hop.
+Finally the CLTV delta which David should use to forward the payment is also set to block height 800 (the current height minus David's CLTV grace delta) as David is the final hop.
 These data fields consist of 20 Bytes.
-The Lightning Network protocol actually allows to store 65 Bytes of data the Onion for every hope.
+The Lightning Network protocol permits usage of up to 65 bytes to signal routing information in the Onion for every hop.
 
 - 1 Byte Realm which signals nodes how to decode the following 32 Bytes.
-- 32 Byte for routing hints (20 of which we have already used).
+- 32 Byte for routing payload information (20 of which we have already used).
 - 32 Byte of a Hashed Message Authentication code.
 
-Since the additional 12 Byte of data for the routing hints were not needed at this time they are set to zero.
+As we'll see in later sections, the more modern onion payloads used in Lightning today are much more flexible in that they allow a series of arbitrary key-values pairs.
+These arbitrary key-value pairs can be used to extend the protocol in an end-to-end manner, as it many cases, only the sender and receiver need to know how to interpret the data.
 In the next diagram we can see how the per hop payload for David looks like.
 
 [[routing-onion-2]]
