@@ -1,8 +1,22 @@
 === Trust, Fairness and Enforcement
 
+When people have competing interests, how can they establish enough trust to engage in some cooperative or transactional behavior? The answer to this question lies at the core of several scientific and humanistic disciplines, such as economics, sociology, behavioral psychology, and mathematics. Some of those disciplines give us "soft" answers, that depend on concepts such as reputation, fairness, morality, even religion. Other disciplines give us concrete answers that depend only on the assumption that the participants in these interactions will act rationally.
+
+In broad terms there are a handful of ways to ensure fair outcomes in interactions between individuals who may have competing interests:
+
+* Require trust - you only interact with people who you already trust, due to prior interactions, reputation, or familial relationships. This works well enough at small scale, especially within families and small groups, that it is the most common basis for cooperative behavior. Unfortunately, it doesn't scale and it suffers from tribalist (in-group) bias.
+
+* Rule of law - establish rules for interactions that are enforced by an institution. This scales better, but it cannot scale globally due to differences in customs and traditions, as well as the inability to scale the institutions of enforcement. Nasty side-effect: the institutions become more and more powerful as they get bigger and that leads to corruption.
+
+* Trusted third parties - put an intermediary in every interaction to enforce fairness. Combined with the "rule of law" to provide oversight of intermediaries, this scales better, but suffers from the same imbalance of power: the intermediaries get very powerful and attract corruption. Concentration of power leads to systemic risk and systemic failure ("Too big to fail").
+
+* Game theoretical fairness protocols - this last category emerges from the combination of the internet and cryptography and is the subject of this section. Let's see how it works and what its advantages and disadvantages are.
+
+==== Trusted protocols without intermediaries
+
 Cryptographic systems like Bitcoin and the Lightning Network are systems that allow you to transact with people (and computers) that you don't trust. This is often referred to as "trustless" operation, even though it is not actually trustless. You have to trust in the software that you run and you have to trust that the protocol implemented by that software will result in fair outcomes.
 
-The big distinction between a cryptographic system like this and a traditional financial system, is that in traditional finance you trust a _trusted third party_, for example a bank, to ensure that outcomes are fair. A significant problem with such systems is that they give too much power to the third party and they are also vulnerable to a _single point of failure_. If the trusted third party itself violates trust or attempts to cheat, the basis of trust breaks.
+The big distinction between a cryptographic system like this and a traditional financial system, is that in traditional finance you have a _trusted third party_, for example a bank, to ensure that outcomes are fair. A significant problem with such systems is that they give too much power to the third party and they are also vulnerable to a _single point of failure_. If the trusted third party itself violates trust or attempts to cheat, the basis of trust breaks.
 
 As you study cryptographic systems, you will notice a certain pattern: instead of relying on a trusted third party, these systems attempt to prevent unfair outcomes by using a system of incentives and disincentives. In cryptographic systems you place trust in the _protocol_, which is effectively a system with a set of rules that, if properly designed, will correctly apply the desired incentives and disincentives. The advantage of this approach is two fold. Not only do you avoid trusting a third party, you also reduce the need to enforce fair outcomes. So long as the participants follow the agreed protocol and stay within the system, the incentive mechanism in that protocol achieves fair outcomes without enforcement.
 
@@ -16,12 +30,31 @@ In this book, we call this pattern a _Fairness Protocol_ defined as a process th
 
 Let's look at an example of a fairness protocol, which may be familiar to any reader, perhaps as a memory from their childhood.
 
-Imagine a family lunch, with a parent and two children present. The parent has prepared a bowl of fried potatoes ("french fries" or "chips" depending on which English dialect you use). Two siblings must share the plate of chips. The parent must ensure a fair distribution of chips to each child, otherwise the parent will have to hear constant complaining (maybe all day) and there's always a possibility of the unfair situation escalating to violence. What is a parent to do?
+Imagine a family lunch, with a parent and two children. The parent has prepared a bowl of fried potatoes ("french fries" or "chips" depending on which English dialect you use). The two siblings must share the plate of chips. The parent must ensure a fair distribution of chips to each child, otherwise the parent will have to hear constant complaining (maybe all day) and there's always a possibility of the unfair situation escalating to violence. What is a parent to do?
 
-There are several ways that fairness can be achieved in this scenario. The naive but commonly used method is for the parent to use their authority as a trusted third party: they split the bowl of chips into two servings. This is similar to a traditional banking scenario, where the bank acts as a trusted third party to prevent any cheating between two customers who transact.
+[NOTE]
+====
+Any similarity between the scenario above and Andreas' childhood experiences with his two cousins is entirely coincidental and should not be mentioned again. The battles of the french fries created enough drama and should be left in the past.
+====
 
-The problem with this scenario is that this puts a lot of power in the hands of the trusted third party. The parent is accused of playing favorites and not sharing the chips equally. The siblings may fight over the chips, dragging the parent into their fight.
+There are a few different ways that fairness can be achieved in this strategic interaction between two siblings that do not trust each other and have competing interests. The naive but commonly used method is for the parent to use their authority as a trusted third party: they split the bowl of chips into two servings. This is similar to traditional finance, where a bank, accountant or lawyer acts as a trusted third party to prevent any cheating between two parties who want to transact.
+
+The problem with this scenario is that this puts a lot of power in the hands of the trusted third party. The parent is accused of playing favorites and not sharing the chips equally. The siblings may fight over the chips, dragging the parent into their fight. Eventually the parent threatens to never again cook french fries if it always results in fights. It is an empty threat, and so the cycle repeats daily.
 
 But a much better solution exists: the siblings are taught to play a game called "split and choose". At each lunch one sibling splits the bowl of chips into two servings and the *other* sibling gets to choose which serving they want. Almost immediately, the siblings figure out the dynamic of this game. If the one splitting makes a mistake or tries to cheat, the other sibling can "punish" them by choosing the bigger bowl. It is in the best interest of both siblings, but especially the one splitting the bowl, to play fair. Only the cheater loses in this scenario. The parent doesn't even have to use their authority or enforce fairness. All the parent has to do is _enforce the protocol_; as long as the siblings cannot escape their assigned roles of "splitter" and "chooser", the protocol itself ensures a fair outcome without the need for any intervention. The parent can't play favorites or distort the outcome.
 
-Note: the split and choose protocol was a favorite protocol of Andreas' parents, they taught him game theory early!
+==== Security primitives as building blocks
+
+In order for a fairness protocol like this to work, there need to be certain guarantees, or _security primitives_ that can be combined to ensure enforcement. The first security primitive is _strict time ordering/sequencing_: the "splitting" action must happen before the "choosing" action. It's not immediately obvious, but unless you can guarantee that action A happens before action B, then the protocol falls apart. The second security primitive is _commitment with non-repudiation_. Each sibling must commit to their choice of role: either splitter or chooser. Also, once the splitting has been completed, the splitter is committed to the split they created - they cannot repudiate that choice and go try again.
+
+Cryptographic systems offer a number of security primitives that can be combined in different ways to construct a fairness protocol. In addition to sequencing and commitment, we can also use many other tools:
+
+- Hash functions to fingerprint data, as a form of commitment, or as the basis for a digital signature.
+- Digital signatures for authentication, non-repudiation, and proof of ownership of a secret.
+- Encryption/decryption to restrict access to information to authorized participants only.
+
+This is only a small list of a whole "zoo" of security and cryptographic primitives that are in use. More basic primitives and combinations are invented all the time.
+
+In our real-life example, we saw one form of fairness protocol called "split and choose". This is just one of a myriad different fairness protocols that can be built by combining the building blocks of security primitives in different ways. But the basic pattern is always the same: two or more participants interact without trusting each other, by engaging in a series of steps that are part of an agreed protocol. The protocol's steps arrange incentives and disincentives to ensure that if the participants are rational, cheating is counter-productive and fairness is the automatic outcome. Enforcement is not necessary to get fair outcomes - it is only necessary to keep the participants from breaking out of the agreed protocol.
+
+Now that you understand this basic pattern, you will start seeing it everywhere in Bitcoin, the Lightning Network and many other systems. Let's look at some specific examples, next.
