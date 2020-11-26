@@ -478,7 +478,7 @@ The properties of ECDH make is such that only Alice and Gloria are able to deriv
 
 After the encrypted Onion for Gloria is created Alice will create the next outer layer by creating the onion for Wei.
 
-She truncates 65 Bytes from the end of the encrypted onion and prepends the truncated onion with 65 Byte per Hop data for Wei.
+She truncates 65 Bytes from the end of the encrypted onion and prepends the truncated onion with 65 Byte per hop data for Wei.
 The per hop data follows the same structure as the per hop data for Gloria.
 Thus she starts with the Realm Byte that she will set to 0 again.
 Then comes the short channel id.
@@ -512,7 +512,7 @@ Note that in the entire onion there will be Wei's ephemeral public key.
 We've omitted the details here for brevity, but notice how only a single ephemeral key is communicated. 
 During processing each node will re-randomize the ephemeral key for the following node.
 Luckily the ephemeral keys that Alice used for the ECDH with Gloria can be derived from the ephemeral key that she used for Wei.
-Thus after Wei decrypts his layer he can use the shared secret and his ephemeral public key to derive the ephemeral public key that Gloria is supposed to use and store it in the header of the Onion that he forwards to Gloria.
+Thus after Wei decrypts his layer he can use the shared secret and his ephemeral public key to derive the ephemeral public key that Gloria is supposed to use and store it in the header of the Onion that she forwards to Gloria.
 The exact progress to generate the ephemeral keys for every hope will be explained at the very end of the chapter.
 Similarly it is important to recognize that Alice removed data from the end of Gloria's onion payload to create space for the per hop data in Wei's onion.
 Thus when Wei has received his onion and removed his routing hints and per hop data the onion would be to short and he somehow needs to be able to append the 65 Bytes of filled junk data in a way that the HMACs will still be valid.
@@ -524,7 +524,7 @@ Finally after Alice has computed the encrypted version for Wei she will use the 
 For Bobs onion she actually computes the header and provides the ephemeral public key herself.
 Note how Wei was still supposed to forward 3000 satoshis but How Bob was supposed to forward a different amount.
 The difference is the routing fee for Wei.
-Bob on the other hand will only forward the onion if the difference between the mount to forward and the HTLC that Alice sets up while transferring the Onion to him is large enough to cover for the fees that he would like to earn.
+Bob on the other hand will only forward the onion if the difference between the amount to forward and the HTLC that Alice sets up while transferring the Onion to him is large enough to cover for the fees that he would like to earn.
 
 [NOTE]
 ====
@@ -546,7 +546,7 @@ In the network today, Alice learns about the public key via the gossip network, 
 ==== Pitfalls with source based Routing and HTLCs
 
 In the first part of the routing chapter you have learnt that payments securely flow through the network via a path of HTLCs.
-You saw how a single HTLC is negotiated between two peer and added to the commitment transaction of each peer.
+You saw how a single HTLC is negotiated between two peers and added to the commitment transaction of each peer.
 In the second part you have seen how the necessary information for setting up HTLCs along a path of hops are being transferred via onion packets from the source to the sender.
 However, in the above scenarios, we only discussed flows where everything goes as expected (the optimistic path).
 In this section, we'll now turn out attention into the various scenarios where the payment flow across the route breaks down.
@@ -608,7 +608,7 @@ If it was used to force close the channel the channel partner would have the abi
 In the last section you you understood the error cases that can happen with onion routing via the chain of HTLCs.
 You have learnt how HTLCs are removed if there is an error.
 Of course HTLCs also need to be removed and the balance needs to be updated if the chain of HTLCs was successfully set up to the destination and the preimage is being released.
-Not surprisingly this process is initiated with anther lightning message called `update_fulfill_htlc`.
+Not surprisingly this process is initiated with another lightning message called `update_fulfill_htlc`.
 You will remember that HTLCs are set up and supposed to be removed with a new balance for the recipient in exchange for a secret `preimage`.
 Recalling the full-duplex protocol with `commitment_signed` and `revoke_and_ack` messages you might wonder how to make this exchange `preimage` for new state atomic.
 The cool thing is it doesn't have to be.
@@ -625,7 +625,7 @@ Similarly forwarding an HTLC binds some funds from your nodes payment channel un
 As we explained in the very beginning of the chapter engaging into the forwarding process of HTLCs does neither yield a direct risk to loose funds nor does it gain the chance to gain funds.
 However the funds in jeopardy could be locked for some time.
 In the worst case the routing process needs to be resolved on chain as the payment channel was forced close due to some other circumstances.
-In that case outstanding HTLCs produce additional onchain food print and costs.
+In that case outstanding HTLCs produce additional onchain footprint and costs.
 Thus there are two small economic risks involved with the participation in the routing process.
 
 . Higher onchain fees in case of forced channel closes due to the higher footprint of HTLCs
@@ -639,7 +639,7 @@ However it is impossible to set up HTLCs for this amount.
 The reason is that the corresponding outputs in the commitment transaction would be below the dust limit.
 Such cases are solved in practice with the following trick:
 Instead of setting up an HTLC the amount is taken from the output of the sender but not added to the output of the recipient.
-Thus the HTLCs which are below the dust limit can understood as additional fees in the commitment transaction.
+Thus the HTLCs which are below the dust limit can be understood as additional fees in the commitment transaction.
 Most Lightning Nodes support the configuration of minimum accepted HTLC values.
 Operators have to consider if they want to risk overpaying fees or loosing funds in the forced channel close cases because the commitment transactions have been added to the fees.
 
