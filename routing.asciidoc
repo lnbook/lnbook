@@ -462,7 +462,7 @@ The remaining bytes are filled with random bytes to pad out the packet in an unp
 Taking a step back, before Alice is able to prepare the remainder of the packet, she needs to generate an ephemeral key (a key only used once).
 This ephemeral key is then used to generate a series of additional keys, which are themselves used for encryption, authentication, and also as input to a CSPRNG to deterministically generate the set of random filler bytes.
 In the spirit of onion encryption, Alice will begin encrypting the payload from the last hop, adding a new layer of encryption with each new hop.
-During processing, each node will authenticate the contents of the payload, then process the packet (decryption it and shifting around some bytes) to prepare it for processing by the next node in the route.
+During processing, each node will authenticate the contents of the payload, then process the packet (decrypting it and shifting around some bytes) to prepare it for processing by the next node in the route.
 As we want each node to use a new shared secret to authenticate and encrypt its portion of the packet, the Sphinx onion packet format uses a _re-randomization_ scheme to allow Alice to generate a single ephemeral Diffie-Hellman key for the entire route.
 Rather than occupying space in the routing payload for N public keys, with this little trick, we're able to only include a single public key, which is used for ECDH at each step, and randomized in a deterministic manner for the next hop.
 
