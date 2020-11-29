@@ -46,3 +46,32 @@ Relevant questions to answer:
       - How can TLV fields be used to extend the protocol, existing messages, and the onion itself?
       
       - Sidenote that TLV can be used by upcoming Instant Messaging chat apps like `Whatsat`, `Sphinx Chat` or `Juggernaut`
+      
+      
+ ### What is are Feature Bits and why do they matter?
+ 
+The Bitcoin protocol requires all nodes on the network to be in consensus on a common ruleset and list of features.
+This means that if someone wants to introduce a new feature into Bitcoin, such as Replace-by-Fee, then either all nodes will need to accept this feature or the feature needs to be backwards-compatible.
+However, on the Lightning Network there is no such requirement.
+If a new feature is introduced into the Lightning Network, users don't need to wait for the rest of the network to upgrade.
+They can start using the new feature immedietely, even if that feature is still in beta, as long as they can find other users willing to implement the feature along with them
+footnote:[The Lightning Network itself was famously put into use before it's official "launch". Despite LN developers warning users that the software was still in beta and had bugs, users around the world set up their own nodes and used the software recklessly].
+For example, multi-part payments, discussed in the chapter on Path-Finding, is an early-stage feature already deployed by some nodes at the time of writing.
+Given the freedom inherent in the Lightning Network's design there will not be a global consensus on the Lightning Network as to which features are supported and which aren't.
+Some nodes may support multi-part payments, some may not, and some may never decide to support them.
+As such, nodes need of a way of signalling to each other which features they support and which they do not.
+They do so using pairs of 1s and 0s called "Feature Flags" or "Feature Bits".
+
+Whenever nodes communicate with each other, whether through channel announcements, invoices, or other methods, a part of that message is reserved to signal which features the node has enabled.
+This message will take the form of a string of paired bits that will look something like this:
+_00101000001000000000_
+BOLT #9 contains the full list of which digits stand for which features
+footnote:[https://github.com/lightningnetwork/lightning-rfc/blob/master/09-features.md].
+Flags are numbered from the least-significant bit i.e. the right-most bit.
+An odd-numbered bit communicates that the feature is backwards-compatible so the other node can accept it even if they don't have the feature enabled.
+An even-numbered bit communicates that the feature is mandatory.
+The rule of thumb is: "it's ok to be odd".
+The other node needs to have the feature enabled in order for them to pay the invoice, open a channel etc.
+For example, bit numbers 10 and 11 are reserved for the `gossip_queries_ex` feature, which allows additional information to be included in a gossip query.
+In the above string, bit numbers 10 and 11 are "01", an odd number, which means that 'gossip_queries_ex' is enabled and is backwards compatible.
+If both nodes have this feature enabled then they can make use of it, while other users who connect to them can simply ignore it. 
