@@ -75,7 +75,7 @@ Whenever nodes communicate with each other, whether through invoices or other me
 For example, the `channel_announcement` and `node_announcement` messages described in BOLT #7 have a predefined `features` field reserved for this information.
 The `features` field will take the form of a string of paired bits that will look something like this:
 
-[feature_bits_example]
+[feature-bits-example]
 ----
 00101000001000000000
 ----
@@ -90,18 +90,23 @@ The rule of thumb is: "it's ok to be odd".
 
 Using BOLT #9 we can break down the above string as follows:
 
-| Bit Number | Feature                          | String | Status                         |
-|------------|----------------------------------|--------|--------------------------------|
-| 0/1        | `option_data_loss_protect`       | 00     | Not enabled                    |
-| 2/3        | `initial_routing_sync`           | 00     | Not enabled                    |
-| 4/5        | `option_upfront_shutdown_script` | 00     | Not enabled                    |
-| 6/7        | `gossip_queries`                 | 00     | Not enabled                    |
-| 8/9        | `var_onion_optin`                | 01     | Enabled (Backwards-Compatible) |
-| 10/11      | `gossip_queries_ex`              | 00     | Not enabled                    |
-| 12/13      | `option_static_remotekey`        | 00     | Not enabled                    |
-| 14/15      | `payment_secret`                 | 01     | Enabled (Backwards-Compatible) |
-| 16/17      | `basic_mpp`                      | 01     | Enabled (Backwards-Compatible) |
-| 18/19      | `option_support_large_channel`   | 00     | Not enabled                    |
+[[feature-bits-breakdown]]
+.Breakdown of a feature bit string
+[options="header"]
+|===
+| Bit Number | Feature                          | String | Status                         
+| 0/1        | `option_data_loss_protect`       | 00     | Not enabled                    
+| 2/3        | `initial_routing_sync`           | 00     | Not enabled                    
+| 4/5        | `option_upfront_shutdown_script` | 00     | Not enabled                    
+| 6/7        | `gossip_queries`                 | 00     | Not enabled                    
+| 8/9        | `var_onion_optin`                | 01     | Enabled (Backwards-Compatible) 
+| 10/11      | `gossip_queries_ex`              | 00     | Not enabled                    
+| 12/13      | `option_static_remotekey`        | 00     | Not enabled                    
+| 14/15      | `payment_secret`                 | 01     | Enabled (Backwards-Compatible) 
+| 16/17      | `basic_mpp`                      | 01     | Enabled (Backwards-Compatible) 
+| 18/19      | `option_support_large_channel`   | 00     | Not enabled                    
+|===
+
 
 If Alice sees this string in a node announcement message from Bob's node, then it knows from bits 16 and 17 that Bob's node supports multi-part payments.
 And because the pair is odd, Alice's node knows that the feature is backwards-compatible.
