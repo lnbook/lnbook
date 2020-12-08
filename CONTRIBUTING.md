@@ -78,6 +78,10 @@ All submission should use Unix-like line endings: LF (not CR, not CR/LF). All th
 
 If you are unsure or your OS makes things difficult, consider using a developer's text editor such as Atom.
 
+## Spelling
+
+US English spelling standards should be used for contributions to the text.
+
 ## Thanks
 
 We are very grateful for the support of the entire Lightning Network community. With your help, this will be a great book that can help thousands of developers get started and eventually "master" LN. Thank you!
