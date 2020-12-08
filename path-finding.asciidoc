@@ -242,40 +242,40 @@ or they can decide to close the abused channel.
 [Note]
 ====
 We want you to understand that Lightning Network by design does not have perfect privacy.
-While a lot of information is not easily accessible every time a path is probed the node learns something about the state of the network at that point in time. 
+While a lot of information is not easily accessible, every time a path is probed the node learns something about the state of the network at that point in time. 
 ====
 
-We note that one should not send two onions at the same time with the same payment hash for which the recipient knows the preimage.
-As long as the onion is being processed and routed the payment is out of controll of the sender.
-In case two onions are sent at the same time the recipient could very well release the preimage twice and get paid twice.
-That was the reason why probing should be conducted with a fake payment hash.
-in that case the sender can probe concurrently as long as the sender has enough funds to pay for all the HTLCs.
-However there is a problem.
-Assume an onion returns indicating that the payment hash was unknown to the recipient but otherwise the path would have been possible.
-The sender would now use this exact path to send the payment with the corrent payment hash.
-Meanwhile the balances of some channels along the path might have changed and the path does not exist anymore.
-In this case the sender would have to start from the beginning all over again.
-Admittedly the risk for this to happen is rather small but there is a chance.
+Please note that one should never send two onions at the same time with the same payment hash for which the recipient knows the preimage.
+As long as the onion is being processed and routed the payment is out of control of the sender.
+In case two onions are sent at the same time, the recipient could very well release the preimage twice and get paid twice.
+This is the reason why arbitrary probing should be conducted with a fake, i.e. purely random, payment hash.
+With fake payment hashes the sender can probe concurrently as long as the sender has enough funds to pay for all the HTLCs.
+Successful probing does not guarantee a following successful payment.
+Assume a fake onion returns indicating that the payment hash was unknown to the recipient but otherwise the path has been possible.
+The sender now uses the same path to send the payment with the corrent payment hash.
+In the interim, the balance of a channel along the path changes rendering the path unworkable.
+In this case the sender has to start all over again.
+Admittedly the risk for this to happen is rather small but the possibility exists.
 
-A better way and potential improvement for the future of the Lightning network are stuckless payments.
-There is a proposal for a system called stuckless payments that receives high appriciation by developers.
-This proposal will probably not be implemented before the lightning network switches from Hashed Timelocked Contracts to Point time locked contracts which won't come before Schnorr Signatures are activated on the Bitcoin Network.
-What stuckless payments can do is to give controll back to the sender of an Onion.
-Without explaining the details here we just say that the sender can now cancle an onion.
+A potential improvement has been outlined by a suggested mechanism labelled as _stuckless payments_.
+The proposal of _stuckless payments_ received positive feedback from developers.
+It is unlikely that the mechanism is implemented before the Lightning Network switches from _Hashed Timelock Contracts_ (HTLCs) to _Point Timelock Contracts_ (PTLCs). PTLCs in turn will only be implemented after _Schnorr Signatures_ are activated on the Bitcoin Network.
+Stuckless payments give control back to the sender of an onion.
+We don't explain the details here, but stuckless payments empower the sender to cancel an onion.
 This is great for redundant and concurrent pathfinding.
-The sender could send out several real onions.
-The first ones that arrives at the recipient will be settled.
-All others will be cancled.
+The sender can now send out several _real_ onions without fear of being charged multiple times.
+The first onion that arrives at the recipient will be settled.
+All others will be canclled.
 This increases the usuability of the Lightning Network on several levels.
 One advantage is that the sender can try several paths at the same time.
-The second advantage is that the path is locked after it is found and until it is settled.
-This means that the sender can either cancle the onion or help to release the preimage (as senders have to do with the stuckless payment construction)
-In particular the probed path cannot change or used by other routing requests between probing and setting up the htlcs that are used to fullfill the request.
-The time for a a successfull payment will reduce drastically.
-The distadvante is that the sender has to lock more bitcoin during the path finding process.
-Due to timeouts these bitcoin can be locked for a couple of days before they can be used again.
-This should not happen too often.
-Also it utilizes more resources of other nodes.
+The second advantage is that the path is locked, i.e. reserved, after it is found until it is settled.
+This means that the sender can either cancel the onion or bring the onion to a successful conclusion.
+In particular, the probed path once locked cannot change or be used by other routing requests in the interim between probing and setting up the HTLCs that are used to fulfill the request. The found path remains reserved until cancelled or the payment is successfully completed.
+Using stuckless payments the time for a successful payment will reduce drastically.
+The distadvantage is that the sender has to lock more bitcoin during the pathfinding process.
+Due to timeouts these bitcoin can remain locked for several days before being released again.
+Although this should not happen too frequently.
+Another drawback is that the execution of this mechanism utilizes more resources of routing nodes.
 
 
 ==== Multipath payments
