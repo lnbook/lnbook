@@ -296,30 +296,31 @@ be defined by each operator on its personal preferences.
 But for the general case, researchers and developers have already tested this postulate and confirmed it multiple times emperically.
 
 With this assumption in mind it seems natural to split a payment amount and send several smaller payments along various paths.
-With if a small payment fails it will be retried and probed just as one would do with a single larger payment.
-While the main idea is very easy to understand we want to discuss the details, advantages and disadvantages of this mechanism in the following.
+When one of the smaller payments fails it will be retried and probed just as one would do with a single larger payment.
+While the main idea is easy to understand, we want to discuss the details, advantages, and disadvantages of this mechanism further.
 
-Usually a receiving node will see an incoming HTLC for a certain payment hash.
-If the onion signals that the node is the final recipient and that the amount of the HTLC is less than the one specified in the invoice the node would not accept the HTLC and send back an erring onion.
-However with the TLV format of onions a sender can specify the total_amount of the payment which can be bigger than the HTLC.
-The recipient can safely accept the HTLC and wait for more HTLCs to arrive.
-In this way all parts of the payment will use the same payment hash.
-The recipient will only release the preimage if the sum of all incoming HTLCs is at least the speciefied payment amount.
+A receiving node will see an incoming HTLC for a certain payment hash.
+If the onion signals that the node is the final recipient and if the amount of the HTLC is less than the one specified in the invoice, the node would normally not accept the HTLC and send back an error notification.
+However, using the _Total Value Locked_ (TLV) format of onions a sender can specify a total amount of the payment which is bigger than the HTLC.
+In the TLV case, the recipient can safely accept the HTLC and wait for more HTLCs to arrive.
+All parts of the payment will use the same payment hash.
+The recipient will only release the preimage if the sum of all incoming HTLCs is at least the specified payment amount.
 
 [Note]
 ====
-**Multi path or multi part payments?** You might have realized that we named the chapter multipath payments but mentioned in the last paragraph that such a payment consists of several parts.
-The protocol specification uses the abbrivation MPP for multi part payments.
-This is in fact always correct as all parts could technically - though this would not make much sense - be delivered over the same path.
-As we are introducing MPP in the pathfinding section of the book and as they are also used for path finding we take the liberty to also abbriviate multi path payments with MPP.
+**Multipath or multipart payments?** You might have noticed that we named the chapter "multipath" payments but mentioned in the last paragraph that such a payment consists of several parts.
+The protocol specification uses the abbrivation _MPP_ for _multipart payments_.
+Multipath is just a special case of multipart. 
+Multipart covers all the cases of multipath plus the unusual case where multiple parts use the same path. 
+For simplicity we take the liberty to also abbriviate multipath payments with MPP.
 ====
 
-It is important to recognize that a node that forwards HTLCs via onions does not have to bother if the payment is a single payment or one of several multi part payments.
-The only node who needs to be ready to accept multi part payments is the receiving node.
-In the BOLT 11 invoice there is space for feature bits.
-If ia node wishes to accept multipart payments it has to signal this by setting the corresponding feature bit (16 / 17).
-If a node wishes to send a multi part payment it can also do so if the receiving node has signaled their willingess to accept such payments.
-Currently there is no way for routing nodes to split the payment amount and onion into several parts or merge several incoming HTLCs into a single path.
+It is important to recognize that a node that forwards HTLCs does not have to distinguish a single full payment from a partial multipart payment.
+Only the receiving node needs to distinguish the two cases. Only the receiver needs to be ready to accept multipart payments.
+In the BOLT 11 invoice specification there is a field for _feature bits_.
+If a node wishes to accept multipart payments it must signal this by setting the corresponding feature bit (bit 16 of 17).
+If a node wishes to send a multipart payment it can do so if the receiving node has signaled their willingess to accept such payments.
+Currently there is no mechanism for routing nodes to split the payment amount and onion into several parts or merge several incoming HTLCs into a single onion.
 
 Besides the potentially better chances to find smaller routes the sender might want to use a multipart payment because it does not have enough balance in a single payment channel.
 If the channel had enough capacity this could be resolved with a circular rebalancing - which we will discuss in the next section.
