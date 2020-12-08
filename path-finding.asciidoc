@@ -208,23 +208,23 @@ In general, the longer a payment path is, the more likely it becomes that a chan
 Thus, receiving hints from the receiver indicating on which channels it wishes to receive funds is definitely helpful for the sender.
 
 
-=== Improvements on Source based onion routing
+=== Improvements on source-based onion-routing
 
-The probing based approach that is used in the Lightning Network has several flaws.
-Sending out an onion usually takes a certain amount of time.
-The time depends on how many hops the onion is supposed to be forwarded and of course on the speed of nodes processing the onion and the topology on the web.
-In the following diagram you can see how the time for onions to return in general increase with the amount of hops that the onion has encoded.
+The probing-based approach that is used in the Lightning Network has several shortcomings.
+Sending out an onion takes a certain amount of time.
+The time depends on how many hops the onion is supposed to be forwarded, on the speed of nodes processing the onion, and on the topology on the network.
+In the following diagram you can see how the round-trip time for onions in general increases with the amount of hops that the onion has encoded.
 
 [[pathfinding-probing]]
-.Research showing the times that onions take to return depending on the distance (CC-BY-SA Tikhomirov, Sergei & Pickhardt, Rene & Biryukov, Alex & Nowostawski, Mariusz. (2020). Probing Channel Balances in the Lightning Network.)
+.Research shows that the onion round-trip time depends on the distance (CC-BY-SA Tikhomirov, Sergei & Pickhardt, Rene & Biryukov, Alex & Nowostawski, Mariusz. (2020). Probing Channel Balances in the Lightning Network.)
 image:images/probingtimes.ppm[]
-Of course this diagram was just a snapshot from an experiment in early 2020 and things might change.
-We can learn from the Diagram that payments can take several seconds while the node tries to probe several paths.
-This is due to the fact that the fact that single onions can easily take a few seconds to return and a sender might have to send several onions in a row while probing for a sucessfull path.
-in generall this will still be much faster than waiting for confirmations on a bitcoin block but it is not sufficient in an environment where payments need to settle fast.
-If people stand in a line at the cash register for their groceries this would be such a setting.
-Thus lightnign developers 
-
+This diagram is just a snapshot from an experiment in early 2020 and results might change.
+We learn from the diagram that payments can take several seconds while the node probes several paths.
+This is due to the fact that a single onion can easily take a few seconds to return and a sender might have to send several onions sequentially while probing for a successful path.
+In comparison, this will still be much faster than waiting for confirmations on a Bitcoin block; but it is not performant enough in an environment where payments need to settle fast.
+People standing in a line at the grocery store cash register prefer not to wait several seconds.
+Thus, Lightning developers have come up and implemented the following improvements to the probing algorithms. 
+We are also hopeful that additional improvements and optimizations can be discovered in the future.
 
 ==== Probing based improvements
 The last source of information that nodes could use is to probe the network themselves.
