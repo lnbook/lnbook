@@ -2,7 +2,7 @@ After you have learnt about payment channels in the first half of the book and a
 Of course, every detail of a technology exists for a reason and is important.
 But we believe that payment channels are the core and most fundamental building block of the Lightning Network around.
 It is literally built around the idea and concept of payment channels.
-Thus in order master the Lightning Network you should to be able to understand how payment channels will be constructed.
+Thus in order master the Lightning Network you should be able to understand how payment channels will be constructed.
 As several methods for channels exist we stress that it is not important to remember all the details of every method.
 As with most technologies it is important to understand the core concepts and building blocks which we will try to lay out for you as clearly as possible while still emphasizing on the technical details.
 
@@ -13,7 +13,7 @@ In the previous chapters you have already learned that payment channels
 * do not require peers to do any additional onchain transactions other than the one needed to open and - potentially at a later state - to close the channel.
 * can stay open for an arbitrary time. Potentially in the best case forever.
 * do not require peers to trust each other as any attempt by a peer to cheat would enable the other peer to take all the funds in the channel as a penalty.
-* can be connected to a network and allow peers to send money a long a path of connected channels without the necessity to trust the intermediary nodes as they do not have the ability to steal the Bitcoin that are being forwarded.
+* can be connected to a network and allow peers to send money along a path of connected channels without the necessity to trust the intermediary nodes as they do not have the ability to steal the Bitcoin that are being forwarded.
 
 In this chapter we will dig deeper into the protocol details that are needed to open and close payment channels.
 Especially with the opening part of a payment channel the ideas for updating a channel should already become clear but we will defer to explain the details how HTLCs are being used in the channel operation chapter which comes directly after this chapter.
@@ -23,7 +23,7 @@ If you are new to the topic we highly encourage you to start there first.
 If you however already know a fair share about bitcoin script, OP_CODES and protocol design it might be sufficient to skip the previous chapter and start here with us.
 This books follows the construction of payment channels as described in BOLT 02 which is titled `peer protocol` and describes how two peers communicate to open, maintain and close a channel.
 As stated we will only discuss opening and closing a channel in this chapter and
-The operation and maintainance of a channel which means either attempting to make or forward a payment as well as failing or settling such attempts is the normal operation and will be discussed in the next chapter.
+the operation and maintainance of a channel which means either attempting to make or forward a payment as well as failing or settling such attempts is the normal operation and will be discussed in the next chapter.
 
 === Summary of what you (should) know about payment channels and Bitcoin
 
@@ -35,7 +35,7 @@ Let us emphasize that knowing does not necessarily mean understanding yet.
 3. It is opened with the help of a funding transaction that sends bitcoin to a 2-of-2 multisignature output.
 4. The funding tx can only be broadcasted to the Bitcoin network if a refund or settlement transaction exist.
 5. The channel also consists of a communication protocol that helps to initialize and maintain its state.
-6. The balance of the channel encodes how the capacity is split between the two peers who maintain the channel. Technically the balance is encoded by a the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
+6. The balance of the channel encodes how the capacity is split between the two peers who maintain the channel. Technically the balance is encoded by the most recent pair of a sequence of pairs of similar (but not equal) presigned commitment transactions.
 7. The commitment transaction will include scripts and contracts that allow owners of the channel to take all funds in case the other party tries breach the protocol
 8. There are three ways of closing a channel, the good, the bad and the ugly which refer to the mutual close, forced close and the penalty close respectively.
 
@@ -51,10 +51,10 @@ However, without the help of anybody else you can transfer the funds to an addre
 You do that by broadcasting the transaction to the bitcoin network which will accept it as it has valid signatures.
 As the funds in this transaction go to a regular address for which you controll the private key you can again move the funds and thus you effectively own them.
 On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-of-2 multisignature address.
-While your funds on the lightning network are called to be "off-chain" they are actually very much on chain and very much owned by you just like you might own other bitcoin.
+While your funds on the Lightning Network are called to be "off-chain" they are actually very much on chain and very much owned by you just like you might own other bitcoin.
 
 One thing about the Lightning Network is however messing with this understanding of ownership.
-On the Lightning network there exist several presigned Transactions which allocate some of the bitcoin to you and some to your channel partner.
+On the Lightning Network there exist several presigned Transactions which allocate some of the bitcoin to you and some to your channel partner.
 Without the the ability to sequence transaction and invalidate old ones via the penalty based revocation mechanism (or other techniques) we could not define clear ownership as the funds would be distributed among its two owners according to which ever transaction would first be broadcasted and succesfully mined.
 
 If the last paragraph of this summary was confusing: No worries! We are getting there now!
@@ -101,7 +101,7 @@ We can see an overview in this diagram (which was taken directly from BOLT2 of t
 
 When Alice wishes to open a channel with Bob she sends an `open_channel` message to Bob.
 This message tells Bob that Alice wishes to create a channel.
-While there is obviously not a unique way of designing a protocol we can think about what kind of information Alice might have to change with Bob, so that they can savely operate a payment channel together.
+While there is obviously not a unique way of designing a protocol we can think about what kind of information Alice might have to change with Bob, so that they can safely operate a payment channel together.
 In order to find a good answer we remind ourselves that in order for Alice and Bob to safely operate the channel each of them needs to controll a presigned commitment transaction that spends from the output of the funding transaction.
 As the funding transaction will send the funds of the channel to a 2-of-2 multisig output it is very reasonable that Alice needs to tell Bob at some point in the protocol, what her key for that address looks like.
 Thus she can already put that information into the `open_channel` message via the `funding_pubkey` field.
@@ -117,18 +117,18 @@ Thus this message contains
 
 
 
-[Note]
+[NOTE]
 ====
 These commitment transactions should never hit the blockchain and serve as a safety net for the participants in case the channel partner becomes unresponsive of disappears.
 They are also the reason why the Lightning Network is called an off-chain scaling solution.
 Each channel partner has both signatures for one of the commitment transactions from the sequence of pairs.
-=====
+====
 
 The split of the capacity is realized by a `to_local` and a `to_remote` output that is part of every commitment transaction.
 The `to_local` output goes to an address that is controlled by the peer that holds this fully signed commitment transaction.
 `to_local` outputs, which also exist in the second stage HTLC transactions - which we discuss in the routing chapter - have two spending conditions.
-The `to_local` output can be spent either at any time with the help of a revocation secrete or after a timelock with the secret key that is controled by the peer holding this commitment transaction.
-The revocation secrete is necessary to economically disincentivice peers to publish previous commitment transactions.
+The `to_local` output can be spent either at any time with the help of a revocation secret or after a timelock with the secret key that is controled by the peer holding this commitment transaction.
+The revocation secret is necessary to economically disincentivice peers to publish previous commitment transactions.
 Addresses and revokation secretes change with every new pair of commitment transactions that are being negotiated.
 The Lightning Network as a protocol defines the communication protocols that are necessary to achieve this.
 
@@ -171,13 +171,13 @@ On the other side you as a reader might think:
 Why would Alice send money to a multisignature address just to prepare a transaction that sends the money back to her?
 
 We really hope you have wondered about this because this is really the point where the innovation begins.
-Just because in general people are expected to broadcast a transaction to the bitcoin network as soon as they have signed it noone forces you to do that.
+Just because in general people are expected to broadcast a transaction to the bitcoin network as soon as they have signed it no one forces you to do that.
 
 As Alice would loose access of her Bitcoins once she sends it to a 2-of-2 multisignature output for which she only controls one key, she needs to make sure that she will be able to regain access of her coins in case Bob becomes unresponisive.
 Thus before Alice publishes the funding transaction she will create another transaction that sends all the bitcoin from the 2-of-2 multisignature output back to an address which she controls.
 
 .The situation can be seen in the following picture
-image:channel-construction-opening-1.png[]
+image:images/channel-construction-opening-1.png["Channel construction..."]
 Of course for the commitment transaction Alice would need to get a signature from Bob before she can safely broadcast the funding transaction.
 After publishing the funding transaction instead of braodcasting the commitment transaction she will keep it in a safe place.
 For this to work Alice needs to be sure that the funding transaction could not be published with a different transaction id.
@@ -207,7 +207,7 @@ Let us assume as an example that Alice wants to send 30k Satoshi to Bob.
 For now we can assume that through some communication protocol Alice and Bob would negotiate a double spent of the funding transaction output of 100k satoshi.
 The new commitment transaction for which Alice and Bob would exchange signatures would send 70k satoshi to Alice and 30k Satoshi to Bob.
 The situation can be seen in the following picture
-image:channel-construction-opening-2.png[]
+image:images/channel-construction-opening-2.png["A new balance in an insecure payment channel"]
 Whenever Alice and Bob want to change the balance of the payment channel they will negotiate a new commitment transaction.
 Effectively they double spend the funding transaction output.
 But as the commitment transactions are not broadcasted - as long as the channel stays open - they will be able to do that.
@@ -321,8 +321,8 @@ This means that initially Alice will not be able to recieve Bitcoins on this cha
 == Other payment channel constuctions
 
 Other constructions of payment channels are known and being discussed by the developers.
-Historically speaking these are the Duplex Micropayment channels introduced by Christian Decker during his time as a PhD student at ETH Zuric and the eltoo channels which where also introduced by Christian Decker.
-The eltoo channels are certainly a more elgant and cleaner why of achieving payment channels with the afore mentioned properties.
+Historically speaking these are the Duplex Micropayment channels introduced by Christian Decker during his time as a PhD student at ETH Zurich and the eltoo channels which where also introduced by Christian Decker.
+The eltoo channels are certainly a more elgant and cleaner way of achieving payment channels with the afore mentioned properties.
 However they require the activation of BIP 118 and a softfork and are - at the time of writing - a potential future protocol change.
 Thus this chapter will only focus on the pentalty based channels as described in the Lightning Network Whitepaper and specified in BOLT 02 which are currently supported by the protocol and the implementations.
 
@@ -330,8 +330,8 @@ Thus this chapter will only focus on the pentalty based channels as described in
 [NOTE]
 ====
 The Lightning Network does not need consensus of features across it's participants.
-If the Bitcoin Softfork related to BIP 118 activates and people implement eltoo channels nodes that support eltoo can create payment channels and the onion routing of payments a long a path of channels would work just fine even if some of the channels are the modern eltoo channels or some channels are the legacy channels.
-Actually when Lightning network connections are established nodes signal feature bits of global and local features that they support.
+If the Bitcoin Softfork related to BIP 118 activates and people implement eltoo channels nodes that support eltoo can create payment channels and the onion routing of payments along a path of channels would work just fine even if some of the channels are the modern eltoo channels or some channels are the legacy channels.
+Actually when Lightning Network connections are established nodes signal feature bits of global and local features that they support.
 Thus havning the ability to create eltoo channels would just be an additional feature bit.
 In this sense upgrading the Lightnign Network is much easier than upgrading Bitcoin where consensus among all stakeholders is needed.
 ====
