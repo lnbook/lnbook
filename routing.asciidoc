@@ -2,10 +2,10 @@
 == Routing on a Network of Payment channels
 In this section we will finally unpack how payment channels can be connected to a network of other payment channels via a process called _routing_.
 Note that we separate the concept of _routing_ from the concept of _path finding_.
-Routing refers to the series of interactions across the network that allow a payment to _flow_ from point A to point B, i.e. the _active_ process of process of sending a payment.
+Routing refers to the series of interactions across the network that allow a payment to _flow_ from point A to point B, i.e. the _active_ process of sending a payment.
 An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
 One example is the scenario where all the nodes connecting Alice and Bob are currently off-line. 
-In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Beb, hence a _path_ exists.
+In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists.
 However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
 
 The innovation of routed payment channels allows our gamer Gloria to receive funds from her fans without maintaining a separate channel with every one of her fans who want to tip her.
@@ -86,7 +86,7 @@ _I (Alice) will reimburse you (Bob) with 10 gold coins if you can prove to me (f
 You might ask yourself why should Bob sign such a contract.
 He has to pay Wei but ultimately gets nothing out of the exchange, and he runs the risk that Alice might not reimburse him.
 Bob could offer Wei a similar contract to pay Gloria, but similarly Wei has no reason to accept it either.
-Even putting aside the risk, Bob abd Wei must _already_ have 10 gold coins to send, otherwise they wouldn't be able to participate in the contract.
+Even putting aside the risk, Bob and Wei must _already_ have 10 gold coins to send, otherwise they wouldn't be able to participate in the contract.
 Thus Bob and Wei face both risk and opportunity cost for agreeing to this contract, and they would need to be compensated in order for them to accept it.
 
 Alice can this make this attractive to both Bob and Wei, by offering them fees of 1 gold coin each, if they transmit her payment to Gloria.
@@ -250,7 +250,7 @@ The combination of the condition, and a timeout on the condition gives the payme
 === Conditional Chained Payment ===
 
 Building upon our conditional payment, it may be possible to *chain* this payment, allowing it to involve the payer, the payee, and possibly several intermediaries. 
-Each intermediary, is able to present a _slightly_ modified version of the condition (without invalidating it all together), and so so in an iterated manner until the conditional payment reaches the payee.
+Each intermediary, is able to present a _slightly_ modified version of the condition (without invalidating it all together), and so on in an iterated manner until the conditional payment reaches the payee.
 Once it reaches the payee, then the payment should be able to be _iteratively_ resolved, starting at the payee all the way back to the payer. 
 
 Each chaining creates an "incoming" and "outgoing" conditional payment.
