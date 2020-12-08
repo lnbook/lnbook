@@ -76,22 +76,22 @@ Reasons for failure include: a routing node became unreachable, a routing channe
 Furthermore, there is no guarantee that the route chosen was the cheapest in terms of fees or the shortest in terms of channels involved.
 At the time of writing this book, this is a design trade-off made to protect user privacy.
 
-=== Paths are constructed from Destination to Source
-Let us assume our standard example in which Alice wants to send a payment of 100k satoshi on a path via Bob and Wei to Gloria.
-The Path obviously looks like (Alice)-->(Bob)-->(Wei)-->Gloria.
-However Bob and Wei will charge routing fees to forward the onion.
-As you already know nodes can charge two types of fees.
-First the base fee that will be charged for any successfull forwarding and settlement of and htlc.
-This fee is constant and does not depend on the amount that the node is supposed to forward.
-Additionally nodes might charge a freerate.
-The name rate alredy indicates that this fee depends on the amount that a node is supposed to forward.
-Let us for the simplicity of assume that the feerate of Bob and Wei is very expensive with 1% for Bob and 2% for Wei.
-However Bob and Wei will not take a base fee to keep things simple in our example.
-If Alice constructs the Onion she has to include the routing fees as the differnce of the incoming htlc and the outgoing htlc.
-Let us assume she falsely computes the following to construct the onions with the routing fees.
+=== Paths are constructed from destination to source
+Let us use our standard example in which Alice wants to send a payment of 100k satoshi on a path via Bob and Wei to Gloria.
+The _path_ obviously looks like (Alice)-->(Bob)-->(Wei)-->Gloria.
+Bob and Wei will charge routing fees to forward the _onion_.
+As you already know, nodes can charge two types of fees.
+First, the _base fee_ will be charged for any successful forwarding and settlement of an HTLC.
+This fee is constant and independent of the amount that the node is forwarding.
+Secondly, nodes might charge a _fee rate_ which is proportional to the forwarded amount.
+For simplicity assume that the fee rate of Bob and Wei is expensive with 1% for Bob and 2% for Wei.
+For simplicity furthermore assume neither Bob nor Wei take a base fee.
+When Alice constructs the onion she has to include the routing fees as the difference of the incoming HTLC and the outgoing HTLC.
+Let us assume she computes the routing fees for the onion incorrectly.
 Alice knows that 1% of 100k satoshi is 1k satoshi which she belives she should include in Bob's onion.
-Similarly she knows that 1% of 100k satoshi is 2k satoshi which she belives she should include in Wei's onion.
-She would find out that Bob would not forward the onion, if she believed that she would have to pay a total of 3k satoshi and construct an onion that looks like this:
+Similarly she knows that 2% of 100k satoshi is 2k satoshi which she belives she should include in Wei's onion.
+An inexperienced Alice would incorrectly believe her total fee to be 3k satoshi. But she is wrong.
+Look at the incorrect onion from our naive Alice. Bob would reject this onion. 
 
 ----
 "route": [
@@ -100,6 +100,7 @@ She would find out that Bob would not forward the onion, if she believed that sh
          "channel": "357",
          "direction": 1,
          "satoshi": 103000,
+         "forward": 102000,
          "dealy": 187,
       },
       {
@@ -107,6 +108,7 @@ She would find out that Bob would not forward the onion, if she believed that sh
          "channel": "74",
          "direction": 1,
          "satoshi": 102000,
+         "forward": 100000,
          "dealy": 183,
       },
       {
@@ -121,15 +123,18 @@ She would find out that Bob would not forward the onion, if she believed that sh
 ----
 
 The reason for Bob to not forward the onion is that he expects the incoming amount to be 1% larger then the amount he is supposed to forward.
-Thus he would like to have an incoming ammount of `103020` satoshi which is 20 satoshi more than Alice sent him.
-According to his fee schedual Bob will have to reject the Onion.
-If Alice constructed the onion from she would have computed 1% of the to forward amount correctly as 1% from 102k satoshi which is 1020 sat.
-Adding 1020 to the 102000 satoshi that Wei needs to have on his incoming channel will result in the right value of 103020 satoshi that Bob requires.
-As the routing fees can increase the amount that is being forwarded even beyond the capacity of small channels it makes sense to start the construction of the onion and the pathfinding from the destination to the sender.
+Thus he would like to receive an incoming ammount of `103020` satoshi (102000 + 1%) which is 20 satoshi more than our uninformed Alice actually sent him.
+According to Bob's fee schedule Bob will reject this onion.
+If Alice constructed the onion from the destinatin towards the source, she would have started with 100k satoshi for Gloria. 
+In the next step she would have added Wei's 2% fee to compute 102k for Wei's input. 
+In the last step she would have applied Bob's fee (1%) to 102k to derive 102k + 1020 satoshi. 
+That makes a total of 103,020 satoshi that she needs to send to Bob.
+As the routing fees can increase the amount that is being forwarded even beyond the capacity of small channels, it makes sense to start the construction of the onion and the path finding at the destination and work from the destination back towards the sender.
 
 [NOTE]
 ====
-While onions are also constructed from inside to outside and thus start with the destination this is not the reason why pathfinding has to start with the destination node. 
+Onions are constructed from the inside to the outside. Hence, onions are built starting with the destination. 
+However, this is not the reason why path finding has to start with the destination node. 
 ====
 
 === Fundamentals about path finding
