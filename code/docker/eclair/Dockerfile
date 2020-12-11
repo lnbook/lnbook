@@ -9,8 +9,8 @@ RUN apt update && apt install -yqq \
 COPY --from=lnbook/bitcoind /usr/local/ /usr/local/
 
 # Install eclair
-ENV ECLAIR_VER 0.4
-ENV ECLAIR_COMMIT 69c538e
+ENV ECLAIR_VER 0.4.2
+ENV ECLAIR_COMMIT 52444b0
 WORKDIR /usr/src
 RUN curl -sLO https://github.com/ACINQ/eclair/releases/download/v${ECLAIR_VER}/eclair-node-${ECLAIR_VER}-${ECLAIR_COMMIT}-bin.zip \
 	&& unzip eclair-node-${ECLAIR_VER}-${ECLAIR_COMMIT}-bin.zip \
