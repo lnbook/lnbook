@@ -31,7 +31,7 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Getting Started](02_getting_started.asciidoc) | ############ | :mag: |
 | [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################### | :mag: |
 | [Nodes (LN Clients)](node_client.asciidoc) | #################### | :mag: |
-| [Operating a Node](node_operations.asciidoc) | ############################ | :bookmark_tabs: |
+| [Operating a Node](node_operations.asciidoc) | ############################ | :mag: |
 | PART 2 | PART 2 | PART2 |
 | [Intro to LN Routing (HTLCs)](routing.asciidoc) | #################### | :lock_with_ink_pen: |
 | [Channel Construction in Detail](channel-construction.asciidoc) | ########### | :lock_with_ink_pen: |
