@@ -1,16 +1,29 @@
 [[routing_on_a_network_of_payment_channels]]
 == Routing on a Network of Payment channels
-In this section we will finally unpack how payment channels can be connected to a network of other payment channels via a process called _routing_.
-Note that we separate the concept of _routing_ from the concept of _path finding_.
-Routing refers to the series of interactions across the network that allow a payment to _flow_ from point A to point B, i.e. the _active_ process of sending a payment.
-An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
-One example is the scenario where all the nodes connecting Alice and Bob are currently off-line. 
-In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists.
-However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
 
-The innovation of routed payment channels allows our gamer Gloria to receive funds from her fans without maintaining a separate channel with every one of her fans who want to tip her.
-Instead Gloria will be able to receive payment from a fan as long as there exists a path of well-funded channels from that viewer to Gloria.
-The nodes along the path from the fan to Gloria are intermediaries and called "routing nodes" for the purpose of routing a payment.
+In this section we will finally unpack how payment channels can be connected to a network of other payment channels via a process called _routing_.
+
+=== Routing vs. Path Finding
+
+It's important to note that we separate the concept of _routing_ from the concept of _path finding_. These two concepts are often confused and the term "routing" is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
+
+Path Finding, which is covered in <<path_finding>> is the process of finding and choosing a contiguous path made of payment channels which connects the sender A to the recipient B. The sender of a payment does the path finding, by examining the _channel graph_ which they have assembled from channel announcements gossiped by other nodes.
+
+Routing refers to the series of interactions across the network that allow a payment to _flow_ from A to B, across the path previously selected by path finding. Routing is the _active_ process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
+
+An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
+
+One example is the scenario where all the nodes connecting Alice and Bob are currently off-line.
+
+In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
+
+=== Routing a payment
+
+In this section we will examine routing from the perspective of Gloria, a gamer who receives donations from her fans while she livestreams her game sessions.
+
+The innovation of routed payment channels allows Gloria to receive tips without maintaining a separate channel with every one of her fans who want to tip her.
+As long as there exists a path of well-funded channels from that viewer to Glori, she will be able to receive payment from that fan.
+The nodes along the path from the fan to Gloria are intermediaries and called "routing nodes" in the context of routing a payment.
 
 [[gloria-routing-diagram]]
 .Any one of Gloria's fans in the diagram can pay her by routing via the nodes in between them and Gloria
@@ -18,10 +31,10 @@ image:images/gloria-routing-diagram.PNG["Any one of Gloria's fans in the diagram
 
 Importantly, the routing nodes are unable to steal the funds while routing a payment from a fan to Gloria.
 Furthermore, routing nodes cannot lose money while participating in the routing process.
-They can however charge a routing fee for acting as an intermediary (although they don't have to. It is possible to route payments for free!).
+Routing nodes can charge a routing fee for acting as an intermediary, although they don't have to and may choose to route payments for free.
 
-Another important detail is that due to the use of onion routing, intermediary nodes are only explicitly aware of the nodes before and after them in the route.
-They will not neccessarily know who is the orginator and recipient of the payment.
+Another important detail is that due to the use of onion routing, intermediary nodes are only explicitly aware of the one node preceding them and the one node following them in the route.
+They will not necessarily know who is the sender and recipient of the payment.
 This enables fans to use intermediary nodes to pay Gloria, without leaking private information and without risking theft.
 
 This process of connecting a series of payment channels with end-to-end security, and the incentive structure for nodes to _forward_ payments, is one of the key innovations of the Lightning Network.
@@ -38,10 +51,11 @@ We will discuss how the _structure_ (edges, fees, time-locks, etc) of the route 
 Before we dive into the concept of a conditional chained end-to-end secure payment, let's work through an example.
 Let us to return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
 Alice now watches a live stream from Gloria the gamer, and wants to send her a tip via the Lightning Network.
-However, Alice has no open channel with Gloria.
-Alice is able to open one, however, this will require liquidity and on-chain fees which could be more than the value of the tip itself.
-Alice might also wish to minimize the total number of channels she has open.
-Instead, Alice can repurpose her existing open channels to send a tip to Gloria _without_ the need to open a channel directly with Gloria.
+However, Alice has no direct channel with Gloria.
+Alice could open a direct channel, however that would require liquidity and on-chain fees which could be more than the value of the tip itself.
+
+Instead, Alice can use her existing open channels to send a tip to Gloria _without_ the need to open a channel directly with Gloria.
+
 This is possible, as long as there exists some path of channels from Alice to Gloria with sufficient capacity to route the tip.
 
 From previous chapters, we know Alice has an open channel with Bob, the coffee shop owner.
@@ -68,9 +82,9 @@ In the physical world contracts could be used for safely carrying out a series o
 Alice could negotiate a contract with Bob which reads:
 
 [alice-gloria-routing-1]
-----
+====
 _I (Alice) will give you (Bob) 10 gold coins if you pass them on to Wei_
-----
+====
 
 While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might breach the contract and hope to not get caught by law enforcement.
 Even if Bob gets caught by law enforcement, Alice faces the risk that he might be bankrupt and be unable to return her 10 gold coins.
@@ -79,9 +93,9 @@ Assuming these issues are magically solved, it's still unclear how to leverage s
 We thus improve our contract:
 
 [alice-gloria-routing-2]
-----
+====
 _I (Alice) will reimburse you (Bob) with 10 gold coins if you can prove to me (for example via a receipt) that you already have delivered 10 gold coins to Wei_
-----
+====
 
 You might ask yourself why should Bob sign such a contract.
 He has to pay Wei but ultimately gets nothing out of the exchange, and he runs the risk that Alice might not reimburse him.
@@ -93,42 +107,42 @@ Alice can this make this attractive to both Bob and Wei, by offering them fees o
 The final contract would instead read:
 
 [alice-gloria-routing-3]
-----
+====
 _I (Alice) will reimburse you (Bob) with 12 gold coins if you can prove to me (for example via a receipt) that you already have delivered 11 golden coins to Wei_
-----
+====
 
 Alice now promises Bob 12 gold coins.
 There are 10 to be delivered to Gloria and 2 for the fees.
 She promises 12 to Bob if he can prove that he has forwarded 11 to Wei.
 The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment.
 
-As there is still the issue of trust and the risk that either Alice or Bob don't honour the contract, all parties decide to use an escrow service.
+As there is still the issue of trust and the risk that either Alice or Bob don't honor the contract, all parties decide to use an escrow service.
 At the start of the exchange, Alice could "lock up" these 12 golden coins in escrow that will only be paid to Bob once he proves that he's paid 11 golden coins to Wei.
+
 This escrow service is an "ideal functionality", which will later be replaced by a more trust-minimized mechanism.
 Let's assume for now that everyone trusts this escrow.
 
-In the Lightning Network, this "proof" of payment could take the form of a secret that only Gloria knows.
+In the Lightning Network, the receipt (proof of payment) could take the form of a secret that only Gloria knows.
 In practice, this secret would be a large random number that is large enough to prevent others from guessing it (typically _very, very_ large number, encoded using 256 bits!).
-The secret could then be committed to the contract by including the sha256 hash of the secret in the contract itself. 
+The secret could then be committed to the contract by including the SHA256 hash of the secret in the contract itself.
 We call this hash of the payment's secret the payment hash.
 The secret which "unlocks" the payment is called the payment secret.
 
-For now, we keep things simple and assume that Gloria's secret is simply the text line: `*Glorias secret*`.
-In order to "commit" to this secret, she computes the `sha256` hash which when encoded in hex, can be displayed as: `*f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5*`.
+For now, we keep things simple and assume that Gloria's secret is simply the text line: `+Glorias secret+`.
+In order to "commit" to this secret, she computes the SHA256 hash which when encoded in hex, can be displayed as: `+f23c83babfb0e5f001c5030cf2a06626f8a940af939c1c35bd4526e90f9759f5+`.
 footnote:[You can verify this by typing `echo -n "Glorias secret" | sha256sum` to your Linux command line shell.]
 
-Since Alice wants to send 10 gold coins to Gloria, she is told by Gloria to use this payment hash to receive proof of payment.
-Alice now amends the previous contract to read:
+To facilitate Alice's payment, Gloria will create the secret and the payment hash and send the payment hash to Alice. Alice doesn't know the secret but she can rewrite her contract to use the hash of the secret as a proof of payment:
 
 [alice-gloria-routing-4]
-----
-_I (Alice) will reimburse you (Bob) with 12 gold coins if you can show me a valid message that hashes to:`*f23c83...*`.
+====
+_I (Alice) will reimburse you (Bob) with 12 gold coins if you can show me a valid message that hashes to:`+f23c83...+`.
 You can acquire this message by setting up a similar Contract with Wei who has to set up a similar contract with Gloria.
 In order to assure you that you will get reimbursed I will provide the 12 gold coins to an trusted escrow before you set up your next contract._
-----
+====
 
 This new contract now protects Alice from Bob not forwarding to Wei, protects Bob from not being reimbursed by Alice, and ensures that there will be proof that Gloria was ultimately paid via the hash of Gloria's secret.
-This valid message that hashes to the required number *f23c83...*` is called a *pre-image*
+This secret message that hashes to the +f23c83...+ is called a _pre-image_.
 
 After Bob and Alice agree to the contract, and Bob receives the message from the escrow that Alice has deposited the 12 gold coins, Bob can now negotiate a similar contract with Wei.
 
@@ -138,36 +152,38 @@ Similarly, Wei will also demand a fee and will expect to receive 11 gold coins o
 Bob's contract with Wei will read:
 
 [alice-gloria-routing-5]
-----
-_I (Bob) will reimburse you (Wei) with 11 gold coins if you can show me a valid message that hashes to:`*f23c83...*`.
+====
+_I (Bob) will reimburse you (Wei) with 11 gold coins if you can show me a valid message that hashes to:`+f23c83...+`.
 You can acquire this message by setting up a similar contract with Gloria.
 In order to assure you that you will get reimbursed I will provide the 11 gold coins to an trusted escrow before you set up your next contract._
-----
+====
 
 Once Wei gets the message from the escrow that Bob has deposited the 11 gold coins, Wei sets up a similar contract with Gloria:
 
 [alice-gloria-routing-6]
-----
-_I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message that hashes to:`*f23c83...*`.
+====
+_I (Wei) will reimburse you (Gloria) with 10 golden coins if you can show me a valid message that hashes to:`+f23c83...+`.
 In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 gold coins to an trusted escrow._
-----
+====
 
 Everything is now in place.
 Alice has a contract with Bob and has placed 12 gold coins in escrow.
 Bob has a contract with Wei and has placed 11 gold coins in escrow
 Wei has a contract with Gloria and has placed 10 gold coins in escrow.
-It is now up to Gloria to reveal the secret, the *pre-image*
+It is now up to Gloria to reveal the secret, which is the pre-image to the hash she has established as proof of payment.
 
-Since Gloria is the one who came up with the secret (and committed it to the contract in the form of a payment hash), she now provides it to Wei.
-He checks that it hashes to *f23c83...*` and the escrow releases the 10 golden coins to Gloria.
-Wei now provides the secret to Bob.
-Bob checks it and the escrow releases the 11 gold coins to Wei.
+Gloria now sends +"Glorias secret"+ to Wei.
+
+He checks that +"Glorias secret" hashes to +f23c83...+. Wei now has proof of payment and so instructs the escrow service to release the 10 golden coins to Gloria.
+
+Wei now provides the secret to Bob. Bob checks it and instructs the escrow service to release the 11 gold coins to Wei.
+
 Bob now provides the secret to Alice.
-Alice checks it and the escrow releases 12 gold coins to Bob.
+Alice checks it and instructs the escrow to release 12 gold coins to Bob.
 
 All the contracts are now settled.
-Alice has paid a total of 12 gold coins, 1 of which was recieved by Bob, 1 of which was recieved by Wei, and 10 of which were received by Gloria. 
-With a chain of contracts like this in place, Bob and Wei would not have been able to run with the money as they actually deposited their money first.
+Alice has paid a total of 12 gold coins, 1 of which was received by Bob, 1 of which was received by Wei, and 10 of which were received by Gloria.
+With a chain of contracts like this in place, Bob and Wei could not run away with the money because they deposited it in escrow first.
 
 However, one issue still remains.
 If Gloria refused to release her secret pre-image, then Wei, Bob, and Alice would all have their coins stuck in escrow but wouldn't be reimbursed.
@@ -177,81 +193,87 @@ So while no one can steal money from Alice everyone can still lose money.
 Luckily, this can be resolved by adding a deadline to the contract.
 
 We could amend the contract so that if it is not fulfilled by a certain deadline, then the contract expires and the escrow service returns the money to the person who made the original deposit.
-We call this deadline a "time lock". 
+We call this deadline a "time lock".
+
 The deposit is locked with the escrow service for a certain amount of time, and is eventually released even if no proof of payment was provided.
 
 In order to factor this in, the contract between Alice and Bob is once again amended with a new clause:
 
 [alice-gloria-routing-7]
-----
+====
 _Bob has 24 hours to show the secret after the contract was signed.
-If he does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
-----
+If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
+====
 
 Bob, of course, now has to make sure he receives the proof of payment within 24 hours.
-Even if he successfully pays Wei, if he receives the proof of payment later than 24 hours he will not be reimbursed.
-In turn, he will alter his contract with Wei in the following way:
+Even if he successfully pays Wei, if he receives the proof of payment later than 24 hours he will not be reimbursed. To remove that risk, Bob must give Wei and even shorter deadline.
+
+In turn, Bob will alter his contract with Wei in the following way:
 
 [alice-gloria-routing-8]
-----
+====
 _Wei has 22 hours to show the secret after the contract was signed.
 If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
-----
+====
 
-As you might have guessed, Wei is now incentiviced to also alter his contract with Gloria:
+As you might have guessed, Wei is now incentivized to also alter his contract with Gloria:
 
 [alice-gloria-routing-9]
-----
+====
 _Gloria has 20 hours to show the secret after the contract was signed.
 If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
-----
+====
 
 With such a chain of contracts we can ensure that, after 24 hours, the payment will successfully deliver from Alice to Bob to Wei to Gloria, or it will fail and everyone will be refunded.
-Either the contract failed or succeeded, there's no middle ground. 
-In the context of the Lightning Network, we call this "all or nothing" property "atomicity".
+Either the contract fails or succeeds, there's no middle ground.
+
+In the context of the Lightning Network, we call this "all or nothing" property _atomicity_.
 
 As long as the escrow is trustworthy and faithfully performs its duty, then no party will have their coins stolen in the process.
-The pre-condition to this _route_ working at all, is that all parties in the path already needed to have enough money to satisfy the required series of deposits.
+
+The pre-condition to this _route_ working at all, is that all parties in the path have enough money to satisfy the required series of deposits.
 
 While this seems like a minor detail we will see in later this chapter that this requirement is actually one of the more difficult issues for Lightning Network nodes.
 It becomes progressively more difficult as the size of the payment increases.
 Furthermore, the parties cannot use their money while it is locked in escrow.
-Thus users forwarding payments face an opportunity cost for locking the money, which is ultimately reimbursed through routing fees, as we saw in the above example.
+Thus users forwarding payments face an opportunity cost for locking the money, which is ultimately reimbursed through routing fees, as we saw in the example above.
 
 In the following two sections we will discuss how the Bitcoin scripting language can be used to set up conditional chained end-to-end secure payment contracts _without_ third party escrows, similar to the gold coin contracts described above.
 These are called Hash Time Locked Contracts (HTLCs).
 For HTLCs, there are no trusted third parties who act as an escrow; the Bitcoin Network itself becomes the "escrow" service.
 
-After that, we will discuss users are able to use an HTLC to "route" a payment through the network securely.
-In the Lightning Network in 2020 we use a technique called source-based onion routing, although it is also possible to route payments with alternative techniques.
-Finally we will discuss the precise details concerning the exact mechanics of forwarding, settling, and cancelling HTLCs in the network.
+Then, we will discuss how users are able to use an HTLC to securely "route" a payment through the Lightning Network.
 
-= Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment =
+Currently (in 2020), the Lightning Network uses a routing protocol called source-based onion routing, although it is possible to route payments with other routing protocols.
+
+Finally we will discuss the precise details of forwarding, settling, and canceling HTLCs in the network.
+
+=== Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment
 
 Our example in the prior section using "golden coins", was intended to lay same base intuition which we'll leverage in this section to explain how HTLCs work in practice.
-HTLC is actually an acronym that stands for "Hash Time-Locked Contracts". 
+HTLC is actually an acronym that stands for "Hash Time-Locked Contracts".
 A HTLC is a _specific_ instantiation of a Conditional Chained End to End Secure Payment (CCESP, don't use this acronym?).
 As we'll see in the later chapters, given a set of adequate cryptographic constructs, many other instantiations are possible as well.
 
 Before we dive into the specifics of HTLCs, it may be helpful to first build intuition on an abstraction over this concrete concept.
 First, let's unpack what it means for something to be a conditional chained end to end secure payment:
 
-== Conditional End to End Secure Payments by Construction ==
+==== Conditional End to End Secure Payments by Construction
 
-=== Conditional Payments ===
+===== Conditional Payments
 
-A payment can be said to be conditional, if the completion of the payment relies on the completion of a certain event. 
-In the golden coins example, this "condition" was the reveal of a hash pre-image. 
-We could feasibly substitute this hash pre-image reveal for any other construct with "hardness" properties. Namely: it should be infeasible for a party that doesn't know the proper "solution" of the condition to satisfy it, the "description" of the condition shouldn't give away any information about the true "solution", and once a solution has been chosen and a description created from it, it shouldn't be possible to "alter" that solution and have it still be a valid condition for the description. 
+A payment can be said to be conditional, if the completion of the payment relies on the completion of a certain event.
+In the golden coins example, this "condition" was the reveal of a hash pre-image.
+We could feasibly substitute this hash pre-image reveal for any other construct with "hardness" properties. Namely: it should be infeasible for a party that doesn't know the proper "solution" of the condition to satisfy it, the "description" of the condition shouldn't give away any information about the true "solution", and once a solution has been chosen and a description created from it, it shouldn't be possible to "alter" that solution and have it still be a valid condition for the description.
 
 The payment should _only_ be able to be redeemed if a valid solution is revealed. Critical, all conditions need to be timed in order to allow the construct to return the funds back to the sender if a solution to this condition isn't revealed.
 The combination of the condition, and a timeout on the condition gives the payment a trait we commonly refer to as atomicity: either the payment happens, or the receiver if refunded the funds.
 
-=== Conditional Chained Payment ===
+===== Conditional Chained Payment
 
-Building upon our conditional payment, it may be possible to *chain* this payment, allowing it to involve the payer, the payee, and possibly several intermediaries. 
+Building upon our conditional payment, it may be possible to *chain* this payment, allowing it to involve the payer, the payee, and possibly several intermediaries.
 Each intermediary, is able to present a _slightly_ modified version of the condition (without invalidating it all together), and so on in an iterated manner until the conditional payment reaches the payee.
-Once it reaches the payee, then the payment should be able to be _iteratively_ resolved, starting at the payee all the way back to the payer. 
+Once it reaches the payee, then the payment should be able to be _iteratively_ resolved, starting at the payee all the way back to the payer.
 
 Each chaining creates an "incoming" and "outgoing" conditional payment.
 A node receives a conditional payment from a party (incoming condition), and then extends the conditional payment to the next party in the chain (outgoing condition).
@@ -260,7 +282,7 @@ The payment is extended in from payer to payee, but settled from payee to payer,
 Typically the payer rewards the intermediaries by sending slightly more than the payment amount, in order to allow the intermediaries to send out less with their outgoing payment than what they received from the incoming payment.
 The difference between these two payment values makes up the "forwarding fee" collected by the intermediary.
 
-=== Conditional Chained End to End Secure Payment === 
+=== Conditional Chained End to End Secure Payment ===
 
 With our final addition, we'll achieve "end to end security".
 By this we mean that: no intermediaries are able to "claim" the payment without first obtaining the solution from someone further down from them in the chain.
@@ -270,7 +292,7 @@ In other words, the intermediary shouldn't be able to materially affect the prop
 
 == Hash Time Locked Contracts ==
 
-In this section, we'll construct a conditional chained end to end payment known as the HTLC. 
+In this section, we'll construct a conditional chained end to end payment known as the HTLC.
 At each step we'll add a new component, then examine it in light of our original definition to ensure all requirements and security properties are reached.
 
 First, the "condition". For an HTLC, the condition is typically the reveal of a hash pre-image that matches a particular hash.
@@ -320,7 +342,7 @@ With this bare foundation laid, the following questions may have come across you
 
 In the network today, the sender is the one that selects the route and decides nearly all the details of the resulting route.
 
-As for how path finding is done, there is no single approach that all nodes in the network use.  
+As for how path finding is done, there is no single approach that all nodes in the network use.
 Instead, answer to the second question has a very large solution space, meaning there are several algorithms and neuritics used in the network today.
 Most commonly, a variation of Dijkstra's algorithm is used which takes into account additional Lightning Network details such as fees and time-locks.
 Remember from earlier that a path turns into a route which is used to trigger a payment attempt.
@@ -354,15 +376,15 @@ In the Lightning Network, we use a specific onion routing _packet_ format called
 While the Lightning Network also uses an onion routing scheme it is actually very different to the onion routing scheme that is used in the TOR network.
 Aside from the distinct cryptographic techniques they use, the biggest difference is that TOR is being used for arbitrary data to be exchanged between two participants where on the Lightning Network the main use case is to pay people and transfer data that encodes monetary value.
 In the Lightning Network, we're only concerned with transmitting the details that are needed for a successful payment.
-On the Lightning Network there is no analogy to the exit nodes of the Tor Network as there's no need to "exit" the network: all payments flow within the network. 
+On the Lightning Network there is no analogy to the exit nodes of the Tor Network as there's no need to "exit" the network: all payments flow within the network.
 Although, in an idea model only a precise amount of information is leaked by a route, in practice several "side channels' exist, that may allow an adversary to deduce more information about a route.
 As an example, information about CTLV deltas, or the set of possible routes in the network may give away additional information about a given route.
 Similar to Tor, onion routing in the Lightning Network isn't secure against a global passive adversary (one that can monitor all links and information flows in the network).
 Today in the network, every node in the route sees the same payment hash, meaning that if two nodes are "compromised" more details of the route are leaked.
-On the TOR network nodes can theoretically be connected via a full graph as every node could create an encrypted connection with every other node on top of the Internet Protocol almost instantaneously and at no cost. 
-On the Lightning Network payments can only flow along existing payment channels. 
+On the TOR network nodes can theoretically be connected via a full graph as every node could create an encrypted connection with every other node on top of the Internet Protocol almost instantaneously and at no cost.
+On the Lightning Network payments can only flow along existing payment channels.
 Removing and adding of those channels is a slow and expensive process as it requires onchain bitcoin transactions.
-On the Lightning Network nodes might not be able to forward a payment package because they do not own enough funds on their side of the payment channel. 
+On the Lightning Network nodes might not be able to forward a payment package because they do not own enough funds on their side of the payment channel.
 On the other hand there are hardly any plausible reasons other then its wish to act maliciously why a TOR node might not be able to forward an onion.
 Last but not least the Lightning Network can actually run on Tor to use it as a message transport layer.
 This means that all connections of a node with its peers and the resulting communication will by obfuscated once more through the TOR network.
@@ -485,7 +507,7 @@ Then comes the short channel id.
 This is set to 452 as Wei is meant to use the channel with this channel ID as the next outgoing channel.
 She sets the amount to 3000 satoshi as this is the amount that David is supposed to receive.
 Finally she uses the CLTV delta added to the current height that was announced for this channel on the gossip protocol and that Wei should use for the HTLC when he forwards the Onion.
-Notice how this CTLV expiry (the expiry is the current height plus the delta) increase as we travel forwards (towards the sender) in the route. 
+Notice how this CTLV expiry (the expiry is the current height plus the delta) increase as we travel forwards (towards the sender) in the route.
 As we'll see later, this series of decrementing time-locks must carefully be set in order to avoid time-based race conditions in the created contracts.
 Again 12 Bytes of zeros are padded and an HMAC is computed.
 Note that she did not have to compute filler this time as she already has too much data with the encrypted inner onion.
@@ -509,7 +531,7 @@ The Onion that Wei would receive can be seen in the following diagram:
 image:images/routing-onion-5.png[]
 
 Note that in the entire onion there will be Wei's ephemeral public key.
-We've omitted the details here for brevity, but notice how only a single ephemeral key is communicated. 
+We've omitted the details here for brevity, but notice how only a single ephemeral key is communicated.
 During processing each node will re-randomize the ephemeral key for the following node.
 Luckily the ephemeral keys that Alice used for the ECDH with David can be derived from the ephemeral key that she used for Wei.
 Thus after Wei decrypts his layer he can use the shared secret and his ephemeral public key to derive the ephemeral public key that David is supposed to use and store it in the header of the Onion that he forwards to David.
@@ -655,3 +677,7 @@ Error handling and encryption for HTLCs
 Explain “one little trick” of DH re-randomization
 Explain how we keep the packet size fixed, what’s MAC’d, etc
 Introduce the new modern payload format which uses TLV
+
+=== Routing failures
+
+// Failure to route, stuck payments.
