@@ -22,7 +22,7 @@ A payment channel is a _financial relationship_ between two nodes on the Lightni
 
 The payment channel is managed by a _cryptographic protocol_, meaning a pre-defined process based on cryptography, used by the channel partners to re-distribute the balance of the channel in favor of one or the other channel partner. The cryptographic protocol ensures that one channel partner cannot cheat the other, so that the partners do not need to trust each other.
 
-The cryptographic protocol is established by the funding of a two-of-two _multi-signature address_ that requires the two channel partners to cooperate and prevents either channel partner from spending the funds unilaterally.
+The cryptographic protocol is established by the funding of a 2-of-2 _multi-signature address_ that requires the two channel partners to cooperate and prevents either channel partner from spending the funds unilaterally.
 
 To summarize:
 
@@ -30,7 +30,7 @@ A payment channel is a financial relationship between nodes, allocating funds fr
 
 === Payment channels basics
 
-Underlying the payment channel is simply a two-of-two multisignature address on the Bitcoin blockchain, for which you hold one key and your channel partner holds the other key.
+Underlying the payment channel is simply a 2-of-2 multisignature address on the Bitcoin blockchain, for which you hold one key and your channel partner holds the other key.
 
 You and your channel partner negotiate a sequence of transactions that spend from this multisignature address. Instead of transmitting and recording these transactions on the Bitcoin blockchain, you both hold on to them, unspent.
 
@@ -43,7 +43,7 @@ The smart contract is set up to penalize a channel member if they try to submit 
 
 [NOTE]
 ====
-If you have an unpublished transaction from a two-of-two multisignature address, that pays you part of the balance, then a signature from the other party ensures that you can independently publish this transaction anytime by adding your own signature.
+If you have an unpublished transaction from a 2-of-2 multisignature address, that pays you part of the balance, then a signature from the other party ensures that you can independently publish this transaction anytime by adding your own signature.
 
 The ability to hold a partially-signed transaction, offline and unpublished, with the option to publish and own that balance at any time, is the basis of the Lightning Network.
 ====
@@ -103,7 +103,7 @@ Eltoo channels have some interesting properties and simplify the implementation 
 
 ==== Multisig addresses
 
-Payment channels are built on top of two-of-two multisignature addresses, timelocks and Segregated Witness transaction outputs. We will not revise these relatively advanced concepts of the Bitcoin system. Instead, in this section we will provide a high-level overview of multisignature scripts and how they allow us to construct payment channels.
+Payment channels are built on top of 2-of-2 multisignature addresses, timelocks and Segregated Witness transaction outputs. We will not revise these relatively advanced concepts of the Bitcoin system. Instead, in this section we will provide a high-level overview of multisignature scripts and how they allow us to construct payment channels.
 If you have already studied Bitcoin and are familiar with multisignature addresses, feel free to skip this section.
 
 [TIP]
@@ -127,7 +127,7 @@ K <PubKey1> <PubKey2> ... <PubKeyN> N CHECKMULTISIG
 
 where N is the total number of listed public keys (Public Key 1 through Public Key N) and K is the threshold of required signatures to spend the output.
 
-The Lightning Network uses a two-of-two multisignature scheme to build a payment channel. For example, a payment channel between Alice and Bob would be built on a two-of-two multisignature like this:
+The Lightning Network uses a 2-of-2 multisignature scheme to build a payment channel. For example, a payment channel between Alice and Bob would be built on a 2-of-2 multisignature like this:
 
 ----
 2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG
@@ -146,7 +146,7 @@ The two scripts together would form the combined validation script:
 
 ==== Funding Transaction
 
-The fundamental building block of a payment channel, is a two-of-two multisignature address. The two channel partners fund the payment channel by sending bitcoin to the multisignature address. This transaction is called the _funding transaction_, and is recorded on the Bitcoin blockchain. footnote:[While the original Lightning whitepaper described channels funded by both channel partners, the current specification, as of 2020, assumes that just one partner commits funds to the channel.]
+The fundamental building block of a payment channel, is a 2-of-2 multisignature address. The two channel partners fund the payment channel by sending bitcoin to the multisignature address. This transaction is called the _funding transaction_, and is recorded on the Bitcoin blockchain. footnote:[While the original Lightning whitepaper described channels funded by both channel partners, the current specification, as of 2020, assumes that just one partner commits funds to the channel.]
 
 Even though the funding transaction is public, it is not obvious that it is a Lightning payment channel until it is closed. Furthermore, channel payments are still not visible to anyone other than the channel partners, nor is the distribution of the channel balance between them.
 
@@ -160,9 +160,9 @@ The funds sent to the multisignature address in the funding transaction are some
 
 ===== Example of a poor channel opening procedure
 
-If you think carefully about two-of-two multisignature addresses, you will realize that putting your funds into such an address seems to carry some risk. What if your channel partner refuses to sign a transaction to "release" the funds? Are they stuck forever? Let's look at that scenario and how the Lightning Network protocol avoids it, next.
+If you think carefully about 2-of-2 multisignature addresses, you will realize that putting your funds into such an address seems to carry some risk. What if your channel partner refuses to sign a transaction to "release" the funds? Are they stuck forever? Let's look at that scenario and how the Lightning Network protocol avoids it, next.
 
-Alice and Bob want to create a payment channel. They each create a private/public key pair and then exchange public keys. Now, they can construct a multisignature two-of-two with the two public keys, forming the foundation for their payment channel.
+Alice and Bob want to create a payment channel. They each create a private/public key pair and then exchange public keys. Now, they can construct a multisignature 2-of-2 with the two public keys, forming the foundation for their payment channel.
 
 Next, Alice constructs a Bitcoin transaction sending a few mBTC to the multisignature address created from Alice's and Bob's public keys. If Alice doesn't take any additional steps and simply broadcasts this transaction, she has to trust that Bob will provide his signature to spend from the multisignature address. Bob on the other hand has the chance to blackmail Alice by withholding his signature and denying Alice access to her funds.
 
@@ -191,7 +191,7 @@ Initially, Alice owns 100k satoshi, the entirety of the funds in the channel. He
 . Bob provides a signature for Alice's Commitment Transaction and sends this back to Alice via the `funding_signed` message.
 . Now that signatures have been exchanged Alice will broadcast the funding transaction to the Bitcoin network.
 
-By following this protocol, Alice does not give up ownership of her 100k satoshi even though the funds are sent to a two-of-two multisignature address for which Alice controls only one key.
+By following this protocol, Alice does not give up ownership of her 100k satoshi even though the funds are sent to a 2-of-2 multisignature address for which Alice controls only one key.
 If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
 Her only costs are the fees for the on-chain transactions.
 As long as she follows the protocol this is her only risk when opening a channel.
@@ -777,7 +777,7 @@ The milli-satoshi unit cannot, of course, be settled on the Bitcoin blockchain a
 
 ==== Monetary Unit
 
-Both the Bitcoin network and the Lightning network use the same monetary units: bitcoin. Lightning payments use the very same bitcoin as Bitcoin transactions. As an implication, because the monetary unit is the same, the monetary limit is the same: less than 21 million bitcoin. Of Bitcoin's 21 million total bitcoin, some are already allocated to two-of-two multi-signature addresses as part of payment channel on the Lightning Network.
+Both the Bitcoin network and the Lightning network use the same monetary units: bitcoin. Lightning payments use the very same bitcoin as Bitcoin transactions. As an implication, because the monetary unit is the same, the monetary limit is the same: less than 21 million bitcoin. Of Bitcoin's 21 million total bitcoin, some are already allocated to 2-of-2 multi-signature addresses as part of payment channel on the Lightning Network.
 
 ==== Irreversibility and finality of payments
 
