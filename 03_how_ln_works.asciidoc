@@ -266,7 +266,7 @@ Technologies such as Watchtower services or changing the channel construction pr
 ====
 
 Alice can close the channel at any time if Bob does not respond, claiming her fair share of the balance.
-After publishing the *last* commitment transaction on-chain Alice has to wait for the time lock to expire before she can spend her funds from the commitment transaction. As we will see later, there is an easier way to close a channel without waiting, as long as Alice and Bob are both online and cooperate to close the channel with the correct balance allocation. But the commitment transactions stored by each channel partner act as a failsafe, ensuring they do not lose funds if there is a problem with their channel partner.
+After publishing the *last* commitment transaction on-chain Alice has to wait for the timelock to expire before she can spend her funds from the commitment transaction. As we will see later, there is an easier way to close a channel without waiting, as long as Alice and Bob are both online and cooperate to close the channel with the correct balance allocation. But the commitment transactions stored by each channel partner act as a failsafe, ensuring they do not lose funds if there is a problem with their channel partner.
 
 ==== Announcing the channel
 
@@ -326,7 +326,7 @@ No new routing attempts will be accepted from either channel partner and any ong
 Finalizing the routing attempts takes time, so a mutual close can also take some time to complete.
 
 Once there are no pending routing attempts, the nodes cooperate to prepare a _closing transaction_.
-This transaction is similar to the commitment transaction; it encodes the last balance of the channel but the outputs are NOT encumbered with a time lock.
+This transaction is similar to the commitment transaction; it encodes the last balance of the channel but the outputs are NOT encumbered with a timelock.
 
 The on-chain transaction fees for the closing transaction are paid by the channel partner who opened the channel and not by the one who initiated the closing procedure.
 Using the on-chain fee estimator, the channel partners agree on the appropriate fee and both sign the closing transaction.
@@ -377,7 +377,9 @@ You should consider a force close only as the last resort.
 A Protocol Breach is when your channel partner tries to cheat you, whether deliberately or not, by publishing an outdated commitment transaction to the Bitcoin blockchain, essentially initiating a (dishonest) force close from their side.
 
 Your node must be online and watching new blocks and transactions on the Bitcoin blockchain to detect this.
-Because your channel partner's payment will be encumbered by a timelock, your node has some time to act until the time lock expires to detect a protocol breach and publish a _punishment transaction_.
+
+Because your channel partner's payment will be encumbered by a timelock, your node has some time to act before the timelock expires to detect a protocol breach and publish a _punishment transaction_.
+
 If you successfully detect the protocol breach and enforce the penalty, you will receive all of the funds in the channel, including your channel partner's funds.
 
 In this scenario, the channel closure will be rather fast.
