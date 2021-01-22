@@ -20,7 +20,7 @@ There are several ways to describe a payment channel, depending on the context. 
 
 A payment channel is a _financial relationship_ between two nodes on the Lightning Network, called the "channel partners". The financial relationship allocates a _balance of funds_ (denominated in milli-satoshis), between the two channel partners.
 
-The payment channel is managed by a _cryptographic protocol_, meaning a pre-defined process based on cryptography, used by the channel partners to re-distribute the balance of the channel in favor of one or the other channel partner. The cryptographic protocol ensures that one channel partner cannot cheat the other, so that the partners do not need to trust each other.
+The payment channel is managed by a _cryptographic protocol_, meaning a pre-defined process based on cryptography is used by the channel partners to re-distribute the balance of the channel in favor of one or the other channel partner. The cryptographic protocol ensures that one channel partner cannot cheat the other, so that the partners do not need to trust each other.
 
 The cryptographic protocol is established by the funding of a 2-of-2 _multi-signature address_ that requires the two channel partners to cooperate and prevents either channel partner from spending the funds unilaterally.
 
@@ -28,7 +28,7 @@ To summarize:
 
 A payment channel is a financial relationship between nodes, allocating funds from a multi-signature address, through a strictly defined cryptographic protocol.
 
-=== Payment channels basics
+=== Payment channel basics
 
 Underlying the payment channel is simply a 2-of-2 multisignature address on the Bitcoin blockchain, for which you hold one key and your channel partner holds the other key.
 
@@ -270,7 +270,7 @@ After publishing the *last* commitment transaction on-chain Alice has to wait fo
 
 ==== Announcing the channel
 
-Channels partners can agree to announce their channel to the whole Lightning Network, making it a _public channel_. To announce the channel, they use the Lightning Network's gossip protocol to tell other nodes about the existence, capacity and fees of the channel.
+Channel partners can agree to announce their channel to the whole Lightning Network, making it a _public channel_. To announce the channel, they use the Lightning Network's gossip protocol to tell other nodes about the existence, capacity and fees of the channel.
 
 Announcing channels publicly allows other nodes to use them for payment routing, thereby also generating routing fees for the channel partners.
 
@@ -279,7 +279,7 @@ By contrast, the channel partners may decide not to announce the channel, making
 
 [NOTE]
 ====
-You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, its existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction. Its existence can also leak in a variety of other ways, so we avoid calling it "private"
+You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, its existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction. Its existence can also leak in a variety of other ways, so we avoid calling it "private".
 ====
 
 Unannounced channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes an unannounced channel.
@@ -301,7 +301,7 @@ By re-balancing a channel, it can be kept open almost indefinitely and used for 
 
 However, sometimes closing a channel is desirable or necessary. For example:
 
-* You want to reduce the balance held on your Lightning channels for security reasons and want to send funds to "cold storage"
+* You want to reduce the balance held on your Lightning channels for security reasons and want to send funds to "cold storage".
 * Your channel partner becomes unresponsive for a long time and you cannot use the channel anymore.
 * The channel is not being used often because your channel partner is not a well-connected node, so you want to use the funds for another channel with a better-connected node.
 * Your channel partner has breached the protocol either due to a software bug or on purpose forcing you to close the channel to protect your funds.
@@ -343,7 +343,7 @@ This is usually in the case that one of the channel partners is unreachable, and
 In this case, you would initiate a force close to unilaterally close the channel and "free" the funds.
 
 To initiate a force close, you can simply publish the last commitment transaction your node has.
-After all, that's what commitment transactions are for - they offer a guarantee that you don't need to trust your channel to retrieve the balance of your channel.
+After all, that's what commitment transactions are for - they offer a guarantee that you don't need to trust your channel partner to retrieve the balance of your channel.
 
 Once you broadcast the last commitment transaction to the Bitcoin network and it is confirmed, it will create two spendable outputs, one for you and one for your partner.
 As we discussed previously, the Bitcoin network has no way of knowing if this was the most recent commitment transaction or an old one which was published to steal from your partner.
@@ -429,7 +429,7 @@ An invoice is a simple payment instruction containing information such as a uniq
 The most important part of the invoice is the payment hash, that allows the payment to travel across multiple channels in an _atomic_ way. Atomic, in computer science, means any action or state change that is either completed successfully or not at all - there is no possibility of an intermediate state or partial action. In the Lightning Network that means that the payment either travels the whole path or fails completely. It cannot be partially completed such that an intermediate node on the path can receive the payment and keep it.
 There is no such thing as a "partial payment" or "partly successful payment".
 
-Invoices are not communicated over the Lightning Network. Instead, they are communicated "out of band", using any other communication mechanism. This is similar to how Bitcoin addresses are communicated to senders outside the Bitcoin network, as a QR code, over email, or a text message. For example, Bob can present a Lightning invoice to Alice as a QR code, or send it via email, or any other message channel.
+Invoices are not communicated over the Lightning Network. Instead, they are communicated "out of band", using any other communication mechanism. This is similar to how Bitcoin addresses are communicated to senders outside the Bitcoin network, as a QR code, over email, or a text message. For example, Bob can present a Lightning invoice to Alice as a QR code, send it via email, or any other message channel.
 
 Invoices are usually encoded either as a long bech32-encoded string or as a QR code, to be scanned by a smartphone Lightning wallet. The invoice contains the amount of bitcoin that is requested and a signature of the recipient. The sender uses the signature to extract the public key (also known as the node ID) of the recipient so that the sender knows where to send the payment.
 
@@ -585,7 +585,7 @@ The onion routing protocol used in Lightning has the following properties:
 
 . The onions are constructed such that they will always have the same length independent of the position of the processing node along the path. As each layer is "peeled" the onion is padded with encrypted "junk" data to keep the size of the onion the same. This prevents intermediary nodes from knowing their position in the path.
 
-. Onions have an HMAC (Hashed Message Authentication code) at each layer so that manipulations of onions are prevented and practically impossible
+. Onions have an HMAC (Hashed Message Authentication code) at each layer so that manipulations of onions are prevented and practically impossible.
 
 . Onions can have up to 20 hops or onion layers if you prefer. This allows for sufficiently long paths.
 
@@ -645,7 +645,7 @@ Alice will need to have a small amount of trust in Bob.
 Alice has been to Bob's Cafe and clearly Bob is interested in selling her coffee, so Alice can trust Bob in this sense.
 There are mutual benefits to both Alice and Bob.
 Alice decides that the reward is enough for her to take on the cost of the on-chain fee for creating a channel to Bob.
-In contrast, Alice will not open a channel to someone unknown who just sent her an uninvitedly email asking her to open a channel to him.
+In contrast, Alice will not open a channel to someone unknown who just uninvitedly sent her an email asking her to open a channel to him.
 
 === Comparison with Bitcoin
 
@@ -778,7 +778,7 @@ The milli-satoshi unit cannot, of course, be settled on the Bitcoin blockchain a
 
 ==== Monetary Unit
 
-Both the Bitcoin network and the Lightning network use the same monetary units: bitcoin. Lightning payments use the very same bitcoin as Bitcoin transactions. As an implication, because the monetary unit is the same, the monetary limit is the same: less than 21 million bitcoin. Of Bitcoin's 21 million total bitcoin, some are already allocated to 2-of-2 multi-signature addresses as part of payment channel on the Lightning Network.
+Both the Bitcoin network and the Lightning network use the same monetary units: bitcoin. Lightning payments use the very same bitcoin as Bitcoin transactions. As an implication, because the monetary unit is the same, the monetary limit is the same: less than 21 million bitcoin. Of Bitcoin's 21 million total bitcoin, some are already allocated to 2-of-2 multi-signature addresses as part of payment channels on the Lightning Network.
 
 ==== Irreversibility and finality of payments
 
@@ -800,6 +800,6 @@ Both, Bitcoin and Lightning are open-source software systems built by a decentra
 
 === Conclusion
 
-In this chapter we looked at how the Lightning network actually works and all of the constituent components. We examined each step in constructing, operating and closing a channel. We looked at how payments are routed. Finally, we compared Lightning and Bitcoin and analyzed their differences and commonalities.
+In this chapter we looked at how the Lightning network actually works and all of the constituent components. We examined each step in constructing, operating and closing a channel. We looked at how payments are routed and finally, we compared Lightning with Bitcoin and analyzed their differences and commonalities.
 
 In the next several chapters we will revisit all these topics, but in much more detail.
