@@ -34,6 +34,7 @@ For example, consider the developers of a popular wallet who maintain a node tha
 This node would be responsible for routing a large share of payments to and from the users of that wallet.
 An even stronger security model implies that multiple nodes are under adversarial control.
 If it so happens that two colluding nodes are on the same payment path, they would understand that they are forwarding HTLCs belonging to the same payment, as such HTLCs have the same payment hash.
+However, we note that technologies such as Atomic Multi-Path payments (see <<atomic_multipath_payments>>), enable users to obfuscate their payment amounts given their non-uniform split sizes.
 
 What may be the goals of a Lightning attacker?
 Information security is often described in terms of three main properties: confidentiality, integrity, and availability.
@@ -153,7 +154,7 @@ Recent research describes various ways in which the security and privacy of the 
 One of the goals for a privacy-preserving payment system is to hide the payment amount from uninvolved parties.
 The Lightning Network is an improvement over layer-one in this regard.
 While Bitcoin transactions are broadcast in cleartext and can be observed by anyone, Lightning payments only travel through a few nodes along the payment path.
-However, intermediary nodes do see the payment amount.
+However, intermediary nodes do see the payment amount; although this payment amount might not correspond to the actual total payment amount, see <<atomic_multipath_payments>>.
 This is necessary to create a new HTLC at every hop.
 The availability of payment amounts to intermediary nodes does not present an immediate threat.
 However, an _honest-but-curious_ intermediary node may use it as a part of a larger attack.
@@ -307,7 +308,7 @@ While some transactions may not make it into valid blocks during high fee enviro
 Similarly to Bitcoin, the Lightning Network charges fees for the use of its public resources, but in this case, the resources are public channels, and the fees come in the form of routing fees.
 The ability to route payments through nodes in exchange for fees provides the network with a large scalability benefit - nodes that are not directly connected can still transact - but it comes at the cost of exposing a public resource that must be protected against DoS attacks.
 
-When a Lightning node forwards a payment on your behalf, it uses bandwidth to update its commitment transaction, and the amount of the payment is reserved in their channel balance until it is settled or failed.
+When a Lightning node forwards a payment on your behalf, it uses data and payment bandwidth to update its commitment transaction, and the amount of the payment is reserved in their channel balance until it is settled or failed.
 In successful payments, this is acceptable because the node is eventually paid out its fees.
 Failed payments do not incur fees in the current protocol.
 This allows nodes to costlessly route failed payments through any channels.
