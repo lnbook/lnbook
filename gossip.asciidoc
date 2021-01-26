@@ -2,13 +2,53 @@
 
 ## Intro
 
+As we have seen the Lightning Network uses a sourced base Onion Routing Protocol to deliver a payment from a sender to the recipient.
+For this the sending node has to be able to construct a path of payment channels that connects it with the recipient.
+Thus the sender has to be aware of the Channel Graph.
+The channel graph is the interconnected set of publicly advertised channels (more on that later), and the nodes that these channels interlink.
+As channels are backed by a funding transaction that is happening on chain one might falsely believe that Lightning Nodes could just extract the existing channels from the Bitcoin Blockchain.
+However this only possible to a certain extend.
+The Funding transactions are Pay to Whitness Script addresses and the nature of the script will only be revealed once the funding transaction output is spent.
+Even if the nature of the script was known we emphasize that not all 2 - of - 2 multisignature scripts correspond to payment channels.
+Since not even every Pay to Whitness Script address that we see in the Bitcoin Blockchain corresponds to a payment channel this approach is not helpful.
+There are actually more reasons why looking at the Bitcoin Blockchain might not be helpful.
+For example on the Lightnign Network the Bitcoin keys that are used for signing are rotated by the nodes for every channel and update.
+Thus even if we could reliably detect funding transactions on the Bitcoin Blockchain we would not know which two nodes on the Lightning Network own that particular channel.
+Thus we could node create the Channel Graph that would be used to create candidate paths during the payment delivery via onion routing.
+
+The Lightning Network solves the afore mentioned problem by implementing a gossip protocol.
+Gossip protocols are typical for peer 2 peer networks and are being used so that nodes can share information with other nodes without talking to those other nodes directly.
+For that Lightning Nodes open encrypted peer 2 peer connections to each other and share novel information that they have received from other peers.
+As soon as a node wants to share some information - for example about a newly created channel - it sends a message to all its peers.
+Uppon receiving a message a node decides if the received message was novel and if so it will forward the information to its peers.
+In this way if the peer 2 peer network is connected all new information that is necessary for the operation of the network will eventually be propagated to all other peers. 
+
+Obviously if a new peer initially wants to join the network it needs to know some other peers on the Network initially.
+Only then the new peer could connect to them in order to learn about the existance of other peers. 
 In this chapter, we'll explore exactly _how_ Lightning nodes discover each
-other, and also the channel graph itself. The channel graph is the
-interconnected set of publicly advertised channels (more on that later), and
-the nodes that these channels interlink. When most refer to the _network_ part
+other, and also the channel graph itself.
+When most refer to the _network_ part
 of the Lightning Network, they're referring to the Channel Graph which itself
-is a unique authenticated data structured _anchored_ in the base Bitcoin
+is a unique authenticated data structure _anchored_ in the base Bitcoin
 blockchain.
+However the Lightning network is also a peer to peer network of nodes that are have just opened an encrypted peer connection.
+Usually for 2 peers to maintain a payment channel they need to talk to each other directly which means that there will be a peer connection between them.
+This suggests that the Channel Graph is a subnetwork of the peer to peer network.
+However this is not true.
+As payment channels do not need to be closed if one or both peers are going offline they can continue to exist even though the peer connection is terminated.
+It might be usefull to get familiar with the different terminology that we have used througout the book for similar concepts / actions depending on weather they happen on the Channel Graph or on the peer 2 peer network.
+
+[[network-terminology]]
+.Terminology of the different Networks
+[options="header"]
+|===
+|  | Channel Graph  |peer to peer network
+| Name     | channel | connection |
+| initiate | open | (re)connect |
+| finalize | close| terminate|
+| technology | Bitcoin Blockchain | encrypted TCP/IP connection
+| lifetime | until funding spent | while peers are online
+
 
 As the Lightning Network is a peer-to-peer network, some initial bootstrapping
 is required in order for peers to discover each other.  Within this chapter
