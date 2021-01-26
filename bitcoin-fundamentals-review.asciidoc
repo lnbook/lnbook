@@ -1,3 +1,77 @@
 == Bitcoin Fundamentals Review
 
 // TODO Fixes #584
+
+The Lightning Network is capable of running above multiple blockchains, but is primarily anchored on Bitcoin. To understand LN, you need a fundamental understanding of Bitcoin and its building blocks.
+
+There are many good resources that you can use to learn more about Bitcoin, including the "companion" book _Mastering Bitcoin 2nd Edition_, written by Andreas M. Antonopoulos, which you can find on GitHub under an open source license. However, you do not need to read a whole other book to be ready for this one!
+
+In this chapter, we've collected the most important concepts you need to know about Bitcoin and explained them in the context of the Lightning Network. This way you can learn exactly what you need to know in order to grasp the Lightning Network without any distractions.
+
+This chapter covers several important concepts from Bitcoin, including:
+
+* Keys and digital signatures
+* Bitcoin transactions and their structure
+* Bitcoin transaction chaining
+* Bitcoin Script - locking and unlocking scripts
+* Basic locking scripts
+* Complex and conditional locking scripts
+* Timelocks
+* Hash functions
+
+=== Keys and digital signatures
+
+((("cryptography", "defined")))((("cryptography", see="also keys and addresses")))You may have heard that bitcoin is based on _cryptography_, which is a branch of mathematics used extensively in computer security. Cryptography can also be used to prove knowledge of a secret without revealing that secret (digital signature), or prove the authenticity of data (digital fingerprint). These types of cryptographic proofs are the mathematical tools critical to bitcoin and used extensively in bitcoin applications.
+
+((("digital keys", see="keys and addresses")))((("keys and addresses", "overview of", id="KAover04")))((("digital signatures", "purpose of")))Ownership of bitcoin is established through _digital keys_, _bitcoin addresses_, and _digital signatures_. The digital keys are not actually stored in the network, but are instead created and stored by users in a file, or simple database, called a _wallet_. The digital keys in a user's wallet are completely independent of the bitcoin protocol and can be generated and managed by the user's wallet software without reference to the blockchain or access to the internet.
+
+Most bitcoin transactions require a valid digital signature to be included in the blockchain, which can only be generated with a secret key; therefore, anyone with a copy of that key has control of the bitcoin.  ((("witnesses")))The digital signature used to spend funds is also referred to as a _witness_, a term used in cryptography. The witness data in a bitcoin transaction testifies to the true ownership of the funds being spent. ((("public and private keys", "key pairs")))((("public and private keys", see="also keys and addresses")))Keys come in pairs consisting of a private (secret) key and a public key. Think of the public key as similar to a bank account number and the private key as similar to the secret PIN.
+
+==== Private and public keys
+
+((("keys and addresses", "overview of", "private key generation")))((("warnings and cautions", "private key protection")))A private key is simply a number, picked at random. In practice, and to make managing many keys easy, most bitcoin wallets generate a sequence of private keys from a single random _seed_, using a deterministic derivation algorithm. Simply put, a single random number is used to produce a repeatable sequence of seemingly random numbers that are used as private keys. This allows users to only backup the seed and be able to _derive_ all the keys they need from that seed.
+
+Bitcoin, like many other cryptocurrencies and blockchains, uses _elliptic curves_ for security. In Bitcoin, elliptic curve multiplication on the _secp256k1_ elliptic curve is used as a _one-way function_. Simply put, the nature of elliptic curve math makes it trivial to calculate scalar multiplication of a point but impossible to calculate the inverse ("division", or "discrete logarithm").
+
+Each private key has a corresponding _public key_, which is calculated from the private key, using scalar multiplication on the elliptic curve. In simple terms, with a private key +k+, we can multiply it with a constant +G+ to produce a public key +K+:
+
+----
+K = kG
+----
+
+It is impossible to reverse this calculation. Given a public key +K+, one cannot calculate the private key +k+. Division by +G+ is not possible in elliptic curve math. Instead, one would have to try all possible values of +k+ in an exhaustive process called a _brute force attack_. Because +k+ is a 256-bit number, exhausting all possible values with any classical computer would require more time and energy than available in this universe.
+
+==== Hashes
+
+Another important tool used extensively in Bitcoin, and in the Lightning Network, are _cryptographic hash functions_ and specifically the +SHA256+ hash function.
+
+A hash function also known as a _digest function_ is a function that takes arbitrary length data and transforms it into a fixed length result, called the _hash_, _digest_, or _fingerprint_. Importantly, hash functions are _one-way_ functions meaning that you can't reverse them and calculate the input data from the fingerprint.
+
+For example, if we use a command-line terminal to feed the text "Mastering the Lightning Network" into the SHA256 function it will produce a fingerprint as follows:
+
+----
+$ echo -n "Mastering the Lightning Network" | shasum -a 256
+
+ce86e4cd423d80d054b387aca23c02f5fc53b14be4f8d3ef14c089422b2235de  -
+----
+
+The length of the input can be much bigger of course. Let's try the same thing with the PDF file of the Bitcoin whitepaper from Satoshi Nakamoto:
+
+----
+$ wget http://bitcoin.org/bitcoin.pdf
+$ cat bitcoin.pdf | shasum -a 256
+b1674191a88ec5cdd733e4240a81803105dc412d6c6708d53ab94fc248f4f553  -
+----
+
+While it takes longer than a single sentence, the SHA256 function processes the 9-page PDF, "digesting" it into a 256-bit fingerprint.
+
+Cryptographic hash functions are broadly used in a variety of applications because they have some useful features. They are:
+
+* Deterministic
+// TODO
+
+==== Digital signatures
+
+The private key is used to create signatures that are required to spend bitcoin by proving ownership of funds used in a transaction.
+
+// TODO
