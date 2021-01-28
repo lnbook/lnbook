@@ -59,7 +59,7 @@ discovery, to channel graph syncing and validation.
 As an initial step, our new node needs to somehow _discover_ at least _one_
 peer that is already connected to the network and has a full channel graph (as
 we'll see later, there's no canonical version as the update dissemination
-system is _eventually consistent_). Using on of many initial bootstrapping
+system is _eventually consistent_). Using one of many initial bootstrapping
 protocols to find that first peer, after a connection is established, our new
 peer now needs to _download_ and _validate_ the channel graph. Once the channel
 graph has been fully validated, our new peer is ready to start opening channels
@@ -80,10 +80,11 @@ connect to on the network.
 ## Peer Discovery
 
 In this section, we'll begin to follow the story of Norman, a new Lightning
-node that wishes to join the network as he sets out on his journey to:
-discovery a set of bootstrap peers, download and validate the channel graph,
-and finally begin the process of ongoing maintain once of the channel graph
-itself.
+node that wishes to join the network as he sets out on his journey to which consists of 3 steps:
+
+. discovery a set of bootstrap peers.
+. download and validate the channel graph.
+. begin the process of ongoing maintainance of the channel graph itself.
 
 
 ### P2P Boostrapping
@@ -151,10 +152,25 @@ Before diving into the specifics of BOLT 10, we'll first outline the high level
 flow of a new node that wishes to use BOLT 10 to join the network. 
 
 First, a node needs to identify a single, or set of DNS servers that understand
-BOLT 10 so they can be used for p2p bootstrapping. There exists no "official"
+BOLT 10 so they can be used for p2p bootstrapping.
+While BOLT 10 uses lseed.bitcoinstats.com as the seed server as the example there exists no "official"
 set of DNS seeds for this purpose, but each of the major implementations
 maintain their own DNS seed, and cross query each other's seeds for redundancy
-purposes.  DNS seeds exist for both Bitcoin's mainnet and testnet. For the sake
+purposes.
+
+[[dns seeds]]
+.Table of known lightning dns seed servers
+[options="header"]
+|===
+| dns server     | Maintainer 
+| lseed.bitcoinstats.com | Christian Decker
+| nodes.lightning.directory | lightning labs (Olaoluwa Osuntokun)
+| soa.nodes.lightning.directory | lightning labs (Olaoluwa Osuntokun)
+| lseed.darosior.ninja | Antoine Poinsot
+|===
+
+
+DNS seeds exist for both Bitcoin's mainnet and testnet. For the sake
 of our example, we'll assume the existence of a valid BOLT 10 DNS seed at
 `nodes.lightning.directory`.
 
