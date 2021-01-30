@@ -31,7 +31,7 @@ As such, a zombie channel is technically still an open channel, but cannot be us
 
 Zombie channels offer no benefit to the user but have several downsides:
 
-* Any capacity you have locked in the channel is useless for routing payments and could be allocated elsehwere
+* Any capacity you have locked in the channel is useless for routing payments and could be allocated elsewhere
 * If you lose access to your own node and restore it with only your private key, you will lose access to funds in open zombie channels
 * If you lose access to your own node and restore it with your private key and channel backups, you will not be able to contact your channel partner to cooperatively close the channel and may also lose the funds
 * Public zombie channels are a burden on the network, as information about them is communicated to the rest of the network, but they cannot be used to route payments
@@ -74,13 +74,13 @@ Well, verifying a channel is pretty important.
 If Wei tries to forward any payments through a channel that doesn't exist, his payments are going to fail.
 Even if the channel does exist, Wei still needs assurances that Bob and Alice actually control the funds inside of it.
 Alice and Bob could potentially dupe him by claiming ownership of a channel that actually belongs to someone else.
-So Wei will definintely want to verify before he updates his channel graph.
+So Wei will definitely want to verify before he updates his channel graph.
 
 Firstly, Wei will check the channel ID to discover which Bitcoin transaction contains the channel funds.
 He will then look up this transaction on the Bitcoin blockchain and he should discover a P2WSH bitcoin UTXO that is signed by both Alice and Bob.
-Secondly, Wei will verify the signatures in the channel annoucenment message and confirm that the two nodes who signed the channel announcement are actually Alice and Bob.
+Secondly, Wei will verify the signatures in the channel announcement message and confirm that the two nodes who signed the channel announcement are actually Alice and Bob.
 Once he's done so, he's convinced that the channel is funded and that Alice and Bob are the funders and owners of that channel.
 If any of these checks fail, he'll ignore the channel announcement.
 
-Once Wei is satisifed that the channel announcement checks out, he'll update his channel graph.
+Once Wei is satisfied that the channel announcement checks out, he'll update his channel graph.
 He will also send information about this channel to his peers, and they will verify it for themselves.

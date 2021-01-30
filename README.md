@@ -43,7 +43,7 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Lightning Applications (LApps)]() | # | :thought_balloon: |
 | [LN's Future]() | # | :thought_balloon: |
 
-Total Word Count: 83393
+Total Word Count: 89705
 
 Target Word Count: 100,000-120,000
 
