@@ -178,6 +178,7 @@ docker start cname
 *Deleting a container by name*
 
 If you name a container instead of letting docker name it randomly, you cannot reuse that name until the container is deleted. Docker will return an error like this:
+[source,bash]
 ----
 docker: Error response from daemon: Conflict. The container name "/bitcoind" is already in use...
 ----
@@ -212,6 +213,7 @@ The container for Bitcoin Core is +bitcoind+. It is configured to run Bitcoin Co
 
 Let us start by building and running the +bitcoind+ container. First, we use the +docker build+ command to build it:
 
+[source,bash]
 ----
 $ cd code/docker
 $ docker build -t lnbook/bitcoind bitcoind
@@ -233,6 +235,7 @@ Successfully tagged lnbook/bitcoind:latest
 
 Next, let's run the +bitcoind+ container and have it mine some blocks. We use the +docker run+ command, with the flags for _interactive (i)_ and _terminal (t)_, and the +name+ argument to give the running container a custom name:
 
+[source,bash]
 ----
 $ docker run -it --name bitcoind lnbook/bitcoind
 Starting bitcoind...
@@ -281,6 +284,7 @@ Running the interactive shell puts us "inside" the container. It logs in as user
 
 Instead of running an interactive shell, we can also issue a single command that is executed inside the container. In the following example we run the +bitcoin-cli+ command to obtain information about the current blockchain state:
 
+[source,bash]
 ----
 $ docker exec bitcoind bitcoin-cli -datadir=/bitcoind getblockchaininfo
 {
@@ -299,6 +303,7 @@ As you can see, we need to tell +bitcoin-cli+ where the bitcoind data directory 
 
 All our docker containers have a command-line JSON encoder/decoder named +jq+ preinstalled. +jq+ helps us to process JSON-formatted data via the command-line or from inside scripts. You can send the JSON output of any command to +jq+ using the +|+ character. This character as well as this operation is called a "pipe". Let's apply a +pipe+ and +jq+ to the previous command as follows:
 
+[source,bash]
 ----
 $ docker exec bitcoind bash -c "bitcoin-cli -datadir=/bitcoind getblockchaininfo | jq .blocks"
 189
@@ -322,6 +327,7 @@ The c-lightning software distribution has a docker container, but it is designed
 
 We start by building the c-lightning docker container from the book's files which you previously downloaded into a directory named +lnbook+. As before, we will use the +docker build+ command in the +code/docker+ sub-directory. We will tag the container image with the tag +lnbook/c-lightning+ like this:
 
+[source,bash]
 ----
 $ cd code/docker
 $ docker build -t lnbook/c-lightning c-lightning
@@ -373,6 +379,7 @@ $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 
 You should see bitcoind start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command with the +network+ and +name+ arguments to start c-lightning as follows:
 
+[source,bash]
 ----
 $ docker run -it --network lnbook --name c-lightning lnbook/c-lightning
 Waiting for bitcoind to start...
@@ -391,6 +398,7 @@ The c-lightning container starts up and connects to the bitcoind container over 
 
 As we demonstrated with the bitcoind container, we can issue commands to our c-lightning container in another terminal in order to extract information, open channels etc. The command that allows us to issue command-line instructions to the c-lightning node is called +lightning-cli+. To get the node info use the following +docker exec+ command in another terminal window:
 
+[source,bash]
 ----
 $ docker exec c-lightning lightning-cli getinfo
 {
@@ -438,6 +446,7 @@ https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md
 
 The common first step is the installation of prerequisite libraries. We use the +apt+ package manager to install these:
 
+[source,bash]
 ----
 $ sudo apt-get update
 
@@ -478,6 +487,7 @@ After a few minutes and a lot of on-screen activity, you will have installed all
 
 Next, we will copy the latest version of c-lightning from the source code repository. To do this, we will use the +git clone+ command which clones a version-controlled copy onto your local machine thereby allowing you to keep it synchronized with subsequent changes without having to download the whole repository again:
 
+[source,bash]
 ----
 $ git clone https://github.com/ElementsProject/lightning.git
 Cloning into 'lightning'...
@@ -503,6 +513,7 @@ Next, we use a set of _build scripts_ that are commonly available in many open s
 
 Running the +configure+ with the +help+ option will show us all the available options:
 
+[source,bash]
 ----
 $ ./configure --help
 Usage: ./configure [--reconfigure] [setting=value] [options]
@@ -547,6 +558,7 @@ $
 
 Next, we use the +make+ command to build the libraries, components, and executables of the c-lightning project. This part will take several minutes to complete and will use your computer's CPU and disk heavily. Expect some noise from the fans! Run +make+:
 
+[source,bash]
 ----
 $ make
 
@@ -633,6 +645,7 @@ $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 
 Next, we start the LND container we just built. As done before we need to attach it to the +lnbook+ network and give it a name:
 
+[source,bash]
 ----
 $ docker run -it --network lnbook --name lnd lnbook/lnd
 Waiting for bitcoind to start...
@@ -652,6 +665,7 @@ The LND container starts up and connects to the bitcoind container over the dock
 
 As we demonstrated previously, we can issue commands to our container in another terminal in order to extract information, open channels etc. The command that allows us to issue command-line instructions to the +lnd+ daemon is called +lncli+. Let's get the node info using the +docker exec+ command in another terminal window:
 
+[source,bash]
 ----
 $ docker exec lnd lncli -n regtest getinfo
 {
@@ -730,6 +744,7 @@ $ make && make install
 
 After several minutes you will have two new commands +lnd+ and +lncli+ installed. Try them out and check their version to ensure they are installed:
 
+[source,bash]
 ----
 $ lnd --version
 lnd version 0.10.99-beta commit=clock/v1.0.0-106-gc1ef5bb908606343d2636c8cd345169e064bdc91
@@ -752,6 +767,7 @@ In the next few sections we will build a docker container to run Eclair, as we d
 
 By now, you are almost an expert in the basic operations of docker! In this section we will repeat many of the previously seen commands to build the Eclair container. The container is located in +code/docker/eclair+. We start in a terminal, by switching the working directory to +code/docker+ and issuing the +docker build+ command:
 
+[source,bash]
 ----
 $ cd code/docker
 $ docker build -t lnbook/eclair eclair
@@ -808,6 +824,7 @@ The Eclair container starts up and connects to the bitcoind container over the d
 
 As we demonstrated previously, we can issue commands to our container in another terminal in order to extract information, open channels etc. The command that allows us to issue command-line instructions to the +eclair+ daemon is called +eclair-cli+. The +eclair-cli+ command expects a password which we have set to "eclair" in this container. We pass the password +eclair+ to the +eclair-cli+ command via the +p+ flag. Using the +docker exec+ command in another terminal window we get the node info from Eclair:
 
+[source,bash]
 ----
 $ docker exec eclair eclair-cli -p eclair getinfo
 {
@@ -849,6 +866,7 @@ $ sudo apt install -y openjdk-11-jdk maven
 
 Verify that you have the correct version installed by running:
 
+[source,bash]
 ----
 $ javac -version
 javac 11.0.7
@@ -1022,6 +1040,7 @@ Before running the +setup-channels.sh+ script note the following: Wait a minute 
 
 Let's run the script to see its effect and then we will look at how it works internally. We use +bash+ to run it as a command:
 
+[source,bash]
 ----
 $ cd code/docker
 $ bash setup-channels.sh
@@ -1050,6 +1069,7 @@ As you can see from the output, the script first gets the node IDs (public keys)
 
 Looking inside the script, we see the part that gets all the node IDs and stores them in temporary variables so that they can be used in subsequent command. It looks like this:
 
+[source,bash]
 ----
 alice_address=$(docker-compose exec -T Alice bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
 bob_address=$(docker-compose exec -T Bob bash -c "lightning-cli getinfo | jq .id")
@@ -1065,6 +1085,7 @@ The following three lines do the same for each of the other nodes. Because they 
 
 Next, we tell each node to establish a network connection to the next node and open a channel:
 
+[source,bash]
 ----
 docker-compose exec -T Alice lncli -n regtest connect ${bob_address//\"}@Bob
 docker-compose exec -T Alice lncli -n regtest openchannel ${bob_address//\"} 1000000
@@ -1079,12 +1100,14 @@ Now that +Alice+ is connected, we open a 1,000,000 satoshi channel to +Bob+ with
 We do the same with the other nodes, setting up connections and channels. Each node type has a slightly different syntax for these commands, but the overall principle is the same:
 
 To Bob's node (c-lightning) we send these commands:
+[source,bash]
 ----
 docker-compose exec -T Bob lightning-cli connect ${wei_address//\"}@Wei 
 docker-compose exec -T Bob lightning-cli fundchannel ${wei_address//\"} 1000000
 ----
 
 To Wei's node (Eclair) we send:
+[source,bash]
 ----
 docker-compose exec -T Wei eclair-cli -p eclair connect --uri=${gloria_address//\"}@Gloria
 docker-compose exec -T Wei eclair-cli -p eclair open --nodeId=${gloria_address//\"} --fundingSatoshis=1000000
@@ -1092,6 +1115,7 @@ docker-compose exec -T Wei eclair-cli -p eclair open --nodeId=${gloria_address//
 
 At this point we create a new invoice for 10,000 satoshis on Gloria's node:
 
+[source,bash]
 ----
 gloria_invoice=$(docker-compose exec -T Gloria lncli -n regtest addinvoice 10000 | jq .payment_request)
 ----
@@ -1102,6 +1126,7 @@ Next, we have to wait. We just created a bunch of channels. Hence, our nodes bro
 
 The final command is the actual invoice payment. We connect to Alice's node and present Gloria's invoice for payment.
 
+[source,bash]
 ----
 docker-compose exec -T Alice lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice//\"}
 ----
