@@ -944,7 +944,7 @@ Congratulations! You have built Eclair from source and you are ready to code, te
 
 Our final example, presented in this section, will bring together all the various containers we have built to form a Lightning network made of diverse (LND, c-lightning, Eclair) node implementations. We will compose the network by connecting the nodes together and opening channels from one node to another. As the final step we route a payment across these channels.
 
-In this example, we will replicate the Lighting network example from <<routing_on_a_network_of_payment_channels>>. Specifically, we will create four Lightning nodes named Alice, Bob, Wei, and Gloria. We will connect Alice to Bob, Bob to Wei, and Wei to Gloria. Finally, we will have Gloria create an invoice and have Alice pay that invoice. Since Alice and Gloria are not directly connected, the payment will be routed as an HTLC across all the payment channels.
+In this example, we will replicate the Lighting network example from <<routing_on_a_network_of_payment_channels>>. Specifically, we will create four Lightning nodes named Alice, Bob, Chan, and Dina. We will connect Alice to Bob, Bob to Chan, and Chan to Dina. Finally, we will have Dina create an invoice and have Alice pay that invoice. Since Alice and Dina are not directly connected, the payment will be routed as an HTLC across all the payment channels.
 
 ==== Using docker-compose to orchestrate docker containers
 
@@ -991,7 +991,7 @@ services:
     container_name: Alice
 ----
 
-The fragment above defines a network called +lnnet+ and a container called +bitcoind+ which will attach to the +lnnet+ network. The container is the same one we built at the beginning of this chapter. We expose three of the container's ports allowing us to send commands to it and monitor blocks and transactions. Next, the configuration specifies an LND container called "Alice". Further down you will also see specifications for containers called "Bob" (c-lightning), "Wei" (Eclair) and "Gloria" (LND again).
+The fragment above defines a network called +lnnet+ and a container called +bitcoind+ which will attach to the +lnnet+ network. The container is the same one we built at the beginning of this chapter. We expose three of the container's ports allowing us to send commands to it and monitor blocks and transactions. Next, the configuration specifies an LND container called "Alice". Further down you will also see specifications for containers called "Bob" (c-lightning), "Chan" (Eclair) and "Dina" (LND again).
 
 Since all these diverse implementations follow the Basis of Lightning Technologies (BOLT) specification and have been extensively tested for interoperability, they have no difficulty working together to build a Lightning network.
 
@@ -1010,16 +1010,16 @@ To start the example, we switch to the directory that contains the +docker-compo
 $ cd code/docker
 $ docker-compose up
 Creating network "docker_lnnet" with the default driver
-Creating Wei      ... done
+Creating Chan      ... done
 Creating Bob      ... done
-Creating Gloria   ... done
+Creating Dina   ... done
 Creating Alice    ... done
 Creating bitcoind ... done
-Attaching to Wei, Bob, Gloria, Alice, bitcoind
+Attaching to Chan, Bob, Dina, Alice, bitcoind
 Bob         | Waiting for bitcoind to start...
-Wei         | Waiting for bitcoind to start...
+Chan         | Waiting for bitcoind to start...
 Alice       | Waiting for bitcoind to start...
-Gloria      | Waiting for bitcoind to start...
+Dina      | Waiting for bitcoind to start...
 bitcoind    | Starting bitcoind...
 
 [...]
@@ -1051,19 +1051,19 @@ $ bash setup-channels.sh
 Getting node IDs
 Alice: 02c93da7a0a341d28e6d7742721a7d182f878e0c524e3666d80a58e1406d6d9391
 Bob: 0343b8f8d27a02d6fe688e3596b2d0834c576672e8750106540617b6d5755c812b
-Wei: 03e17cbc7b46d553bade8687310ee0726e40dfa2c629b8b85ca5d888257757edc1
-Gloria: 038c9dd0f0153cba3089616836936b2dad9ea7f97ef839f5fbca3a808d232db77b
+Chan: 03e17cbc7b46d553bade8687310ee0726e40dfa2c629b8b85ca5d888257757edc1
+Dina: 038c9dd0f0153cba3089616836936b2dad9ea7f97ef839f5fbca3a808d232db77b
 
 Setting up channels...
 Alice to Bob
 
-Bob to Wei
+Bob to Chan
 
-Wei to Gloria
+Chan to Dina
 
-Get 10k sats invoice from Gloria
+Get 10k sats invoice from Dina
 
-Gloria invoice lnbcrt100u1p00w5sypp5fw2gk98v6s4s2ldfwxa6jay0yl3f90j82kv6xx97jfwpa3s964vqdqqcqzpgsp5jpasdchlcx85hzfp9v0zc7zqs9sa3vyasj3nm0t4rsufrl7xge6s9qy9qsqpdd5d640agrhqe907ueq8n8f5h2p42vpheuzen58g5fwz94jvvnrwsgzd89v70utn4d7k6uh2kvp866zjgl6g85cxj6wtvdn89hllvgpflrnex
+Dina invoice lnbcrt100u1p00w5sypp5fw2gk98v6s4s2ldfwxa6jay0yl3f90j82kv6xx97jfwpa3s964vqdqqcqzpgsp5jpasdchlcx85hzfp9v0zc7zqs9sa3vyasj3nm0t4rsufrl7xge6s9qy9qsqpdd5d640agrhqe907ueq8n8f5h2p42vpheuzen58g5fwz94jvvnrwsgzd89v70utn4d7k6uh2kvp866zjgl6g85cxj6wtvdn89hllvgpflrnex
 
 Wait for channel establishment - 60 seconds for 6 blocks
 
@@ -1077,8 +1077,8 @@ Looking inside the script, we see the part that gets all the node IDs and stores
 ----
 alice_address=$(docker-compose exec -T Alice bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
 bob_address=$(docker-compose exec -T Bob bash -c "lightning-cli getinfo | jq .id")
-wei_address=$(docker-compose exec -T Wei bash -c "eclair-cli -s -j -p eclair getinfo| jq .nodeId")
-gloria_address=$(docker-compose exec -T Gloria bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
+chan_address=$(docker-compose exec -T Chan bash -c "eclair-cli -s -j -p eclair getinfo| jq .nodeId")
+dina_address=$(docker-compose exec -T Dina bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
 ----
 
 If you have followed the first part of the chapter you will recognise these commands and be able to "decipher" their meaning. It looks quite complex, but we will walk through it step-by-step and you'll quickly get the hang of it.
@@ -1106,38 +1106,38 @@ We do the same with the other nodes, setting up connections and channels. Each n
 To Bob's node (c-lightning) we send these commands:
 [source,bash]
 ----
-docker-compose exec -T Bob lightning-cli connect ${wei_address//\"}@Wei 
-docker-compose exec -T Bob lightning-cli fundchannel ${wei_address//\"} 1000000
+docker-compose exec -T Bob lightning-cli connect ${chan_address//\"}@Chan 
+docker-compose exec -T Bob lightning-cli fundchannel ${chan_address//\"} 1000000
 ----
 
-To Wei's node (Eclair) we send:
+To Chan's node (Eclair) we send:
 [source,bash]
 ----
-docker-compose exec -T Wei eclair-cli -p eclair connect --uri=${gloria_address//\"}@Gloria
-docker-compose exec -T Wei eclair-cli -p eclair open --nodeId=${gloria_address//\"} --fundingSatoshis=1000000
+docker-compose exec -T Chan eclair-cli -p eclair connect --uri=${dina_address//\"}@Dina
+docker-compose exec -T Chan eclair-cli -p eclair open --nodeId=${dina_address//\"} --fundingSatoshis=1000000
 ----
 
-At this point we create a new invoice for 10,000 satoshis on Gloria's node:
+At this point we create a new invoice for 10,000 satoshis on Dina's node:
 
 [source,bash]
 ----
-gloria_invoice=$(docker-compose exec -T Gloria lncli -n regtest addinvoice 10000 | jq .payment_request)
+dina_invoice=$(docker-compose exec -T Dina lncli -n regtest addinvoice 10000 | jq .payment_request)
 ----
 
 The +addinvoice+ command creates an invoice for the specified amount in satoshis and produces a JSON object with the invoice details. From that JSON object we only need the actual bech32-encoded payment request, which we extract with +jq+.
 
 Next, we have to wait. We just created a bunch of channels. Hence, our nodes broadcast several funding transactions. The channels can't be used until the funding transactions are mined and collect 6 confirmations. Since our Bitcoin +regtest+ blockchain is set to mine blocks every ten seconds, we have to wait 60 seconds for all the channels to be ready to use.
 
-The final command is the actual invoice payment. We connect to Alice's node and present Gloria's invoice for payment.
+The final command is the actual invoice payment. We connect to Alice's node and present Dina's invoice for payment.
 
 [source,bash]
 ----
-docker-compose exec -T Alice lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice//\"}
+docker-compose exec -T Alice lncli -n regtest payinvoice --json --inflight_updates -f ${dina_invoice//\"}
 ----
 
 We ask Alice's node to pay the invoice, but also ask for +inflight_updates+ in +json+ format. That will give us detailed output about the invoice, the route, the HTLCs, and the final payment result. We can study this additional output and learn from it!
 
-Since Alice's node doesn't have a direct channel to Gloria, her node has to find a route. There is only one viable route here (Alice->Bob->Wei->Gloria), which Alice will be able to discover now that all the channels are active and have been advertised to all the nodes by the Lightning gossip protocol. Alice's node will construct the route and create an onion packet to establish HTLCs across the channels. All of this happens in a fraction of a second and Alice's node will report the result of the payment attempt. If all goes well, you will see the last line of the JSON output showing:
+Since Alice's node doesn't have a direct channel to Dina, her node has to find a route. There is only one viable route here (Alice->Bob->Chan->Dina), which Alice will be able to discover now that all the channels are active and have been advertised to all the nodes by the Lightning gossip protocol. Alice's node will construct the route and create an onion packet to establish HTLCs across the channels. All of this happens in a fraction of a second and Alice's node will report the result of the payment attempt. If all goes well, you will see the last line of the JSON output showing:
 
 ----
 "failure_reason": "FAILURE_REASON_NONE"
