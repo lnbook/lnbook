@@ -1077,8 +1077,8 @@ Looking inside the script, we see the part that gets all the node IDs and stores
 ----
 alice_address=$(docker-compose exec -T Alice bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
 bob_address=$(docker-compose exec -T Bob bash -c "lightning-cli getinfo | jq .id")
-wei_address=$(docker-compose exec -T Chan bash -c "eclair-cli -s -j -p eclair getinfo| jq .nodeId")
-gloria_address=$(docker-compose exec -T Dina bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
+chan_address=$(docker-compose exec -T Chan bash -c "eclair-cli -s -j -p eclair getinfo| jq .nodeId")
+dina_address=$(docker-compose exec -T Dina bash -c "lncli -n regtest getinfo | jq .identity_pubkey")
 ----
 
 If you have followed the first part of the chapter you will recognise these commands and be able to "decipher" their meaning. It looks quite complex, but we will walk through it step-by-step and you'll quickly get the hang of it.
@@ -1106,22 +1106,22 @@ We do the same with the other nodes, setting up connections and channels. Each n
 To Bob's node (c-lightning) we send these commands:
 [source,bash]
 ----
-docker-compose exec -T Bob lightning-cli connect ${wei_address//\"}@Chan 
-docker-compose exec -T Bob lightning-cli fundchannel ${wei_address//\"} 1000000
+docker-compose exec -T Bob lightning-cli connect ${chan_address//\"}@Chan 
+docker-compose exec -T Bob lightning-cli fundchannel ${chan_address//\"} 1000000
 ----
 
 To Chan's node (Eclair) we send:
 [source,bash]
 ----
-docker-compose exec -T Chan eclair-cli -p eclair connect --uri=${gloria_address//\"}@Dina
-docker-compose exec -T Chan eclair-cli -p eclair open --nodeId=${gloria_address//\"} --fundingSatoshis=1000000
+docker-compose exec -T Chan eclair-cli -p eclair connect --uri=${dina_address//\"}@Dina
+docker-compose exec -T Chan eclair-cli -p eclair open --nodeId=${dina_address//\"} --fundingSatoshis=1000000
 ----
 
 At this point we create a new invoice for 10,000 satoshis on Dina's node:
 
 [source,bash]
 ----
-gloria_invoice=$(docker-compose exec -T Dina lncli -n regtest addinvoice 10000 | jq .payment_request)
+dina_invoice=$(docker-compose exec -T Dina lncli -n regtest addinvoice 10000 | jq .payment_request)
 ----
 
 The +addinvoice+ command creates an invoice for the specified amount in satoshis and produces a JSON object with the invoice details. From that JSON object we only need the actual bech32-encoded payment request, which we extract with +jq+.
@@ -1132,7 +1132,7 @@ The final command is the actual invoice payment. We connect to Alice's node and 
 
 [source,bash]
 ----
-docker-compose exec -T Alice lncli -n regtest payinvoice --json --inflight_updates -f ${gloria_invoice//\"}
+docker-compose exec -T Alice lncli -n regtest payinvoice --json --inflight_updates -f ${dina_invoice//\"}
 ----
 
 We ask Alice's node to pay the invoice, but also ask for +inflight_updates+ in +json+ format. That will give us detailed output about the invoice, the route, the HTLCs, and the final payment result. We can study this additional output and learn from it!
