@@ -4,32 +4,59 @@
 
 Welcome to _Mastering the Lightning Network_!
 
-The Lightning Network is a protocol for using Bitcoin in a smart and non-obvious way.
-It is a second layer technology on top of Bitcoin.
 The Lightning Network, often abbreviated as "LN", is changing the way people exchange value online and it's one of the most exciting advancements to happen in Bitcoin's history.
-Today, in 2020, the Lightning Network is still in its infancy.
-In concept it was first proposed in 2015 and the first implementation was launched in 2018.
-As of 2020, we're only beginning to see the opportunities the Lightning Network provides including improved privacy, speed, and scale.
-With core knowledge of the Lightning Network, you can help shape the future of the network while also building opportunities for yourself.
-Some basic knowledge about Bitcoin is assumed but can be readily acquired by reading _Mastering Bitcoin_, available for free online. We also cover the most important Bitcoin concepts, you need must know to study the Lightning Network, in <<bitcoin_fundamentals>>.
+Today, in 2021, the Lightning Network is still in its infancy. The Lightning Network is a protocol for using Bitcoin in a smart and non-obvious way. It is a second layer technology on top of Bitcoin. 
 
-While the bulk of this book is written for programmers, the first few chapters are written to be approachable by anyone regardless of technical experience.
+The concept of the Lightning Network was proposed in 2015 and the first implementation was launched in 2018. As of 2021, we're only beginning to see the opportunities the Lightning Network provides to Bitcoin including improved privacy, speed, and scale.
+With core knowledge of the Lightning Network, you can help shape the future of the network while also building opportunities for yourself.
+
+We assume you already have some basic knowledge about Bitcoin but if not don't worry, we will explain the most important Bitcoin concepts, those you must know to understand the Lightning Network, in <<bitcoin_fundamentals>>. If you want to learn more about Bitcoin, you can read _Mastering Bitcoin_, available for free online.
+
+While the bulk of this book is written for programmers, the first few chapters are written to be approachable by anyone regardless of technical experience. In this chapter, we'll start with some terminology, then move to looking at trust and its application in these systems, and finally we'll discuss the history and future of the Lightning Network. Let's get started.
+
+
+=== Lightning Network Basic Concepts
+
+As we explore how the Lightning Network actually works, we will encounter some technical terminology that might, at first, be a bit confusing. While all of these concepts and terms will be explained in detail as we progress through the book, and are defined in the glossary, some basic definitions now will make it easier to understand the concepts in the next two chapters. If you don't understand all of the words in these definitions yet, that's okay. You'll understand more as you move through the text.
+
+Node:: A computer that participates in a network. A Lightning node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run a Lightning node _and_ a Bitcoin node.
+
+Blockchain:: A distributed transaction ledger, produced by a network of computers. Bitcoin, for example, is a system that produces a blockchain. The Lightning Network is not itself a blockchain, nor does it produce a blockchain. It is a network that relies on an existing external blockchain for its security.
+
+Transaction:: A data structure that records the transfer of control over some funds (e.g. some bitcoin). The Lightning Network relies on Bitcoin transactions (or those of another blockchain) to track control of funds.
+
+Payment:: When value is exchanged on the Lightning Network we call this a "payment" as compared to a "transaction" on the Bitcoin Blockchain.
+
+Payment Channel:: A _financial relationship_ between two nodes on the Lightning Network, typically implemented by multi-signature Bitcoin transactions that share control over bitcoin between the two Lightning nodes.
+
+Routing vs Sending:: Unlike Bitcoin where transactions are "sent" by broadcasting them to everyone, Lightning is a routed network where payments are "routed" across one or more payment channels following a _path_ from sender to recipient.
+
+On-Chain vs. Off-Chain:: A payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between Lightning nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments.
+
+More detailed definitions of these and many other terms can be found in the <<glossary>>. Throughout this book, we will explain what these concepts mean and how these technologies actually work.
+
+[TIP]
+====
+Throughout this book, you will see "Bitcoin" with the first letter capitalized, which refers to the _Bitcoin System_ and is a proper noun. You will also see "bitcoin", with a lower-case _b_, which refers to the currency unit. Each bitcoin is further subdivided into 100 million units each called a "satoshi" (singular) or "satoshis" (plural)
+====
+
+Now that you're familiar with these basic terms, let's move to a concept you are already comfortable with: trust.
+
 
 === Trust in decentralized networks
 
-You will often hear people calling Bitcoin and the Lightning Network "trustless". At first glance this is confusing. After all, isn't trust a good thing? Banks even use it in their names! Isn't a "trustless" system a system devoid of trust a bad thing?
+You will often hear people calling Bitcoin and the Lightning Network "trustless". At first glance this is confusing. After all, isn't trust a good thing? Banks even use it in their names! Isn't a "trustless" system, a system devoid of trust, a bad thing?
 
 The use of the the word "trustless" is intended to convey the ability to operate without _needing_ trust in the other participants in the system. In a decentralized system like Bitcoin you can always choose to transact with someone you trust. However, the system ensures you can't be cheated even if you can't trust the other party in a transaction. Trust is a nice-to-have instead of a must-have property of the system.
 
-Contrast that to the traditional banking system where you _must_ place your trust in a third party, since they control your money. If they violate that trust you may be able to find recourse in a regulator or court, but you would be facing an enormous power imbalance.
+Contrast that to traditional systems, like banking where you _must_ place your trust in a third party, since they control your money. If the bank violates your trust you may be able to find some recourse from a regulator or court, but at an enormous cost of time, money, and effort.
 
 Trustless does not mean devoid of trust. It means that trust is not a necessary prerequisite to all transactions and that you can transact even with people you don't trust because the system prevents cheating.
 
-Before we get started with the Lightning Network, we need to understand the basic concept that underlies Bitcoin, the Lightning Network and many other such systems:
+Before we get into how the Lightning Network works, it's important to understand one basic concept that underlies Bitcoin, the Lightning Network and many other such systems: something we call a _fairness protocol_. A fairness proctocol is a way to
 
-_Achieving fair outcomes between participants, who do not need to trust each other, without the need for a central authority_
+_achieve fair outcomes between participants, who do not need to trust each other, without the need for a central authority_ and it is the backbone of decentralized systems like Bitcoin.
 
-We call this important concept a _fairness protocol_ and both Bitcoin and the Lightning Network are examples of fairness protocols.
 
 === Fairness without central authority
 
@@ -39,7 +66,7 @@ In broad terms there are a handful of ways to ensure fair outcomes in interactio
 
 * Require trust - you only interact with people who you already trust, due to prior interactions, reputation, or familial relationships. This works well enough at small scale, especially within families and small groups, that it is the most common basis for cooperative behavior. Unfortunately, it doesn't scale and it suffers from tribalist (in-group) bias.
 
-* Rule of law - establish rules for interactions that are enforced by an institution. This scales better, but it cannot scale globally due to differences in customs and traditions, as well as the inability to scale the institutions of enforcement. Nasty side-effect: the institutions become more and more powerful as they get bigger and that leads to corruption.
+* Rule of law - establish rules for interactions that are enforced by an institution. This scales better, but it cannot scale globally due to differences in customs and traditions, as well as the inability to scale the institutions of enforcement. One nasty side-effect of this solution is that the institutions become more and more powerful as they get bigger and that leads to corruption.
 
 * Trusted third parties - put an intermediary in every interaction to enforce fairness. Combined with the "rule of law" to provide oversight of intermediaries, this scales better, but suffers from the same imbalance of power: the intermediaries get very powerful and attract corruption. Concentration of power leads to systemic risk and systemic failure ("Too big to fail").
 
@@ -61,20 +88,20 @@ In this book, we call this pattern a _Fairness Protocol_ defined as a process th
 
 ==== A fairness protocol in action
 
-Let's look at an example of a fairness protocol, which may be familiar to any reader, perhaps as a memory from their childhood.
+Let's look at an example of a fairness protocol, which you may already be familiar with.
 
-Imagine a family lunch, with a parent and two children. The parent has prepared a bowl of fried potatoes ("french fries" or "chips" depending on which English dialect you use). The two siblings must share the plate of chips. The parent must ensure a fair distribution of chips to each child, otherwise the parent will have to hear constant complaining (maybe all day) and there's always a possibility of the unfair situation escalating to violence. What is a parent to do?
-
-[NOTE]
-====
-Any similarity between the scenario above and Andreas' childhood experiences with his two cousins is entirely coincidental and should not be mentioned again. The battles of the french fries created enough drama and should be left in the past.
-====
+Imagine a family lunch, with a parent and two children. The children are fussy eaters and the only thing they will agree to eat is fried potatoes. The parent has prepared a bowl of fried potatoes ("french fries" or "chips" depending on which English dialect you use). The two siblings must share the plate of chips. The parent must ensure a fair distribution of chips to each child, otherwise the parent will have to hear constant complaining (maybe all day) and there's always a possibility of an unfair situation escalating to violence. What is a parent to do?
 
 There are a few different ways that fairness can be achieved in this strategic interaction between two siblings that do not trust each other and have competing interests. The naive but commonly used method is for the parent to use their authority as a trusted third party: they split the bowl of chips into two servings. This is similar to traditional finance, where a bank, accountant or lawyer acts as a trusted third party to prevent any cheating between two parties who want to transact.
 
-The problem with this scenario is that this puts a lot of power in the hands of the trusted third party. The parent is accused of playing favorites and not sharing the chips equally. The siblings may fight over the chips, dragging the parent into their fight. Eventually the parent threatens to never again cook french fries if it always results in fights. It is an empty threat, and so the cycle repeats daily.
+The problem with this scenario is that it vests a lot of power and responsiblity in the hands of the trusted third party. In this example, the parent is fully responsible for the equal allocation of chips, the parties merely wait, watch, and complain.  The children accuse the parent of playing favorites and not allocating the chips fairly. The siblings fight over the chips, yelling "that chip is bigger!", and dragging the parent into their fight. It sounds awful, doesn't it? Should the parent yell louder? Take all of the chips away? Threaten to never make chips again and let those ungrateful children go hungry?
 
-But a much better solution exists: the siblings are taught to play a game called "split and choose". At each lunch one sibling splits the bowl of chips into two servings and the *other* sibling gets to choose which serving they want. Almost immediately, the siblings figure out the dynamic of this game. If the one splitting makes a mistake or tries to cheat, the other sibling can "punish" them by choosing the bigger bowl. It is in the best interest of both siblings, but especially the one splitting the bowl, to play fair. Only the cheater loses in this scenario. The parent doesn't even have to use their authority or enforce fairness. All the parent has to do is _enforce the protocol_; as long as the siblings cannot escape their assigned roles of "splitter" and "chooser", the protocol itself ensures a fair outcome without the need for any intervention. The parent can't play favorites or distort the outcome.
+A much better solution exists: the siblings are taught to play a game called "split and choose". At each lunch one sibling splits the bowl of chips into two servings and the *other* sibling gets to choose which serving they want. Almost immediately, the siblings figure out the dynamic of this game. If the one splitting makes a mistake or tries to cheat, the other sibling can "punish" them by choosing the bigger bowl. It is in the best interest of both siblings, but especially the one splitting the bowl, to play fair. Only the cheater loses in this scenario. The parent doesn't even have to use their authority or enforce fairness. All the parent has to do is _enforce the protocol_; as long as the siblings cannot escape their assigned roles of "splitter" and "chooser", the protocol itself ensures a fair outcome without the need for any intervention. The parent can't play favorites or distort the outcome.
+
+[NOTE]
+====
+While the infamous chip battles of the 1980's neatly illustrate the point, any similarity between the scenario above and Andreas' actual childhood experiences with his two cousins is entirely coincidental. Or is it?
+====
 
 ==== Security primitives as building blocks
 
@@ -107,6 +134,7 @@ The "fairness protocol" pattern can also be found in many different aspects of t
 Again and again, we see this pattern. Fair outcomes are not enforced by any authority. They emerge as the natural consequence of a protocol that rewards fairness and punishes cheating. A fairness protocol that harnesses self-interest by directing it towards fair outcomes.
 
 Bitcoin and the Lightning Network are both implementations of fairness protocols. So why do we need the Lightning Network? Isn't Bitcoin enough?
+
 
 === Motivation for the Lightning Network
 
@@ -158,31 +186,6 @@ The result is that many more Bitcoin payments can take place "off-chain", with o
 Aside from reducing the burden on nodes, payments on the Lightning Network will be cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published to all participants of the network and furthermore not stored permanently.
 
 While the Lightning Network was initially conceived for Bitcoin, it can be implemented on any blockchain that meets some basic technical requirements. Other blockchains, such as Litecoin, already support the Lightning Network. Additionally, several other blockchains are developing similar "second layer" or "layer 2" solutions to help them scale.
-
-=== Lightning Network Basic Concepts
-
-As we start exploring the Lightning Network, we will encounter some technical terminology that might, at first, be confusing and a bit difficult to understand. While all of these concepts and terms will be explained in detail as we progress through the book, and are defined in the glossary, we need some basic clarifications to get started. Here are some of the concepts you will encounter in the first two chapters of this book:
-
-Node:: A computer that participates in a network. A Lightning node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run a Lightning node _and_ a Bitcoin node.
-
-Blockchain:: A distributed transaction ledger, produced by a network of computers. Bitcoin, for example, is a system that produces a blockchain. The Lightning Network is not itself a blockchain, nor does it produce a blockchain. It is a network that relies on an existing external blockchain for its security.
-
-Transaction:: A data structure that records the transfer of control over some funds (e.g. some bitcoin). The Lightning Network relies moreover on Bitcoin transactions (or those of another blockchain) to track control of funds.
-
-Payment:: When value is exchanged on the Lightning Network we call this a "payment" as compared to a "transaction" on the Bitcoin Blockchain.
-
-Payment Channel:: A _financial relationship_ between two nodes on the Lightning Network, typically implemented by multi-signature Bitcoin transactions that share control over bitcoin between the two Lightning nodes.
-
-Routing vs Sending:: Unlike Bitcoin where transactions are "sent" by broadcasting them to everyone, Lightning is a routed network where payments are "routed" across one or more payment channels following a _path_ from sender to recipient.
-
-On-Chain vs. Off-Chain:: A payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between Lightning nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments.
-
-More detailed definitions of these and many other terms can be found in the <<glossary>>. Throughout this book, we will explain what these concepts mean and how these technologies actually work.
-
-[TIP]
-====
-Throughout this book, you will see "Bitcoin" with the first letter capitalized, which refers to the _Bitcoin System_ and is a proper noun. You will also see "bitcoin", with a lower-case _b_, which refers to the currency unit. Each bitcoin is further subdivided into 100 million units each called a "satoshi" (singular) or "satoshis" (plural)
-====
 
 === The Lightning Network's defining features
 
