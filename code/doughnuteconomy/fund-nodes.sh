@@ -1,12 +1,5 @@
 #!/bin/bash
 
-#docker-compose exec -T Aa lightning-cli getinfo
-#docker-compose exec -T Bb lightning-cli getinfo
-#docker-compose exec -T Cc lightning-cli getinfo
-#docker-compose exec -T Ee lightning-cli getinfo
-#docker-compose exec -T Dd lightning-cli getinfo
-#docker-compose exec -T Ff lightning-cli getinfo
-
 echo getting addresses
 a=$(docker-compose exec -T Aa bash -c "lightning-cli newaddr | jq -r .bech32")
 echo $a

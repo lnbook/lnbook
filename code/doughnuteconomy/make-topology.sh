@@ -8,14 +8,6 @@ d_ID=$(docker-compose exec -T Dd bash -c "lightning-cli getinfo | jq -r .id")
 e_ID=$(docker-compose exec -T Ee bash -c "lightning-cli getinfo | jq -r .id")
 f_ID=$(docker-compose exec -T Ff bash -c "lightning-cli getinfo | jq -r .id")
 
-# Let's tell everyone what we found!
-#echo A ${a_ID}
-#echo B ${b_ID}
-#echo C ${c_ID}
-#echo D ${d_ID}
-#echo E ${e_ID}
-#echo F ${f_ID}
-
 echo Setting up channels...
 echo A to B
 docker-compose exec -T Aa lightning-cli connect ${b_ID}@Bb

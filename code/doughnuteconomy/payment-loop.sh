@@ -4,7 +4,7 @@ echo pay in a loop
 
 start=$(date +"%T")
 
-for i in {1..2}
+for i in {1..20}
 do	
 	echo A pays B
 	INV=$(docker-compose exec -T Bb bash -c "lightning-cli invoice 10000sat inva{$i} desc | jq -r .bolt11")
