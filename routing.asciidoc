@@ -452,14 +452,14 @@ For easier readability we have used just a small integer as `short_channel_ids` 
 .`per_hop` payload of Dinas onion and the encrypted
 image:images/routing-onion-1.png[]
 
-We can see that Alice has created some per hop data for David.
-The short channel id is set to 0 signaling David that this payment is intended to be for him.
-Note that this example is slightly simplified, in that David can also use attributes of the onion packet format itself to be able to know when he's the final hop.
+We can see that Alice has created some per hop data for Dina.
+The short channel id is set to 0 signaling Dina that this payment is intended to be for her.
+Note that this example is slightly simplified, in that Dina can also use attributes of the onion packet format itself to be able to know when she's the final hop.
 The amount to forward is set to 3000.
-On the incoming HTLCs David should have seen that exact amount.
+On the incoming HTLCs Dina should have seen that exact amount.
 Usually this amount is intended to say how many satoshis should be forwarded.
 Since the short channel id was set to zero in this particular case it is interpreted as the payment amount.
-Finally the CLTV delta which David should use to forward the payment is also set to block height 800 (the current height minus David's CLTV grace delta) as David is the final hop.
+Finally the CLTV delta which Dina should use to forward the payment is also set to block height 800 (the current height minus Dina's CLTV grace delta) as Dina is the final hop.
 These data fields consist of 20 Bytes.
 The Lightning Network protocol permits usage of up to 65 bytes to signal routing information in the Onion for every hop.
 
@@ -469,7 +469,7 @@ The Lightning Network protocol permits usage of up to 65 bytes to signal routing
 
 As we'll see in later sections, the more modern onion payloads used in Lightning today are much more flexible in that they allow a series of arbitrary key-values pairs.
 These arbitrary key-value pairs can be used to extend the protocol in an end-to-end manner, as it many cases, only the sender and receiver need to know how to interpret the data.
-In the next diagram we can see how the per hop payload for David looks like.
+In the next diagram we can see how the per hop payload for Dina looks like.
 
 [[routing-onion-2]]
 .`per_hop` payload of Dinas onion and the encrypted
@@ -478,7 +478,7 @@ image:images/routing-onion-2.png[]
 On important feature to protect the privacy is to make sure that onions are always of equal length in depend of their position along the payment path.
 Thus onions are always expected to contain 20 entries of 65 Bytes with per hop data.
 If this wasn't the case, and the onion packet shrank as it was being processed, then this would leak information about the true path length to nodes in the route as the packet would be smaller the further down the route we went.
-Since David is the final recipient of the payment, we only have 65 bytes worth of data to fill with actual content.
+Since Dina is the final recipient of the payment, we only have 65 bytes worth of data to fill with actual content.
 The remaining bytes are filled with random bytes to pad out the packet in an unpredictable manner.
 
 Taking a step back, before Alice is able to prepare the remainder of the packet, we needs to generate an ephemeral key (a key only used once).
@@ -494,18 +494,18 @@ image:images/routing-onion-3.png[]
 
 You can see that Alice put the encrypted payload inside the full Onion Package which contains the public keys from the secret key that she used to derive the shared secret.
 The full onion packet also has a version byte in the beginning (for future extensibility) and an HMAC for the entire Onion.
-When David receives the Onion packet he will extract the public key from the unencrypted part of the onion package.
-David then uses ECDH to derive the shared secret using that ephemeral public key which he'll use to process the packet in full.
-The properties of ECDH make is such that only Alice and David are able to derive the corresponding shared secret.
+When Dina receives the Onion packet she will extract the public key from the unencrypted part of the onion package.
+Dina then uses ECDH to derive the shared secret using that ephemeral public key which she'll use to process the packet in full.
+The properties of ECDH make is such that only Alice and Dina are able to derive the corresponding shared secret.
 
-After the encrypted Onion for David is created Alice will create the next outer layer by creating the onion for Chan.
+After the encrypted Onion for Dina is created Alice will create the next outer layer by creating the onion for Chan.
 
 She truncates 65 Bytes from the end of the encrypted onion and prepends the truncated onion with 65 Byte per Hop data for Chan.
-The per hop data follows the same structure as the per hop data for David.
+The per hop data follows the same structure as the per hop data for Dina.
 Thus she starts with the Realm Byte that she will set to 0 again.
 Then comes the short channel id.
 This is set to 452 as Chan is meant to use the channel with this channel ID as the next outgoing channel.
-She sets the amount to 3000 satoshi as this is the amount that David is supposed to receive.
+She sets the amount to 3000 satoshi as this is the amount that Dina is supposed to receive.
 Finally she uses the CLTV delta added to the current height that was announced for this channel on the gossip protocol and that Chan should use for the HTLC when he forwards the Onion.
 Notice how this CTLV expiry (the expiry is the current height plus the delta) increase as we travel forwards (towards the sender) in the route.
 As we'll see later, this series of decrementing time-locks must carefully be set in order to avoid time-based race conditions in the created contracts.
@@ -533,8 +533,8 @@ image:images/routing-onion-5.png[]
 Note that in the entire onion there will be Chan's ephemeral public key.
 We've omitted the details here for brevity, but notice how only a single ephemeral key is communicated.
 During processing each node will re-randomize the ephemeral key for the following node.
-Luckily the ephemeral keys that Alice used for the ECDH with David can be derived from the ephemeral key that she used for Chan.
-Thus after Chan decrypts his layer he can use the shared secret and his ephemeral public key to derive the ephemeral public key that David is supposed to use and store it in the header of the Onion that he forwards to David.
+Luckily the ephemeral keys that Alice used for the ECDH with Dina can be derived from the ephemeral key that she used for Chan.
+Thus after Chan decrypts his layer he can use the shared secret and his ephemeral public key to derive the ephemeral public key that Dina is supposed to use and store it in the header of the Onion that he forwards to Dina.
 The exact progress to generate the ephemeral keys for every hope will be explained at the very end of the chapter.
 Similarly it is important to recognize that Alice removed data from the end of Davids onion payload to create space for the per hop data in Chan's onion.
 Thus when Chan has received his onion and removed his routing hints and per hop data the onion would be to short and he somehow needs to be able to append the 65 Bytes of filled junk data in a way that the HMACs will still be valid.
