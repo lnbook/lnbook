@@ -29,8 +29,8 @@ If users are careless, the website may track their IP addresses and collect thei
 
 Also, it should be noted that as there is no global consensus of the current Lightning graph or the current state of any existing channel policy, users should never rely on Lightning explorers to retrieve the most updated information.
 Furthermore as users open, close, and update channels, the graph will change and individual Lightning explorers may not be up to date.
-Users should instead be running their own node to build a channel graph and stay informed of the latest state of the network.
-Where they use Lightning explorers, it should be sparingly or to gather statistics.
+Use Lightning explorers to visualize the network or gather information, but not as an authoritative source of what is happening on the Lightning Network.
+To have an authoritative view of the Lightning Network, run your own Lightning node that will build a channel graph and collect various statistics, which you can view with a web-based interface.
 ====
 
 === Lightning Wallets
@@ -46,7 +46,7 @@ The term "Lightning Wallet" is somewhat ambiguous, as it can describe a broad va
 
 A Lightning wallet may contain all of these functions, acting as a "full" wallet, with no reliance on any third-party services. Or, one or more of these components may rely (partially or entirely) on third-party services that mediate those functions.
 
-A key distinction (pun intended) is whether the keystore function is internal or outsourced. In blockchains, control of keys determines custody of funds, as memorialized by the phrase "your keys, your coins; not your keys, not your coins". Any wallet that outsources management of keys is called a "custodial" wallet because a third party acting as custodian has control of the user's funds, not the user himself. A "non-custodial" or "self-custody" wallet, by comparison, is one where the keystore is part of the wallet, and keys are controlled directly by the user.  The term "non-custodial" wallet just implies that the keystore is local and under the user's control. However, one or more of the other wallet components might or might not be outsourced and rely on some trusted third parties even if some of the components (other than the keystore) rely on some trusted third parties.
+A _key_ distinction (pun intended) is whether the keystore function is internal or outsourced. In blockchains, control of keys determines custody of funds, as memorialized by the phrase "your keys, your coins; not your keys, not your coins". Any wallet that outsources management of keys is called a "custodial" wallet because a third party acting as custodian has control of the user's funds, not the user himself. A "non-custodial" or "self-custody" wallet, by comparison, is one where the keystore is part of the wallet, and keys are controlled directly by the user.  The term "non-custodial" wallet just implies that the keystore is local and under the user's control. However, one or more of the other wallet components might or might not be outsourced and rely on some trusted third parties even if some of the components (other than the keystore) rely on some trusted third parties.
 
 Blockchains, especially open blockchains like Bitcoin, attempt to minimize or eliminate trust in third parties and empower users. This is often called a "trustless" model, though "trust-minimized" is a better term. In such systems, the user trusts the software rules, not third parties. Therefore, the issue of control over keys is a principal consideration when choosing a Lightning wallet.
 
@@ -62,8 +62,13 @@ There are many ways wallets can be characterized or categorized.
 The most important questions to ask about a specific wallet are:
 
 . Does this Lightning wallet have a full Lightning Node or does it use a third-party Lightning Node?
-. Does this Lightning wallet have a full Bitcoin Node or does it use a third-party Bitcoin Node? footnote:[If a Lightning wallet uses a third-party Lightning node, it is this third-party Lightning node who decides how to communicate with Bitcoin. Hence, using a third-party Lightning node implies that you as a wallet user also use a third-party Bitcoin node. Only in the other case, when the Lightning wallet uses its own Lightning node, does the choice "full Bitcoin-node" vs. "third-party Bitcoin node" exist. ]
+. Does this Lightning wallet have a full Bitcoin Node or does it use a third-party Bitcoin Node?
 . Does this Lightning wallet store its own keys under user control (self-custody) or are the keys held by a third-party custodian?
+
+[TIP]
+====
+If a Lightning wallet uses a third-party Lightning node, it is this third-party Lightning node that decides how to communicate with Bitcoin. Hence, using a third-party Lightning node implies that you are also using a third-party Bitcoin node. Only when when the Lightning wallet uses its own Lightning node, does the choice "full Bitcoin-node" vs. "third-party Bitcoin node" exist.
+====
 
 At the highest level of abstraction, questions 1 and 3 are the most elementary ones.
 From these two questions, we can derive four possible categories.
@@ -106,11 +111,6 @@ In <<lnwallet-examples>> we see some examples of currently popular Lightning nod
 [options="header"]
 |===
 | Application    | Device  | Lightning Node | Bitcoin Node          | Keystore
-| lnd            | Server  | Full Node   | Bitcoin Core/btcd     | Self-Custody
-| c-lightning    | Server  | Full Node   | Bitcoin Core          | Self-Custody
-| Eclair Server  | Server  | Full Node   | Bitcoin Core/Electrum | Self-Custody
-| Zap Desktop    | Desktop | Full Node   | Neutrino              | Self-Custody
-| Electrum       | Desktop | Full Node   | Bitcoin Core/Electrum | Self-Custody
 | Eclair Mobile  | Mobile  | Lightweight | Electrum              | Self-Custody
 | Breez Wallet   | Mobile  | Full Node   | Neutrino              | Self-Custody
 | Phoenix Wallet | Mobile  | Lightweight | Electrum              | Self-Custody
@@ -118,6 +118,11 @@ In <<lnwallet-examples>> we see some examples of currently popular Lightning nod
 | lntxbot        | Mobile  | None        | None                  | Custodial
 | Blue Wallet    | Mobile  | None        | None                  | Custodial
 | Muun           | Mobile  | None        | None                  | Self-Custody
+| Zap Desktop    | Desktop | Full Node   | Neutrino              | Self-Custody
+| Electrum       | Desktop | Full Node   | Bitcoin Core/Electrum | Self-Custody
+| lnd            | Server  | Full Node   | Bitcoin Core/btcd     | Self-Custody
+| c-lightning    | Server  | Full Node   | Bitcoin Core          | Self-Custody
+| Eclair Server  | Server  | Full Node   | Bitcoin Core/Electrum | Self-Custody
 |===
 
 === Balancing complexity and control
@@ -214,7 +219,27 @@ There are several ways Alice can acquire bitcoin:
 * She can offer her skills or a product she sells and accepts payment in bitcoin
 * She can ask her employer or clients to pay her in bitcoin
 
+
 All of these methods have varying degrees of difficulty, and many will involve paying a fee. Some will also require Alice to provide identification documents to comply with local banking regulations. However, with all these methods, Alice will be able to receive bitcoin.
+
+[[testnet-bitcoin]]
+==== Testnet Bitcoin
+
+The Bitcoin system offers an alternative chain for testing purposes called a _testnet_, in contrast with the "normal" Bitcoin chain which is referred to as "mainnet". On testnet, the currency is _testnet bitcoin (TBTC)_, which is a worthless copy of bitcoin used exclusively for testing. Every function of Bitcoin is replicated exactly, but the money is worth nothing, so you literally have nothing to lose!
+
+Somme Lightning wallets can also operate on testnet, allowing you to make Lightning payments with testnet bitcoin, without risking real funds. This is a great way to experiment with Lightning safely. Eclair mobile, which Alice uses in this chapter, is one example of a Lightning wallet that supports testnet operation.
+
+You can get some TBTC to play with from a _testnet bitcoin faucet_, which gives out free TBTC on demand. Here are a few testnet faucets:
+
+https://coinfaucet.eu/en/btc-testnet/
+
+https://testnet-faucet.mempool.co/
+
+https://bitcoinfaucet.uo1.net/
+
+https://testnet.help/en/btcfaucet/testnet
+
+All of the examples in this book can be replicated exactly on testnet with TBTC, so you can try and follow along if you want without risking real money.
 
 ==== Receiving Bitcoin
 
