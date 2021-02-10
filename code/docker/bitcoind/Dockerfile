@@ -3,7 +3,7 @@ FROM ubuntu:20.04 AS bitcoind-base
 RUN apt update && apt install -yqq \
 	curl gosu jq bash-completion
 
-ENV BITCOIND_VERSION 0.20.0
+ENV BITCOIND_VERSION 0.21.0
 # Install binaries for Bitcoin Core
 ADD https://bitcoincore.org/bin/bitcoin-core-${BITCOIND_VERSION}/bitcoin-${BITCOIND_VERSION}-x86_64-linux-gnu.tar.gz /usr/local
 RUN cd /usr/local/ \

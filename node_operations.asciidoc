@@ -7,7 +7,7 @@ There are many reasons why you might want to set up your own Lightning node. The
 
 * To be a full, active participant in the Lightning Network, not just an end-user.
 * To run an e-commerce store or receive income via Lightning payments.
-* To earn income from Lightning routing fees.
+* To earn income from Lightning routing fees or by renting channel liquidity.
 * To develop new services, applications, or plugins for the Lightning Network.
 * To increase your financial privacy while using Lightning.
 * To use some apps built on top of Lightning, like Lightning-powered Instant Messaging apps.
@@ -20,6 +20,18 @@ But the skills you will learn from this experience are valuable and can be appli
 
 Let's get started!
 
+[NOTE]
+====
+It is important that one sets her or his own expectations correctly on accurate facts. 
+If one plans to operate a Lightning node _solely_ to gain income by earning routing fees, 
+please do your homework diligently first. Running a profitable business by operating a Lighning node is 
+definitely _not_ easy. Calculate all your initial and ongoing costs in a spreadsheet. Study Lightning Network statistics carefully. 
+What is the current payment volume? What is the volume per node? What are the current average routing fees? Consult forums and ask
+for advice or feedback from other community members who have already gained real-world experience. Form your own educated opinion only
+_after_ you have done this due-diligence exercise. Most people will find their motivation for running a node not in financial gain 
+but somewhere else.
+====
+
 === Choosing your platform
 
 There are many ways you can run a Lightning node ranging from a small mini-PC hosted in your home or a dedicated server to a hosted server in the cloud. The method you choose will depend on the resources you have and how much money you want to spend.
@@ -27,7 +39,7 @@ There are many ways you can run a Lightning node ranging from a small mini-PC ho
 
 ==== Why is reliability important for running a Lightning Node?
 
-In Bitcoin hardware is not particularly important unless one is specifically running a mining node.
+In Bitcoin, hardware is not particularly important unless one is specifically running a mining node.
 The Bitcoin Core node software can be run on any machine that meets its minimum requirements and does not need to be online to receive payments; only to send them.
 If a Bitcoin node goes down for an extended period of time, the user can simply reboot the node and once it connects to the rest of the network, it will re-sync the blockchain.
 
@@ -40,7 +52,9 @@ There are also the issues of hardware failure and loss of data. In Bitcoin, a ha
 In contrast, in Lightning the information about the user's channels, including the commitment transactions and revocation secrets, are not publicly known and are only stored on the individual user's hardware.
 Thus, software and hardware failures in the Lightning Network can easily result in loss of funds.
 
-==== What are the types of hardware Lightning Nodes?
+==== Types of hardware Lightning Nodes
+
+There are three main types of hardware Lightning nodes:
 
 * **General Purpose Computers**: a Lightning Network node can be run on a home computer or laptop running Windows, Mac OS, or Linux. Typically this is run alongside a Bitcoin node.
 * **Dedicated Hardware**: a Lightning Node can also be run on dedicated hardware like a Raspberry Pi, Rock64, or mini-PC. This setup would usually run a software stack including a Bitcoin node and other applications. This setup is popular as the hardware is dedicated to running and maintaining the Lightning node only and is usually set up with an installation "helper".
@@ -51,7 +65,7 @@ Thus, software and hardware failures in the Lightning Network can easily result 
 _Virtual Private Server_ (VPS) and "cloud computing" services such as Microsoft Azure, Google Cloud, Amazon Web Services (AWS), or DigitalOcean are quite affordable and can be set up very quickly. A Lightning node can be hosted for between $20 and $40 per month on such a service.
 
 However, as the saying goes, "'Cloud' is just other people's computers". Using these services means running your node on other people's computers. This brings along the corresponding advantages and disadvantages. The key advantages are convenience, efficiency, uptime, and possibly even cost. The cloud operator manages and runs the node to a high degree automatically providing you with convenience and efficiency. They provide excellent uptime and availability, often much better than what an individual can achieve at home. If you consider that just the electricity cost of running a server in many western countries is around $10 per month, then add to that the cost of network bandwidth and the hardware itself, the VPS offering becomes financially competetive. Lastly, with a VPS you need no space for a PC at home, and don't have any issues with PC noise or heat.
-On the other hand there are several notable disadvantages. A Lightning node running in the "cloud" will always be less secure and less private that one running on your own computer. Additionally, these cloud computing services are very centralized. The vast majority of Bitcoin and Lightning nodes running on such services are located in a handful of data centers in Virginia, Sunnyvale, Seattle, London, and Frankfurt. When the networks or data centers of these providers have service problems, it affects thousands of nodes on so-called "decentralized" networks.
+On the other hand there are several notable disadvantages. A Lightning node running in the "cloud" will always be less secure and less private than one running on your own computer. Additionally, these cloud computing services are very centralized. The vast majority of Bitcoin and Lightning nodes running on such services are located in a handful of data centers in Virginia, Sunnyvale, Seattle, London, and Frankfurt. When the networks or data centers of these providers have service problems, it affects thousands of nodes on so-called "decentralized" networks.
 
 If you have the possibility and capacity of running a node on your own computer at home or in your office, then this might be preferable to running it
 in the cloud. Nonetheless, if running your own server is not an option, by all means consider running one on a VPS.
@@ -61,10 +75,10 @@ in the cloud. Nonetheless, if running your own server is not an option, by all m
 If you have a reasonable capacity internet link at home or in your office, you can certainly run a Lightning node there. Any "broadband" connection is sufficient for the purpose of running a lightweight node, and a fast connection will allow you to run a Bitcoin full node too.
 
 While you can run a Lightning node (and even a Bitcoin node) on your laptop, it will become annoying quite fast. These programs consume your computer's resources and need to run 24/7. Your user applications like your browser or your spreadsheet will find themselves competing against the Lightning background services for your computer's resources. In other words, your browser and other desktop workloads will be slowed down.
-And when your word processing app freezes up your laptop, your Lightning node will go down as well. Furthermore, you should never turn off your laptop.
+And when your word processing app freezes up your laptop, your Lightning node will go down as well leaving you unable to receive transactions and potentially vulnerable to attacks. Furthermore, you should never turn off your laptop.
 All this combined together results in a set-up that is not ideal. The same will apply to your daily-use personal desktop PC.
 
-Instead, most users will choose to run a node on a dedicated computer. Fortunately, you don't need a "server" class computer to do this. You can run a Lightning node on a mini-PC, such as a Raspberry Pi or an Atom-based fanless PC. These are simple computers which are commonly used as a media server or home automation hub. They are relatively inexpensive, costing between $50 and $150 USD at that time of this writing. To run on a mini-PC, you will need an external USB hard drive, which again is relatively inexpensive, costing approximately $50 USD. The advantage of a dedicated mini-PC as a platform for Lightning and Bitcoin nodes is that it can run continuously, silently, and unobtrusively on your home WiFi network, tucked behind your router or TV. No one will even know that this little box is actually part of a global banking system!
+Instead, most users will choose to run a node on a dedicated computer. Fortunately, you don't need a "server" class computer to do this. You can run a Lightning node on a mini-PC, such as a Raspberry Pi or an Atom-based fanless PC. These are simple computers which are commonly used as a media server or home automation hub. They are relatively inexpensive, costing between $50 and $150 USD at the time of this writing. To run on a mini-PC, you will need an external USB hard drive, which again is relatively inexpensive, costing approximately $50 USD. The advantage of a dedicated mini-PC as a platform for Lightning and Bitcoin nodes is that it can run continuously, silently, and unobtrusively on your home network, tucked behind your router or TV. No one will even know that this little box is actually part of a global banking system!
 
 ==== What hardware is required to run a Lightning node?
 
@@ -74,9 +88,9 @@ At a minimum, the following will be required to run a Lightning Node:
 
 * **RAM**: a system with 2GB of RAM will _barely_ run both Bitcoin and Lightning nodes. It will perform much better with at least 4GB of RAM. The Initial Block Download will be especially challenging with less than 4GB of RAM. More than 8GB of RAM is unnecessary, because the CPU is the greater bottleneck for these types of services, due to cryptographic operations such as signature validation.
 
-* **Storage Drive**: this can be a Hard Drive or an Solid State Drive (SSD). An SSD will be significantly quicker for running a Bitcoin node. Most of the storage is used for the Bitcoin blockchain, which occupies more than 340GB (as of September 2020).
+* **Storage Drive**: this can be a Hard Drive or an Solid State Drive (SSD). An SSD will be significantly quicker for running a Bitcoin node. Most of the storage is used for the Bitcoin blockchain, which occupies more than 320GB (as of January 2021).
 
-* **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning peers. During operation the estimated data use ranges from 10GB to 100GB per month, depending on configuration. At startup a Bitcoin full node downloads the full blockchain, 340GB as of September 2020.
+* **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning peers. During operation the estimated data use ranges from 10GB to 100GB per month, depending on configuration. At startup a Bitcoin full node downloads the full blockchain, 324GB as of January 2021.
 
 * **Power Supply**: a reliable power supply is required as Lightning nodes need to be online at all times. A power failure will cause in-progress payments to fail. For heavy duty routing nodes, a backup or uninterruptible power supply (UPS) is useful in the case of power outages.
 Ideally, you should connect your Internet router to this UPS as well.
@@ -101,7 +115,7 @@ Traditional SATA-based SSDs are cheaper, but not as fast. SATA SSDs perform suff
 Smaller computers might not be able to take advantage of NVMe SSDs.
 For example, the Raspberry Pi 4 cannot benefit from them because of the limited bandwidth of its USB port.
 
-To choose the size, let's look at the Bitcoin blockchain. As of September 2020 its size is 340GB including the transaction index. If you want to have some margin available for future growth or to install other data on your node, purchase at least a 512GB drive or better yet a 1TB drive.
+To choose the size, let's look at the Bitcoin blockchain. As of January 2021 its size is 324GB including the transaction index and grows by roughly 60GB/year. If you want to have some margin available for future growth or to install other data on your node, purchase at least a 512GB drive or better yet a 1TB drive.
 
 === Using an installer or helper
 
@@ -109,11 +123,11 @@ Installing a Lightning node or a Bitcoin node may be daunting if you are not fam
 
 ==== RaspiBlitz
 
-One of the most popular and complete "helper" is _RaspiBlitz_, a project built by Christian Rootzoll. It is intended to be installed on a Raspberry Pi 4. RaspiBlitz comes with a recommended hardware "kit" that you can build in a matter of hours or at most a weekend. If you attend a Lightning "hackathon" in your city, you are likely to see many people working on their RaspiBlitz setup, swapping tips, and helping each other. You can find the RaspiBlitz project here:
+One of the most popular and complete "helper" is _RaspiBlitz_, a project built by Christian Rotzoll. It is intended to be installed on a Raspberry Pi 4. RaspiBlitz comes with a recommended hardware "kit" that you can build in a matter of hours or at most a weekend. If you attend a Lightning "hackathon" in your city, you are likely to see many people working on their RaspiBlitz setup, swapping tips, and helping each other. You can find the RaspiBlitz project here:
 
 https://github.com/rootzoll/raspiblitz
 
-image::[images/raspiblitz.jpg]
+image::images/raspiblitz.jpg[]
 
 In addition to a Bitcoin and Lightning node, RaspiBlitz can install a number of additional services, such as:
 
@@ -121,6 +135,7 @@ In addition to a Bitcoin and Lightning node, RaspiBlitz can install a number of 
 * ElectRS (Electrum Server in Rust)
 * BTCPayServer (Cryptocurrency Payment Processor)
 * BTC-RPC-Explorer (Bitcoin Blockchain Explorer)
+* Ride The Lightning (Lightning Node Management GUI)
 * LNbits (Lightning wallet/accounts System)
 * SpecterDesktop (Multisig Trezor, Ledger, Coldcard Wallet & Specter-DIY)
 * LNDmanage (Advanced Channel Management CLI)
@@ -130,7 +145,7 @@ In addition to a Bitcoin and Lightning node, RaspiBlitz can install a number of 
 
 ==== MyNode
 
-_MyNode_ is another popular open source "helper" project including a lot of Bitcoin related software. Is is easy to install: you "flash" the installer onto an SD card and boot your mini-PC from the SD card. You do not need any monitor to use myNode as the administrative tools are accessible remotely from a browser. If your mini-PC has no monitor, mouse, or keyboard, you can manage it from another computer or even from your smartphone. Once installed, go to http://mynode.local/ and create a Lightning wallet and node in two clicks.
+_MyNode_ is another popular open source "helper" project including a lot of Bitcoin related software. It is easy to install: you "flash" the installer onto an SD card and boot your mini-PC from the SD card. You do not need any monitor to use myNode as the administrative tools are accessible remotely from a browser. If your mini-PC has no monitor, mouse, or keyboard, you can manage it from another computer or even from your smartphone. Once installed, go to http://mynode.local/ and create a Lightning wallet and node in two clicks.
 
 You can find the MyNode project here:
 
@@ -142,6 +157,28 @@ In addition to a Bitcoin and Lightning node, MyNode can optionally install a var
 - VPN Support for remote management or wallet (OpenVPN)
 - lndmanage (CLI management tool)
 - btc-rpc-explorer (A Bitcoin blockchain explorer)
+
+==== Umbrel
+
+Famous for their UX/UI, _Umbrel_ provides a very easy and accessible way to get your Bitcoin and Lightning node up and running in no time, especially for beginners. A very distinctive feature is that _Umbrel_ utilizes Neutrino/SPV during the IBD (Inital Blockchain Download) so you can instantly start using your node. Once Bitcoin Core is fully synced in the background it automatically switches over and disables SPV mode. Umbrel OS supports the Raspberry Pi 4 and can also be installed on any Linux-based OS or on a virtual machine on macOS or Windows. You can also connect any wallet that supports Bitcoin Core P2P, Bitcoin Core RPC, the Electrum protocol or lndconnect.
+
+No need to wait for a rainy day, you can find the project here: https://getumbrel.com
+
+image::images/umbrel.png[]
+
+In addition to a Bitcoin and Lightning node, Umbrel introduced the Umbrel App Store, where you can easily install additional services, such as:
+
+* Lightning Terminal (Interface for managing channel liquidity, loop-in & loop-out)
+* Ride The Lightning (Lightning Node Management GUI)
+* Specter Desktop (watch-only coordinator for multi-signature and single-key Bitcoin wallets)
+* BTCPayServer (Cryptocurrency Payment Processor)
+* BTC-RPC-Explorer (Bitcoin Blockchain Explorer)
+* ThunderHub (Monitor and manage your node)
+* Sphinx Relay (Handling connectivity and storage for Sphinx chat)
+* mempool.space (Mempool visualizer and block explorer)
+* LNbits (Lightning wallet/accounts System)
+
+Currently still in beta and not considered secure.
 
 ==== BTCPay Server
 
@@ -181,7 +218,7 @@ The bottom line for this decision is: If you can afford a disk larger than 500GB
 
 ==== Operating system choice
 
-The next step is to select an operating system for your nodes. The vast majority of internet servers run on some variant of Linux. Linux is the platform of choice for the internet because it is a powerful, open-source operating system. Linux, however, has a steep learning curve and requires familiarity with a command-line environment. It is often intimidating for new users.
+The next step is to select an operating system for your node. The vast majority of internet servers run on some variant of Linux. Linux is the platform of choice for the internet because it is a powerful, open-source operating system. Linux, however, has a steep learning curve and requires familiarity with a command-line environment. It is often intimidating for new users.
 
 Ultimately, most of the services can be run on any modern POSIX operating system, which includes Mac OS, Windows, and of course Linux. Your choice should be driven more by your familiarity and comfort with an operating system and your learning objectives. If you want to expand your knowledge and learn how to operate a Linux system, this is a great opportunity to do so with a specific project and a clear goal. If you just want to get a node up and running, go with what you know.
 
@@ -222,7 +259,7 @@ You decided not to use an installation "helper" and instead to dive into the com
 
 [WARNING]
 ====
-This section will delve into the advanced topic of system administration from the command-line. You will need to do additional research and learn more skills not covered here. Linux administration is a complicated topic and there are many pitfalls. Proceed with caution!
+This section will delve into the advanced topic of system administration from the command-line. Linux administration is it’s own skill set that is outside the scope of this book. It is a complicated topic and there are many pitfalls. Proceed with caution!
 ====
 
 In the next few sections we will briefly describe how to install and configure a Bitcoin and Lightning node on a Linux operating system. You will need to review the installation instructions for the specific Bitcoin and Lightning node applications you decided to use. You can usually find these in a file called +INSTALL+ or in the +docs+ sub-directory of each project. We will only describe some of the common steps that apply to all such services, and the instructions we offer will be necessarily incomplete.
@@ -242,10 +279,10 @@ In addition, if you have connected an external drive, you will need to tell the 
 On most Linux systems you can create a new user with the +useradd+ command, like this:
 
 ----
-$ sudo useradd -d /external_drive/bitcoin -s /dev/null bitcoin
+$ sudo useradd -m -d /external_drive/bitcoin -s /dev/null bitcoin
 ----
 
-The +d+ flag assigns the user's home directory. In this case, we put it on the external drive. The +s+ flag assigns the user's interactive shell. In this case we set it to +/dev/null+ to disable interactive shell use. The last argument is the new user's username +bitcoin+.
+The +m+ and +d+ flags create the user's home directory as specified by /external_drive/bitcoin in this case. The +s+ flag assigns the user's interactive shell. In this case we set it to +/dev/null+ to disable interactive shell use. The last argument is the new user's username +bitcoin+.
 
 ==== Node startup
 
@@ -351,7 +388,7 @@ rpcpassword=PASSWORD
 
 Even the +txindex+ option is not strictly necessary, though it will ensure your Bitcoin node creates an index of all transactions, which is required for some applications. The +txindex+ option is not required to run a Lightning node.
 
-A c-lightning Lightning node running on the same server also only requires a few lines in the configuration:
+A c-lightning Lightning node running on the same server also requires only a few lines in the configuration:
 
 ----
 network=mainnet
@@ -395,7 +432,7 @@ https://www.whatismyip.com/port-scanner/
 By default, these services only allow you to check incoming connections to the IP address from which you are connecting. This is done to prevent you from using the service to scan other people's networks and computers. You will see your router's external IP address and a field for entering a port number. If you haven't changed the default ports in your node configuration, try port 8333 (Bitcoin) and/or 9735 (Lightning).
 
 [[ln_port_check]]
-. Checking for incoming port 9735
+.Checking for incoming port 9735
 image::images/ln_port_check.png[]
 
 In <<ln_port_check>> you can see the result of checking port 9735 on a server running Lightning, using the +whatismyip.org+ port scanner tool. It shows that the server is accepting incoming connections to the Lightning port. If you see a result like this, you are all set!
@@ -464,7 +501,7 @@ Once done reconfiguring, repeat the port check using one of the websites from th
 
 === Security of your node
 
-A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access.
+A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory or stored on the node's hard disk. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access.
 
 Security is a holistic effort, meaning that you have to secure every layer of a system. As the saying goes: the chain is only as strong as the weakest link. This is an important concept in information security and we will apply it to our node.
 
@@ -477,111 +514,112 @@ Securing an operating system is a vast topic that is beyond the scope of this bo
 
 To secure your operating system, here are some of the top items to consider:
 
-. Provenance - Start by ensuring that you are downloading the correct operating system image and verify any signatures or checksums before installing it.
+. Provenance - Start by ensuring that you are downloading the correct operating system image and verify any signatures or checksums before installing it. Extend this to any software that you install. Double-check any source or URL from where you download. Verify the integrity and correctness of the downloaded software via signature and checksum verification.
 . Maintenance - Make sure that you keep your operating system up to date. Enable automated daily or weekly installation of security updates.
 . Least Privilege - Set up users for specific processes and give them the least access needed to run a service. Do not run processes with admin privileges (e.g. root).
 . Process Isolation - Use the operating system features to isolate processes from each other.
 . File System Permissions - Configure the file system carefully, on the least-privilege principle. Do not make files readable or writeable by everyone.
-. Strong Authentication - Use strong randomly generated passwords, or whenever possible public-key authentication e.g. with Secure Shell (SSH) instead of passwords.
-. Two-factor Authentication (2FA) - Use two-factor authentication wherever possible, including Universal 2-Factor (U2F) with hardware security keys.
-. Backup - Make backups of your system, but make sure you protect the backups with encryption too.
+. Strong Authentication - Use strong randomly generated passwords or, whenever possible, public-key authentication. E.g. it is safer to use Secure Shell (SSH) with a cryptographic key pair instead of a password.
+. Two-factor Authentication (2FA) - Use two-factor authentication wherever possible, including Universal 2-Factor (U2F) with hardware security keys. This applies to all external services you might be using such as your cloud service provider. But you can apply this also to your own set-up such as your own SSH configuration. Use 2FA also for indirect services. Say you are using a cloud service. You gave your cloud service provider an email address. Also protect your email address with 2FA.
+. Backup - Make backups of your system, but make sure you protect the backups with encryption too. Perform these backups periodically. At least once test if you can restore your backup and that your backup is complete and accessible. If possible, keep one copy of your backups on a different disk to avoid that a single hard disk failure destroys _both_ your active node as well as your backup copies. 
 . Vulnerability & Exposure Management - Use remote scanning to ensure you have minimized the attack surface of your system. Close any unnecessary services or ports.
+- Minimize - Install only software and packages that you really need and use. Uninstall packages that you no longer use. It is recommended that you do _not_ use your node computer for non-node activities that you can perform on another of your computers. Especially, if you can, do _not_ use your node computer for browsing, surfing the internet, or reading your email.
 
-This is a list of basic security measures, not an exhaustive list.
+This is a list of the most basic security measures. It is by no means exhaustive.
 
 ==== Node Access
 
-Your Lightning node will expose a Remote Procedure Call (RPC) Application Programming Interface (API). This means that your node can be controlled by commands sent to a specific TCP port. Control of that RPC API is achieved by some form of user authentication. Depending on the type of Lightning node you set up, this will either be done by username/password authentication, or by a mechanism called an authentication _macaroon_. A macaroon is a more sophisticated type of cookie, as the name implies. Unlike a cookie, it is cryptographically signed and can express a set of access capabilities.
+Your Lightning node will expose a Remote Procedure Call (RPC) Application Programming Interface (API). This means that your node can be controlled remotely by commands sent to a specific TCP port. Access control to that RPC API is achieved by some form of user authentication. Depending on the type of Lightning node you set up, this will either be done by username/password authentication or by a mechanism called an authentication _macaroon_. As the name implies, a macaroon is a more sophisticated type of cookie. Unlike a cookie, it is cryptographically signed and can express a set of access capabilities.
 
-For example, LND uses macaroons to grant access to the RPC API. By default the LND software creates three macaroons with different levels of access, called +admin+, +invoice+ and +readonly+. Depending on which macaroon you copy and use in your RPC client, you either have "readonly" access, "invoice" access (which includes the "readonly" capabilities), or "admin" access which gives you full control. There's also a macaroon "bakery" function in LND that can construct macaroons with any combination of capabilities with very fine-grained control.
+For example, LND uses macaroons to grant access to the RPC API. By default, the LND software creates three macaroons with different levels of access, called +admin+, +invoice+, and +readonly+. Depending on which macaroon you copy and use in your RPC client, you either have "readonly" access, "invoice" access (which includes the "readonly" capabilities), or "admin" access which gives you full control. There is also a macaroon "bakery" function in LND that can construct macaroons with any combination of capabilities with very fine-grained control.
 
-If you use a username/password authentication model, make sure you select a long and random password. You will not have to type this password often as it will be stored in the configuration files. You can therefore pick one that cannot be guessed. Many of the examples you will see include poorly chosen passwords and often people copy these into their own systems, giving an easy backdoor to anyone. Don't do that. Use a password manager to generate a random alpha-numeric password. Since certain special characters can interfere with the command line (e.g. $/!*\&%), it is best to avoid them for passwords that will be used in a shell environment and may end up being passed as command-line parameters.
+If you use a username/password authentication model, make sure you select a long and random password. You will not have to type this password often as it will be stored in the configuration files. You should therefore pick one that cannot be guessed. Many of the examples you will see include poorly chosen passwords, and often people copy these into their own systems, proving easy access to anyone. Don't do that! Use a password manager to generate a long random alpha-numeric password. Since certain special characters such as these +$?/!*\&%`"'+ can interfere with the command line, it is best to avoid those for passwords that will be used in a shell environment. To avoid problems stick with long random alpha-numeric password.
 
-A plain alphanumeric sequence that is longer than 12 characters and randomly generated is usually sufficient. If you plan to store large amount of money on your Lightning node and are concerned about remote brute-force attacks, select a length of more than 20 characters that makes such attacks practically infeasible.
+A plain alphanumeric sequence that is longer than 12 characters and randomly generated is usually sufficient. If you plan to store large amounts of money on your Lightning node and are concerned about remote brute-force attacks, select a password length of more than 20 characters to make such attacks practically infeasible.
 
 === Node and channel backups
 
-A very important consideration when running a Lightning node is the issue of backups. Unlike a Bitcoin wallet, where a BIP39 mnemonic phrase can recover all the state of the wallet, in Lightning this is not sufficient.
+A very important consideration when running a Lightning node is the issue of backups. Unlike a Bitcoin wallet, where a BIP39 mnemonic phrase can recover all the state of the wallet, in Lightning this is _not_ the case.
 
-Lightning wallets do use a BIP39 mnemonic phrase backup for the on-chain wallet. However, due to the way channels are constructed, the mnemonic phrase is not sufficient to restore a Lightning node. An additional layer of backup is needed, which is called the _Static Channel Backup (SCB)_. Without a SCB, a Lightning node operator may lose all the funds that are in channels if they lose the Lightning node data store.
+Lightning wallets do use a BIP39 mnemonic phrase backup, but only for the on-chain wallet. However, due to the way channels are constructed, the mnemonic phrase is _not_ sufficient to restore a Lightning node. An additional layer of backups is needed, which is called the _Static Channel Backup (SCB)_. Without an SCB, a Lightning node operator may lose _all_ the funds that are in channels if they lose the Lightning node data store.
 
 [WARNING]
 ====
-Do not fund channels until you have created a system to continuously backup your channel state. Your backups should be moved "offsite" to a different system and location from your node, so that they can survive a variety of system failures (power loss, data corruption etc.) or natural disasters (flood, fire etc.)
+Do _not_ fund channels until you have put a system in place to continuously backup your channel state. Your backups should be moved "offsite" to a different system and location from your node, so that they can survive a variety of system failures (power loss, data corruption, etc.) or natural disasters (flood, fire, etc.).
 ====
 
-Static Channel Backups are not a panacea. First, the state of each channel needs to be backed up every time there is a new commitment transaction. Second, restoring from a channel backup is dangerous. If you do not have the _last_ commitment transaction and you accidentally broadcast an old (revoked) commitment, your channel peer will assume you are trying to cheat and take the entire channel balance with a penalty transaction. To make sure you are closing the channel, you need to do a cooperative close. But a malicious peer could mislead your node into broadcasting an old commitment during that cooperative close, thereby cheating you by making your node inadvertently try to "cheat".
+Static Channel Backups are not a panacea. First, the state of each channel needs to be backed up every time there is a new commitment transaction. Second, restoring from a channel backup is dangerous. If you do not have the _last_ commitment transaction and you accidentally broadcast an old (revoked) commitment, your channel peer will assume you are trying to cheat and claim the entire channel balance with a penalty transaction. To make sure you are closing the channel, you need to do a _cooperative close_. But a malicious peer could mislead your node into broadcasting an old, revoked commitment during that cooperative close, thereby cheating you by making your node inadvertently try to "cheat".
 
-Additionally, the backups of your channels need to be encrypted to maintain your privacy and your channel security. Otherwise, anyone who finds the backups can not only see all your channels, they could use the backups to close all your channels in a way that hands over the balance to your channel peers.
+Furthermore, the backups of your channels need to be encrypted to maintain your privacy and your channel security. Otherwise, anyone who finds the backups can not only see all your channels, they could use the backups to close all your channels in a way that hands over the balance to your channel peers. In other words, a malicious person that gets access to your backups can cause you to lose all your channel funds.
 
-SCB are therefore a weak compromise because they swap one type of risk (data corruption or loss) for another type of risk (malicious peer). To restore from a static channel backup, you have to interact with your channel peers and hope they don't try to cheat (either by giving you an old commitment, or by fooling your node into broadcasting a revoked commitment so they can penalize you). Ultimately, this is less of a risk than the risk of losing all funds committed to a channel because of data corruption. Since data corruption leads to the same outcome as if every one of your peers cheat, you are better off backing up and taking the chance that some of your peers will act honestly.
+You can see that SCBs are not a fool-proof safeguard. They are a weak compromise because they swap one type of risk (data corruption or loss) for another type of risk (malicious peer). To restore from a static channel backup, you have to interact with your channel peers and hope they don't try to cheat you by either giving you an old commitment or by fooling your node into broadcasting a revoked commitment so they can penalize you. Despite the weaknesses of SCB, SCBs do make sense and you should perform them. If you do not perform SCBs and you lose your node data, you lost your channel funds forever. Guaranteed! However, if you _do_ perform SCBs and you lose your node data, then you have a reasonable chance that some of your peers are honsest and that you can recuperate some of your channel funds. If you are lucky, you might recover all your funds. In conclusion, it is best for you to perform continuous Static Channel Backups to a disk other than the primary node hard disk.
 
 Channel backup mechanisms are still a work-in-progress and a weakness in most Lightning implementations.
 
 ==== Static Channel Backups (SCB)
 
-At the time of writing this book, only LND offers a built-in mechanism for channel backups. Eclair has no backup on the server side, although Eclair mobile does offer optional backup to a Google Drive. C-lightning recently merged the necessary interfaces for a plugin to implement channel backups, but there is no agreed on backup mechanism.
+At the time of writing this book, only LND offers a built-in mechanism for channel backups. Eclair has no backup on the server side, although Eclair mobile does offer optional backup to a Google Drive. C-lightning recently merged the necessary interfaces for a plugin to implement channel backups. Unfortunately, there is no consistent, agreed upon backup mechanism across different node implementations.
 
-File-based backups of the Lightning node databases are  partial solution, but you run the risk of data corruption because those backups may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, ensuring data consistency.
+File-based backups of the Lightning node databases are at best a partial solution because you run the risk of backing up an inconsistent database state. In addition, you may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, thereby ensuring data consistency.
 
-To set up static channel backups in LND, set the +backupfilepath+ parameter, either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only part of the solution. Now, you have to setup a mechanism that copies that file off-site each time it changes, which is beyond the scope of this book. Any sophisticated backup solution should be able to handle this.
+To set up static channel backups in LND, set the +backupfilepath+ parameter either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to setup a mechanism that monitors this file for changes. Each time the file changes the backup mechanism must copy this file to another, possibly "off-site" disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this sceanrio. Recall, the backup files should be encrypted too.
 
 ==== Hot wallet risk
 
-As we've discussed previously, the Lightning Network consists of a network of _hot wallets_. The funds you store in a Lightning wallet are *online all the time*. You should not store large amounts in a Lightning wallet, as it is quite vulnerable. Large amounts should be kept in a cold wallet that is not online and transacts on-chain.
+As we've discussed previously, the Lightning Network consists of a network of _hot wallets_. The funds you store in a Lightning wallet are *online all the time*. This makes them vulnerable. Hence, you should not store large amounts in a Lightning wallet. Large amounts should be kept in a _cold_ wallet that is _not_ online and can transact only on-chain.
 
-But given that warning, you may still find you have a significant amount of money in a Lightning wallet. Such is the case for example if you use a Lightning node for e-commerce operations like running a shop, while not having significant expenses you can pay on Lightning. If that is the case, your wallet will likely receive funds often but send funds rarely. You will therefore have two problems simultaneously: Your channels will be imbalanced inwards (more local balance than remote balance) and you will have too much money in the wallet. Fortunately, you can solve both of these problems simultaneously.
+Even if you start small, as time passes you may still find you have a significant amount of money in a Lightning wallet. This is a typical scenario for store owners. If you use a Lightning node for an e-commerce operations, your wallet will likely receive funds often but send funds rarely. You will therefore end up having two problems simultaneously: First, your channels will be imbalanced with large local balances outweighing small remote balances. Secondly, you will have too much money in the wallet. Fortunately, you can solve both of these problems simultaneously.
 
-Let's look at some of the solutions you can use to reduce the funds exposed on a hot wallet.
+Let's look at some of the solutions you can use to reduce the funds exposed in a hot wallet.
 
 ==== Sweeping funds
 
-If you Lightning wallet balance becomes too large for your risk appetite, you will need to "sweep" funds out of the wallet. You can do so in three ways: on-chain, off-chain, and loop-out. Let's look at each of those in the next few sections.
+If your Lightning wallet balance becomes too large for your risk tolerance, you will need to "sweep" funds out of the wallet. You can do so in three ways: on-chain, off-chain, and loop-out. Let's look at each one of these options in the next few sections.
 
 ===== On-chain sweep
 
-Sweeping funds on-chain, is accomplished moving the funds from the Lightning wallet to a Bitcoin wallet (presumably a more secure hardware wallet or cold storage). You do that by closing channels. When you close a channel, all funds from your local balance are "swept" to a Bitcoin address. The Bitcoin address for on-chain funds is usually generated by your Lightning wallet so it is still a hot-wallet. You may need to do an additional transaction to move the funds to a more secure address, such as one generated on your hardware wallet.
+Sweeping funds on-chain is accomplished by moving the funds from the Lightning wallet to a presumably more secure Bitcoin wallet such as a hardware wallet or cold storage. You do that by closing channels. When you close a channel, all funds from your local balance are "swept" to a Bitcoin address. The Bitcoin address for on-chain funds is usually generated by your Lightning wallet. So it is still a hot-wallet. You may need to do an additional on-chain transaction to move the funds to a more secure address, such as one generated on your hardware wallet.
 
-Closing channels will incur an on-chain fee and will reduce your Lightning node's capacity and connectivity. However, if you run a popular e-commerce node you will not lack incoming capacity and can strategically close channels with large local balances, essentially "batching" your funds for movement on-chain. You may need to use some channel re-balancing techniques (see <<channel_rebalancing>>) before you close channels to maximize the benefit of this strategy.
+Closing channels will incur an on-chain fee and will reduce your Lightning node's capacity and connectivity. However, if you run a popular e-commerce node you will not lack incoming capacity and can strategically close channels with large local balances, essentially "bundling" your funds for movement on-chain. You may need to use some channel re-balancing techniques (see <<channel_rebalancing>>) before you close channels to maximize the benefit of this strategy.
 
 ===== Off-chain sweep
 
-Another technique you can use involves running a second Lightning node that is not advertised on the network. You can establish large capacity channels from your public node (e.g. the one running you shop) to your less-public (hidden) node. On a regular basis, "sweep" funds by making a Lightning payment to your hidden node.
+Another technique you can use involves running a second Lightning node that is not advertised on the network. You can establish large capacity channels from your public node (e.g. the one running your shop) to your unadvertised (hidden) node. On a regular basis, "sweep" funds by making a Lightning payment to your hidden node.
 
-The avantage of this technique lies in the fact that the Lightning node that receives payments for your shop will be publicly known. This makes it a target for hackers, as any Lightning node associated with a shop would be assumed to have large amounts of money in its balance. A second node that is not associated with your shop will not easily be identified as a valuable target.
+The advantage of this technique lies in the fact that the Lightning node that receives payments for your shop will be publicly known. This makes it a target for hackers, as any Lightning node associated with a shop would be assumed to have a large balance. A second node that is not associated with your shop will not easily be identified as a valuable target.
 
-As an additional measure of security, you can make your second node a hidden TOR service, so that it's IP address is not known. That further reduces the opportunity for attack and increases your privacy.
+As an additional measure of security, you can make your second node a hidden TOR service so that its IP address is not known. That further reduces the opportunity for attacks and increases your privacy.
 
-You will need to setup a script that runs at regular intervals that creates an invoice on your hidden node and then pays that invoice from your shop node, thereby shifting the funds over to your hidden node.
+You will need to set up a script that runs at regular intervals. The purpose of this script is to creates an invoice on your hidden node and to pay that invoice from your shop's node, thereby shifting funds over to your hidden node.
 
-Keep in mind that this technique does not move funds into cold storage. Both Lightning nodes are hot wallets. The effect of this is to move funds from a very well known hot wallet to an obscure hot wallet.
+Keep in mind that this technique does not move funds into cold storage. Both Lightning nodes are hot wallets. The objective of this sweep is to move funds from a very well known hot wallet to an obscure hot wallet.
 
 ===== Submarine swap sweep
 
-Another way to reduce your Lightning hot-wallet balance is to use a technique called a _submarine swap_. Submarine swaps, conceptualized by co-author Olaoluwa Osuntokun and Alex Bosworth, allow on-chain Bitcoin to be exchanged for Lightning payments and vice versa.
+Another way to reduce your Lightning hot-wallet balance is to use a technique called a _submarine swap_. Submarine swaps, conceptualized by co-author Olaoluwa Osuntokun and Alex Bosworth, allow the exchange of on-chain bitcoin for Lightning payments and vice versa.
 
-A node operator can initiate a submarine swap and send all available channel balance to the other party, who will then send them on-chain Bitcoin in exchange.
+A node operator can initiate a submarine swap and send all available channel balances to the other party who will send them as a result on-chain bitcoin in exchange.
 
 In the future this could be a paid service offered by nodes on the Lightning Network who advertise exchange rates or charge a flat fee for the conversion.
 
-The advantage of a submarine swap for sweeping funds is that we do not close a channel. That means that we preserve our channel capacity and re-balance our channels through this operation. As we send a Lightning payment out, we shift balance from local to remote on one or more of our channels. Not only does that reduce the balance exposed in our node's hot wallet, it also increases the balance available for future incoming payments.
+The advantage of a submarine swap for sweeping funds is that no channel needs to be closed. That means that we preserve our channels and only re-balance our channels through this operation. As we send a Lightning payment out, we shift some balance from local to remote on one or more of our channels. Not only does that reduce the balance exposed in our node's hot wallet, it also increases the balance available for future incoming payments.
 
-Now, you could do this by trusting the intermediary to act as a gateway for your funds and not steal them. But in the case of a submarine swap, the operation does not require trust. Submarine swaps are non-custodial _atomic_ operations. That means that the intermediary cannot steal your funds, because the on-chain payment depends on the completion of the off-chain payment and vice-versa. We will discuss submarine swaps in more detail in <<submarine_swaps>>.
+You could do this by trusting an intermediary to act as a gateway for your funds and not steal them. But in the case of a submarine swap, the operation does not require trust. Submarine swaps are non-custodial _atomic_ operations. That means that the counterparty in your submarine swap cannot steal your funds because the on-chain payment depends on the completion of the off-chain payment and vice-versa. We will discuss submarine swaps in more detail in <<submarine_swaps>>.
 
 ===== Submarine swaps with Loop
 
-One example of a submarine swap service is _Loop_ by Lightning Labs, the company that builds the LND Lightning node. Loop comes in two variations: _Loop In_, which accepts a Bitcoin on-chain payment and converts it into a Lightning off-chain payment and _Loop Out_, which converts a Lightning payment to a Bitcoin payment.
+One example of a submarine swap service is _Loop_ by Lightning Labs, the company that builds the LND Lightning node. Loop comes in two variations: _Loop In_ and _Loop Out_. _Loop In_ accepts a Bitcoin on-chain payment and converts it into a Lightning off-chain payment. _Loop Out_ converts a Lightning payment into a Bitcoin payment.
 
 [NOTE]
 ====
-To use Loop, you must be running an LND Lightning node.
+To use the _Loop_ service you must be running an LND Lightning node.
 ====
 
-For the purpose of reducing the balance of our Lightning hot wallet, we would use the Loop Out service. To use the Loop service, we need to install some additional software on our node. The Loop software runs alongside your LND node and provides some command-line tools to execute submarine swaps. You can find the Loop software and installation instructions here:
+For the purpose of reducing the balance of your Lightning hot wallet, you would use the Loop Out service. To use the Loop service, you need to install some additional software on your node. The Loop software runs alongside your LND node and provides some command-line tools to execute submarine swaps. You can find the Loop software and installation instructions here:
 
 https://github.com/lightninglabs/loop
 
-Once you have the software installed and running, a Loop-Out operation is as simple as running a single command:
+Once you have the software installed and running, a Loop Out operation is as simple as running a single command:
 
 ----
 loop out --amt 501000 --conf_target 400
@@ -605,35 +643,47 @@ Note that your maximum fee, which represents a worst-case scenario, will depend 
 
 === Lightning node uptime and availability
 
-Unlike Bitcoin, Lightning nodes need to be online almost continuously. Your node needs to be online to receive payments, open channels, close channels (cooperatively) and monitor protocol violations. Node availability is such an important requirement in the Lightning Network, that it is a metric used by various automatic channel management tools (e.g. autopilot) to decide with which nodes to open channels. You can even see "availability" as a node metric on popular node explorers such as +1ml.com+.
+Unlike Bitcoin, Lightning nodes need to be online almost continuously. Your node needs to be online to receive payments, open channels, close channels (cooperatively), and monitor protocol violations. Node availability is such an important requirement in the Lightning Network that it is a metric used by various automatic channel management tools (e.g. +autopilot+) to decide with which nodes to open channels. You can also see "availability" as a node metric on popular node explorers (see <<ln_explorer>>) such as +1ml.com+.
 
-Node availability is especially important because of potential protocol violations (i.e. revoked commitments). While you can afford short interruptions (hour or days), you cannot have your node offline for longer periods of time without risking loss of funds.
+Node availability is especially important to mitigate and resolve potential protocol violations (i.e. revoked commitments). While you can afford short interruptions from an hour up to one or two days, you cannot have your node offline for longer periods of time without risking loss of funds.
 
-Keeping a node online is not easy, as various bugs and resource limitations will occasionally cause downtime. Especially if you run a busy and popular node, you will run into limitations of memory, swap space, number of open files, disk space etc. A whole host of different problems will cause your node or your server to crash.
+Keeping a node online continuously is not easy, as various bugs and resource limitations can and will occasionally cause downtime. Especially if you run a busy and popular node, you will run into limitations of memory, swap space, number of open files, disk space, and so forth. A whole host of different problems will cause your node or your server to crash.
+
+==== Tolerate faults and automate
+
+If you have the time and skills you should test some basic fault scenarios on the Lightning testnet. On the testnet you will learn valuable lessons without risking any funds. Any step you perform to automate your system will improve your availability.
+
+- Automatic computer server restart: What happens when your server or the operating system crashes? What happens when there is a power outage? Simulate this fault by pressing the "reset" button on your PC or by unplugging the power cable. After crash, reset, or power failure the computer should automatically restart itself. Some computers have a setting in their BIOS to specify how the computer should react on power failures. Test it to make sure the computer really restarts automatically on power failure without human intervention. 
+
+- Automatic node restart: What happens when your node or one of your nodes crashes? Simulate this fault by killing the corresponding node processes. If a node crashes it should automatically restart itself. Test it to make sure the node or nodes really restart automatically on failure without human intervention. If this is not the case, most likely your node is not set up correctly as an operating system service.
+
+- Automatic network reconnection: What happens if your network goes down? What happens when your ISP goes temporarily down? What happens when your ISP assigns a new IP address to your router or your computer? When the network comes back, does the node or do the nodes automatically reconnect to the network? Simulate this fault by unplugging and later re-plugging the Ethernet cable from and to your PC. The nodes should automatically reconnect and continue operation without human intervention.
+
+- Configure your log files: All of the above failures should leave textual entries behind in the corresponding log files. Turn up the verbosity of logging if needed. Find these error entries in the log files and use them for monitoring. 
 
 ==== Monitoring node availability
 
 Monitoring your node is an important part of keeping it running. You need to monitor not only the availability of the computer itself, but also the availability and correct operation of the Lightning node software.
 
-There are a number of ways to do this, but most require some customization. You can use generic infrastructure monitoring or application monitoring tools, but you have to customize them specifically to query the Lightning node API, to ensure it is running, synchronized to the blockchain and connected to channel peers.
+There are a number of ways to do this, but most require some customization. You can use generic infrastructure monitoring or application monitoring tools, but you have to customize them specifically to query the Lightning node API to ensure the node is running, synchronized to the blockchain, and connected to channel peers.
 
-There is a specialized service that offers Lightning node monitoring, using a Telegram bot to notify you of any interruptions in service. This is a free service, though you can pay (over Lightning of course) to get faster alerts. Find more information at:
+There is a specialized service that offers Lightning node monitoring. It uses a Telegram bot to notify you of any interruptions in service. This is a free service, though you can pay (over Lightning of course) to get faster alerts. Find more information at:
 
 https://lightning.watch
 
-Over time, we expect more third-party services to provide specialized Lightning node monitoring, most likely charging a micro-payment. Perhaps such services and their APIs will become standardized and be directly supported by Lightning node software.
+Over time, we expect more third-party services to provide specialized Lightning node monitoring payable via micro-payments. Perhaps such services and their APIs will become standardized and will one day be directly supported by Lightning node software.
 
 ==== Watchtowers
 
-Watchtowers are a mechanism for outsourcing the monitoring and penalty resolution of Lightning protocol violations.
+_Watchtowers_ are a mechanism for outsourcing the monitoring and penalty resolution of Lightning protocol violations.
 
 As we mentioned in previous chapters, the Lightning protocol maintains security through a penalty mechanism. If one of your channel partners broadcasts an old commitment transaction, your node will need to exercise the revocation clause and broadcast a penalty transaction to avoid losing money. But if your node is down during the protocol violation, you might lose money.
 
-To solve this problem, we can use one or more _watchtowers_ to outsource the job of monitoring protocol violations and issuing penalty transactions. There are two parts to a watchtower setup: a watchtower server (or simply "watchtower") that monitors the blockchain and a watchtower client that asks the watchtower server for monitoring service.
+To solve this problem, we can use one or more _watchtowers_ to outsource the job of monitoring protocol violations and issuing penalty transactions. There are two parts to a watchtower setup: a watchtower server (or simply "watchtower") that monitors the blockchain and a watchtower client that asks the watchtower server for this monitoring service.
 
-Watchtower technology, is still in the early stages of development and is not widely supported. However there are some experimental implementations that you can try, below.
+Watchtower technology is still in the early stages of development and is not widely supported. However, below we list some experimental implementations that you can try.
 
-LND can run both a watchtower server and a watchtower client. You can activate the watchtower server by adding the following configuration options:
+LND software includes both a watchtower server and a watchtower client. You can activate the watchtower server by adding the following configuration options:
 
 ----
 [watchtower]
@@ -673,78 +723,79 @@ OPTIONS:
 
 C-lightning has the API hooks necessary for a watchtower client plugin, though no such plugin has been implemented yet.
 
-Finally, a popular standalone watchtower server is The Eye of Satoshi (TEOS), which can be found here:
+Finally, a popular standalone watchtower server is _The Eye of Satoshi_ (TEOS). It can be found here:
 
 https://github.com/talaia-labs/python-teos
 
 === Channel management
 
-As a Lightning node operator, one of the recurring tasks you will need to perform is management of your channels. This means opening outbound channels from your node to other nodes, as well as getting other nodes to open inbound channels to your node. In the future, cooperative channel construction may be possible, so you can open symmetric channels that have funds committed on both ends. For now however, new channels only have funds on one end - on the originator's side. So to make your node _balanced_ with both inbound and outbound capacity, you need to open channels to others and entice others to open channels towards your node.
+As a Lightning node operator, one of the recurring tasks you will need to perform is management of your channels. This means opening outbound channels from your node to other nodes, as well as getting other nodes to open inbound channels to your node. In the future, cooperative channel construction may be possible, so you can open symmetric channels that have funds committed on both ends on creation. For now, however, new channels only have funds on one end, on the originator's side. Hence, to make your node _balanced_ with both inbound and outbound capacity, you need to open channels to others and entice others to open channels to your node.
 
 ==== Opening outbound channels
 
 As soon as you get your Lightning node up and running, you can fund its Bitcoin wallet and then start opening channels with those funds.
 
-This task can be automated, somewhat, with the use of an _autopilot_, which is software that opens channels automatically based on some heuristic rules. Autopilot software is still relatively new and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
+This task can be partially automated with the use of an _autopilot_, which is a software module that opens channels automatically based on some heuristic rules. Autopilot software is still in its infancy and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
 
-You must choose channel partners carefully, as your node's ability to send payments depends on who your channel partners are and how well connected they are to the rest of the Lightning Network. You also want to have more than one channel - so your node isn't susceptible to single point of failure. Since Lightning now supports multi-path payments, you can split your initial funds into several channels and route bigger payments by combining their capacity. Don't make your channels too small, however. Since you need to pay Bitcoin transaction fees to open and close a channel, the channel balance should not be so small that the on-chain fees consume a big portion. It's all about balance!
+You must choose channel partners carefully as your node's ability to send payments depends on who your channel partners are and how well connected they are to the rest of the Lightning Network. You also want to have more than one channel to avoid being susceptible to a single point of failure. Since Lightning now supports multi-path payments, you can split your initial funds into several channels and route bigger payments by combining their capacity. At the same time, avoid making your channels too small. Since you need to pay Bitcoin transaction fees to open and close a channel, the channel balance should not be so small that the on-chain fees consume a significant portion. It's all about balance!
 
 To summarize:
 
-* Find a few well connected nodes
+* Connect to a few well connected nodes
 * Open more than one channel
 * Don't open too many channels
 * Don't make the channels too small
 
-One way to find well connected nodes is to open a channels to merchants selling something on the Lightning Network. These nodes tend to be well funded and well connected. So when you are ready to make your first payment, you can open a channel directly to the merchant's node. The merchant's node ID will be in the invoice you will receive when you try to buy something, so that makes it easy.
+One way to find well connected nodes is to open a channel to a popular merchant selling products on the Lightning Network. These nodes tend to be well funded and well connected. So, when you are ready to buy something online via Lightning, you can open a channel directly to the merchant's node. The merchant's node ID will be in the invoice you will receive when you try to buy something. That makes it easy.
 
-Another way to find well connected nodes is to use a Lightning Explorer, such as +1ml.com+ and browse the list of nodes sorted by channel capacity and number of channels. Don't go for the biggest nodes, as that encourages centralization. Go for a node in the middle of the list, so that you can help them grow.
+Another way to find well connected nodes is to use a Lightning Explorer (see <<ln_explorer>>) such as +1ml.com+ and browse the list of nodes sorted by channel capacity and number of channels. Don't go for the biggest nodes as that encourages centralization. Go for a node in the middle of the list, so that you can help them grow. Another factor to consider might be the time span a node is in operation. Nodes having been established more than a year ago tend to be more reputable and less risky than nodes that started operation a week ago.
 
 ===== Autopilot
 
-The task of opening channels can be automated, somewhat, with the use of an _autopilot_, which is software that opens channels automatically based on some heuristic rules. Autopilot software is still relatively new and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
+The task of opening channels can be partially automated with the use of an _autopilot_, which is software that opens channels automatically based on some heuristic rules. Autopilot software is still relatively new and it doesn't always select the best channel partners for you. Especially in the beginning it might be better to open channels manually.
 Autopilots currently exist in 3 forms.
 
-- Originally lnd published an autopilot that is fully integrated with lnd and runs constantly in the background while it is turned on.
-- lib_autopilot.py can technically offer autopilot computations on the gossip and channel data from any implementation.
-- A clighting plugin based on lib_autopilot.py exists that provides an easy to use interface for c-lightning users.
+- +lnd+ incorporates an autopilot that is fully integrated with +lnd+ and runs constantly in the background while turned on.
+- +lib_autopilot.py+ can offer autopilot computations for any node implementation based on the gossip and channel data.
+- A +c-lighting+ plugin based on +lib_autopilot.py+ exists that provides an easy to use interface for +c-lightning+ users.
 
-The main thing to watch out when running the lnd autopilot is that as soon as it is turned on via the config file it will automatically run in the background and it will start to open channels if you have onchain outputs in your lnd wallet.
-If you want to have full controll over the bitcoin transactions that you make and the channels that you open make sure to turn off the autopilot before you load your lnd wallet with bitcoin funds.
-If the autopilot was previously turned on you might have to restart your lnd before you top up your wallet with an onchain transaction or before you lose channels which effectively gives you on chain funds again..
-Another thing to keep in mind is to set the most important config values if you want to run the autopilot.
-here you can find an example configuration:
+Be aware that the +lnd+ autopilot will start running in the background as soon as it is turned on via the config file. As a result it will start opening channels immediately if you have onchain outputs in your +lnd+ wallet.
+If you want to have full control over the bitcoin transactions that you make and the channels that you open, make sure to turn the autopilot off _before_ you load your +lnd+ wallet with bitcoin funds.
+If the autopilot was previously turned on, you might have to restart your +lnd+ before you top up your wallet with an on-chain transaction or before you close channels, which effectively gives you on-chain funds again.
+It is crucial that you set key configuration values if you want to run the autopilot. 
+Have a look at this example configuration:
+
 
 ----
 [lnd-autopilot]
 autopilot.active=1
 autopilot.maxchannels=40
 autopilot.allocation=0.70
-autopilot.maxchansize=500000
-autopilot.minchansize=5000000
+autopilot.minchansize=500000
+autopilot.maxchansize=5000000
 autopilot.heuristic=top_centrality:1.0
 ----
 
-This config file would activate the autopilot.
+This configuration file would activate the autopilot.
 It would open channels as long as the following two conditions are met:
 
-1. The amount of channels that your node currently has open does not exceed 40.
-2. Not more than 70% of your total funds are offchain in payment channels.
+1. Your node has currently less than 40 channels open.
+2. Less than 70% of your total funds are off-chain in payment channels.
 
-The numbers 40 and 0.7 are chosen completely arbitrary here as we cannot really make a recommendation that goes for everyone about how many channels one should have and how many percent of their funds should be off chain.
-The autopilot in lnd will not take into account to run when onchain fees are low.
-Thus you might spend quite some funds on transactions fees.
-It will make channel recommendations when ever the conditions are met and will directly try to open a channel by using the appropriate fees.
-According to this configuration file channels will be between 5 and 50 mBTC.
-The size is actually as most of the time on the lightning network depicted in satoshi but we converted the amount for you.
-It has become clear that too small channels below 1 mBTC are not very usefull and we do not recommend to open too small channels.
-With the wider adoption of multipath payments smaller channels are less of a burden but we still stick to our recommendation.
+The numbers 40 and 0.7 are chosen completely arbitrarily here as we cannot make any recommendations that are valid for everyone about how many channels one should have open and what percentage of one's funds should be off chain.
+The autopilot in +lnd+ will not take into account on-chain fees. In other words, it will not delay opening channels to a time period when fees are low.
+To reduce fees you can manually open channels during a time period when fees are low, e.g. during the weekend.
+The autopilot will make channel recommendations whenever the conditions are met and will immediately try to open a channel by using the appropriate current fees.
+According to the above configuration file, the channels will be between 5 mBTC (minchansize=500000 satoshi) and 50 mBTC (maxchansize=5000000 satoshi) in size.
+As is common, the amounts in the configuration file are enumerated in satoshis.
+Currently channels below 1 mBTC are not very useful and we do not recommend to open channels that are too small and below this amount.
+With the wider adoption of multipath payments smaller channels are less of a burden but for the time being this is our recommendation.
 
-The c-lightning plugin works very differently in comparison to the lnd autopilot.
-Not only from the used algorithms to make the recommendations - which we do not discuss here - but also from the user interface.
-First you will need to download the autopilot plugin from the c-lightning plugin repository at https://github.com/lightningd/plugins/tree/master/autopilot and activate it.
-We have already explained how to activate plugins in c-lightning.
-The autopilot in c-lightning now gets 3 configuration values which can be set in the config file or as command line arguments when you start lightningd
+The +c-lightning+ plugin works very differently in comparison to the +lnd+ autopilot.
+First, it differs in the algorithms used to make the recommendations. We will not cover this here. Secondly, it differs in its user interface.
+You will need to download the _autopilot plugin_ from the +c-lightning+ plugin repository at https://github.com/lightningd/plugins/tree/master/autopilot and activate it.
+We have already explained how to activate plugins in +c-lightning+.
+The autopilot in +c-lightning+ is controlled via 3 configuration values which can be set in the config file or as command line arguments when you start +lightningd+.
 
 ----
 [c-lightning-autopilot]
@@ -754,22 +805,23 @@ autopilot-min-channel-size-msat=100000000msat
 ----
 
 These values are the actual default config and you do not need to set them at all.
-The autopilot will not autoamatically run in the background like lnd.
-Instead you have to start a run specifically with `lightning-cli autopilot-run-once` if you do not want the autopilot to open the recommended channels.
-But if you want it to just make recommendations to you from which you can handpick the nodes you can add the optional `dryrun` argument.
 
-A key difference between the lnd and the c-lightning autopilot is that the c-lightning autopilot will also make a recommendation for the channel size.
-For example if the autopilot recommends to open a channel with a small node that only has small channels it will not recommend to open a large channel.
-However if it opens a channel with a well connected node that also has many large channels it will probably recommend a larger channel size.
+The autopilot will not automatically run in the background like in +lnd+.
+Instead, you have to start a run specifically with `lightning-cli autopilot-run-once` if you want the autopilot to open the recommended channels.
+But if you want it to just provide you with recommendations, from which you can handpick the nodes, you can append the optional `dryrun` argument.
 
-As you can see the c-lightning autopilot is not as automatic as lnd but gives you a little bit more control.
-These differences are of personal preference and could actually be the deciding factor for you why you chose one implementation over the other.
+A key difference between the +lnd+ and the +c-lightning+ autopilots is that the +c-lightning+ autopilot will also make a recommendation for the channel size.
+For example, if the autopilot recommends to open a channel with a small node that only has small channels, it will not recommend to open a large channel.
+However, if it opens a channel with a well connected node that also has many large channels, it will probably recommend a larger channel size.
 
-Keep in mind that current autopilots will mainly use public information from the gossip protocol about the current topology of the lightning network.
-It is very obvious that your personal requirements for channels can and will only be reflected to a certain degree.
-More advanced autopilots would use information that your node already has gatherd by running in the past about routing successes and who you have paid in the past.
-Such autopilots might in the future also use the knowledge and statistics that they have collected to make recommendations to close channels and allocate the funds in another way.
-We mention these things to you as a word of warning to not really to heavily on the autopilot feature at the time of writing this book.
+As you can see the +c-lightning+ autopilot is not as automatic as +lnd+'s, but it gives you a little bit more control.
+These differences reflect personal preferences and could actually be the deciding factor for you to chose one implementation over the other.
+
+Keep in mind that current autopilots will primarily use public information from the gossip protocol about the current topology of the Lightning network.
+It is obvious that your personal requirements for channels can and will be reflected only to a certain degree.
+More advanced autopilots would use historical and usage information that your node has gathered by running in the past, including information about routing successes, whom you have paid in the past, and who paid you.
+Such improved autopilots might in the future use this collected data to also make recommendations on closing channels and re-allocating funds.
+Take this as a word of caution to not depend or rely too heavily on the autopilot feature at the time of writing of this book.
 
 ==== Getting inbound liquidity
 
@@ -777,52 +829,52 @@ In the current design of the Lightning Network, it is more typical for users to 
 They will do so by opening a channel with another node, and more often they'll be able to spend Bitcoin before they can receive it.
 There are three typical ways of getting inbound liquidity:
 
-* Open a channel with outbound liquidity, and then spend some of those funds. Now the balance is on the other end of the channel, which means it can be used to send payments to you.
+* Open a channel with outbound liquidity and then spend some of those funds. Now the balance is on the other end of the channel, which means that you can receive payments.
 
 * Ask someone to open a channel to your node. Offer to reciprocate, so that both of your nodes become better connected and balanced.
 
-* Use a submarine swap (e.g. Loop-In) to exchange on-chain BTC for an inbound channel to your node.
+* Use a _submarine swap_ (e.g. +Loop-In+) to exchange on-chain BTC for an inbound channel to your node.
 
-* Pay a third party service to open a channel with you. Several such services exist, some charging a fee to provide liquidity, some for free.
+* Pay a third party service to open a channel with you. Several such services exist. Some charge a fee to provide liquidity, some are free.
 
-Here's a list of currently available liquidity providers who (for a fee) will open a channel to your node:
+Here is a list of currently available liquidity providers who will open a channel to your node for a fee:
 
-* Bitrefill's Thor service at https://www.bitrefill.com/thor-lightning-network-channels/
+* Bitrefill's _Thor_ service at https://www.bitrefill.com/thor-lightning-network-channels/
 
-* Lightning To Me at https://lightningto.me/
+* _Lightning To Me_ at https://lightningto.me/
 
-* LNBig at https://lnbig.com/
+* _LNBig_ at https://lnbig.com/
 
-* Lightning Conductor at https://lightningconductor.net/channels
+* _Lightning Conductor_ at https://lightningconductor.net/channels
 
 
-Creating inbound liquidity is challenging from both a practical and user experience perspective. Inbound liquidity does not happen automatically, so you have to find ways to build it for your node. This asymmetry of payment channels is also not intuitive - after all in most payment systems you get paid first (inbound) before you pay others (outbound).
+Creating inbound liquidity is challenging from both a practical and user experience perspective. Inbound liquidity does not happen automatically, so you have to find ways to build it for your node. This asymmetry of payment channels is also not intuitive. In most other payment systems you get paid first (inbound) before you pay others (outbound).
 
-The challenge of creating inbound liquidity is most noticeable if you are a merchant or sell your services for Lightning payments. In that case, you need to be vigilant to ensure that you have enough inbound liquidity to be able to continue to receive payments. What if there is a surge of buyers on your store, but they can't actually pay you because there's no more inbound capacity?
+The challenge of creating inbound liquidity is most noticeable if you are a merchant or sell your services for Lightning payments. In that case, you need to be vigilant to ensure that you have enough inbound liquidity to be able to continue to receive payments. What if there is a surge of buyers on your store, but they can't actually pay you because there is no more inbound capacity?
 
-In the future these challenges can be partially mitigated by the implementation of dual-funded channels, which are funded from both sides and offer balanced inbound and outbound capacity. This could also be mitigated by more sophisticated autopilot software, which could request and pay for inbound capacity as needed.
+In the future these challenges can be partially mitigated by the implementation of dual-funded channels, which are funded from both sides and offer balanced inbound and outbound capacity. The burden could also be mitigated by more sophisticated autopilot software, which could request and pay for inbound capacity as needed.
 
-Ultimately, however, Lightning users need to be strategic about channel management to ensure that sufficient inbound capacity is available to meet their needs.
+Ultimately, Lightning users need to be strategic and proactive about channel management to ensure that sufficient inbound capacity is available to meet their needs.
 
 ==== Closing channels
 
-As discussed earlier in the book, Mutual Close is the preferred way of closing a channel, however there are instances where a Force Close is neccessary.
+As discussed earlier in the book, a _Mutual Close_ is the preferred way of closing a channel. However, there are instances where a _Force Close_ is neccessary.
 
 Some examples:
 
-* Your channel partner is offline and cannot be contacted to initiate a mutual close
-* Your channel partner is online, but is not responding to requests to initiate a mutual close
-* Your channel partner is online, and your nodes are negotiating a mutual close, but they become stuck and cannot reach a resolution.
+* Your channel partner is offline and cannot be contacted to initiate a mutual close.
+* Your channel partner is online, but is not responding to requests to initiate a mutual close.
+* Your channel partner is online and your nodes are negotiating a mutual close, but they become stuck and cannot reach a resolution.
 
 ==== Re-balancing channels
 
-In the course of transacting and routing payments on Lightning, the combination of inbound and outbound capacity can become unbalanced.
+In the course of transacting and routing payments on Lightning, the combination of inbound and outbound capacities can become unbalanced.
 
 For example, if one of your channel partners is frequently routing payments through your node, you will exhaust the inbound capacity on that channel, while also exhausting the outbound capacity on the outgoing channels. Once that happens, you can no longer route payments through that route.
 
-There are many ways to re-balance channels, with different advantages and disadvantages. One way is to use a submarine swap (e.g. Loop-out), as described previously in this chapter. Another way to re-balance is to wait for routed payments that flow in the opposite direction. If your node is well connected, when a specific route becomes exhausted in one direction, the opposite-direction route becomes available. Other nodes may "discover" that opposite-direction route and use it as part of their payment path, re-balancing the funds again.
+There are many ways to re-balance channels, each with different advantages and disadvantages. One way is to use a _submarine swap_ (e.g. +Loop-Out+) as described previously in this chapter. Another way to re-balance is to simply wait for routed payments that flow in the opposite direction. If your node is well connected, when a specific route becomes exhausted in one direction, the same route becomes available in the opposite direction. Other nodes may "discover" that route in the opposite direction and start using it as part of their payment path, thereby re-balancing the funds again.
 
-Another way to re-balance channels is to purposely create a _circular route_ that sends a payment from your node to your node, via the Lightning Network. By sending a payment out on a channel with large local capacity and arranging the path so that it returns to your node on a channel with large remote capacity, both of those channels will become more balanced. An example of a circular route re-balancing strategy can be seen in <<circular-rebalancing>>.
+A third way to re-balance channels is to purposefully create a _circular route_ that sends a payment from your node back to your node, via the Lightning Network. By sending a payment out on a channel with large local capacity and arranging the path so that it returns to your node on a channel with large remote capacity, both of those channels will become more balanced. An example of a circular route re-balancing strategy can be seen in <<circular-rebalancing>>.
 
 [[circular-rebalancing]]
 .Circular route re-balancing
@@ -838,35 +890,37 @@ Running a Lightning node allows you to earn fees by routing payments across your
 
 Nodes compete for routing fees by setting their desired fee rate on each channel. Routing fees are set by two parameters on each channel: a fixed _base fee_ that is charged for any payment and an additional variable _fee rate_ that is proportional to the payment amount.
 
-When sending a Lightning payment, a node will select a path so as to minimize fees, minimize hops or both. As a result, a routing fee market emerges from these interactions. There are many nodes that charge very low or no fees for routing, creating downward pressure on the routing fee "market".
+When sending a Lightning payment, a node will select a path so as to minimize fees, minimize hops, or both. As a result, a routing fee market emerges from these interactions. There are currently many nodes that charge very low or no fees for routing, creating downward pressure on the routing fee "market".
 
-If you make no choices, your Lightning node will set a default base fee and fee rate for each new channel. The default values depend on the node implementation you use. Routing fees are set as millisatoshi (thousandths of a satoshi) for the base fee and millionths per satoshi for the proportional fee rate. For example, a base fee of 1000 (millisatoshi) and fee rate of 10 (millionths) would result in the following charges for a 100,000 satoshi payment:
+If you make no choices, your Lightning node will set a default base fee and fee rate for each new channel. The default values depend on the node implementation you use. 
+The _base fee_ is set in the unit of _millisatoshi_ (thousandths of a satoshi). The proportional _fee rate_ is set in the unit of _millionths_ and is applied to the payment amount. 
+The unit of _millionths_ is often abbreviated with _ppm_ (parts per million).
+For example, a _base fee_ of 1,000 (millisatoshi) and a _fee rate_ of 1,000 ppm (millionths) would result in the following charges for a 100,000 satoshi payment:
 
 [latexmath]
 ====
-P = 100,000
+P = 100,000 satoshi
 
-F_base = 1000 millisatoshi
+F_base = 1,000 millisatoshi = 1 satoshi
 
-F_rate = 10/1,000,000 * payment size
+F_rate = 1,000 ppm = 1,000/1,000,000 = 1/1,000 = 0.001 = 0.1%
 
-F_total = F_base + F_rate * P
+F_total = F_base + ( P * F_rate )
 
- \Rightarrow  F_total = 1 satoshi + 100 satoshi
+ \Rightarrow  F_total = 1 satoshi + ( 100,000/1,000 ) satoshi
 
- \Rightarrow  F_total = 101 satoshi
-
+ \Rightarrow  F_total = 1 satoshi + 100 satoshi = 101 satoshi
 ====
 
-Broadly speaking, you can take one of two approaches to routing fees. You can route lots of payments with low fees, making up for low fees by lots of volume. Or you can choose to charge higher fees, expecting you will route fewer payments. If you choose to set higher fees your node will be selected only when other cheaper routes don't exist. Therefore, you will route less often but earn more per successful routing.
+Broadly speaking, you can take one of two approaches to routing fees. You can route lots of payments with low fees, making up for low fees by high volume. Alternatively, you can choose to charge higher fees. If you choose to set higher fees, your node will be selected only when other cheaper routes don't exist. Therefore, you will route less frequently but earn more per successful routing.
 
-For most nodes, it is usually best to leave the default routing fee values, so that your node is competing on a mostly level playing field with other nodes who use the default values.
+For most nodes, it is usually best to use the default routing fee values. This way, your node is competing on a mostly level playing field with other nodes who use the default values.
 
-You can also use the routing fee settings to re-balance channels. If most of your channels have the default fees but you want to rebalance a channel, just decrease the fees on that channel to zero or very low rates. Then sit back and wait for someone to route a payment over your "cheap" route and re-balance your channels for you as a side-effect.
+You can also use the routing fee settings to re-balance channels. If most of your channels have the default fees but you want to rebalance a particular channel, just decrease the fees on that specific channel to zero or to very low rates. Then sit back and wait for someone to route a payment over your "cheap" route and re-balance your channels for you as a side-effect.
 
 === Node management
 
-Managing your Lightning node on the command-line is obviously not easy. It gives you the full flexibility of the node's API and the ability to write your own custom scripts to achieve whatever goals you want. But if you don't want to deal with the complexity of the command line and only need some basic node management capabilities, you should consider installing a web-based user interface that makes node management much easier.
+Managing your Lightning node on the command-line is obviously not easy. It gives you the full flexibility of the node's API and the ability to write your own custom scripts to satisfy your personal requirements. But if you don't want to deal with the complexity of the command line and only need some basic node management capabilities, you should consider installing a web-based user interface that makes node management easier.
 
 There are a number of competing projects that offer web-based Lightning node management. Some of the most popular ones are described below.
 
@@ -874,22 +928,27 @@ There are a number of competing projects that offer web-based Lightning node man
 
 
 
-RTL is web graphical user interface to help users to manage lightning node operations for the three main lightning implementations (LND, c-lightning and Eclair), RTL is an open source project developed by Suheb, Shahana Farooqi and many other contributors. You can find the RTL software here:
+_RTL_ is a graphical web user interface to help users manage Lightning node operations for the three main Lightning node implementations (LND, c-lightning, and Eclair). RTL is an open source project developed by Suheb, Shahana Farooqui, and many other contributors. You can find the RTL software here:
 
 https://github.com/Ride-The-Lightning/RTL
 
-Here's an example of RTL's web interface, as provided on the project repository:
+Here is an example screenshot of RTL's web interface, as provided on the project repository:
 
 .Example RTL web interface
 image::images/RTL-LND-Dashboard.png[]
 
 ==== LNDMon
 
-Lightning Labs, the makers of LND provide a web based graphical user interface called +lndmon+ to monitor the various metrics of an LND Lightning node. The lndmon interface only works with LND nodes, and is a read-only interface that does not allow you to manage the node directly (e.g. open channels and make payments). Find lndmon here:
+Lightning Labs, the makers of LND provide a web-based graphical user interface called +lndmon+ to monitor the various metrics of an LND Lightning node. +lndmon+ only works with LND nodes. It is a read-only interface for monitoring and as such does not allow you to actively manage the node. It cannot open channels or make payments. Find +lndmon+ here:
 
 https://github.com/lightninglabs/lndmon
 
+=== Thunderhub
+
+A very aestheticaly pleasing web-based graphical user interface similar to RTL but exclusive to LND. It can be used to make payments, rebalance channels and manage the node through a varitey of features. Find +Thunderhub+ here:
+
+https://thunderhub.io
 
 === Conclusion
 
-As you grow and maintain your node you will learn a lot about the Lightning Network. It is a challenging but rewarding task. Mastering these skills will allow you to contribute to the growth and development of this technology and the Lightning Network itself. You will also gain the ability to send and receive Lightning payments with the greatest degree of control and ease, as your node will be a central part of the network's infrastructure and not just a participant on the edges. 
+As you maintain your node and gain experiences you will learn a lot about the Lightning Network. Being a node operator is a challenging but rewarding task. Mastering these skills will allow you to contribute to the growth and development of this technology and the Lightning Network itself. You will furthermore gain the ability to send and receive Lightning payments with the greatest degree of control and ease. You will play a central role in the network's infrastructure and not just be a participant on the edges. 

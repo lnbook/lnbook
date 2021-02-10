@@ -34,12 +34,7 @@ address::
     A Bitcoin address looks like +1DSrfJdB2AnWaFNgSbv3MZC2m74996JafV+. It consists of a string of letters and numbers. It's really an encoded base58check version of a public key 160-bit hash. Just as you ask others to send an email to your email address, you would ask others to send you bitcoin to one of your Bitcoin addresses.
 
 AMP::
-   Atomic Multipath Payments.
-   A method for payments where the sender can use more than one of their channels to forward a payment.
-   By default, a sender uses one channel to forward payment. 
-   This can cause issues, for example, where a sender has an two channels with an outgoing capacity of 0.5 BTC but wishes to forward a payment of 0.8 BTC.
-   By default, this payment would fail without rebalancing. 
-   With AMP, the sender can split the payment between these channels and either have the entire payment succeed or fail, with no partial payment possible. 
+   Atomic Multipath Payments was an early suggestion for a multipart payment protocol which did not get implemented but introduced the idea of splitting a single payment into multiple parts and send them along potentially different paths.
 
 Asymmetric Cryptographic System::
     Asymmetric cryptography, or public-key cryptography, is a cryptographic system that uses pairs of keys: public keys which may be disseminated widely, and private keys which are known only to the owner.
@@ -53,14 +48,14 @@ Autopilot::
     Autopilots are not part of the Lightning Network Protocol.
 
 balance::
-    The balance of a payment channel is encoded by the most recent commitment transaction.
-    The balance states the amount of bitcoin that belongs to each channel partner and the amount that are in flying HTLCs (HTLCs which are currently in the routing process and have not been settled yet).
-    The sum of the balance sheet equals the capacity.
-    The channel balance is only known by the channel partners.
-    If the channel balance is completely on one side of the channel, i.e. one channel partner has all of the bitcoin in the channel, this particular partner cannot receive any payments through this channel. This partner can, however, send payments and forward HTLCs.
-    The balance that a node has on its own side of the channel (and is thus able to spend) is called the outbound capacity.
-    The node's channel partner would refer to that balance as its inbound capacity, i.e. the amount that it is able to receive.
-    Nodes should aim to have balanced channels with similar inbound and outbound capacities.
+    The balance of a payment channel is the amount of bitcoin that belongs to each channel partner.
+    For example, Alice could open a channel with Bob for the value of 1 BTC.
+    The channel balance is then 1 BTC to Alice and 0 BTC to Bob.
+    As the users transact the channel balance will update.
+    For e.g. if Alice sends 0.2 BTC to Bob, then the balance is now 0.8 BTC to Alice and 0.2 to Bob.
+    When the channel is closed the bitcoin in the channel will be divided between the two channel partners according to the latest balance encoded in the commitment transaction.
+    In the Lightning Network the ability to send and receive payments is limited by channel balances.
+    See _capacity_.
 
 bech32::
     A checksummed base32 address format, at most 90 characters long, and capable of error correction. It is native to segregated witness (BIP173). Also referred to as "bc1" because of the current starting values of each address. Transactions made using bech32 are smaller in most cases, and therefore, may only require a lower fee.
@@ -72,9 +67,10 @@ bitcoin, Bitcoin::
     Depending on context, could refer to the name of the currency unit (the coin), the network or the underlying enabling protocol. Written as bitcoin with a lowercase "b" usually refers to the currency unit. Bitcoin with an uppercase "B" usually refers to the protocol. See https://www.bitcoin.org for general information. The source code can be found at https://github.com/bitcoin/bitcoin.
 
 Bitcoin mining::
-    Bitcoin mining serves two purposes.
-    Firstly, Bitcoin transactions are validated and fixed in the sense that they cannot be double-spent.
-    Secondly, new bitcoin are being created within the coinbase of each block.
+    Bitcoin mining is the process of constructing a block from recent Bitcoin transactions and then solving a computational problem required as Proof of Work.
+    It is the process by which the shared bitcoin ledger (i.e. the bitcoin blockchain) is updated and by which new transactions are included in the ledger.
+    It is also the process by which new bitcoin is issued.
+    Every time a new block is created, the mining node will receive new bitcoin created within the coinbase transaction of that block.
 
 block::
     A grouping of transactions, marked with a timestamp, and a fingerprint of the previous block. The block header is hashed to produce a proof of work, thereby validating the transactions. Valid blocks are added to the main blockchain by network consensus.
@@ -82,12 +78,12 @@ block::
 blockchain::
     The blockchain is an irreversible distributed database storing all Bitcoin transactions.
     The irreversibility comes from the fact that each group of transactions, referred to as a block, is validated by solving a Proof of Work riddle and including the hash of the previous block.
-    Thus the data can only be changed by an entity providing more than 51% of the computational power of the Bitcoin network.
+    Thus, the data can only be changed by an entity providing more than 51% of the computational power of the Bitcoin network.
     Blocks currently have a size limit of 1 MB.
     New blocks have a statistical probability of being produced every ten minutes.
 
 BOLT::
-    BOLT, or Basics Of Lightning Technology, is the formal specification of the Lightning Network Protocol. It serves only as such without delving into implementation, unlike Bitcoin, in which both are one and the same. It is available in https://github.com/lightningnetwork/lightning-rfc.
+    BOLT, or Basis Of Lightning Technology, is the formal specification of the Lightning Network protocol. Unlike Bitcoin, which has a reference implementation that also serves as the protocol's specification the various Lightning Network implementations follow BOLT so they can work with one another to form the same network. It is available at https://github.com/lightningnetwork/lightning-rfc.
 
 Breach Remedy Transaction::
     A transaction claiming the outputs of a Revocable Sequence Maturity Contract with the help of the revocation key.
@@ -186,6 +182,12 @@ ephemeral key::
     This increases the security of transported messages or payments.
     Even if an ephemeral key leaks, only information about a single payment becomes public.
 
+feature bits::
+    A binary string that Lightning nodes use to communicate to each other which features they support.
+    Feature bits are included in many types of communication, such as invoices or channel announcements.
+    They can be decoded using BOLT #9, and will tell nodes which features the node has enabled, and whether these are backwards-compatible.
+    Also known as feature flags.
+
 fees::
     In the context of Bitcoin, the sender of a transaction includes a fee paid to miners for including the transaction in a block. 
     In the context of the Lightning Network, nodes will charge routing fees for forwarding other users' payments.
@@ -195,7 +197,7 @@ funding transaction::
     The funding transaction is used to open a payment channel.
     From the perspective of the Bitcoin network, the process of opening a channel by creating a RSMC is started by creating the funding transaction and finished by broadcasting it to the Bitcoin network and have it included in the blockchain.
     The value of the funding transaction is exactly the capacity of the payment channel.
-    The output of the funding transaction is a 2-out-of-2 multisignature script (multisig) where each channel partner controls one key.
+    The output of the funding transaction is a 2-of-2 multisignature script (multisig) where each channel partner controls one key.
     It is supposed to be spent by the commitment transactions or by the closing transaction.
     Due to its multisig nature, it can only be spent mutually.
     It is part of the RSMC to ensure that either side of the channel can withdraw their funds without the necessity to trust the channel partner.
@@ -279,10 +281,14 @@ Locktime::
 millisatoshi::
     The smallest unit of account on the Lightning Network. A millisatoshi is one hundred billionth of a single bitcoin. A millisatoshi is one thousandth of one Satoshi. Millisatoshis do not exist, nor can they be settled on the Bitcoin network.
 
+mpp::
+A multipart payment (which is often also refered to as multipath payment) is a method for payments where the sender can split the payment amount into multiple smaller parts and deliver them potentially along multiple potentially disjoint paths. As the MPP strategies do not require one to send the smaller splits along different paths we find the term multipart payment more accurate than multipath payment.
+
+
 multisignature::
     Multisignature (multisig) refers to requiring more than one key to authorize a Bitcoin transaction.
     Payment channels are always encoded as multisignature addresses requiring one signature from each peer of the payment channel.
-    In the standard case of a two-party payment channel a 2-2 multisignature address is used.
+    In the standard case of a two-party payment channel a 2-of-2 multisignature address is used.
 
 Neutrino::
     Neutrino is a later alternative to SPV that also verifies whether certain transactions are contained in a block without downloading the entire block. However, it offers a number of improvements over SPV: Neutrino does not transmit any information that would allow a third party to determine users’ identities, it facilitates the use of non-custodial apps, and it reduces the computational load on full nodes. The trade-off for these improvements is that Neutrino requires more data from the full node than SPV.
@@ -291,15 +297,18 @@ node::
     See Lightning Network Node
 
 network capacity::
-    Lightning network capacity is the value of bitcoin locked and circulated inside Lightning Network and is the sum of capacities of each channel.
-    It is a mesurement of the maximum value a user can transfer in Lightning Network because routing nodes will need to have sufficient balances. It also reflects the usage of Lightning Network to some extent, because the higher value is circulated inside Lightning Network the more likely that more people are using it.
+    Lightning network capacity is the total amount of bitcoin locked and circulated inside the Lightning Network. 
+    It is the sum of capacities of each public channel.
+    It reflects the usage of the Lightning Network to some extent because we expect that people lock bitcoin into Lightning channels in order to spend it or forward other users' payments.
+    Hence the higher the amount of bitcoin locked in channels, the higher the expected usage of the Lightning Network.
+    Note that since only public channel capacity can be observed, the true network capacity is unknown.
+    See private channel.
 
 Noise_XK::
     The template of the Noise protocol framework to establish an authenticated and encrypted communication channel between two peers of the Lightning Network.
     X means that no public key needs to be known from the initiator of the connection.
     K means that the public key of the receiver needs to be known.
-    More particular (from: http://www.noiseprotocol.org/noise.html) the protocol enables.
-    Encryption to a known recipient, strong forward secrecy. This payload is encrypted based on an ephemeral-ephemeral DH as well as an ephemeral-static DH with the recipient's static key pair. Assuming the ephemeral private keys are secure, and the recipient is not being actively impersonated by an attacker that has stolen its static private key, this payload cannot be decrypted. Sender authentication resistant to key-compromise impersonation (KCI). The sender authentication is based on an ephemeral-static DH ("es" or "se") between the sender's static key pair and the recipient's ephemeral key pair. Assuming the corresponding private keys are secure, this authentication cannot be forged.
+    More particular (from: http://www.noiseprotocol.org/noise.html) the protocol enables encryption to a known recipient and strong forward secrecy. This payload is encrypted based on an ephemeral-ephemeral DH as well as an ephemeral-static DH with the recipient's static key pair. Assuming the ephemeral private keys are secure, and the recipient is not being actively impersonated by an attacker that has stolen its static private key, this payload cannot be decrypted. Sender authentication resistant to key-compromise impersonation (KCI). The sender authentication is based on an ephemeral-static DH ("es" or "se") between the sender's static key pair and the recipient's ephemeral key pair. Assuming the corresponding private keys are secure, this authentication cannot be forged.
     // the noise protocol documentation is according to their IPR section public domain. The author is Trevor Perrin (noise@trevp.net)
 
 onion routing::
@@ -312,7 +321,11 @@ onion routing::
     https://en.wikipedia.org/w/index.php?title=Onion_routing&oldid=870849217
 
 output::
-    Output, transaction output, or TxOut is an output in a transaction which contains two fields: a value field for transferring zero or more satoshis and a pubkey script for indicating what conditions must be fulfilled for those satoshis to be further spent.
+    The output of a Bitcoin transaction, also called an "Unspent Transaction Output" or "UTXO"
+    An output is essentially an amount of bitcoin that can be spent, as well as a script that defines what conditions need to be fulfilled for that bitcoin to be spent.
+    Every Bitcoin transaction consumes the outputs of the sender and creates new outputs that can be spent later by the receiver.
+    A typical bitcoin output will require the signature of the owner to be spent, but outputs can require the fulfillment of more complex scripts.
+    For example, a multisignature script requires that two or more users to sign before an ouput can be spent, which is a fundamental building block of the Lightning Network.
 
 P2PKH::
     P2PKH or Pay-to-PubKey-Hash is a type of transaction that pays a Bitcoin address that contain P2PKH scripts.
@@ -337,24 +350,27 @@ payment::
     The invoice includes a payment hash which is the hash of a secret preimage.
     This payment hash is used by the Hashed Time Lock Contracts during the routing process.
 
-payment channels::
-    A micropayment channel or payment channel is a class of techniques designed to allow users to make multiple Bitcoin transactions without committing all of the transactions to the Bitcoin blockchain. In a typical payment channel, only two transactions are added to the blockchain, but an unlimited or nearly unlimited number of payments can be made between the participants.
-
 payment channel::
-    Payment channels are the core building blocks of the Lightning Network.
-    They can be used to send a predefined amount of bitcoin back and forth between two parties.
-    Sending bitcoin over a payment channel happens off chain, so only the funding transaction and either the commitment or closing transaction is stored in the blockchain.
-    There are currently three methods known to construct a fully duplex bidirectional payment channel.
-    Christian Decker proposed a method in his PhD thesis based on invalidation trees.
-    In the Lightning Network whitepaper, Joseph Poon and Tadge Dryja describe the Revocable Sequence Maturity Contract based method that is currently being implemented on the Lightning Network.
-    Recently Christian Decker et al. came up with the Eltoo mechanism which would require a Bitcoin softfork.
+    A payment channel is a financial relationship between two nodes on the Lightning Network, created using a multisignature Bitcoin transaction.
+    The channel partners can use the channel to send Bitcoin back and forth between each other without committing all of the transactions to the Bitcoin blockchain. 
+    In a typical payment channel only two transactions, the funding transaction and the commitment transaction, are added to the blockchain.
+    The other transactions are not included in the blockchain and are said to occur "off-chain".
+    There are various methods of constructing a payment channel discussed further in the chapter on channel construction.
 
 peer::
     Two parties which form a payment channel are called peers.
     In particular, they are connected via an encrypted, authenticated communication over a TCP Socket.
 
-Penalty Transaction::
+penalty transaction::
     Look at the Breach Remedy Transaction.
+
+private channel:
+    A channel not announced to the rest of the network. 
+    Technically "private" is a misnomer as these channels can still be identified through routing hints and commitment transactions.
+    We suggest they are better described as "unannounced" channels.
+    With an unannounced channel, the channel partners can send and receive payments between each other as normal.
+    However the rest of the network will not be aware of it and so cannot typically use it to route payments.
+    As the number of and capacity of unanounced channels is unknown, the total public channel count and capacity only accounts for a portion of the total Lightning Network.
 
 preimage::
     In mathematics, given a function $f$ and a value $h$ the preimage of $h$ with respect to $f$ is the set of values $R = \{r_1,r_2,...\}$ such that $f(r_i) = h$ for all $\r_i \in R$.
@@ -364,8 +380,11 @@ preimage::
     Cryptographers use the term preimage for an arbitrary element of $R$.
     In particular, when using SHA-256 we should state that each element has an infinite amount of preimages.
     Yet it is still believed to be computationally hard to find such a preimage.
+
 proof of work::
-    A piece of data that requires significant computation to find. In Bitcoin, miners must find a numeric solution to the SHA256 algorithm that meets a network-wide target, the difficulty target.
+    A piece of data that requires significant computation to find.
+    In Bitcoin, miners must find a numeric solution to the SHA256 algorithm that meets a network-wide target, called the difficulty target.
+    See _bitcoin mining_
 
 Relative Timelock::
     Relative Timelock is a kind of timelock that allows an input to specify the earliest time it can be added to a block based on how long ago (which is relative) the output referred by that input was included in a block. Such a feature is jointly achieved by nSequence field and CheckSequenceVerify opcode, which are introduced by BIP68/112/113.
@@ -479,7 +498,7 @@ transport layer::
     The transport layer provides communication services between computers such as flow control, verification, and multiplexing (to allow multiple applications to work on a computer at the same time).
 
 unspent transaction output (UTXO)::
-    UTXO is an unspent transaction output that can be spent as an input to a new transaction.
+    See _output_
 
 upstream payment::
     TBD.

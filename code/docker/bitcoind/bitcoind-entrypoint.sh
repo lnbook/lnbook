@@ -15,6 +15,7 @@ echo "Importing demo private key"
 echo "Bitcoin address: " ${address}
 echo "Private key: " ${privkey}
 echo "================================================"
+bitcoin-cli -datadir=/bitcoind createwallet regtest
 bitcoin-cli -datadir=/bitcoind importprivkey $privkey
 
 # Executing CMD

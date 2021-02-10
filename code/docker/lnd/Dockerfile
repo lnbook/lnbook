@@ -4,8 +4,10 @@ ENV GOPATH /go
 WORKDIR $GOPATH/src
 
 # LND
+ENV LND_VER v0.11.1-beta
 RUN go get -d github.com/lightningnetwork/lnd
 WORKDIR $GOPATH/src/github.com/lightningnetwork/lnd
+RUN git checkout tags/${LND_VER}
 RUN make && make install
 
 FROM ubuntu:20.04 AS lnd-run
