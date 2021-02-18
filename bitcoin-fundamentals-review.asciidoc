@@ -105,4 +105,33 @@ e to alter the message and still have the same hash.
 
 The private key is used to create signatures that are required to spend bitcoin by proving ownership of funds used in a transaction.
 
+A digital signature is a number that is calculated from the application of the private key to a specific message.
+
+Given a message m and a private key k, a signature function F_sig_ can produce a signature S:
+
+latexmath:[ S = F{sig}(m, k) ]
+
+This signature S can be independently verified by anyone who has the public key K (corresponding to private key k), and the message:
+
+latexmath:[ S' = F{verify}(m, K, S) ]
+
+If S' matches S, then the verifier can confirm that the message m was signed by someone who had access to the private key k. Importantly, the digital signature proves the possession of the private key k at the time of signing, without revealing k.
+
+Digital signatures use a cryptographic hash algorithm. The signature is applied to a hash of the message, so that the message m is "summarized" to a fixed-length hash H(m) that serves as a fingerprint.
+
+=== Bitcoin transactions
+
+Transactions are data structures that encode the transfer of value between participants in the bitcoin system.
+
+The fundamental building block of a bitcoin transaction is a transaction output. Transaction outputs are indivisible chunks of bitcoin currency, recorded on the blockchain, and recognized as valid by the entire network.
+
+Bitcoin full nodes track all available and spendable outputs, known as _unspent transaction outputs_, or UTXO. The collection of all UTXO is known as the UTXO set and currently numbers in the millions of UTXO. The UTXO set grows as new UTXO is created and shrinks when UTXO is consumed. Every transaction represents a change (state transition) in the UTXO set, by consuming one or more UTXO as _transaction inputs_ and creating one or more UTXO as its _transaction outputs_.
+
+For example, let's assume that a user Alice has a 100,000 satoshi UTXO that she can spend. Alice can pay Bob 100,000 satoshi, by constructing a transaction with one input (consuming her existing 100,000 satoshi input) and one output that "pays" Bob 100,000 satoshi. Now Bob has a 100,000 satoshi UTXO that he can spend, creating a new transaction that consumes this new UTXO and spends it to another UTXO as a payment to another user, and so on.
+
+A transaction output can have an arbitrary (integer) value denominated as a multiple of satoshis. Just as dollars can be divided down to two decimal places as cents, bitcoin can be divided down to eight decimal places as satoshis. Although an output can have any arbitrary value, once created it is indivisible. This is an important characteristic of outputs that needs to be emphasized: outputs are discrete and indivisible units of value, denominated in integer satoshis. An unspent output can only be consumed in its entirety by a transaction.
+
+So what if Alice wants to pay Bob 50,000 satoshi, but only has an indivisible 100,000 satoshi UTXO? Alice will need to create a transaction that consumes (as its input) the 100,000 satoshi UTXO and has two outputs: one paying 50,000 satoshi to Bob and one paying 50,000 satoshi *back* to Alice as "change". Similarly, if Alice wants to pay Bob 85,000 satoshi but has two 50,000 satoshi UTXO available, she has to create a transaction with two inputs (consuming both her 50,000 satoshi UTXO) and two outputs, paying Bob 85,000 and sending 15,000 satoshi back to herself as change.
+
+
 // TODO
