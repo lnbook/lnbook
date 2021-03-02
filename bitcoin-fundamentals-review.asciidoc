@@ -118,9 +118,9 @@ latexmath:[ S = F{sign}(m, k) ]
 
 This signature S can be independently verified by anyone who has the public key K (corresponding to private key k), and the message:
 
-latexmath:[ S' = F{verify}(m, K, S) ]
+latexmath:[ F{verify}(m, K, S) ]
 
-If S' matches S, then the verifier can confirm that the message m was signed by someone who had access to the private key k. Importantly, the digital signature proves the possession of the private key k at the time of signing, without revealing k.
+If F_verify_ returns a true result, then the verifier can confirm that the message m was signed by someone who had access to the private key k. Importantly, the digital signature proves the possession of the private key k at the time of signing, without revealing k.
 
 Digital signatures use a cryptographic hash algorithm. The signature is applied to a hash of the message, so that the message m is "summarized" to a fixed-length hash H(m) that serves as a fingerprint.
 
@@ -201,23 +201,25 @@ or use the short link (case sensitive):
 http://bit.ly/AliceTx
 
 
-==== Output identifiers
+==== Output identifiers (outpoints)
 
-Similarly, since every transaction has a unique ID, we can also identify a transaction output uniquely by reference to the transaction ID and the output index number. The first output in a transaction is output index 0, the second output is output index 1 and so on. By convention we write an output identifier as the transaction ID, a colon and the output index number:
+Similarly, since every transaction has a unique ID, we can also identify a transaction output uniquely by reference to the transaction ID and the output index number. The first output in a transaction is output index 0, the second output is output index 1 and so on. An output identifier is commonly known as an _outpoint_.
+
+By convention we write an outpoint as the transaction ID, a colon and the output index number:
 
 .Identifying an output by transaction ID and index number
 ----
 7957a35fe64f80d234d76d83a2a8f1a0d8149a41d81de548f0a65a8a999f6f18:0
 ----
 
-Output identifiers are the mechanism that links transactions together in a chain. Every transaction input is a reference to a specific output of a previous transaction. That reference is an output identifier: a transaction ID and output index number. So a transaction "spends" a specific output (by index number) from a specific transaction (by transaction ID) to create new outputs that themselves can be spent by reference to the transaction ID and index number.
+Output identifiers (outpoints) are the mechanism that links transactions together in a chain. Every transaction input is a reference to a specific output of a previous transaction. That reference is an outpoint: a transaction ID and output index number. So a transaction "spends" a specific output (by index number) from a specific transaction (by transaction ID) to create new outputs that themselves can be spent by reference to the outpoint.
 
-Here's the chain of transactions from Alice to Bob to Chan to Dina, this time with output identifiers in each of the inputs:
+Here's the chain of transactions from Alice to Bob to Chan to Dina, this time with outpoints in each of the inputs:
 
 [[tx_chain_vout]]
-.Transaction inputs are output identifiers forming a chain
-image::images/tx6.png["Transaction inputs are output identifiers forming a chain"]
+.Transaction inputs are outpoints forming a chain
+image::images/tx6.png["Transaction inputs are outpoints forming a chain"]
 
 The input in Bob's transaction references Alice's transaction (by transaction ID) and the 0 indexed output.
 
-The input in Chan's transaction references Bob's transaction by ID and the 1st indexed output, because Bob's
+The input in Chan's transaction references Bob's transaction by ID and the 1st indexed output, because the payment to Chan is output #1. In Bob's payment to Chan, Bob's change is output #0.footnote:[Recall that change doesn't have to be the last output in a transaction and is in fact indistinguishable from other outputs]
