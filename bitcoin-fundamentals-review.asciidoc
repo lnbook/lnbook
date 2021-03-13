@@ -179,9 +179,9 @@ The only type of transaction that doesn't have "inputs" is a special transaction
 
 Since transactions are chained, if you pick a transaction at random, you can follow any one of its inputs backwards to the previous transaction that created it. If you keep doing that you will eventually reach a coinbase transaction where the bitcoin was first mined.
 
-==== Transaction identifiers
+==== TxID: Transaction identifiers
 
-Every transaction in the Bitcoin system is identified by a unique identifier, called the _transaction ID_. To produce a unique identifier, we use the SHA-256 cryptographic hash function to produce a hash of the transaction's data. This "fingerprint" serves as a universal identifier. Once a transaction is recorded on the Bitcoin blockchain, it can be referenced by the transaction ID and every node in the Bitcoin network knows that this transaction is valid.
+Every transaction in the Bitcoin system is identified by a unique identifier, called the _transaction ID_ or _TxID_ for short. To produce a unique identifier, we use the SHA-256 cryptographic hash function to produce a hash of the transaction's data. This "fingerprint" serves as a universal identifier. A transaction can be referenced by its transaction ID and once a transaction is recorded on the Bitcoin blockchain, every node in the Bitcoin network knows that this transaction is valid.
 
 For example, a transaction ID might look like this:
 
@@ -192,7 +192,7 @@ e31e4e214c3f436937c74b8663b3ca58f7ad5b3fce7783eb84fd9a5ee5b9a54c
 
 This is a real transaction (created as an example for the "Mastering Bitcoin" book) that can be found on the Bitcoin blockchain.
 
-Try to find it by entering this ID into a block explorer:
+Try to find it by entering this TxID into a block explorer:
 
 https://blockstream.info/tx/e31e4e214c3f436937c74b8663b3ca58f7ad5b3fce7783eb84fd9a5ee5b9a54c
 
@@ -201,25 +201,27 @@ or use the short link (case sensitive):
 http://bit.ly/AliceTx
 
 
-==== Output identifiers (outpoints)
+==== Outpoints: output identifiers
 
-Similarly, since every transaction has a unique ID, we can also identify a transaction output uniquely by reference to the transaction ID and the output index number. The first output in a transaction is output index 0, the second output is output index 1 and so on. An output identifier is commonly known as an _outpoint_.
+As every transaction has a unique ID, we can also identify a transaction output within that transaction uniquely by reference to the TxID and the output index number. The first output in a transaction is output index 0, the second output is output index 1 and so on. An output identifier is commonly known as an _outpoint_.
 
-By convention we write an outpoint as the transaction ID, a colon and the output index number:
+By convention we write an outpoint as the TxID, a colon and the output index number:
 
-.Identifying an output by transaction ID and index number
+.A outpoint: identifying an output by TxID and index number
 ----
 7957a35fe64f80d234d76d83a2a8f1a0d8149a41d81de548f0a65a8a999f6f18:0
 ----
 
-Output identifiers (outpoints) are the mechanism that links transactions together in a chain. Every transaction input is a reference to a specific output of a previous transaction. That reference is an outpoint: a transaction ID and output index number. So a transaction "spends" a specific output (by index number) from a specific transaction (by transaction ID) to create new outputs that themselves can be spent by reference to the outpoint.
+Output identifiers (outpoints) are the mechanism that links transactions together in a chain. Every transaction input is a reference to a specific output of a previous transaction. That reference is an outpoint: a TxID and output index number. So a transaction "spends" a specific output (by index number) from a specific transaction (by TxID) to create new outputs that themselves can be spent by reference to the outpoint.
 
 Here's the chain of transactions from Alice to Bob to Chan to Dina, this time with outpoints in each of the inputs:
 
 [[tx_chain_vout]]
-.Transaction inputs are outpoints forming a chain
-image::images/tx6.png["Transaction inputs are outpoints forming a chain"]
+.Transaction inputs refer to outpoints forming a chain
+image::images/tx6.png["Transaction inputs refer to outpoints forming a chain"]
 
-The input in Bob's transaction references Alice's transaction (by transaction ID) and the 0 indexed output.
+The input in Bob's transaction references Alice's transaction (by TxID) and the 0 indexed output.
 
-The input in Chan's transaction references Bob's transaction by ID and the 1st indexed output, because the payment to Chan is output #1. In Bob's payment to Chan, Bob's change is output #0.footnote:[Recall that change doesn't have to be the last output in a transaction and is in fact indistinguishable from other outputs]
+The input in Chan's transaction references Bob's transaction's TxID and the 1st indexed output, because the payment to Chan is output #1. In Bob's payment to Chan, Bob's change is output #0.footnote:[Recall that change doesn't have to be the last output in a transaction and is in fact indistinguishable from other outputs]
+
+Now, if we look at Alice's payment to Bob, we can see that Alice is spending an outpoint that was the 3rd (output index #2) output in a transaction whose ID is 6a5f1b3... We don't see that referenced transaction in the diagram, but we can deduce these details from the outpoint.
