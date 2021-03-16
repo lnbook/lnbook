@@ -11,13 +11,15 @@ In this chapter, we've collected the most important concepts you need to know ab
 This chapter covers several important concepts from Bitcoin, including:
 
 * Keys and digital signatures
+* Hash functions
 * Bitcoin transactions and their structure
 * Bitcoin transaction chaining
+* Transaction outpoints
 * Bitcoin Script - locking and unlocking scripts
 * Basic locking scripts
 * Complex and conditional locking scripts
 * Timelocks
-* Hash functions
+
 
 === Keys and digital signatures
 
@@ -200,7 +202,6 @@ or use the short link (case sensitive):
 
 http://bit.ly/AliceTx
 
-
 ==== Outpoints: output identifiers
 
 As every transaction has a unique ID, we can also identify a transaction output within that transaction uniquely by reference to the TxID and the output index number. The first output in a transaction is output index 0, the second output is output index 1 and so on. An output identifier is commonly known as an _outpoint_.
@@ -225,3 +226,49 @@ The input in Bob's transaction references Alice's transaction (by TxID) and the 
 The input in Chan's transaction references Bob's transaction's TxID and the 1st indexed output, because the payment to Chan is output #1. In Bob's payment to Chan, Bob's change is output #0.footnote:[Recall that change doesn't have to be the last output in a transaction and is in fact indistinguishable from other outputs]
 
 Now, if we look at Alice's payment to Bob, we can see that Alice is spending an outpoint that was the 3rd (output index #2) output in a transaction whose ID is 6a5f1b3... We don't see that referenced transaction in the diagram, but we can deduce these details from the outpoint.
+
+=== Bitcoin Script
+
+The final element of Bitcoin that is needed to complete our understanding is the scripting language that controls access to outpoints. So far, we've simplified the description by saying "Alice signs the transaction to pay Bob". Behind the scenes, however, there is some hidden complexity that makes it possible to implement more complex spending conditions. The simplest and most common spending condition is "present a signature matching the following public key". A spending condition like this is recorded in each output as _locking script_ written in a scripting language called _Bitcoin Script_.
+
+Bitcoin Script is an extremely simple stack-based scripting language. It does not contain loops or recursion and therefore is Turing Incomplete (meaning it cannot express arbitrary complexity and has predictable execution). Those familiar with the (now ancient) programming language FORTH will recognize the syntax and style.
+
+In simple terms, the Bitcoin system evaluates Bitcoin Script by running the script on a stack and if the final result is +TRUE+, considers the spending condition satisfied and the transaction "valid".
+
+Let's look at a very simple example of Bitcoin Script, which adds the numbers 2 and 3 and then compares the result to the number 5:
+
+----
+2 3 ADD 5 EQUAL
+----
+
+In the diagram below, we see how this script is executed (from left to right):
+
+image::images/bitcoin-script-example-1.png["Example of Bitcoin Script execution"]
+
+Bitcoin Script is made up of two parts:
+
+_Locking scripts_ are embedded in transaction outputs, setting the conditions that must be fulfilled to spend that output. For example, Alice's wallet adds a locking script to the output paying Bob that sets the condition that Bob's signature is required to spend it.
+
+_Unlocking scripts_ are embedded in transaction inputs, fulfilling the conditions set by the referenced output's locking script. For example, Bob can unlock the output above by providing an unlocking script containing a digital signature.
+
+For validation, the unlocking script and locking script are concatenated and executed. For example, if someone locked a transaction output with the locking script +"3 ADD 5 EQUAL"+, we could spend it by offering the unlocking script "+2+" in a transaction input. Anyone validating that transaction would concatenate our unlocking script (+2+) and the locking script (+3 ADD 5 EQUAL+) and run the result through the Bitcoin Script execution engine. They would get +TRUE+ and we would be able to spend the output. Obviously, this simplified example would make a very poor choice for locking an actual Bitcoin output because there is no secret, just basic arithmetic.
+
+The simplest form of a locking script that requires Alice's signature would look like this:
+
+[[alice_locking_script]]
+.A locking script that requires a digital signature from Alice's private key
+----
+<Alice Public Key> CHECKSIG
+----
+
+If an output is locked with the locking script above, then it can only be spent by Alice, because only Alice has the corresponding private key needed to produce a digital signature.
+
+To spend this output, Alice has to present an _unlocking script_, which combined with the locking script unlocks the output. To unlock the locking script shown in <<alice_locking_script>>, Alice would provide an unlocking script containing only a digital signature:
+
+[[alice_unlocking_script]]
+.An unlocking script containing (only) a digital signature from Alice's private key
+----
+<Alice Signature>
+----
+
+Alice would put this unlocking script in the input of a transaction, referencing the outpoint she wants to spend. Anyone verifying this transaction would retrieve the output and it's locking script. By combining the unlocking script and the locking script, we can verify the
