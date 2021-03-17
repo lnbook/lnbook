@@ -251,7 +251,7 @@ _Locking scripts_ are embedded in transaction outputs, setting the conditions th
 
 _Unlocking scripts_ are embedded in transaction inputs, fulfilling the conditions set by the referenced output's locking script. For example, Bob can unlock the output above by providing an unlocking script containing a digital signature.
 
-For validation, the unlocking script and locking script are concatenated and executed. For example, if someone locked a transaction output with the locking script +"3 ADD 5 EQUAL"+, we could spend it by offering the unlocking script "+2+" in a transaction input. Anyone validating that transaction would concatenate our unlocking script (+2+) and the locking script (+3 ADD 5 EQUAL+) and run the result through the Bitcoin Script execution engine. They would get +TRUE+ and we would be able to spend the output. Obviously, this simplified example would make a very poor choice for locking an actual Bitcoin output because there is no secret, just basic arithmetic.
+For validation, the unlocking script and locking script are concatenated and executed. For example, if someone locked a transaction output with the locking script +"3 ADD 5 EQUAL"+, we could spend it by offering the unlocking script "+2+" in a transaction input. Anyone validating that transaction would concatenate our unlocking script (+2+) and the locking script (+3 ADD 5 EQUAL+) and run the result through the Bitcoin Script execution engine. They would get +TRUE+ and we would be able to spend the output. Obviously, this simplified example would make a very poor choice for locking an actual Bitcoin output because there is no secret, just basic arithmetic. Anyone could spend the output by providing the answer "2". Most locking scripts therefore require demonstrating knowledge of a secret.
 
 The simplest form of a locking script that requires Alice's signature would look like this:
 
@@ -261,9 +261,9 @@ The simplest form of a locking script that requires Alice's signature would look
 <Alice Public Key> CHECKSIG
 ----
 
-If an output is locked with the locking script above, then it can only be spent by Alice, because only Alice has the corresponding private key needed to produce a digital signature.
+The operator CHECKSIG takes two items from the stack: a signature and a public key. The public key is in the locking script, so what is missing is the signature corresponding to that public key. This locking script can only be spent by Alice, because only Alice has the corresponding private key needed to produce a digital signature matching the public key.
 
-To spend this output, Alice has to present an _unlocking script_, which combined with the locking script unlocks the output. To unlock the locking script shown in <<alice_locking_script>>, Alice would provide an unlocking script containing only a digital signature:
+To unlock the locking script shown in <<alice_locking_script>>, Alice would provide an unlocking script containing only a digital signature:
 
 [[alice_unlocking_script]]
 .An unlocking script containing (only) a digital signature from Alice's private key
@@ -271,4 +271,10 @@ To spend this output, Alice has to present an _unlocking script_, which combined
 <Alice Signature>
 ----
 
-Alice would put this unlocking script in the input of a transaction, referencing the outpoint she wants to spend. Anyone verifying this transaction would retrieve the output and it's locking script. By combining the unlocking script and the locking script, we can verify the
+Concatenating the unlocking script and the locking script produces:
+
+----
+<Alice Signature> <Alice Public Key> CHECKSIG
+----
+
+Running this in the Bitcoin Script execution engine will result in +TRUE+, so Alice is allowed to spend the output.
