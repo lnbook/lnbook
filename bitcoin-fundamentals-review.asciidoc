@@ -233,6 +233,8 @@ The final element of Bitcoin that is needed to complete our understanding is the
 
 Bitcoin Script is an extremely simple stack-based scripting language. It does not contain loops or recursion and therefore is Turing Incomplete (meaning it cannot express arbitrary complexity and has predictable execution). Those familiar with the (now ancient) programming language FORTH will recognize the syntax and style.
 
+==== Running Bitcoin Script
+
 In simple terms, the Bitcoin system evaluates Bitcoin Script by running the script on a stack and if the final result is +TRUE+, considers the spending condition satisfied and the transaction "valid".
 
 Let's look at a very simple example of Bitcoin Script, which adds the numbers 2 and 3 and then compares the result to the number 5:
@@ -245,36 +247,99 @@ In the diagram below, we see how this script is executed (from left to right):
 
 image::images/bitcoin-script-example-1.png["Example of Bitcoin Script execution"]
 
+==== Locking and Unlocking Scripts
+
 Bitcoin Script is made up of two parts:
 
 _Locking scripts_ are embedded in transaction outputs, setting the conditions that must be fulfilled to spend that output. For example, Alice's wallet adds a locking script to the output paying Bob that sets the condition that Bob's signature is required to spend it.
 
 _Unlocking scripts_ are embedded in transaction inputs, fulfilling the conditions set by the referenced output's locking script. For example, Bob can unlock the output above by providing an unlocking script containing a digital signature.
 
-For validation, the unlocking script and locking script are concatenated and executed. For example, if someone locked a transaction output with the locking script +"3 ADD 5 EQUAL"+, we could spend it by offering the unlocking script "+2+" in a transaction input. Anyone validating that transaction would concatenate our unlocking script (+2+) and the locking script (+3 ADD 5 EQUAL+) and run the result through the Bitcoin Script execution engine. They would get +TRUE+ and we would be able to spend the output. Obviously, this simplified example would make a very poor choice for locking an actual Bitcoin output because there is no secret, just basic arithmetic. Anyone could spend the output by providing the answer "2". Most locking scripts therefore require demonstrating knowledge of a secret.
+For validation, the unlocking script and locking script are concatenated and executed. For example, if someone locked a transaction output with the locking script +"3 ADD 5 EQUAL"+, we could spend it with the unlocking script "+2+" in a transaction input. Anyone validating that transaction would concatenate our unlocking script (+2+) and the locking script (+3 ADD 5 EQUAL+) and run the result through the Bitcoin Script execution engine. They would get +TRUE+ and we would be able to spend the output.
 
-The simplest form of a locking script that requires Alice's signature would look like this:
+Obviously, this simplified example would make a very poor choice for locking an actual Bitcoin output because there is no secret, just basic arithmetic. Anyone could spend the output by providing the answer "2". Most locking scripts therefore require demonstrating knowledge of a secret.
 
-[[alice_locking_script]]
-.A locking script that requires a digital signature from Alice's private key
+==== Locking to a public key (signature)
+
+The simplest form of a locking script that requires a signature. Let's consider Alice's transaction that pays Bob 50,000 satoshis. The output Alice creates to pay Bob will have a locking script requiring Bob's signature and would look like this:
+
+[[bob_locking_script]]
+.A locking script that requires a digital signature from Bob's private key
 ----
-<Alice Public Key> CHECKSIG
-----
-
-The operator CHECKSIG takes two items from the stack: a signature and a public key. The public key is in the locking script, so what is missing is the signature corresponding to that public key. This locking script can only be spent by Alice, because only Alice has the corresponding private key needed to produce a digital signature matching the public key.
-
-To unlock the locking script shown in <<alice_locking_script>>, Alice would provide an unlocking script containing only a digital signature:
-
-[[alice_unlocking_script]]
-.An unlocking script containing (only) a digital signature from Alice's private key
-----
-<Alice Signature>
+<Bob Public Key> CHECKSIG
 ----
 
-Concatenating the unlocking script and the locking script produces:
+The operator CHECKSIG takes two items from the stack: a signature and a public key. As you can see, Bob's public key is in the locking script, so what is missing is the signature corresponding to that public key. This locking script can only be spent by Bob, because only Bob has the corresponding private key needed to produce a digital signature matching the public key.
+
+To unlock this locking script shown in, Bob would provide an unlocking script containing only his digital signature:
+
+[[bob_unlocking_script]]
+.An unlocking script containing (only) a digital signature from Bob's private key
+----
+<Bob Signature>
+----
+
+In <<locking_unlocking_chain>> you can see the locking script in Alice's transaction (in the output that "pays" Bob) and the unlocking script (in the input that "spends" that output) in Bob's transaction.
+
+[[locking_unlocking_chain]]
+.A transaction chain showing the locking script (output) and unlocking script (input)
+image::images/locking-unlocking-chain.png["A transaction chain showing the locking script (output) and unlocking script (input)"]
+
+To validate Bob's transaction, a Bitcoin node would do the following:
+
+* Extract the unlocking script from the input (+<Bob Signature>+)
+* Look up the outpoint it is attempting to spend (+a643e37...3213:0+). This is Alice's transaction and would be found on the blockchain.
+* Extract the locking script from that outpoint (+<Bob PubKey> CHECKSIG+)
+* Concatenate into one script, placing the unlocking script in front of the locking script (+<Bob Signature> <Bob PubKey> CHECKSIG+)
+* Execute this script on the Bitcoin Script execution engine to see what result is produced
+* If the result is +TRUE+, deduce that Bob's transaction is valid because it was able to fulfill the spending condition to spend that outpoint.
+
+==== Locking to a hash (secret)
+
+Another type of locking script, one that is used in the Lightning Network, is a _hash lock_. In order to unlock it you must know the secret _pre-image_ to the hash.
+
+To demonstrate this, let's have Bob generate a random number +R+ and keep it secret.
 
 ----
-<Alice Signature> <Alice Public Key> CHECKSIG
+R = 1833462189
 ----
 
-Running this in the Bitcoin Script execution engine will result in +TRUE+, so Alice is allowed to spend the output.
+Now, Bob calculates the SHA256 hash of this number:
+
+----
+H = SHA256(R) =>
+H = SHA256(1833462189) =>
+H = 0ffd8bea4abdb0deafd6f2a8ad7941c13256a19248a7b0612407379e1460036a
+----
+
+Now, Bob gives the hash +H+ we calculated above to Alice, but keeps the number +R+ secret. Recall, that because of the properties of cryptographic hashes, Alice can't "reverse" the hash calculation and guess the number +R+.
+
+Alice creates an output paying 50,000 satoshi with the locking script:
+
+----
+HASH256 H EQUAL
+----
+
+Where +H+ is the actual hash value (+0ffd8...036a+) that Bob gave to Alice.
+
+Let's explain this script:
+
+The HASH256 operator pops a value from the stack and calculates the SHA256 hash of that value. Then it pushes the result onto the stack.
+
+The +H+ value is pushed onto the stack and then the +EQUAL+ operator checks if the two values are the same and pushes +TRUE+ or +FALSE+ onto the stack accordingly.
+
+Therefore, this locking script will only work if it is combined with an unlocking script that contains +R+, so that when concatenated we have:
+
+----
+R HASH256 H EQUAL
+----
+
+Only Bob knows +R+, so only Bob can produce a transaction with an unlocking script revealing the secret value +R+.
+
+Interestingly, Bob can give the +R+ value to anyone else, who can then spend that Bitcoin. This makes the secret value +R+ almost like a bitcoin "voucher", since anyone who has it can spend the output Alice created. We'll see how this is a useful property for the Lightning Network!
+
+==== Multisignature scripts
+
+==== Timelock scripts
+
+==== Scripts with multiple conditions
