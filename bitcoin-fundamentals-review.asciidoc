@@ -388,3 +388,99 @@ Output-level absolute timelocks are implemented by the operator +CHECKLOCKTIMEVE
 Output-level relative timelocks are implemented by the operator +CHECKSEQUENCEVERIFY+, often shortened in conversation as _CSV_. Relative timelocks implement a spending constraint that is relative to the confirmation of the transaction, expressing the equivalent of "can't be spent until 1024 blocks after confirmation".
 
 ==== Scripts with multiple conditions
+
+One of the more powerful features of Bitcoin Script is flow control, also known as conditional clauses. You are probably familiar with flow control in various programming languages that use the construct +IF...THEN...ELSE+. Bitcoin conditional clauses look a bit different, but are essentially the same construct.
+
+At a basic level, bitcoin conditional opcodes allow us to construct a locking script that has two ways of being unlocked, depending on a +TRUE+/+FALSE+ outcome of evaluating a logical condition. For example, if x is +TRUE+, the locking script is A ELSE the locking script is B.
+
+Additionally, bitcoin conditional expressions can be "nested" indefinitely, meaning that a conditional clause can contain another within it, which contains another, etc. Bitcoin Script flow control can be used to construct very complex scripts with hundreds or even thousands of possible execution paths. There is no limit to nesting, but consensus rules impose a limit on the maximum size, in bytes, of a script.
+
+Bitcoin implements flow control using the +IF+, +ELSE+, +ENDIF+, and +NOTIF+ opcodes. Additionally, conditional expressions can contain boolean operators such as +BOOLAND+, +BOOLOR+, and +NOT+.
+
+At first glance, you may find the bitcoin's flow control scripts confusing. That is because Bitcoin Script is a stack language. The same way that the arithmetic operation latexmath:[1 + 1] looks "backward" when expressed in Bitcoin Script as +1 1 ADD+, flow control clauses in
+Bitcoin also look "backward."
+
+In most traditional (procedural) programming languages, flow control looks like this:
+
+.Pseudocode of flow control in most programming languages
+----
+if (condition):
+  code to run when condition is true
+else:
+  code to run when condition is false
+code to run in either case
+----
+
+In a stack-based language like Bitcoin Script, the logical condition comes *before* the +IF+, which makes it look "backward," like this:
+
+.Bitcoin Script flow control
+----
+condition
+IF
+  code to run when condition is true
+ELSE
+  code to run when condition is false
+ENDIF
+code to run in either case
+----
+
+When reading Bitcoin Script, remember that the condition being evaluated comes _before_ the +IF+ opcode.
+
+==== Using Flow Control in Scripts
+
+A very common use for flow control in Bitcoin Script is to construct a locking script that offers multiple execution paths, each a different way of redeeming the UTXO.
+
+((("use cases", "buying coffee")))Let's look at a simple example, where we have two signers, Alice and Bob, and either one is able to redeem. With multisig, this would be expressed as a 1-of-2 multisig script. For the sake of demonstration, we will do the same thing with an +IF+ clause:
+
+----
+IF
+ <Alice's Pubkey> CHECKSIG
+ELSE
+ <Bob's Pubkey> CHECKSIG
+ENDIF
+----
+
+Looking at this locking script, you may be wondering: "Where is the condition? There is nothing preceding the +IF+ clause!"
+
+The condition is not part of the locking script. Instead, the condition will be _offered in the unlocking script_, allowing Alice and Bob to "choose" which execution path they want.
+
+Alice redeems this with the unlocking script:
+----
+<Alice's Sig> 1
+----
+
+The +1+ at the end serves as the condition (+TRUE+) that will make the +IF+ clause execute the first redemption path for which Alice has a signature.
+
+For Bob to redeem this, he would have to choose the second execution path by giving a +FALSE+ value to the +IF+ clause:
+
+----
+<Bob's Sig> 0
+----
+
+Bob's unlocking script puts a +0+ on the stack, causing the +IF+ clause to execute the second (+ELSE+) script, which requires Bob's signature.
+
+Because each of the two conditions also requires a signature, Alice can't use the second clause and Bob can't use the first clause, they don't have the necessary signatures for that!
+
+Since conditional flows can be nested, so can the +TRUE+ / +FALSE+ values in the unlocking script, to navigate a complex path of conditions.
+
+In <<htlc_script_example>> you can see an example of the kind of complex script that is used in the Lightning Network, with multiple conditionsfootnote:[From BOLT 3: https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md]. The scripts used in the Lightning Network are highly optimized and compact, to minimize the onchain footprint, so they are not easy to read and understand. Nevertheless, see if you can identify some of the Bitcoin Script concepts we learned about in this chapter:
+
+[[htlc_script_example]]
+.A complex script used in the Lightning Network
+----
+# To remote node with revocation key
+DUP HASH160 <RIPEMD160(SHA256(revocationpubkey))> EQUAL
+IF
+    CHECKSIG
+ELSE
+    <remote_htlcpubkey> SWAP SIZE 32 EQUAL
+    NOTIF
+        # To local node via HTLC-timeout transaction (timelocked).
+        DROP 2 SWAP <local_htlcpubkey> 2 CHECKMULTISIG
+    ELSE
+        # To remote node with preimage.
+        HASH160 <RIPEMD160(payment_hash)> EQUALVERIFY
+        CHECKSIG
+    ENDIF
+ENDIF
+----
