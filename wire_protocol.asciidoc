@@ -96,6 +96,160 @@ In the next section, we'll describe the structure of each of the wire messages
 including the prefix type of the message along with the contents of its message
 body.
 
+### Type Length Value (TLV) Message Extensions
+
+Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
+and if while parsing a messages, extra bytes are left over, then those bytes
+are to be _ignored_. At an initial glance, this requirement may appear to be
+somewhat arbitrary, however upon close inspection it's actually the case that
+this requirement allows for de-coupled de-synchronized evolution of the Lighting 
+Protocol itself. We'll opine further upon this notion towards the end of the
+chapter. First, we'll turn our attention to exactly what those "extra bytes" at
+the end of a message can be used for.
+
+#### The Protcol Buffer Message Format
+
+The Protocol Buffer (protobuf) message serialization format started out as an
+internal format used at Google, and has blossomed into one of the most popular
+message serialization formats used by developers globally. The protobuf format
+describes how a message (usually some sort of data structure related to an API)
+is to be encoded on the wire and decoded on the other end. Several "protobuf
+compilers" exists in dozens of languages which act as a bridge that allows any
+language to encode a protobuf that will be able to decode by a compliant decode
+in another language. Such cross language data structure compatibility allows
+for a wide range of innovation it's possible to transmit structure and even
+typed data structures across language and abstraction boundaries.
+
+Protobufs are also known for their _flexibility_ with respect to how they
+handle changes in the underlying messages structure. As long as the field
+numbering schema is adhered to, then it's possible for a _newer_ write of
+protobufs to include information within a protobuf that may be unknown to any
+older readers. When the old reader encounters the new serialized format, if
+there're types/fields that it doesn't understand, then it simply _ignores_
+them. This allows old clients and new clients to _co-exist_, as all clients can
+parse _some_ portion of the newer message format.
+
+#### Forwards & Backwards Compatibility
+
+Protobufs are extremely popular amongst developers as they have built in
+support for both _forwards_ and _backwards_ compatibility. Most developers are
+likely familiar with the concept of backwards computability. In simple terms,
+the principles states that any changes to a message format or API should be
+done in a manner that doesn't _break_ support for older clients. Within our
+protobuf extensibility examples above, backwards computability is achieved by
+ensuring that new additions to the proto format don't break the known portions
+of older readers. Forwards computability on the other hand is just as important
+for de-synchronized updates however it's less commonly known. For a change to
+be forwards compatible, then clients are to simply _ignore_ any information
+they don't understand. The soft for mechanism of upgrading the Bitcoin
+consensus system can be said to be both forwards and backwards compatible: any
+clients that don't update can still use Bitcoin, and if they encounters any
+transactions they don't understand, then they simply ignore them as their funds
+aren't using those new features.
+
+#### Lighting's Protobuf Inspired Message Extension Format: `TLV`
+
+In order to be able to upgrade messages in both a forwards and backwards
+compatible manner, in addition to feature bits (more on that later), the LN
+utilizes a _Custom_ message serialization format plainly called: Type Length
+Value, or TLV for short. The format was inspired by the widely used protobuf
+format and borrows many concepts by significantly simplifying the
+implementation as well as the software that interacts with message parsing. A
+curious reader might ask "why not just use protobufs"? In response, the
+Lighting developers would respond that we're able to have the best of the
+extensibility of protobufs while also having the benefit of a smaller
+implementation and thus attacks surface in the context of Lightning. As of
+version v3.15.6, the protobuf compiler weighs in at over 656,671 lines of code.
+In comparison lnd's implementation of the TLV message format weighs in at only
+2.3k lines of code (including tests).
+
+With the necessary background presented, we're now ready to describe the TLV
+format in detail. A TLV message extension is said to be a _stream_ of
+individual TLV records. A single TLV record has three components: the type of
+the record, the length of the record, and finally the opaque value of the 
+record:
+
+  * `type`: An integer representing the name of the record being encoded.
+  * `length`: The length of the record.
+  * `value`: The opaque value of the record.
+
+Both the `type` and `length` are encoded using a variable sized integer that's
+inspired by the variable sized integer (varint) used in Bitcoin's p2p protocol,
+this variant is called `BigSize` for short. In its fullest form, a `BigSize`
+integer can represent value up to 64-bits. In contrast to Bitcoin's varint
+format, the `BigSize format instead encodes integers using a _big endian_ byte
+ordering.
+
+The `BigSize` varint has the components: the discriminant and the body. In the
+context of the `BigSize` integer, the discriminant communicates to the decoder
+the _size_ of the variable size integer. Remember that the uniquer thign about
+variable sized integers is that they allow a parser to use less bytes to encode
+smaller integers than larger ones. This allows message formats to safe space, as
+they're able to minimally encode numbers from 8 to 6-bits. Encoding a `BigSize`
+integer can be defined using a piece-wise function that branches based on the
+size of the integer to be encoded.
+
+  * If the value is _less than_ `0xfd` (`253`):
+    * Then the discriminant isn't really used, and the encoding is simply the
+      integer itself. 
+
+    * This value allows us to encode very small integers with no additional
+      overhead
+
+  * If the value is _less than or equal to_ `0xffff` (`65535`):
+    * Then the discriminant is encoded as `0xfd`, which indicates that the body is
+      that follows is larger than `0xfd`, but smaller than `0xffff`).
+
+    * The body is then encoded as a _16-bit_ integer. Including the
+      discriminant, then we can encode a value that is greater than 253, but
+      less than 65535 using `3 bytes`.
+
+  * If the value is less than `0xffffffff` (`4294967295`):
+    * Then the discriminant is encoded as `0xfe`.
+
+    * The body is encoded using _32-bit_ integer, Including the discriminant,
+     then we can encode a value that's less than `4,294,967,295` using _5
+      bytes_.
+
+  * Otherwise, we'll just encode the value as a fully _64-bit_ integer.
+
+
+Within the context of a TLV message,
+values below `2^16` are said to be _reserved_ for future use. Values beyond this
+range are to be used for "custom" message extensions used by higher-level
+application protocols. The `value` is defined in terms of the `type`. In other
+words, it can take any forma s parzers will attempt to coalsces it into a
+higher-level types (such as a signatture) depending on the context of the type
+itself.
+
+One issue with the protobuf format is the encodes of the same message may
+output an entirely different set of bytes when encoded by two different
+versions of the compiler. Such instances of a non-cannonical encoding are not
+acceptable within teh context of Lighting, was many messages contain a
+signature of the message digest. If it's possible for a message to be encoded
+in two different ways, then it would be possible to break the authentication of
+a signature inadvertently by re-encoding a message using a slightly different
+set of bytes on the wire. 
+
+In order to ensure that all encoded messages are canonical, the following
+constraints are defined when encoding:
+
+  * All records within a TLV stream MUST be encoded in order of strictly
+    increasing type.
+
+  * All records must _minimally encode_ the `type` and `length` fields. In
+    orther woards, the smallest BigSIze representation for an integer MUST be
+    used at all times. 
+
+  * Each `type` may only appear _once_ within a given TLV stream.
+
+In addition to these writing requirements a series of higher-level
+interpretation requirements are also defined based on the _arity_ of a given
+`type` integer. We'll dive further into these details towards the end of the
+chapter cone we talked about how the Lighting Protocol is upgraded in practice
+and in theory.
+
+
 ### Wire Messages
 
 In this section, well outline the precise structure of each of the wire
