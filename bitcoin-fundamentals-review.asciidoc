@@ -338,8 +338,53 @@ Only Bob knows +R+, so only Bob can produce a transaction with an unlocking scri
 
 Interestingly, Bob can give the +R+ value to anyone else, who can then spend that Bitcoin. This makes the secret value +R+ almost like a bitcoin "voucher", since anyone who has it can spend the output Alice created. We'll see how this is a useful property for the Lightning Network!
 
+[[multisig]]
 ==== Multisignature scripts
 
+The Bitcoin scripting language provides a multisignature building block (primitive), that can be used to build escrow services and complex ownership configurations between several stakeholders. An arrangement that requires multiple signatures to spend Bitcoin is called a _multisignature scheme_, further specified as an _K-of-N_ scheme, where:
+
+* N is the total number of signers identified in the multisignature scheme, and
+* K is the _quorum_ or _threshold_ - the minimum number of signatures to authorize spending.
+
+The script for an K-of-N multisignature is:
+
+----
+K <PubKey1> <PubKey2> ... <PubKeyN> N CHECKMULTISIG
+----
+
+where N is the total number of listed public keys (Public Key 1 through Public Key N) and K is the threshold of required signatures to spend the output.
+
+The Lightning Network uses a 2-of-2 multisignature scheme to build a payment channel. For example, a payment channel between Alice and Bob would be built on a 2-of-2 multisignature like this:
+
+----
+2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG
+----
+
+The preceding locking script can be satisfied with an unlocking script containing a pair of signatures: footnote:[The first argument (0) does not have any meaning but is required due to a bug in Bitcoin's multisignature implementation. This issue is described in Mastering Bitcoin, Chapter 7.]
+
+----
+0 <Sig Alice> <Sig Bob>
+----
+The two scripts together would form the combined validation script:
+
+----
+0 <Sig Alice> <Sig Bob> 2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG
+----
+
+A multisignature locking script can be represented by a Bitcoin address, encoding the hash of the locking script. For example, the initial funding transaction of a Lightning payment channel is a transaction that pays to an address that encodes a locking script of a 2-of-2 multisig of the two channel partners.
+
 ==== Timelock scripts
+
+Another important building block that exists in Bitcoin and is used extensively in the Lightning Network is a _timelock_. A timelock is a restriction on spending that requires that a certain time or block height has elapsed before spending is allowed. It is a bit like a post-dated check drawn from a bank account that can't be "cashed" before the date on the check.
+
+Bitcoin has two levels of timelocks: transaction-level timelocks and output-level timelocks.
+
+A transaction-level timelock is recorded in the transaction header and prevents the entire transaction from being accepted before the timelock has passed. Transaction-level timelocks are most often used in conjunction with output-level timelocks.
+
+An output-level timelock is created by a script operator. There are two types of output timelocks: _absolute timelocks_ and _relative timelocks_.
+
+Output-level absolute timelocks are implemented by the operator +CHECKLOCKTIMEVERIFY+, which is often shortened in conversation as _CLTV_. Absolute timelocks implement a time-constraint with an abolute timestamp or blockheight, expressing the equivalent of "not spendable before block 800,000".
+
+Output-level relative timelocks are implemented by the operator +CHECKSEQUENCEVERIFY+, often shortened in conversation as _CSV_. Relative timelocks implement a spending constraint that is relative to the confirmation of the transaction, expressing the equivalent of "can't be spent until 1024 blocks after confirmation".
 
 ==== Scripts with multiple conditions
