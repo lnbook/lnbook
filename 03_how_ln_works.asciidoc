@@ -94,55 +94,19 @@ Payment channels have a few very interesting and useful properties:
 
 * Payments made in a payment channel are only known to you and your partner. In that sense, you gain privacy compared to Bitcoin, where every transaction is public.  Only the final balance, which is the aggregate of all payments in that channel, will become visible on the Bitcoin blockchain.
 
-
 Bitcoin was about five years old when talented developers first figured out how payment channels could be constructed and by now there are at least three different methods known.
 This chapter will focus on the channel construction method first described in the Lightning Network whitepaper by Joseph Poon and Thaddeus Dryja in 2015. These are known as _Poon-Dryja_ channels, and are the channel construction method currently used in the Lightning Network.
 The other two proposed methods are _Duplex Micropayment_ channels, introduced by Christian Decker around the same time as the "Poon-Dryja" channels and _eltoo_ channels, introduced in 2018 by Christian Decker, Rusty Russel and (author of this book) Olaoluwa Osuntokun.
 
 Eltoo channels have some interesting properties and simplify the implementation of payment channels. However, eltoo channels require a change in the Bitcoin scripting language and therefore cannot be implemented on the Bitcoin mainnet as of 2020.
 
-==== Multisig addresses
+==== Multisignature address
 
-Payment channels are built on top of 2-of-2 multisignature addresses, timelocks and Segregated Witness transaction outputs. We will not review these relatively advanced concepts of the Bitcoin system in depth. Instead, in this section we will provide a high-level overview of multisignature scripts and how they allow us to construct payment channels.
-If you have already studied Bitcoin and are familiar with multisignature addresses, feel free to skip this section.
+Payment channels are built on top of 2-of-2 multisignature addresses.
 
-[TIP]
-====
-A deep dive into the topic discussed here is presented in chapter 7 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch07.asciidoc.
-Also, in case you are not familiar with P2PKH addresses and the basic format and scripting language of Bitcoin we encourage you to study chapter 6 of Mastering Bitcoin which can be found at: https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc.
-There is also a video on Rene's YouTube channel which dissects the bits and bytes of a transaction spending from a P2PKH output at: https://youtu.be/1n4g3eYX1UI
-====
+In summary, a multi-signature address is where bitcoin is locked so that it requires multiple signatures to unlock and spend. In a 2-of-2 multisignature address, as used in the Lightning Network, there are two participating signers and *both* need to sign in order to spend the funds.
 
-The Bitcoin scripting language provides a multisignature building block (primitive), that can be used to build escrow services and complex ownership configurations between several stakeholders. An arrangement that requires multiple signatures to spend Bitcoin is called a _multisignature scheme_, further specified as an _K-of-N_ scheme, where:
-
-
-* N is the total number of signers identified in the multisignature scheme, and
-* K is the _quorum_ or _threshold_ - the minimum number of signatures to authorize spending.
-
-The script for an K-of-N multisignature is:
-
-----
-K <PubKey1> <PubKey2> ... <PubKeyN> N CHECKMULTISIG
-----
-
-where N is the total number of listed public keys (Public Key 1 through Public Key N) and K is the threshold of required signatures to spend the output.
-
-The Lightning Network uses a 2-of-2 multisignature scheme to build a payment channel. For example, a payment channel between Alice and Bob would be built on a 2-of-2 multisignature like this:
-
-----
-2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG
-----
-
-The preceding locking script can be satisfied with an unlocking script containing a pair of signatures: footnote:[The first argument (0) does not have any meaning but is required due to a bug in Bitcoin's multisignature implementation. This issue is described in Mastering Bitcoin, Chapter 7.]
-
-----
-0 <Sig Alice> <Sig Bob>
-----
-The two scripts together would form the combined validation script:
-
-----
-0 <Sig Alice> <Sig Bob> 2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG
-----
+Multisignature scripts and addresses are explained in more detail in <<multisig>>.
 
 ==== Funding Transaction
 
