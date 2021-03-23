@@ -105,8 +105,7 @@ Commitment/Non-repudiation:: You can commit to a specific pre-image (e.g. a numb
 
 Proof-of-Work/Hash Grinding:: You can use a hash to prove you have done computational work, by showing a non-random pattern in the hash which can only be produced by repeated guesses at a pre-image. For example, the hash of a Bitcoin block header starts with a lot of zero bits. The only way to produce it is by changing a part of the header and hashing it trillions of times until it produces that pattern by chance.
 
-Atomicity:: You can make a secret pre-image a condition of spending funds in several linked transactions. If any one of the parties reveals the pre-image in order to spend one of the transactions, all the other parties can now spend their transactions too. All or none become spendable, achieving atomicity across several transactions.
-e to alter the message and still have the same hash.
+Atomicity:: You can make a secret pre-image a pre-requisite of spending funds in several linked transactions. If any one of the parties reveals the pre-image in order to spend one of the transactions, all the other parties can now spend their transactions too. All or none become spendable, achieving atomicity across several transactions.
 
 ==== Digital signatures
 
@@ -140,13 +139,13 @@ Transactions are data structures that encode the transfer of value between parti
 
 ==== Inputs and outputs
 
-The fundamental building block of a bitcoin transaction is a transaction output. Transaction outputs are indivisible chunks of bitcoin currency, recorded on the blockchain, and recognized as valid by the entire network. A transaction spends "inputs" and creates "outputs". Transaction inputs are simply references to outputs of previously recorded transactions. This way, each transaction spends the outputs of a previous transactions and creates new outputs.
+The fundamental building block of a bitcoin transaction is a transaction output. Transaction outputs are indivisible chunks of bitcoin currency, recorded on the blockchain, and recognized as valid by the entire network. A transaction spends "inputs" and creates "outputs". Transaction inputs are simply references to outputs of previously recorded transactions. This way, each transaction spends the outputs of previous transactions and creates new outputs.
 
 [[transaction_structure]]
 .A transaction transfers value from inputs to outputs
 image::images/tx1.png["transaction inputs and outputs"]
 
-Bitcoin full nodes track all available and spendable outputs, known as _unspent transaction outputs_, or UTXO. The collection of all UTXO is known as the UTXO set and currently numbers in the millions of UTXO. The UTXO set grows as new UTXO are created and shrinks when UTXO are consumed. Every transaction represents a change (state transition) in the UTXO set, by consuming one or more UTXO as _transaction inputs_ and creating one or more UTXO as its _transaction outputs_.
+Bitcoin full nodes track all available and spendable outputs, known as _unspent transaction outputs_, or UTXOs. The collection of all UTXOs is known as the UTXO set and currently numbers in the millions of UTXOs. The UTXO set grows as new UTXOs are created and shrinks when UTXOs are consumed. Every transaction represents a change (state transition) in the UTXO set, by consuming one or more UTXOs as _transaction inputs_ and creating one or more UTXOs as its _transaction outputs_.
 
 For example, let's assume that a user Alice has a 100,000 satoshi UTXO that she can spend. Alice can pay Bob 100,000 satoshi, by constructing a transaction with one input (consuming her existing 100,000 satoshi input) and one output that "pays" Bob 100,000 satoshi. Now Bob has a 100,000 satoshi UTXO that he can spend, creating a new transaction that consumes this new UTXO and spends it to another UTXO as a payment to another user, and so on.
 
@@ -167,13 +166,18 @@ image::images/tx3.png["Alice pays 50,000 satoshis to Bob and 50,000 satoshis to 
 There's nothing "special" about a change output or any way to distinguish it from any other output. It doesn't have to be the last output. There could be more than one change output, or no change outputs. Only the creator of the transaction knows which outputs are to others and which outputs are to addresses they own and therefore "change".
 ====
 
-Similarly, if Alice wants to pay Bob 85,000 satoshi but has two 50,000 satoshi UTXO available, she has to create a transaction with two inputs (consuming both her 50,000 satoshi UTXO) and two outputs, paying Bob 85,000 and sending 15,000 satoshi back to herself as change.
+Similarly, if Alice wants to pay Bob 85,000 satoshi but has two 50,000 satoshi UTXOs available, she has to create a transaction with two inputs (consuming both her 50,000 satoshi UTXOs) and two outputs, paying Bob 85,000 and sending 15,000 satoshi back to herself as change.
 
 [[tx_twoin_twoout]]
 .Alice uses two 50k inputs to pay 85k sat to Bob and 50k sat to herself as change
 image::images/tx4.png["Alice uses two 50k inputs to pay 85k sat to Bob and 50k sat to herself as change"]
 
 The illustrations and examples above show how a Bitcoin transaction combines (spends) one or more inputs and creates one or more outputs. A transaction can have hundreds or even thousands of inputs and outputs.
+
+[TIP]
+====
+While the transactions created by the Lightning Network have multiple outputs they do not have "change" per se, because the entire available balance of a channel is split between the two channel partners.
+====
 
 ==== Transaction chains
 
