@@ -22,13 +22,13 @@ Let's get started!
 
 [NOTE]
 ====
-It is important that one sets her or his own expectations correctly on accurate facts. 
-If one plans to operate a Lightning node _solely_ to gain income by earning routing fees, 
-please do your homework diligently first. Running a profitable business by operating a Lighning node is 
-definitely _not_ easy. Calculate all your initial and ongoing costs in a spreadsheet. Study Lightning Network statistics carefully. 
+It is important that one sets her or his own expectations correctly on accurate facts.
+If one plans to operate a Lightning node _solely_ to gain income by earning routing fees,
+please do your homework diligently first. Running a profitable business by operating a Lightning node is
+definitely _not_ easy. Calculate all your initial and ongoing costs in a spreadsheet. Study Lightning Network statistics carefully.
 What is the current payment volume? What is the volume per node? What are the current average routing fees? Consult forums and ask
 for advice or feedback from other community members who have already gained real-world experience. Form your own educated opinion only
-_after_ you have done this due-diligence exercise. Most people will find their motivation for running a node not in financial gain 
+_after_ you have done this due-diligence exercise. Most people will find their motivation for running a node not in financial gain
 but somewhere else.
 ====
 
@@ -64,7 +64,7 @@ There are three main types of hardware Lightning nodes:
 
 _Virtual Private Server_ (VPS) and "cloud computing" services such as Microsoft Azure, Google Cloud, Amazon Web Services (AWS), or DigitalOcean are quite affordable and can be set up very quickly. A Lightning node can be hosted for between $20 and $40 per month on such a service.
 
-However, as the saying goes, "'Cloud' is just other people's computers". Using these services means running your node on other people's computers. This brings along the corresponding advantages and disadvantages. The key advantages are convenience, efficiency, uptime, and possibly even cost. The cloud operator manages and runs the node to a high degree automatically providing you with convenience and efficiency. They provide excellent uptime and availability, often much better than what an individual can achieve at home. If you consider that just the electricity cost of running a server in many western countries is around $10 per month, then add to that the cost of network bandwidth and the hardware itself, the VPS offering becomes financially competetive. Lastly, with a VPS you need no space for a PC at home, and don't have any issues with PC noise or heat.
+However, as the saying goes, "'Cloud' is just other people's computers". Using these services means running your node on other people's computers. This brings along the corresponding advantages and disadvantages. The key advantages are convenience, efficiency, uptime, and possibly even cost. The cloud operator manages and runs the node to a high degree automatically providing you with convenience and efficiency. They provide excellent uptime and availability, often much better than what an individual can achieve at home. If you consider that just the electricity cost of running a server in many western countries is around $10 per month, then add to that the cost of network bandwidth and the hardware itself, the VPS offering becomes financially competitive. Lastly, with a VPS you need no space for a PC at home, and don't have any issues with PC noise or heat.
 On the other hand there are several notable disadvantages. A Lightning node running in the "cloud" will always be less secure and less private than one running on your own computer. Additionally, these cloud computing services are very centralized. The vast majority of Bitcoin and Lightning nodes running on such services are located in a handful of data centers in Virginia, Sunnyvale, Seattle, London, and Frankfurt. When the networks or data centers of these providers have service problems, it affects thousands of nodes on so-called "decentralized" networks.
 
 If you have the possibility and capacity of running a node on your own computer at home or in your office, then this might be preferable to running it
@@ -78,7 +78,13 @@ While you can run a Lightning node (and even a Bitcoin node) on your laptop, it 
 And when your word processing app freezes up your laptop, your Lightning node will go down as well leaving you unable to receive transactions and potentially vulnerable to attacks. Furthermore, you should never turn off your laptop.
 All this combined together results in a set-up that is not ideal. The same will apply to your daily-use personal desktop PC.
 
-Instead, most users will choose to run a node on a dedicated computer. Fortunately, you don't need a "server" class computer to do this. You can run a Lightning node on a mini-PC, such as a Raspberry Pi or an Atom-based fanless PC. These are simple computers which are commonly used as a media server or home automation hub. They are relatively inexpensive, costing between $50 and $150 USD at the time of this writing. To run on a mini-PC, you will need an external USB hard drive, which again is relatively inexpensive, costing approximately $50 USD. The advantage of a dedicated mini-PC as a platform for Lightning and Bitcoin nodes is that it can run continuously, silently, and unobtrusively on your home network, tucked behind your router or TV. No one will even know that this little box is actually part of a global banking system!
+Instead, most users will choose to run a node on a dedicated computer.
+Fortunately, you don't need a "server" class computer to do this.
+You can run a Lightning node on a Single Board Computer, such as a Raspberry Pi or on a Mini PC (usually marketed as home theater PC's).
+These are simple computers which are commonly used as a home automation hub or a media server.
+They are relatively inexpensive, when compared to a PC or a laptop.
+The advantage of a dedicated device as a platform for Lightning and Bitcoin nodes is that it can run continuously, silently, and unobtrusively on your home network, tucked behind your router or TV.
+No one will even know that this little box is actually part of a global banking system!
 
 ==== What hardware is required to run a Lightning node?
 
@@ -88,9 +94,20 @@ At a minimum, the following will be required to run a Lightning Node:
 
 * **RAM**: a system with 2GB of RAM will _barely_ run both Bitcoin and Lightning nodes. It will perform much better with at least 4GB of RAM. The Initial Block Download will be especially challenging with less than 4GB of RAM. More than 8GB of RAM is unnecessary, because the CPU is the greater bottleneck for these types of services, due to cryptographic operations such as signature validation.
 
-* **Storage Drive**: this can be a Hard Drive or an Solid State Drive (SSD). An SSD will be significantly quicker for running a Bitcoin node. Most of the storage is used for the Bitcoin blockchain, which occupies more than 320GB (as of January 2021).
+* **Storage Drive**: this can be a Hard Disk Drive (HDD) or a Solid State Drive (SSD).
+An SSD will be significantly quicker (but more expensive) for running a node.
+Most of the storage is used for the Bitcoin blockchain, which is hundreds of gigabytes large.
+A fair tradeoff (cost for complexity) is to buy a small SSD to boot the OS from and a larger HDD to store large data objects (mostly databases).
 
-* **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning peers. During operation the estimated data use ranges from 10GB to 100GB per month, depending on configuration. At startup a Bitcoin full node downloads the full blockchain, 324GB as of January 2021.
+[NOTE]
+====
+Raspberri Pis are a common choice for running node software, due to the cost and parts availability.
+The OS that runs on the device usually boots from an SD card.
+For most use-cases, this is a non-issue but Bitcoin Core is notorious for being I/O heavy.
+You should make sure to place the Bitcoin Blockchain and Lightning Data Directory on a different drive because long-term intensive I/O can cause an SD card to fail.
+====
+
+* **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning peers. During operation the estimated data use ranges from 10GB to 100GB per month, depending on configuration. At startup a Bitcoin full node downloads the full blockchain.
 
 * **Power Supply**: a reliable power supply is required as Lightning nodes need to be online at all times. A power failure will cause in-progress payments to fail. For heavy duty routing nodes, a backup or uninterruptible power supply (UPS) is useful in the case of power outages.
 Ideally, you should connect your Internet router to this UPS as well.
@@ -497,7 +514,7 @@ The basic steps are as follows:
 
 . Finally, set up "Port Forwarding" on your internet router to route incoming traffic on specific ports to the selected IP address of your server.
 
-Once done reconfiguring, repeat the port check using one of the websites from the previous sections.
+Once done re-configuring, repeat the port check using one of the websites from the previous sections.
 
 === Security of your node
 
@@ -518,10 +535,10 @@ To secure your operating system, here are some of the top items to consider:
 . Maintenance - Make sure that you keep your operating system up to date. Enable automated daily or weekly installation of security updates.
 . Least Privilege - Set up users for specific processes and give them the least access needed to run a service. Do not run processes with admin privileges (e.g. root).
 . Process Isolation - Use the operating system features to isolate processes from each other.
-. File System Permissions - Configure the file system carefully, on the least-privilege principle. Do not make files readable or writeable by everyone.
+. File System Permissions - Configure the file system carefully, on the least-privilege principle. Do not make files readable or writable by everyone.
 . Strong Authentication - Use strong randomly generated passwords or, whenever possible, public-key authentication. E.g. it is safer to use Secure Shell (SSH) with a cryptographic key pair instead of a password.
 . Two-factor Authentication (2FA) - Use two-factor authentication wherever possible, including Universal 2-Factor (U2F) with hardware security keys. This applies to all external services you might be using such as your cloud service provider. But you can apply this also to your own set-up such as your own SSH configuration. Use 2FA also for indirect services. Say you are using a cloud service. You gave your cloud service provider an email address. Also protect your email address with 2FA.
-. Backup - Make backups of your system, but make sure you protect the backups with encryption too. Perform these backups periodically. At least once test if you can restore your backup and that your backup is complete and accessible. If possible, keep one copy of your backups on a different disk to avoid that a single hard disk failure destroys _both_ your active node as well as your backup copies. 
+. Backup - Make backups of your system, but make sure you protect the backups with encryption too. Perform these backups periodically. At least once test if you can restore your backup and that your backup is complete and accessible. If possible, keep one copy of your backups on a different disk to avoid that a single hard disk failure destroys _both_ your active node as well as your backup copies.
 . Vulnerability & Exposure Management - Use remote scanning to ensure you have minimized the attack surface of your system. Close any unnecessary services or ports.
 - Minimize - Install only software and packages that you really need and use. Uninstall packages that you no longer use. It is recommended that you do _not_ use your node computer for non-node activities that you can perform on another of your computers. Especially, if you can, do _not_ use your node computer for browsing, surfing the internet, or reading your email.
 
@@ -552,7 +569,7 @@ Static Channel Backups are not a panacea. First, the state of each channel needs
 
 Furthermore, the backups of your channels need to be encrypted to maintain your privacy and your channel security. Otherwise, anyone who finds the backups can not only see all your channels, they could use the backups to close all your channels in a way that hands over the balance to your channel peers. In other words, a malicious person that gets access to your backups can cause you to lose all your channel funds.
 
-You can see that SCBs are not a fool-proof safeguard. They are a weak compromise because they swap one type of risk (data corruption or loss) for another type of risk (malicious peer). To restore from a static channel backup, you have to interact with your channel peers and hope they don't try to cheat you by either giving you an old commitment or by fooling your node into broadcasting a revoked commitment so they can penalize you. Despite the weaknesses of SCB, SCBs do make sense and you should perform them. If you do not perform SCBs and you lose your node data, you lost your channel funds forever. Guaranteed! However, if you _do_ perform SCBs and you lose your node data, then you have a reasonable chance that some of your peers are honsest and that you can recuperate some of your channel funds. If you are lucky, you might recover all your funds. In conclusion, it is best for you to perform continuous Static Channel Backups to a disk other than the primary node hard disk.
+You can see that SCBs are not a fool-proof safeguard. They are a weak compromise because they swap one type of risk (data corruption or loss) for another type of risk (malicious peer). To restore from a static channel backup, you have to interact with your channel peers and hope they don't try to cheat you by either giving you an old commitment or by fooling your node into broadcasting a revoked commitment so they can penalize you. Despite the weaknesses of SCB, SCBs do make sense and you should perform them. If you do not perform SCBs and you lose your node data, you lost your channel funds forever. Guaranteed! However, if you _do_ perform SCBs and you lose your node data, then you have a reasonable chance that some of your peers are honest and that you can recuperate some of your channel funds. If you are lucky, you might recover all your funds. In conclusion, it is best for you to perform continuous Static Channel Backups to a disk other than the primary node hard disk.
 
 Channel backup mechanisms are still a work-in-progress and a weakness in most Lightning implementations.
 
@@ -562,7 +579,7 @@ At the time of writing this book, only LND offers a built-in mechanism for chann
 
 File-based backups of the Lightning node databases are at best a partial solution because you run the risk of backing up an inconsistent database state. In addition, you may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, thereby ensuring data consistency.
 
-To set up static channel backups in LND, set the +backupfilepath+ parameter either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to setup a mechanism that monitors this file for changes. Each time the file changes the backup mechanism must copy this file to another, possibly "off-site" disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this sceanrio. Recall, the backup files should be encrypted too.
+To set up static channel backups in LND, set the +backupfilepath+ parameter either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to setup a mechanism that monitors this file for changes. Each time the file changes the backup mechanism must copy this file to another, possibly "off-site" disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this scenario. Recall, the backup files should be encrypted too.
 
 ==== Hot wallet risk
 
@@ -653,13 +670,13 @@ Keeping a node online continuously is not easy, as various bugs and resource lim
 
 If you have the time and skills you should test some basic fault scenarios on the Lightning testnet. On the testnet you will learn valuable lessons without risking any funds. Any step you perform to automate your system will improve your availability.
 
-- Automatic computer server restart: What happens when your server or the operating system crashes? What happens when there is a power outage? Simulate this fault by pressing the "reset" button on your PC or by unplugging the power cable. After crash, reset, or power failure the computer should automatically restart itself. Some computers have a setting in their BIOS to specify how the computer should react on power failures. Test it to make sure the computer really restarts automatically on power failure without human intervention. 
+- Automatic computer server restart: What happens when your server or the operating system crashes? What happens when there is a power outage? Simulate this fault by pressing the "reset" button on your PC or by unplugging the power cable. After crash, reset, or power failure the computer should automatically restart itself. Some computers have a setting in their BIOS to specify how the computer should react on power failures. Test it to make sure the computer really restarts automatically on power failure without human intervention.
 
 - Automatic node restart: What happens when your node or one of your nodes crashes? Simulate this fault by killing the corresponding node processes. If a node crashes it should automatically restart itself. Test it to make sure the node or nodes really restart automatically on failure without human intervention. If this is not the case, most likely your node is not set up correctly as an operating system service.
 
 - Automatic network reconnection: What happens if your network goes down? What happens when your ISP goes temporarily down? What happens when your ISP assigns a new IP address to your router or your computer? When the network comes back, does the node or do the nodes automatically reconnect to the network? Simulate this fault by unplugging and later re-plugging the Ethernet cable from and to your PC. The nodes should automatically reconnect and continue operation without human intervention.
 
-- Configure your log files: All of the above failures should leave textual entries behind in the corresponding log files. Turn up the verbosity of logging if needed. Find these error entries in the log files and use them for monitoring. 
+- Configure your log files: All of the above failures should leave textual entries behind in the corresponding log files. Turn up the verbosity of logging if needed. Find these error entries in the log files and use them for monitoring.
 
 ==== Monitoring node availability
 
@@ -762,7 +779,7 @@ Autopilots currently exist in 3 forms.
 Be aware that the +lnd+ autopilot will start running in the background as soon as it is turned on via the config file. As a result it will start opening channels immediately if you have onchain outputs in your +lnd+ wallet.
 If you want to have full control over the bitcoin transactions that you make and the channels that you open, make sure to turn the autopilot off _before_ you load your +lnd+ wallet with bitcoin funds.
 If the autopilot was previously turned on, you might have to restart your +lnd+ before you top up your wallet with an on-chain transaction or before you close channels, which effectively gives you on-chain funds again.
-It is crucial that you set key configuration values if you want to run the autopilot. 
+It is crucial that you set key configuration values if you want to run the autopilot.
 Have a look at this example configuration:
 
 
@@ -858,7 +875,7 @@ Ultimately, Lightning users need to be strategic and proactive about channel man
 
 ==== Closing channels
 
-As discussed earlier in the book, a _Mutual Close_ is the preferred way of closing a channel. However, there are instances where a _Force Close_ is neccessary.
+As discussed earlier in the book, a _Mutual Close_ is the preferred way of closing a channel. However, there are instances where a _Force Close_ is necessary.
 
 Some examples:
 
@@ -892,8 +909,8 @@ Nodes compete for routing fees by setting their desired fee rate on each channel
 
 When sending a Lightning payment, a node will select a path so as to minimize fees, minimize hops, or both. As a result, a routing fee market emerges from these interactions. There are currently many nodes that charge very low or no fees for routing, creating downward pressure on the routing fee "market".
 
-If you make no choices, your Lightning node will set a default base fee and fee rate for each new channel. The default values depend on the node implementation you use. 
-The _base fee_ is set in the unit of _millisatoshi_ (thousandths of a satoshi). The proportional _fee rate_ is set in the unit of _millionths_ and is applied to the payment amount. 
+If you make no choices, your Lightning node will set a default base fee and fee rate for each new channel. The default values depend on the node implementation you use.
+The _base fee_ is set in the unit of _millisatoshi_ (thousandths of a satoshi). The proportional _fee rate_ is set in the unit of _millionths_ and is applied to the payment amount.
 The unit of _millionths_ is often abbreviated with _ppm_ (parts per million).
 For example, a _base fee_ of 1,000 (millisatoshi) and a _fee rate_ of 1,000 ppm (millionths) would result in the following charges for a 100,000 satoshi payment:
 
@@ -945,10 +962,10 @@ https://github.com/lightninglabs/lndmon
 
 === Thunderhub
 
-A very aestheticaly pleasing web-based graphical user interface similar to RTL but exclusive to LND. It can be used to make payments, rebalance channels and manage the node through a varitey of features. Find +Thunderhub+ here:
+A very aesthetically pleasing web-based graphical user interface similar to RTL but exclusive to LND. It can be used to make payments, rebalance channels and manage the node through a variety of features. Find +Thunderhub+ here:
 
 https://thunderhub.io
 
 === Conclusion
 
-As you maintain your node and gain experiences you will learn a lot about the Lightning Network. Being a node operator is a challenging but rewarding task. Mastering these skills will allow you to contribute to the growth and development of this technology and the Lightning Network itself. You will furthermore gain the ability to send and receive Lightning payments with the greatest degree of control and ease. You will play a central role in the network's infrastructure and not just be a participant on the edges. 
+As you maintain your node and gain experiences you will learn a lot about the Lightning Network. Being a node operator is a challenging but rewarding task. Mastering these skills will allow you to contribute to the growth and development of this technology and the Lightning Network itself. You will furthermore gain the ability to send and receive Lightning payments with the greatest degree of control and ease. You will play a central role in the network's infrastructure and not just be a participant on the edges.

@@ -5,7 +5,7 @@ RUN apt update && apt install -yqq \
 	software-properties-common
 
 # c-lightning
-ENV C_LIGHTNING_VER 0.9.2~0~ubuntu18.04.1
+ENV C_LIGHTNING_VER 0.9.3~20210120202101201901~ubuntu20.04.1
 RUN add-apt-repository -u ppa:lightningnetwork/ppa
 RUN apt-get install -yqq \
 	lightningd=${C_LIGHTNING_VER}

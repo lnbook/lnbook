@@ -207,7 +207,7 @@ These basic docker commands will be enough to get you started and will allow you
 
 Most of the Lightning node implementations need access to a full Bitcoin node in order to work.
 
-Installing a full Bitcoin node and synching the Bitcoin blockchain is outside the scope of this book and is a relatively complex endeavor in itself. If you want to try it, refer to _Mastering Bitcoin_ (https://github.com/bitcoinbook/bitcoinbook), "Chapter 3: Bitcoin Core: The Reference Implementation" which discusses the installation and operation of a Bitcoin node.
+Installing a full Bitcoin node and syncing the Bitcoin blockchain is outside the scope of this book and is a relatively complex endeavor in itself. If you want to try it, refer to _Mastering Bitcoin_ (https://github.com/bitcoinbook/bitcoinbook), "Chapter 3: Bitcoin Core: The Reference Implementation" which discusses the installation and operation of a Bitcoin node.
 
 A Bitcoin node can be operated in _regtest_ mode, where the node creates a local simulated Bitcoin blockchain for testing purposes. In the following examples we will be using the +regtest+ mode to allow us to demonstrate Lightning without having to synchronize a Bitcoin node or risk any funds.
 
@@ -593,6 +593,7 @@ install cli/lightning-cli lightningd/lightningd /usr/local/bin
 
 In order to verify that the +lightningd+ and +lightning-cli+ commands have been installed correctly we will ask each executable for its version information:
 
+[source,bash]
 ----
 $ lightningd --version
 v0.8.1rc2
@@ -614,6 +615,7 @@ In the next few sections we will build a docker container to run LND, build LND 
 
 If you have followed the previous examples in this chapter, you should be quite familiar with the basic docker commands by now. In this section we will repeat them to build the LND container. The container is located in +code/docker/lnd+. We issue commands in a terminal to change the working directory to +code/docker+ and perform the +docker build+ command:
 
+[source,bash]
 ----
 $ cd code/docker
 $ docker build -t lnbook/lnd lnd
@@ -718,7 +720,7 @@ $ go version
 go version go1.13.4 linux/amd64
 ----
 
-We have 1.13.4, so we're ready to... Go! Next we need to tell any programs where to find the Go code. This is accomplished by setting the environment variable +GOPATH+. Usually the Go code is located in a directory named +gocode+ directly in the user's home directory. With the following two commands we consistently set the +GOPATH+ and make sure your shell adds it to your executable +PATH+. Note that the user's home directory is referred to as +~+ in the shell. 
+We have 1.13.4, so we're ready to... Go! Next we need to tell any programs where to find the Go code. This is accomplished by setting the environment variable +GOPATH+. Usually the Go code is located in a directory named +gocode+ directly in the user's home directory. With the following two commands we consistently set the +GOPATH+ and make sure your shell adds it to your executable +PATH+. Note that the user's home directory is referred to as +~+ in the shell.
 
 ----
 $ export GOPATH=~/gocode
@@ -887,6 +889,7 @@ We have OpenJDK 11.0.7 and Maven 3.6.1, so we're ready.
 
 The source code for Eclair is on Github. The +git clone+ command can create a local copy for us. Let's change to our home directory and run it there:
 
+[source,bash]
 ----
 $ cd ~
 $ git clone https://github.com/ACINQ/eclair.git
@@ -1106,7 +1109,7 @@ We do the same with the other nodes, setting up connections and channels. Each n
 To Bob's node (c-lightning) we send these commands:
 [source,bash]
 ----
-docker-compose exec -T Bob lightning-cli connect ${chan_address//\"}@Chan 
+docker-compose exec -T Bob lightning-cli connect ${chan_address//\"}@Chan
 docker-compose exec -T Bob lightning-cli fundchannel ${chan_address//\"} 1000000
 ----
 
@@ -1161,6 +1164,11 @@ Of course, you can do a lot more with this test network than a 3-channel, 4-node
 
 * Generate hundreds or thousands of small invoices in a loop and then pay them as fast as possible in another loop. Measure how many transactions per second you can squeeze out of this test network.
 
+[TIP]
+====
+Lightning Polar (download from https://lightningpolar.com) allows you to visualize the network you have been experimenting with using Docker.
+====
+
 === Conclusion
 
-In this chapter we looked at various projects that implement the BOLT specifications. We built containers to run a sample Lightning network and learned how to build each project from source code. You are now ready to explore further and dig deeper. 
+In this chapter we looked at various projects that implement the BOLT specifications. We built containers to run a sample Lightning network and learned how to build each project from source code. You are now ready to explore further and dig deeper.

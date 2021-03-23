@@ -22,16 +22,18 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 * :lock_with_ink_pen: EARLY DRAFT - In progress, changing often: Submit issues only, NO PRs or fixes
 * :bookmark_tabs: OUTLINE - Rough outline - Please contribute! PRs welcome.
 * :thought_balloon: PLANNED - Planned section  - Do nothing yet.
+* :heavy_check_mark: DRAFT PUBLISHED - Published in early release - Copy edit only.
 
 | Section | Length (Word Count) |  Status |
 |-------|------|:------:|
-| [Preface and Acknowledgments](preface.asciidoc) | #### | :arrows_clockwise: |
+| PART 1 | PART 1 | PART 1 |
+| [Preface and Acknowledgments](preface.asciidoc) | #### | :heavy_check_mark: |
 | [Glossary](glossary.asciidoc) | ############## | :arrows_clockwise: |
-| [Introduction](01_introduction.asciidoc) | ###### | :mag: |
-| [Getting Started](02_getting_started.asciidoc) | ############ | :mag: |
-| [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################### | :mag: |
-| [Nodes (LN Clients)](node_client.asciidoc) | #################### | :mag: |
-| [Operating a Node](node_operations.asciidoc) | ############################ | :mag: |
+| [Introduction](01_introduction.asciidoc) | ########## | :heavy_check_mark: |
+| [Getting Started](02_getting_started.asciidoc) | ############# | :heavy_check_mark: |
+| [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################### | :heavy_check_mark: |
+| [Nodes (LN Clients)](04_node_client.asciidoc) | #################### | :heavy_check_mark: |
+| [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
 | [Intro to LN Routing (HTLCs)](routing.asciidoc) | #################### | :lock_with_ink_pen: |
 | [Channel Construction in Detail](channel-construction.asciidoc) | ########### | :lock_with_ink_pen: |
@@ -41,9 +43,14 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
 | [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
 | [Lightning Applications (LApps)]() | # | :thought_balloon: |
+| [LN Security and Privacy]() | # | :lock_with_ink_pen: |
 | [LN's Future]() | # | :thought_balloon: |
+| APPENDICES | APPENDICES | APPENDICES |
+| [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ########### | :heavy_check_mark: |
+| [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
-Total Word Count: 89705
+
+Total Word Count: 97452
 
 Target Word Count: 100,000-120,000
 
