@@ -1,7 +1,7 @@
 #!/bin/bash
 set -Eeuo pipefail
 
-# Generate a new receiving address for LND wallet
+# Generate a new receiving address for c-lightning wallet
 address=$(lightning-cli --lightning-dir=/lightningd --network regtest newaddr | jq .address)
 
 # Ask Bitcoin Core to send 10 BTC to the address, using JSON-RPC call
