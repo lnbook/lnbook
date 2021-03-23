@@ -19,11 +19,15 @@ While the bulk of this book is written for programmers, the first few chapters a
 
 As we explore how the Lightning Network actually works, we will encounter some technical terminology that might, at first, be a bit confusing. While all of these concepts and terms will be explained in detail as we progress through the book, and are defined in the glossary, some basic definitions now will make it easier to understand the concepts in the next two chapters. If you don't understand all of the words in these definitions yet, that's okay. You'll understand more as you move through the text.
 
-Node:: A computer that participates in a network. A Lightning node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run a Lightning node _and_ a Bitcoin node.
-
 Blockchain:: A distributed transaction ledger, produced by a network of computers. Bitcoin, for example, is a system that produces a blockchain. The Lightning Network is not itself a blockchain, nor does it produce a blockchain. It is a network that relies on an existing external blockchain for its security.
 
-Transaction:: A data structure that records the transfer of control over some funds (e.g. some bitcoin). The Lightning Network relies on Bitcoin transactions (or those of another blockchain) to track control of funds.
+Digital Signature:: A digital signature is a mathematical scheme for verifying the authenticity of digital messages or documents. A valid digital signature gives a recipient reason to believe that the message was created by a known sender, that the sender cannot deny having sent the message, and that the message was not altered in transit.
+
+Hash Function:: A cryptographic hash function is a mathematical algorithm that maps data of arbitrary size to a bit string of a fixed size (a hash) and is designed to be a one-way function, that is, a function which is infeasible to invert.
+
+Node:: A computer that participates in a network. A Lightning node is a computer that participates in the Lightning Network. A Bitcoin node is a computer that participates in the Bitcoin Network. Typically a Lightning Network user will run a Lightning node _and_ a Bitcoin node.
+
+On-Chain vs. Off-Chain:: A payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between Lightning nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments. Usually in the Lightning Network, the only on-chain transactions are those used to open and close a Lightning payment channel.
 
 Payment:: When value is exchanged on the Lightning Network we call this a "payment" as compared to a "transaction" on the Bitcoin Blockchain.
 
@@ -31,7 +35,7 @@ Payment Channel:: A _financial relationship_ between two nodes on the Lightning 
 
 Routing vs Sending:: Unlike Bitcoin where transactions are "sent" by broadcasting them to everyone, Lightning is a routed network where payments are "routed" across one or more payment channels following a _path_ from sender to recipient.
 
-On-Chain vs. Off-Chain:: A payment is "on-chain" if it is recorded as a transaction on the Bitcoin (or other underlying) blockchain. Payments sent via payment channels between Lightning nodes, and which are not visible in the underlying blockchain, are called "off-chain" payments. Usually in the Lightning Network, the only on-chain transactions are those used to open and close a Lightning payment channel.
+Transaction:: A data structure that records the transfer of control over some funds (e.g. some bitcoin). The Lightning Network relies on Bitcoin transactions (or those of another blockchain) to track control of funds.
 
 More detailed definitions of these and many other terms can be found in the <<glossary>>. Throughout this book, we will explain what these concepts mean and how these technologies actually work.
 
@@ -148,8 +152,8 @@ To solve this problem, we could increase the block size limit to create space fo
 
 However, increasing block size shifts the cost to node operators, and requires them to expend more resources to validate and store the blockchain.  Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. Furthermore, once validated, each transaction and block must be propagated to the node's "neighbors", multiplying the bandwidth requirements. As such, the greater the block size, the greater the bandwidth, processing, and storage requirements for each individual node. Increasing transaction capacity in this way has the undesirable effect of centralizing the system by reducing the number of nodes and node operators. Since node operators are not compensated for running nodes, if nodes are very expensive to run, only a few well funded node operators will continue to run nodes.
 
-.Scaling Blockchains
-****
+==== Scaling Blockchains
+
 The side effects of increasing the block size or decreasing the block time with respect to centralization of the network are severe as a few calculations with the numbers show.
 Let us assume the usage of Bitcoin grows so that the network has to process 40,000 transactions per second, which is the approximate transaction processing level of the VISA network during peak usage.
 
@@ -165,9 +169,8 @@ Verifying 40,000 ECDSA signatures per second is also barely feasible (c.f.: http
 While 40,000 transactions per second seems like a lot it only achieves parity with traditional financial payment networks at peak times. Innovations in machine-to-machine payments, micro-transactions and other applications are likely to push demand to many orders higher than that.
 
 Simply put: You can't scale a blockchain to validate the entire world's transactions in a decentralized way.
-****
 
-But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?
+_But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?_
 
 In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_
 footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-network-paper.pdf).]
