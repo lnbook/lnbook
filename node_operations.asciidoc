@@ -78,7 +78,13 @@ While you can run a Lightning node (and even a Bitcoin node) on your laptop, it 
 And when your word processing app freezes up your laptop, your Lightning node will go down as well leaving you unable to receive transactions and potentially vulnerable to attacks. Furthermore, you should never turn off your laptop.
 All this combined together results in a set-up that is not ideal. The same will apply to your daily-use personal desktop PC.
 
-Instead, most users will choose to run a node on a dedicated computer. Fortunately, you don't need a "server" class computer to do this. You can run a Lightning node on a mini-PC, such as a Raspberry Pi or an Atom-based fanless PC. These are simple computers which are commonly used as a media server or home automation hub. They are relatively inexpensive, costing between $50 and $150 USD at the time of this writing. To run on a mini-PC, you will need an external USB hard drive, which again is relatively inexpensive, costing approximately $50 USD. The advantage of a dedicated mini-PC as a platform for Lightning and Bitcoin nodes is that it can run continuously, silently, and unobtrusively on your home network, tucked behind your router or TV. No one will even know that this little box is actually part of a global banking system!
+Instead, most users will choose to run a node on a dedicated computer. 
+Fortunately, you don't need a "server" class computer to do this. 
+You can run a Lightning node on a Single Board Computer, such as a Raspberry Pi or on a Mini PC (usually marketed as home theater PC's). 
+These are simple computers which are commonly used as a home automation hub or a media server. 
+They are relatively inexpensive, when compared to a PC or a laptop. 
+The advantage of a dedicated device as a platform for Lightning and Bitcoin nodes is that it can run continuously, silently, and unobtrusively on your home network, tucked behind your router or TV. 
+No one will even know that this little box is actually part of a global banking system!
 
 ==== What hardware is required to run a Lightning node?
 
@@ -88,9 +94,23 @@ At a minimum, the following will be required to run a Lightning Node:
 
 * **RAM**: a system with 2GB of RAM will _barely_ run both Bitcoin and Lightning nodes. It will perform much better with at least 4GB of RAM. The Initial Block Download will be especially challenging with less than 4GB of RAM. More than 8GB of RAM is unnecessary, because the CPU is the greater bottleneck for these types of services, due to cryptographic operations such as signature validation.
 
-* **Storage Drive**: this can be a Hard Drive or an Solid State Drive (SSD). An SSD will be significantly quicker for running a Bitcoin node. Most of the storage is used for the Bitcoin blockchain, which occupies more than 320GB (as of January 2021).
+* **Storage Drive**: this can be a Hard Disk Drive (HDD) or a Solid State Drive (SSD). 
+An SSD will be significantly quicker (but more expensive) for running a node. 
+Most of the storage is used for the Bitcoin blockchain, which is hundreds of gigabytes large. 
+A fair tradeoff (cost for complexity) is to buy a small SSD to boot the OS from and a larger HDD to store large data objects (mostly databases).
 
-* **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning peers. During operation the estimated data use ranges from 10GB to 100GB per month, depending on configuration. At startup a Bitcoin full node downloads the full blockchain, 324GB as of January 2021.
+[NOTE]
+====
+Raspberri Pis are a common choice for running node software, due to the cost and parts availability. 
+The OS that runs on the device usually boots from an SD card. 
+For most use-cases, this is a non-issue but Bitcoin Core is notorious for being I/O heavy. 
+This can be problematic if you're running a hot (or Lightning) wallet on the Pi since its running alongside the OS on the SD card. 
+The worst case scenario this can lead to, is that the SD card fails and the data (money) becomes unrecoverable. 
+SATA based storage technology is generally regarded as being more robust and durable than SD cards. 
+In any case, a hardware failure should never result in loss of funds since a backup/recovery strategy should always be present when working with Bitcoin-type sofware.
+====
+
+* **Internet Connection**: a reliable internet connection will be required to download new Bitcoin blocks, as well as to communicate with other Lightning peers. During operation the estimated data use ranges from 10GB to 100GB per month, depending on configuration. At startup a Bitcoin full node downloads the full blockchain.
 
 * **Power Supply**: a reliable power supply is required as Lightning nodes need to be online at all times. A power failure will cause in-progress payments to fail. For heavy duty routing nodes, a backup or uninterruptible power supply (UPS) is useful in the case of power outages.
 Ideally, you should connect your Internet router to this UPS as well.
