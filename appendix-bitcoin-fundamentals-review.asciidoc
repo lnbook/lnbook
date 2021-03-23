@@ -25,7 +25,7 @@ This chapter covers several important concepts from Bitcoin, including:
 
 ((("cryptography", "defined")))((("cryptography", see="also keys and addresses")))You may have heard that bitcoin is based on _cryptography_, which is a branch of mathematics used extensively in computer security. Cryptography can also be used to prove knowledge of a secret without revealing that secret (digital signature), or prove the authenticity of data (digital fingerprint). These types of cryptographic proofs are the mathematical tools critical to bitcoin and used extensively in bitcoin applications.
 
-((("digital keys", see="keys and addresses")))((("keys and addresses", "overview of", id="KAover04")))((("digital signatures", "purpose of")))Ownership of bitcoin is established through _digital keys_, _bitcoin addresses_, and _digital signatures_. The digital keys are not actually stored in the network, but are instead created and stored by users in a file, or simple database, called a _wallet_. The digital keys in a user's wallet are completely independent of the bitcoin protocol and can be generated and managed by the user's wallet software without reference to the blockchain or access to the internet.
+((("digital keys", see="keys and addresses")))((("keys and addresses", "overview of")))((("digital signatures", "purpose of")))Ownership of bitcoin is established through _digital keys_, _bitcoin addresses_, and _digital signatures_. The digital keys are not actually stored in the network, but are instead created and stored by users in a file, or simple database, called a _wallet_. The digital keys in a user's wallet are completely independent of the bitcoin protocol and can be generated and managed by the user's wallet software without reference to the blockchain or access to the internet.
 
 Most bitcoin transactions require a valid digital signature to be included in the blockchain, which can only be generated with a secret key; therefore, anyone with a copy of that key has control of the bitcoin.  ((("witnesses")))The digital signature used to spend funds is also referred to as a _witness_, a term used in cryptography. The witness data in a bitcoin transaction testifies to the true ownership of the funds being spent. ((("public and private keys", "key pairs")))((("public and private keys", see="also keys and addresses")))Keys come in pairs consisting of a private (secret) key and a public key. Think of the public key as similar to a bank account number and the private key as similar to the secret PIN.
 
@@ -125,6 +125,14 @@ latexmath:[ F{verify}(m, K, S) ]
 If F_verify_ returns a true result, then the verifier can confirm that the message m was signed by someone who had access to the private key k. Importantly, the digital signature proves the possession of the private key k at the time of signing, without revealing k.
 
 Digital signatures use a cryptographic hash algorithm. The signature is applied to a hash of the message, so that the message m is "summarized" to a fixed-length hash H(m) that serves as a fingerprint.
+
+By applying the digital signature on the hash of a transaction, the signature not only proves the authorization, but also "locks" the transaction data ensuring its integrity. A signed transaction cannot be modified because any change would result in a different hash and invalidate the signature.
+
+==== Signature Types
+
+Signatures are not always applied to the entire transaction. To provide signing flexibility, a Bitcoin digital signature contains a prefix called the signature hash type, which specifies which part of the transaction data is included in the hash. This allows the signature to commit or "lock" all, or only some of, the data in the transaction. The most common signature hash type is +SIGHASH_ALL+ which locks everything in the transaction, by including all the transaction data in the hash that is signed. By comparison, +SIGHASH_SINGLE+ locks all the transaction inputs, but only one output (more about inputs and outputs in the next section). Different signature hash types can be combined to produce six different "patterns" of transaction data that is locked by the signature.
+
+More information about signature hash types can be found in https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc#sighash_types[_Mastering Bitcoin Second Edition - Chapter 6 - Signature Hash Types_]
 
 === Bitcoin transactions
 
