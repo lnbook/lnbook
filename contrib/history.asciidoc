@@ -17,7 +17,7 @@ A key requirement for a second layer protocol such as Lightning (which will be d
 The `nSequence` field was intended to allow users to transmit updated versions of a transaction to the network, changing the outputs of a transaction, effectively creating a payment channel.
 Such a payment channel would then be valid as long as the transaction was not mined.
 
-According to a mailing list post in 2013, by early Bitcoin developer Mike Hearn, Satoshi Nakamoto envisioned this construct for high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234813/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002417.html.]
+According to a mailing list post in 2013 by early Bitcoin developer Mike Hearn, Satoshi Nakamoto envisioned this construct for high frequency trading.footnote:HearnBitcoinDev[Mike Hearn on Bitcoin-dev - April 16th 2013 - Anti DoS for tx replacement http://web.archive.org/web/20190501234813/https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2013-April/002417.html.]
 
 However, there were some weaknesses in this initial formulation that limited its potential. Firstly, the payment channel would only be open until the transaction was mined in a block, either limiting the duration of the payment channel or handing control of the payment channel to the miners. Secondly, there was no economic incentive for miners to respect the `nSequence` number (to replace the state of the channel in the mempool), reducing the utility of this mechanism.
 
@@ -25,7 +25,7 @@ The Revocable Sequence Maturity Contracts (RSMC), which formed payment channels 
 
 Using this new feature of the `nSequence` number, the RSMC was able to enforce a novel penalty mechanism: each time a party goes to claim a state on chain (which may or may not be the latest), the other party is given a period of time to challenge that claim (enforced by the `nSequence` number of `OP_CHECKSEQUENCEVERIFY`).
 
-If a participant of the channel is able to present evidence to the blockchain of an intent to claim a revoked state, then the honest party s rewarded with all the funds of the cheating party.
+If a participant of the channel is able to present evidence to the blockchain of an intent to claim a revoked state, then the honest party is rewarded with all the funds of the cheating party.
 
 This enforcement of prior revoked states (only the latest channel state is valid) created a very strong economic incentive via the penalty mechanism: if a party attempts to renege a signed contract, they lose all their funds!
 
@@ -50,13 +50,13 @@ Alice cannot effectively broadcast the refund transaction to be mined in a block
 Therefore, Bob can securely receive more updates to the channel balance as long as it remains `open`.
 
 This mechanism would allow two users to engage in several smaller transactions which all happened outside of the Bitcoin network.
-While this construction of the unidirectional payment channel would have solved the custody problem of exchanges it has never been widely implemented.
+While this construction of the unidirectional payment channel would have solved the custody problem of exchanges, it has never been widely implemented.
 
 A fundamental blocker to deploying payment channels in production was the issue of transaction malleability.
 
 In the worst case, this could be exploited by an attacker to prevent a party from closing the channel on-chain as their settlement transaction had a chance to become invalidated if the funding transaction has it's transaction ID inadvertently changed.
 
-Also as a payment channel this system was not too useful as the channel could only at total send the total amount of provided bitcoin in the funding transaction.
+Also, as a payment channel this system was not too useful because the channel could only at total send the total amount of provided bitcoin in the funding transaction.
 Once the timelock was over or all bitcoin were sent to B the channel would have to be closed.
 The obvious idea of opening two channels one from A to B and one from B to A would not have helped as each of those channels would have to be closed and reestablished once it ran dry.
 The core breakthrough for the Lightning Network to become a reality was the ability to create payment channels which technically can live forever and can send money back and forth as often as the peers wish to in combination with routing payments among several channels.
@@ -66,8 +66,8 @@ The core breakthrough for the Lightning Network to become a reality was the abil
 You can watch a video explaining the construction and operation of unidirectional payment channels online at: https://youtu.be/AcP3czefanM
 ====
 
-Surprisingly both properties took quite some while until the community figured them out.
-Technically speaking the unidirectional payment channel has all the important ingredients (funding transaction to a 2-2 multisignature wallet, a transaction spending from the wallet encoding the balance, a timelock to allow refunding if the other side becomes unresponsive, off chain communication and the fact that no additional trust other than the one in the bitcoin network) of modern payment channels which are used in the Lightning Network.
+Surprisingly, both properties took quite some while until the community figured them out.
+Technically speaking, the unidirectional payment channel has all the important ingredients (funding transaction to a 2-2 multisignature wallet, a transaction spending from the wallet encoding the balance, a timelock to allow refunding if the other side becomes unresponsive, off chain communication and the fact that no additional trust, other than trust in the bitcoin network, is required) of modern payment channels which are used in the Lightning Network.
 Despite being widely used in today's world, we will study the unidirectional payment channel in more depth in this book as it is an easy to understand educational example to approach the construction of today's payment channels.
 This setup has one safety issue as transactions have been malleable without the segwit upgrade.
 A problem that needed to be solved for any payment channel construction that we know up till today and which has been fixed in August 2017.
@@ -85,13 +85,13 @@ The key difference was that a trusted party would have co-signed the spend of th
 The Ultra Server was not able to steal bitcoin.
 
 The next day, probably in response to Gavin's blogpost, Meni Rosenfeld started a discussion related to how these ideas could be combined.footnote:[Meni Rosenfeld on Bitcointalk - July 5th 2012 - Trustless, instant, off-the-chain Bitcoin payments http://web.archive.org/web/20190419103457/https://bitcointalk.org/index.php?topic=91732.0]
-As Hashed Timelocked Contracts have neither been invented nor seen to solve the issue of trustless routing, Rosenfeld imagined trusted routing nodes.
-Without mentioning the term network or routing of payments the idea of connecting payment channels and being able to send funds from anyone to anyone else even if there was no direct channel was born.
-In Rosenfelds solution payment providers would be the ultraservers and they would settle the transactions among themselves based on trust.
-It took us another 3 years until the Lightning Network whitepaper emerged which had solved all the bits and bolts necessary to get rid of the trust in Rosenfelds solution.
+As Hashed Timelocked Contracts had neither been invented nor seen to solve the issue of trustless routing, Rosenfeld imagined trusted routing nodes.
+Without mentioning the term network or routing of payments, the idea of connecting payment channels and being able to send funds from anyone to anyone else, even if there was no direct channel between them, was born.
+In Rosenfeld's solution, payment providers would be the ultraservers and they would settle the transactions among themselves based on trust.
+It took us another 3 years until the Lightning Network whitepaper emerged which had solved all the bits and bolts necessary to get rid of the trust in Rosenfeld's solution.
 
-It was 2013 that Bitcoin developer Mike Hearn referred to Meni Rosenfelds proposal and suggesting to reactivate the `nSequence` field which Satoshi previously had deactivated.footnote:HearnBitcoinDev[]
-Also Hearn referred to a section on the contracts article talking about the case of micropayment channels with the help of `nSequence`.
+It was 2013 that Bitcoin developer Mike Hearn referred to Meni Rosenfeld's proposal and suggesting to reactivate the `nSequence` field which Satoshi previously had deactivated.footnote:HearnBitcoinDev[]
+Also, Hearn referred to a section on the contracts article talking about the case of micropayment channels with the help of `nSequence`.
 
 Links:
 * https://en.bitcoin.it/w/index.php?title=Contract&oldid=36712#Example_7:_Rapidly-adjusted_.28micro.29payments_to_a_pre-determined_party
