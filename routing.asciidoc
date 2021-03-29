@@ -22,12 +22,12 @@ In theory, one can examine the _channel graph_ and connect a series of payment c
 In this section we will examine routing from the perspective of Dina, a gamer who receives donations from her fans while she livestreams her game sessions.
 
 The innovation of routed payment channels allows Dina to receive tips without maintaining a separate channel with every one of her fans who want to tip her.
-As long as there exists a path of well-funded channels from that viewer to Glori, she will be able to receive payment from that fan.
+As long as there exists a path of well-funded channels from that viewer to Dina, she will be able to receive payment from that fan.
 The nodes along the path from the fan to Dina are intermediaries and called "routing nodes" in the context of routing a payment.
 
 [[dina-routing-diagram]]
 .Any one of Dina's fans in the diagram can pay her by routing via the nodes in between them and Dina
-image:images/dina-routing-diagram.PNG["Any one of Dina's fans in the diagram can pay her by routing via the nodes in between them and Dina"]
+image:images/dina-routing-diagram.png["Any one of Dina's fans in the diagram can pay her by routing via the nodes in between them and Dina"]
 
 Importantly, the routing nodes are unable to steal the funds while routing a payment from a fan to Dina.
 Furthermore, routing nodes cannot lose money while participating in the routing process.
@@ -320,7 +320,7 @@ OP_CHECKSIGVERIFY
 Alice can present this script to Bob in order to kick off the conditional payment.
 For the chained aspect, Alice needs to be able to communicate the proper payment details to each hop in the route.
 Recall that each hop will specify a forwarding fee rate, as well as other parameters that express their forwarding policy.
-In addition to this forwarding rate, Alice also needs to be conceded about what time locks to use.
+In addition to this forwarding rate, Alice also needs to be concerned about what time locks to use.
 Each node in the hop needs some time to be able to settle the outgoing, then incoming payment on-chain in the worst case.
 As a result, when constructing the final route, we need to give each node some buffer time, we call this before time, the "time lock delta".
 Factoring in this time-lock delta, the time-lock of the outgoing HTLC will decrease as the route progresses, as the outgoing HTLC will expire before the incoming HTLC.
@@ -343,7 +343,7 @@ With this bare foundation laid, the following questions may have come across you
 In the network today, the sender is the one that selects the route and decides nearly all the details of the resulting route.
 
 As for how path finding is done, there is no single approach that all nodes in the network use.
-Instead, answer to the second question has a very large solution space, meaning there are several algorithms and neuritics used in the network today.
+Instead, the answer to the second question has a very large solution space, meaning there are several algorithms and heuristics used in the network today.
 Most commonly, a variation of Dijkstra's algorithm is used which takes into account additional Lightning Network details such as fees and time-locks.
 Remember from earlier that a path turns into a route which is used to trigger a payment attempt.
 As several conditions need to be satisfied for the HTLC to be completely extended, the sender may need to try several routes until one succeeds.
@@ -390,7 +390,7 @@ Last but not least the Lightning Network can actually run on Tor to use it as a 
 This means that all connections of a node with its peers and the resulting communication will by obfuscated once more through the TOR network.
 ====
 
-Lets stick to our example in which Alice still wants to tip Dina and has decided to use the path via Bob and Chan.
+Let's stick to our example in which Alice still wants to tip Dina and has decided to use the path via Bob and Chan.
 We note that there might have been alternative paths from Alice to Dina but for now we will just assume it is this path that Alice has decided to use.
 In order to kick off the transfer, Alice needs to send a special message to Bob to kick off the multi-hop transfer.
 You'll learn about the specific structure of this message in later chapters, but for now we'll call it an "HTLC Add" message.
@@ -481,7 +481,7 @@ If this wasn't the case, and the onion packet shrank as it was being processed, 
 Since Dina is the final recipient of the payment, we only have 65 bytes worth of data to fill with actual content.
 The remaining bytes are filled with random bytes to pad out the packet in an unpredictable manner.
 
-Taking a step back, before Alice is able to prepare the remainder of the packet, we needs to generate an ephemeral key (a key only used once).
+Taking a step back, before Alice is able to prepare the remainder of the packet, we need to generate an ephemeral key (a key only used once).
 This ephemeral key is then used to generate a series of additional keys, which are themselves used for encryption, authentication, and also as input to a CSPRNG to deterministically generate the set of random filler bytes.
 In the spirit of onion encryption, Alice will begin encrypting the payload from the last hop, adding a new layer of encryption with each new hop.
 During processing, each node will authenticate the contents of the payload, then process the packet (decrypting it and shifting around some bytes) to prepare it for processing by the next node in the route.
