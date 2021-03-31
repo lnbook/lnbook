@@ -25,6 +25,8 @@ The innovation of routed payment channels allows Dina to receive tips without ma
 As long as there exists a path of well-funded channels from that viewer to Dina, she will be able to receive payment from that fan.
 The nodes along the path from the fan to Dina are intermediaries and called "routing nodes" in the context of routing a payment.
 
+There is no functional difference between the "routing nodes" and the nodes operated by Dina's fans. Any Lightning node is capable of routing payments across its payment channels.
+
 [[dina-routing-diagram]]
 .Any one of Dina's fans in the diagram can pay her by routing via the nodes in between them and Dina
 image:images/dina-routing-diagram.png["Any one of Dina's fans in the diagram can pay her by routing via the nodes in between them and Dina"]
@@ -72,7 +74,10 @@ And no direct channel from Alice to Dina is required.
 image:images/routing-network.png[]
 
 The main challenge is to do this in a way that prevents Bob and Chan from stealing the money that Alice wants delivered to Dina.
-To understand how the Lightning Network protects the payment while being routed, we can compare to an example of routing physical payments with golden coins in the real world.
+
+==== A physical example of "routing"
+
+To understand how the Lightning Network protects the payment while being routed, we can compare to an example of routing physical payments with gold coins in the real world.
 
 Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina.
 However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help.
@@ -124,7 +129,13 @@ Let's assume for now that everyone trusts this escrow.
 
 In the Lightning Network, the receipt (proof of payment) could take the form of a secret that only Dina knows.
 In practice, this secret would be a large random number that is large enough to prevent others from guessing it (typically _very, very_ large number, encoded using 256 bits!).
-The secret could then be committed to the contract by including the SHA256 hash of the secret in the contract itself.
+
+Dina generates this secret value +R+ from a random number generator.
+
+The secret could then be committed to the contract by including the SHA256 hash of the secret in the contract itself, as follows:
+
+latexmath:[\(H = SHA256(R)\)]
+
 We call this hash of the payment's secret the payment hash.
 The secret which "unlocks" the payment is called the payment secret.
 
@@ -250,20 +261,17 @@ Finally we will discuss the precise details of forwarding, settling, and canceli
 
 === Hash Time Locked Contracts as a Conditional Chained End to End Secure Payment
 
-Our example in the prior section using "golden coins", was intended to lay same base intuition which we'll leverage in this section to explain how HTLCs work in practice.
-HTLC is actually an acronym that stands for "Hash Time-Locked Contracts".
-A HTLC is a _specific_ instantiation of a Conditional Chained End to End Secure Payment (CCESP, don't use this acronym?).
-As we'll see in the later chapters, given a set of adequate cryptographic constructs, many other instantiations are possible as well.
+Our example in the prior section using gold coins, was intended to establish the basic concepts which we'll leverage in this section to explain how HTLCs work in practice.
 
-Before we dive into the specifics of HTLCs, it may be helpful to first build intuition on an abstraction over this concrete concept.
-First, let's unpack what it means for something to be a conditional chained end to end secure payment:
+A HTLC is a _specific_ way to implement a Conditional Chained End-to-End Secure Payment. As we'll see in later chapters, given a set of adequate cryptographic primitives, many other implementations of this construct are possible as well.
 
-==== Conditional End to End Secure Payments by Construction
+Next, we will break down the properties of a Conditional End-to-End Secure Payment and see how HTLCs can be used to produce them.
 
-===== Conditional Payments
+==== Conditional Payments
 
-A payment can be said to be conditional, if the completion of the payment relies on the completion of a certain event.
-In the golden coins example, this "condition" was the reveal of a hash pre-image.
+A payment can be said to be conditional, if the completion of the payment relies on a certain event.
+In the gold coins example, this condition was the revealing of a hash pre-image.
+
 We could feasibly substitute this hash pre-image reveal for any other construct with "hardness" properties. Namely: it should be infeasible for a party that doesn't know the proper "solution" of the condition to satisfy it, the "description" of the condition shouldn't give away any information about the true "solution", and once a solution has been chosen and a description created from it, it shouldn't be possible to "alter" that solution and have it still be a valid condition for the description.
 
 The payment should _only_ be able to be redeemed if a valid solution is revealed. Critical, all conditions need to be timed in order to allow the construct to return the funds back to the sender if a solution to this condition isn't revealed.
