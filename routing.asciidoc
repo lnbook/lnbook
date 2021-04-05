@@ -153,7 +153,13 @@ For now, we keep things simple and assume that Dina's secret is simply the text 
 In order to "commit" to this secret, she computes the SHA256 hash which when encoded in hex, can be displayed as: `+0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3+`.
 footnote:[You can verify this by typing `echo -n "Dinas secret" | sha256sum` to your Linux command line shell.]
 
-To facilitate Alice's payment, Dina will create the secret and the payment hash and send the payment hash to Alice. Alice doesn't know the secret but she can rewrite her contract to use the hash of the secret as a proof of payment:
+To facilitate Alice's payment, Dina will create the secret and the payment hash and send the payment hash to Alice.
+
+[[alice-dina-routing-3]]
+.Dina sends the hashed secret to Alice
+image:images/gold-coins-network3.png[]
+
+Alice doesn't know the secret but she can rewrite her contract to use the hash of the secret as a proof of payment:
 
 [alice-dina-routing-4]
 ====
@@ -300,7 +306,7 @@ The payment is extended in from payer to payee, but settled from payee to payer,
 Typically the payer rewards the intermediaries by sending slightly more than the payment amount, in order to allow the intermediaries to send out less with their outgoing payment than what they received from the incoming payment.
 The difference between these two payment values makes up the "forwarding fee" collected by the intermediary.
 
-=== Conditional Chained End to End Secure Payment ===
+==== Conditional Chained End to End Secure Payment
 
 With our final addition, we'll achieve "end to end security".
 By this we mean that: no intermediaries are able to "claim" the payment without first obtaining the solution from someone further down from them in the chain.
