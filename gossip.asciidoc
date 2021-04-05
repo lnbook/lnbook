@@ -8,11 +8,11 @@ Thus the sender has to be aware of the Channel Graph.
 The channel graph is the interconnected set of publicly advertised channels (more on that later), and the nodes that these channels interlink.
 As channels are backed by a funding transaction that is happening on chain one might falsely believe that Lightning Nodes could just extract the existing channels from the Bitcoin Blockchain.
 However this only possible to a certain extend.
-The Funding transactions are Pay to Whitness Script addresses and the nature of the script will only be revealed once the funding transaction output is spent.
+The Funding transactions are Pay to Witness Script addresses and the nature of the script will only be revealed once the funding transaction output is spent.
 Even if the nature of the script was known we emphasize that not all 2 - of - 2 multisignature scripts correspond to payment channels.
-Since not even every Pay to Whitness Script address that we see in the Bitcoin Blockchain corresponds to a payment channel this approach is not helpful.
+Since not even every Pay to Witness Script address that we see in the Bitcoin Blockchain corresponds to a payment channel this approach is not helpful.
 There are actually more reasons why looking at the Bitcoin Blockchain might not be helpful.
-For example on the Lightnign Network the Bitcoin keys that are used for signing are rotated by the nodes for every channel and update.
+For example on the Lightning Network the Bitcoin keys that are used for signing are rotated by the nodes for every channel and update.
 Thus even if we could reliably detect funding transactions on the Bitcoin Blockchain we would not know which two nodes on the Lightning Network own that particular channel.
 Thus we could node create the Channel Graph that would be used to create candidate paths during the payment delivery via onion routing.
 
@@ -20,11 +20,11 @@ The Lightning Network solves the afore mentioned problem by implementing a gossi
 Gossip protocols are typical for peer 2 peer networks and are being used so that nodes can share information with other nodes without talking to those other nodes directly.
 For that Lightning Nodes open encrypted peer 2 peer connections to each other and share novel information that they have received from other peers.
 As soon as a node wants to share some information - for example about a newly created channel - it sends a message to all its peers.
-Uppon receiving a message a node decides if the received message was novel and if so it will forward the information to its peers.
-In this way if the peer 2 peer network is connected all new information that is necessary for the operation of the network will eventually be propagated to all other peers. 
+Upon receiving a message a node decides if the received message was novel and if so it will forward the information to its peers.
+In this way if the peer 2 peer network is connected all new information that is necessary for the operation of the network will eventually be propagated to all other peers.
 
 Obviously if a new peer initially wants to join the network it needs to know some other peers on the Network initially.
-Only then the new peer could connect to them in order to learn about the existance of other peers. 
+Only then the new peer could connect to them in order to learn about the existence of other peers.
 In this chapter, we'll explore exactly _how_ Lightning nodes discover each
 other, and also the channel graph itself.
 When most refer to the _network_ part
@@ -43,8 +43,8 @@ It might be usefull to get familiar with the different terminology that we have 
 [options="header"]
 |===
 |  | Channel Graph  |peer to peer network
-| Name     | channel | connection 
-| initiate | open | (re)connect 
+| Name     | channel | connection
+| initiate | open | (re)connect
 | finalize | close| terminate
 | technology | Bitcoin Blockchain | encrypted TCP/IP connection
 | lifetime | until funding spent | while peers are online
@@ -63,7 +63,7 @@ system is _eventually consistent_). Using one of many initial bootstrapping
 protocols to find that first peer, after a connection is established, our new
 peer now needs to _download_ and _validate_ the channel graph. Once the channel
 graph has been fully validated, our new peer is ready to start opening channels
-and sending payments on the network. 
+and sending payments on the network.
 
 After initial bootstrap, a node on the network needs to continue to maintain
 its view of the channel graph by: processing new channel routing policy
@@ -84,7 +84,7 @@ node that wishes to join the network as he sets out on his journey to which cons
 
 . discovery a set of bootstrap peers.
 . download and validate the channel graph.
-. begin the process of ongoing maintainance of the channel graph itself.
+. begin the process of ongoing maintenance of the channel graph itself.
 
 
 ### P2P Boostrapping
@@ -149,7 +149,7 @@ to implement a form of _identity_ hiding for nodes in the network.
 #### A New Peer's Bootstrapping Workflow
 
 Before diving into the specifics of BOLT 10, we'll first outline the high level
-flow of a new node that wishes to use BOLT 10 to join the network. 
+flow of a new node that wishes to use BOLT 10 to join the network.
 
 First, a node needs to identify a single, or set of DNS servers that understand
 BOLT 10 so they can be used for p2p bootstrapping.
@@ -162,7 +162,7 @@ purposes.
 .Table of known lightning dns seed servers
 [options="header"]
 |===
-| dns server     | Maintainer 
+| dns server     | Maintainer
 | lseed.bitcoinstats.com | Christian Decker
 | nodes.lightning.directory | lightning labs (Olaoluwa Osuntokun)
 | soa.nodes.lightning.directory | lightning labs (Olaoluwa Osuntokun)
@@ -185,7 +185,7 @@ resolvers may filter out SRV records all together, or attempt to truncate the
 response size itself.
 
 Using the widely available `dig` command-line tool, we can query the _testnet_
-version of the DNS seed mentioned above with the following command: 
+version of the DNS seed mentioned above with the following command:
 ```
 $ dig @8.8.8.8 test.nodes.lightning.directory SRV
 ```
@@ -269,7 +269,7 @@ In the above command, we've queried the server so we can obtain an `IPv4`
 address for our target node. Now that we have both the raw public key _and_ IP
 address, we can connect to the node using the `brontide` transport protocol at:
 `026c64f5a7f24c6f7f0e1d6ec877f23b2f672fb48967c2545f227d70636395eaf3@X.X.X.X`.
-Querying for the curent `A` record for a given node can also be used to look up
+Querying for the current `A` record for a given node can also be used to look up
 the _latest_ set of addresses for a given node. Such queries can be used to
 more quickly (compared to waiting on gossip as we'll cover later) sync the
 latest addressing information for a node.
@@ -322,7 +322,7 @@ standards document:
   * `n`: The number of records to return. The default value for this field is
    `25`.
 
-An example query with additional query options looks something like the following: 
+An example query with additional query options looks something like the following:
 ```
 r0.a2.n10.nodes.lightning.directory
 ```
@@ -332,7 +332,7 @@ insights:
 
   * `r0`: The query targets the Bitcoin realm.
   * `a2`: The query only wants IPv4 addresses to be returned.
-  * `n10`: The query requests  
+  * `n10`: The query requests
 
 ## Channel Graph: Structure and Attributes
 
@@ -367,7 +367,7 @@ base Bitcoin blockchain means that it's impossible to _fake_ a valid channel
 graph, which has useful properties when it comes to spam prevention as we'll
 see later. The channel graph in the Lightning Network is composed of 3
 individual components which are described in BOLT 7:
- 
+
  * `node_announcement`: The vertex in our graph which communicates the public
    key of a node, as well as how to reach the node over the internet and some
    additional metadata describing the set of _features_ the node supports.
@@ -382,7 +382,7 @@ individual components which are described in BOLT 7:
  * `channel_update`: A _pair_ of structures that describes the set of _routing
    policies_ for a given channel. `channel_update`s come in a _pair_ as a
    channel is a directed edge, so both sides of the channel are able to specify
-   their own custom routing policy. An example of a policy communicated in a 
+   their own custom routing policy. An example of a policy communicated in a
 
 It's important to note that each of components of the channel graph are
 themselves _authenticated_ allowing a 3rd party to ensure that the owner of a
@@ -443,7 +443,7 @@ described in BOLT 1:
 
   * `timestamp`: A timestamp which should be interpreted as a unix epoch
     formatted timestamp. This allows clients to enforce a partial ordering over
-    the updates to a node's announcement. 
+    the updates to a node's announcement.
 
   * `node_id`: The `secp256k1` public key that this node announcement belongs
     to. There can only be a single `node_announcement` for a given node in the
@@ -468,7 +468,7 @@ described in BOLT 1:
 ##### Validation
 
 Validating an incoming `node_announcement` is straight forward, the following
-assertions should be upheld when examining a node announcement: 
+assertions should be upheld when examining a node announcement:
 
   * If an existing `node_announcement` for that node is already known, then the
     `timestamp` field of a new incoming `node_announcement` MUST be greater
@@ -498,7 +498,7 @@ routing by the public network. Active routing nodes may wish to announce all
 their channels. However, certain nodes like mobile nodes likely don't have the
 uptime or desire required to be an active routing node. As a result, these
 mobile nodes (which typically use light clients to connect to the Bitcoin p2p
-network), instead may have purely _unadvertised_ channels. 
+network), instead may have purely _unadvertised_ channels.
 
 ##### Unadvertised Channels & The "True" Channel Graph
 
@@ -556,7 +556,7 @@ Based on the information above, we have 3 piece of information we need to
 encode in order to uniquely reference a given channel. As we want to very
 compact representation, we'll attempt to encode the information into a _single_
 integer using existing known bit packing techniques. Our integer format of
-choice is an unsigned 64-bit integer, which is comprised of 8 logical bytes. 
+choice is an unsigned 64-bit integer, which is comprised of 8 logical bytes.
 
 First, the block height. Using 3 bytes (24-bits) we can encode 16777216 blocks,
 which is more than double the number of blocks that are attached to the current
@@ -567,7 +567,7 @@ enough given that it's only possible to fix tens of thousands of transactions
 in a block at current block sizes. This leaves 2 bytes left for us to encode
 the output index of the channel within the transaction.
 
-Our final `scid` format resembles: 
+Our final `scid` format resembles:
 ```
 block_height (3 bytes) || transaction_index (3 bytes) || output_index (2 byes)
 ```
