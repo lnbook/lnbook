@@ -3,20 +3,6 @@
 
 In this section we will finally unpack how payment channels can be connected to a network of other payment channels via a process called _routing_.
 
-=== Routing vs. Path Finding
-
-It's important to note that we separate the concept of _routing_ from the concept of _path finding_. These two concepts are often confused and the term "routing" is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
-
-Path Finding, which is covered in <<path_finding>> is the process of finding and choosing a contiguous path made of payment channels which connects the sender A to the recipient B. The sender of a payment does the path finding, by examining the _channel graph_ which they have assembled from channel announcements gossiped by other nodes.
-
-Routing refers to the series of interactions across the network that allow a payment to _flow_ from A to B, across the path previously selected by path finding. Routing is the _active_ process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
-
-An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
-
-One example is the scenario where all the nodes connecting Alice and Bob are currently off-line.
-
-In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
-
 === Routing a payment
 
 In this section we will examine routing from the perspective of Dina, a gamer who receives donations from her fans while she livestreams her game sessions.
@@ -42,13 +28,28 @@ This enables fans to use intermediary nodes to pay Dina, without leaking private
 This process of connecting a series of payment channels with end-to-end security, and the incentive structure for nodes to _forward_ payments, is one of the key innovations of the Lightning Network.
 
 In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in-which payments flow through the network.
-First, we will cover the concept of a conditional chained end-to-end secure payment, most commonly referred to as a Hash Time Locked Transaction (HTLC).
-Having learned how payments can be transmitted through the network, we will then discuss the concept of source-based routing and contrast it to the privacy preserving onion routing used in the network today.
-Finally, we will explore the exact mechanism of payment forwarding.
-We will discuss how the _structure_ (edges, fees, time-locks, etc) of the route is determined by the sender, and is then transmitted to each individual node along the route.
 
+First, we will clarify the concept of "routing" and compare it to that of "path finding", as these are often confused and used interchangeably.
 
-=== Creating a Network of payment channels
+Next, we will construct the fairness protocol: A Conditional Chained End-to-End Secure Payment (CCESP) used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between 4 people.
+
+Finally, we will look at the CCESP implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
+
+=== Routing vs. Path Finding
+
+It's important to note that we separate the concept of _routing_ from the concept of _path finding_. These two concepts are often confused and the term "routing" is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
+
+Path Finding, which is covered in <<path_finding>> is the process of finding and choosing a contiguous path made of payment channels which connects the sender A to the recipient B. The sender of a payment does the path finding, by examining the _channel graph_ which they have assembled from channel announcements gossiped by other nodes.
+
+Routing refers to the series of interactions across the network that allow a payment to _flow_ from A to B, across the path previously selected by path finding. Routing is the _active_ process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
+
+An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
+
+One example is the scenario where all the nodes connecting Alice and Bob are currently off-line.
+
+In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
+
+=== Creating a network of payment channels
 
 Before we dive into the concept of a conditional chained end-to-end secure payment, let's work through an example.
 Let us to return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
@@ -70,7 +71,7 @@ Essentially, Alice will pay Bob, who will pay Chan, who will pay Dina.
 And no direct channel from Alice to Dina is required.
 
 [[routing-network]]
-.The network of payment channels of our friends can be seen here:
+.A network of payment channels
 image:images/routing-network.png[]
 
 The main challenge is to do this in a way that prevents Bob and Chan from stealing the money that Alice wants delivered to Dina.
@@ -81,12 +82,17 @@ To understand how the Lightning Network protects the payment while being routed,
 
 Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina.
 However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help.
+
+[[alice-dina-routing-1]]
+.Alice wants to pay Dina 10 gold coins
+image:images/gold-coins-network1.png[]
+
 She can pay Bob to pay Chan to pay Dina, but how does she make sure that Bob or Chan don't run off with the coins after receiving them?
 In the physical world contracts could be used for safely carrying out a series of payments.
 
 Alice could negotiate a contract with Bob which reads:
 
-[alice-dina-routing-1]
+[[alice-bob-contract-1]]
 ====
 _I (Alice) will give you (Bob) 10 gold coins if you pass them on to Chan_
 ====
@@ -120,6 +126,10 @@ Alice now promises Bob 12 gold coins.
 There are 10 to be delivered to Dina and 2 for the fees.
 She promises 12 to Bob if he can prove that he has forwarded 11 to Chan.
 The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment.
+
+[[alice-dina-routing-2]]
+.Alice pays Bob, Bob pays Chan, Chan pays Dina
+image:images/gold-coins-network2.png[]
 
 As there is still the issue of trust and the risk that either Alice or Bob don't honor the contract, all parties decide to use an escrow service.
 At the start of the exchange, Alice could "lock up" these 12 golden coins in escrow that will only be paid to Bob once he proves that he's paid 11 golden coins to Chan.
@@ -348,7 +358,6 @@ In the second part you have seen how the necessary information for setting up HT
 However, in the above scenarios, we only discussed flows where everything goes as expected (the optimistic path).
 In this section, we'll now turn out attention into the various scenarios where the payment flow across the route breaks down.
 
-
 First, it's important to know that once a node sends a fully valid onion packet out to the first hop, they cannot directly influence the course of the route.
 In other words:
 
@@ -440,14 +449,11 @@ Thus the HTLCs which are below the dust limit can be understood to be additional
 Most Lightning Nodes support the configuration of minimum accepted HTLC values.
 Operators have to consider if they want to risk overpaying fees or losing funds in the forced channel closure cases because the commitment transactions have been added to the fees.
 
-
 Explain fee and time-lock considerations
 The “HTLC Switch” analogy compared to regular network switch
 Circuit map concept, how to handle forwarding
 Pipeline styles for HTLCs
 Error handling and encryption for HTLCs
-
-
 
 Explain “one little trick” of DH re-randomization
 Explain how we keep the packet size fixed, what’s MAC’d, etc
