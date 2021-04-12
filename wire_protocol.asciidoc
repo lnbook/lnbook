@@ -886,13 +886,193 @@ also set the `first_timestamp` and `timestamp_range` fields if they wish to
 receive a backlog of updates they may have missed while they were down.
 
 
-### Type Length Value Fields
-
-// TODO(roasbeef): move up after the framing discussion
-
 ## Feature Bits & Protocol Extensibility
 
-diff types of upgrade:
-  * e2e
-  * internal 
-  * link level
+As the Lighting Network is a decentralized system, no one entity can enforce a
+protocol change or modification upon all the users of the system. This
+characteristic is also seen in other decentralized networks such as Bitcoin.
+However, unlike Bitcoin overwhelming consensus *is not* require to change a
+subset of the Lightning Network. Lighting is able to evolve at will without a
+strong requirement of coordination, as unlike Bitcoin, there is no *global&
+consensus required in the Lightning Network. Due to this fact and the several
+upgrade mechanisms embedded in the Lighting Network, at most, only the
+participants that wish to use these new Lighting Network feature need to
+upgrade, and then they are able to interact w/ each other.
+
+In this section, we'll explore the various ways that developers and users are
+able to design, roll out, deploy new features to the Lightning Network. The
+designers of the origin Lightning Network knew at the time of drafting the
+initial specification, that there were many possible future directions the
+network could evolves towards. As a results, they made sure to emplace several
+extensibility mechanisms within the network which can be used to upgrade the
+network partially or fully in a decoupled, desynchronized, decentralized
+manner.
+
+### Feature Bits as an Upgrade Discoverability Mechanism
+
+An astute reader may have noticed the various locations that "feature bits" are
+included within the Lightning Protocol. A "feature bit" is a bitfield that can
+be used to advertise understanding or adherence to a possible network protocol
+update. Feature bits are commonly assigned in *pairs*, meaning that each
+potential new feature/upgrade always defines *two* bits within the bitfield.
+One bit signals that the advertised feature is _optional_, meaning that the
+node knows a about the feature, and can use it if compelled, but doesn't
+consider it required for normal operation. The other bit signals that the
+feature is instead *required*, meaning that the node will not continue
+operation if a prospective peer doesn't understand that feature.
+
+Using these two bits optional and required, we can construct a simple
+compatibility matrix that nodes/users can consult in order to determine if a
+peer is compatible with a desired feature:
+
+|Bit Type|Remote Optional|Remote Required|Remote Unknown
+|--------|--------|--------|
+|Local Optional|✅|✅|✅|
+|Local Required|✅|✅|❌|
+|Local Unknown|✅|❌|❌|
+
+From this simplified compatibility matrix, we can see that as long as the other
+party *knows* about our feature bit, then can interact with them using the
+protocol. If the party doesn't even know about what bit we're referring to
+*and* they require the feature, then we are incompatible with them. Within the
+network, optional features are signalled using an _odd bit number_ while
+required feature are signalled using an _even bit number_. As an example, if a
+peer signals that they known of a feature that uses bit _15_, then we know that
+this is an _optional_ feature, and we can interact with them or respond to
+their messages even if we don't know about the feature. On the other hand, if
+they instead signalled the feature using bit _16_, then we know this is a
+required feature, and we can't interact with them unless our node also
+understands that feature.
+
+The Lighting developers have come up with an easy to remember phrase that
+encodes this matrix: "it's OK to be odd". This simple rule set allows for a
+rich set of interactions within the protocol, as a simple bitmask operation
+between two feature bit vectors allows peers to determine if certain
+interactions are compatible with each other or not. In other words, feature
+bits are used as an upgrade discoverability mechanism: they easily allow to
+peers to understand if they are compatible or not based on the concepts of
+optional, required, and unknown feature bits.
+
+Feature bits are found in the: `node_announcement`, `channel_announcement`, and
+`init` messages within the protocol. As a result, these three messages can be
+used to *signal* the knowledge and/or understanding of in-flight protocol
+updates within the network. The feature bits found in the `node_announcement`
+message can allow a peer to determine if their _connections_ are compatible or
+not. The feature bits within the `channel_announcement` messages allows a peer
+to determine if a given payment ype or HTLC can transit through a given peer or
+not. The feature bits within the `init` message all peers to understand kif
+they can maintain a connection, and also which features are negotiated for the
+lifetime of a given connection.
+
+### Utilizing TLV Records for Forwards+Backwards Compatibility
+
+As we learned earlier in the chapter, Type Length Value, or TLV records can be
+used to extend messages in a forwards and backwards compatible manner.
+Overtime, these records have been used to _extend_ existing messages without
+breaking the protocol by utilizing the "undefined" area within a message beyond
+that set of known bytes. 
+
+As an example, the original Lighting Protocol didn't have a concept of the
+_largest_ HTLC that could traverse through a channel as dictated by a routing
+policy. Later on, the `max_htlc` field was added to the `channel_update`
+message to phase in such a concept over time. Peers that held a
+`channel_update` that set such a field but didn't even know the upgrade existed
+where unaffected by the change, but may see their HTLCs rejected if they are
+beyond the said limit. Newer peers on the other hand are able to parse, verify
+and utilize the new field at will. 
+
+Those familiar with the concept of soft-forks in Bitcoin may now see some
+similarities between the two mechanism.  Unlike Bitcoin consensus-level
+soft-forks, upgrades to the Lighting Network don't require overwhelming
+consensus in order to adopt. Instead, at minimum, only two peers within the
+network need to understand new upgrade in order to start utilizing it without
+any permission. Commonly these tow peers may be the receiver and sender of a
+payment, or it may the initiator and responder of a new payment channel.
+
+### A Taxonomy of Upgrade Mechanisms 
+
+Rather than there being a single widely utilized upgrade mechanism within the
+network (such as soft forks for base layer Bitcoin), there exist a wide
+gradient of possible upgrade mechanisms within the Lighting Network. In this
+section, we'll enumerate the various upgrade mechanism within the network, and
+provide a real-world example of their usage in the past.
+
+#### Internal Network Upgrades
+
+We'll start with the upgrade type that requires the most extra protocol-level
+coordination: internal network upgrades. An internal network upgrade is
+characterized by one that requires *every single node* within a prospective
+payment path to understand the new feature. Such an upgrade is similar to any
+upgrade within the known internet that requires hardware level upgrades within
+the core relay portion of the upgrade. In the context of LN however, we deal
+with pure software, so such upgrades are easier to deploy, yet they still
+require much more coordination than any other upgrade type utilize within the
+network.
+
+One example of such an upgrade within the network was the move to using a TLV
+encoding for the routing information encoded within the onion encrypted routing
+packets utilized within the network. The prior format used a hand encoded
+format to communicate information such as the next hop to send the payment to.
+As this format was _fixed_ it meant that new protocol-level upgrades such as
+extensions that allowed feature such as packet switching weren't possible
+without. The move to encoding the information using the more flexible TLV
+format meant that after the single upgrade, then any sort of feature that
+modified the _type_ of information communicated at each hop could be rolled out
+at will.
+
+It's worth mentioning that the TLV onion upgrade was a sort of "soft" internal
+network upgrade, in that if a payment wasn't using any _new_ feature beyond
+that new routing information encoding, then a payment could be transmitted
+using a _mixed_ set of nodes, as no new information would be transmitted that
+are required to forward the payment. However, if a new upgrade type instead
+changed the _HTLC_ format, then the entire path would need to be upgraded,
+otherwise the payment wouldn't be able to be fulfilled.
+
+#### End to End Upgrade
+
+To contrast the internal network upgrade, in this section we'll describe the
+_end to end_ network upgrade. This upgrade type differs from the internal
+network upgrade in that it only requires the "ends" of the payment, the sender
+and receiver to upgrade in order to be utilized. This type of upgrade allows
+for a wide array of unrestricted innovation within the network, as due to the
+onion encrypted nature of payments within the network, those forwarding HTLCs
+within the center of the network may not even know that new feature are being
+utilized.
+
+One example of an end to end upgrade within the network was the roll out of
+MPP, or multi-path payments. MPP is a protocol-level feature that enables a
+single payment to be split into multiple parts or paths, to be assembled at the
+receiver for settlement. The roll out our MPP was coupled with a new
+`node_announcement` level feature bit that indicates that the receiver knows
+how to handle partial payments. Assuming a sender and receiver know about each
+other (possibly via a BOLT 11 invoice), then they're able to use the new
+feature without any further negotiation.
+
+Anothert example of an end to end upgrade are the various types of
+_spontaneous_ payments deployed within the network. One early type of
+spontaneous payments called "keysend" worked by simply placing the pre-image of
+a payment within the encrypted onion packet that is only decrypted by the
+destination o of the payment. Upon receipt, the destination would decrypt the
+pre-image, then use that to settle the payment. As the entire packet is end to
+end encrypted, this payment type was safe, since none of the intermediate nodes
+are able to fully unwrap the onion to uncover the payment pre-image that
+corresponded to that payment hash.
+
+#### Channel Construction Level Updates
+
+The final broad category of updates within the network are those that happen at
+the channel construction level, but which don't modify the structure of the
+HTLC used widely within the network. When we say channel construction, we mean
+_how_ the channel is funded or created. As an example, the eltoo channel type
+can be rolled out within the network using a new `node_announcement` level
+feature bit as well as a `channel_announcement` level feature bit. Only the two
+peers on the sides of the channels needs to understand and advertise these new
+features. This channel pair can then be used to forward any payment type
+granted the channel supports it.
+
+The "anchor outputs" channel format which allows the commitment fee to be
+bumped via CPFP, and second-level HTLCs aggregated amongst other transactions
+was rolled out in such a manner. Using the implicit feature bit negotiation, if
+both sides established a connection, and advertised knowledge of the new
+channel type, then it would be used for any future channel funding attempts in
+that channel.
