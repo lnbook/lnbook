@@ -231,3 +231,119 @@ image:images/routing-onion-6.png[]
 Since we use the network itself for transport of these onion packets, Alice is able to construct the entire onion without needing to communicate directly with each node in the route.
 She only needs a public key from each participant which is the public `node_id` of the Lightning node and known to Alice.
 In the network today, Alice learns about the public key via the gossip network, which is described in Chapter N.
+
+
+===== CLTV expiry and deltas
+
+==== Pitfalls with source based Routing and HTLCs
+
+In the first part of the routing chapter you have learnt that payments securely flow through the network via a path of HTLCs.
+You saw how a single HTLC is negotiated between two peers and added to the commitment transaction of each peer.
+In the second part you have seen how the necessary information for setting up HTLCs along a path of hops are being transferred via onion packets from the source to the sender.
+However, in the above scenarios, we only discussed flows where everything goes as expected (the optimistic path).
+In this section, we'll now turn out attention into the various scenarios where the payment flow across the route breaks down.
+
+First, it's important to know that once a node sends a fully valid onion packet out to the first hop, they cannot directly influence the course of the route.
+In other words:
+
+* You cannot force nodes to forward the onion immediately.
+* You cannot force nodes to send back an error if they cannot forward the onion because of missing liquidity or other reasons.
+* You cannot be sure that the recipient has the preimage to the payment hash or releases it as soon as the HTLCs of the correct amount arrived.
+
+When sending out an HTLC and its corresponding onion packet, you as the sender must be prepared to wait the worst-case CTLV timelock period before funds are returned back to the sender (if the route fails).
+This explicit awareness of the worst-case delay when sending a payment may be difficult to explain properly from a user experience perspective for end user wallets.
+You want to quickly pay a person but the payment path that your node has chosen has CLTV deltas that quickly add up to several 100 blocks which is a couple of days on the Bitcoin network.
+This means now that if nodes on the path misbehave - on purpose or maybe just because they have a downtime which your node didn't know about - you will have to wait even though you don't see a preimage.
+You must not send out another onion along a different path which uses the same payment hash because there is a risk that both payments will eventually settle.
+While our own experience is that most payments find a path and settle in far less than 10 seconds, the Lightning Network protocol cannot and does not give any service level agreement that within this time payments will settle or fail.
+
+[NOTE]
+====
+There are some ideas that might solve this issue to some degree by allowing the payer to abort a payment. You can find more about this idea under the terms `cancelable payments` or `stuckless payments`. However the proposals that exist only reverse the problem as now the sender can misbehave and the recipient loses control. Another solution is to use many paths in a multipath payment and include some redundancy and ignore the problem that a path takes longer to complete.
+====
+
+Despite these principle problems there are plausible situations in which the routing process fails and in which honest nodes can and should react.
+This is why the onion protocol has the ability to send back errors in a fail-fast manner that allows nodes to remove the HTLC *off-chain*, without the need to close the channels.
+Some - but not all - of the reasons for errors could be:
+
+* A node does not have enough liquidity to set up the next HTLC
+* The next payment channel does not exist anymore as it might have been closed while the onion was being routed to the node which was supposed to forward the onion along its channel.
+* While the channel might still be open - as the funding transaction was never spent - it might happen that the other peer is offline. This of course prevents the node to forward the onion.
+* The key exchanges of the sender might have been wrong so the decryption of the onion failed or the HMACs do not match. (also in case someone tried to tamper with the onion)
+* The recipient might not have issued an invoice and does not know the payment details.
+* The amount of the final HTLC is too low and the recipient does not want to release the preimage.
+
+If any of the above errors are encountered, a node will send back an encrypted error reply onion back to the sender.
+The reply onion will be encrypted at each hop with the same shared secrets that have been used to construct the onion or decrypt a layer.
+These shared keys are all known to the originator of the payment.
+The innermost onion contains the error message and an HMAC for the error message.
+The process makes sure that the sender of the onion and recipient of the reply can be sure that the error really originated from the node that the error message says it's from.
+Another important step in the process of handling errors is to abort the routing process.
+We discussed that the sender of a payment cannot just remove the HTLC on the channel along which the sender sent the payment.
+Recall for example the situation in which Alice sent an onion to Bob who set up an HTLC with Chan.
+If Alice wanted to remove the HTLC with Bob this would put a financial risk on Bob.
+He fears that his HTLC with Chan might still be fulfilled meaning that he could not claim the reimbursement from Alice.
+Thus Bob would never agree to remove the HTLC with Alice unless he has already removed his HTLC with Chan.
+If however the HTLC between Alice and Bob are set up and the HTLC between Bob and Chan are set up but Chan encounters problems with forwarding the onion it is perfectly Chan has more options than Alice.
+While sending back the error Onion to Bob, Chan could ask him to remove the HTLC.
+Bob has no risk in removing the HTLC with Chan and Chan also has no risk as there is no downstream HTLC.
+Removing an HTLC is the reverse of adding one in the first place from the PoV of the commitment transaction.
+In case of errors, peers signal that they wish to remove the HTLC by sending an `update_fail_htlc` or `update_fail_malformed_htlc` message.
+These messages contain the id of an HTLC that should be removed in the next version of the commitment transaction.
+In the same handshake-like process that was used to exchange `commitment_signed` and `revoke_and_ack` messages, the new state and thus pair of commitment signatures has to be negotiated and agreed upon.
+This also means while the balance of a channel that was involved in a failed routing process will not have changed at the end it will have negotiated two new commitment transactions.
+Despite having the same balance it must not got back to the previous commitment transaction which did not include the HTLC as this commitment transaction was revoked.
+If it was used to force close the channel the channel partner would have the ability to create a penalty transaction and get all the funds.
+
+==== Settling HTLCs
+In the last section you learned about the error cases that can happen with onion routing via the chain of HTLCs.
+You've learned how HTLCs are removed if there is an error.
+Of course HTLCs also need to be removed and the balance needs to be updated if the chain of HTLCs was successfully set up to the destination and the preimage is being released.
+Not surprisingly this process is initiated with another lightning message called `update_fulfill_htlc`.
+You will remember that HTLCs are set up and supposed to be removed with a new balance for the recipient in exchange for a secret `preimage`.
+Recalling the full-duplex protocol with `commitment_signed` and `revoke_and_ack` messages you might wonder how to make this exchange `preimage` for the new state atomic.
+The cool thing is it doesn't have to be.
+Once a channel partner with an accepted incoming HTLC knows the preimage, they can just safely pass it to the channel partner.
+That is why the `update_fulfill_htlc` message contains only the `channel_id`, the `id` of the HTLC, and the `preimage`.
+You might think that the channel partner could now refuse to sign a new channel state by sending `commitment_siged` and `revoke_and_ack` messages.
+This is not a problem though.
+In that case the recipient of the offered HTLC can just go on chain by force closing the channel.
+Once this has happened the preimage can be used to claim the HTLC output.
+
+==== Some Considerations for routing nodes
+Accepting an HTLC removes funds from a peer that the peer cannot utilize unless the HTLC is removed due to success or failure.
+Similarly forwarding an HTLC binds some of the funds from your nodes payment channel until the HTLC has been removed again.
+As we've explained at the very beginning of the chapter, engaging into the forwarding process of HTLCs does neither yield a direct risk to lose any funds nor does it gain the chance to gain any funds.
+However the funds in jeopardy could be locked for some time.
+In the worst case the routing process needs to be resolved on-chain as the payment channel was forced closed due to some other circumstances.
+In that case outstanding HTLCs produce additional on-chain food print and costs.
+Thus there are two small economic risks involved with the participation in the routing process:
+
+. Higher on-chain fees in case of forced channel closures due to the higher footprint of HTLCs.
+. Opportunity costs of locked funds. While the HTLC is active the funds cannot be used for any other purpose.
+
+Owners of routing nodes might want to monitor the routing behavior and opportunities and compare them to the on-chain costs and the opportunity costs in order to compute their own routing fees that they wish to charge in order to accept and forward HTLCs.
+
+Additionally, one should notice that HTLCs are outputs in the commitment transaction.
+The Lightning network protocol allows users to pay a single satoshi.
+However it is impossible to set up HTLCs for this small amount.
+The reason is that the corresponding outputs in the commitment transaction would be below the dust limit.
+Such cases are solved in practice with the following trick:
+Instead of setting up an HTLC the amount is taken from the output of the sender but not added to the output of the recipient.
+Thus the HTLCs which are below the dust limit can be understood to be additional fees in the commitment transaction.
+Most Lightning Nodes support the configuration of minimum accepted HTLC values.
+Operators have to consider if they want to risk overpaying fees or losing funds in the forced channel closure cases because the commitment transactions have been added to the fees.
+
+Explain fee and time-lock considerations
+The “HTLC Switch” analogy compared to regular network switch
+Circuit map concept, how to handle forwarding
+Pipeline styles for HTLCs
+Error handling and encryption for HTLCs
+
+Explain “one little trick” of DH re-randomization
+Explain how we keep the packet size fixed, what’s MAC’d, etc
+Introduce the new modern payload format which uses TLV
+
+=== Routing failures
+
+// Failure to route, stuck payments.
