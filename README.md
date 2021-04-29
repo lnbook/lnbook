@@ -44,7 +44,7 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
 | [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
-| [Lightning Applications (LApps)]() | # | :thought_balloon: |
+| [Lightning Applications (LApps)](lapp.asciidoc) | ### | :thought_balloon: |
 | [LN Security and Privacy]() | # | :lock_with_ink_pen: |
 | [LN's Future]() | # | :thought_balloon: |
 | APPENDICES | APPENDICES | APPENDICES |
