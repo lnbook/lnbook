@@ -331,13 +331,13 @@ In our gold coin example, Alice wanted to produce a contract like this:
 
 [[alice_bob_contract]]
 ====
-_I (Alice) will reimburse you (Bob) with 12 gold coins if you can show a valid message that hashes to:`+057596...+`.
+_Alice will reimburse Bob with 12 gold coins if you can show a valid message that hashes to:_ +0575...f6b3+
 ====
 
 This is part of an HTLC! We can implement this in such a way that we don't need an escrow to ensure Alice pays when the time comes. This part of an HTLC can be implemented in Bitcoin Script as follows:
 
 ----
-OP_SHA256 <H> OP_EQUALVERIFY
+OP_SHA256 <H> OP_EQUAL
 ----
 
 [TIP]
@@ -347,17 +347,25 @@ An HTLC is only one output of a much more complex set of transactions that are e
 
 ==== HTLC outputs
 
-Alice can create a transaction output that pays, say 50,000 satoshi with a locking script above, replacing <H> with the hash value provided by Dina. Then, Alice can sign this transaction and offer it to Bob.
+Alice has received an invoice from Dina requesting a payment of 50,000 satoshi and containing the payment hash Dina produced from her secret.
+
+Alice now needs to pay Dina, by sending a payment via Bob and Chan. As with the gold coin example, Bob and Chan will get paid a small routing fee for their assistance in getting this payment delivered.
+
+Alice can create a transaction output that pays, say 50,200 satoshi with a locking script above, replacing <H> with the hash value +0575...f6b3+ provided by Dina. Then, Alice can sign this transaction and offer it to Bob:
+
+.Alice's offers a 50,200 satoshi HTLC to Bob
+----
+OP_SHA256 0575...f6b3 OP_EQUAL
+----
 
 Bob can't spend this HTLC until he knows Dina's secret, so spending the HTLC is conditional on Bob's fullfilment of the payment all the way to Dina.
 
-
-Bob can spend this output with an unlocking script containing the secrect pre-image value +R+
+Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secrect pre-image value +R+
 
 The unlocking script and locking script would combined to produce:
 
 ----
-<R> OP_SHA256 <H> OP_EQUALVERIFY
+<R> OP_SHA256 <H> OP_EQUAL
 ----
 
 The Bitcoin Script engine would evaluate this script as follows:
@@ -365,7 +373,11 @@ The Bitcoin Script engine would evaluate this script as follows:
 1. latexmath:[R] is pushed to the stack
 1. The OP_SHA256 operator takes the value latexmath:[R] on the stack and hashes it, pushing the result latexmath:[H_R_] to the stack
 1. latexmath:[H] is pushed to the stack
-1. The OP_EQUALVERIFY operator compares latexmath:[H_R_] and latexmath:[H]. If they are equal, the script is complete and the payment is verified.
+1. The OP_EQUAL operator compares latexmath:[H_R_] and latexmath:[H]. If they are equal, the result is +TRUE+, the script is complete and the payment is verified.
+
+It's important to note something about how this script executes, because it plays a role in the fairness protocol and ensures no one can cheat.
+
+To spend this HTLC on-chain, Bob would have to know the secret +R+, as it is required for the HTLC to be validated by the Bitcoin blockchain. Furthermore, to redeem the HTLC, Bob effectively *broadcasts the secret* because he has to put it in the spending transaction and that transaction is broadcast and recorded on the Bitcoin blockchain. Bob can't spend the HTLC without revealing +R+ to the whole world!
 
 .OP_HASH160 instead of OP_SHA256
 ****
@@ -374,9 +386,49 @@ In BOLT3 you will see that LN uses the OP_HASH160 operator intead of OP_SHA256. 
 
 ==== Extending HTLCs from Alice to Dina
 
+In the same way as we saw in the gold coin example, Alice will extend the HTLC across the network so that it reaches Dina.
+
+[[alice-dina-htlc-1]]
+.Propagating the HTLC across the network
+image:images/alice-dina-htlc-1.png["Propagating the HTLC across the network"]
+
+Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan. Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC.
+
+Since Alice's HTLC is 100 satoshi more that the HTLC Bob gave to Chan, Bob will earn 100 satoshi as a routing fee if this payment completes.
+
+Bob isn't taking a risk and isn't trusting Alice or Chan. Instead, Bob is trusting that a signed transaction together with the secret will be redeemable on the Bitcoin blockchain.
+
+Similarly, Chan can extend a 50,000 HTLC to Dina. He isn't risking anything or trusting Bob or Dina. To redeem the HTLC, Dina would have to broadcast the secret, which Chan could use to redeem Bob's HTLC. Chan would also earn 100 satoshis as a routing fee.
+
 ==== Back-propagating the secret
 
-==== HTLC redemption (success)
+Once Dina receives a 50,000 HTLC from Chan, she can now get paid. Dina could simply commit this HTLC on-chain and spend it by revealing the secret in the spending transaction. Or, instead, Dina can update the channel balance with Chan by giving him the secret. There's no reason to incur a transaction fee and go on-chain. So, instead, Dina sends the secret to Chan and they agree to update their channel balances to reflect a 50,000 satoshi Lightning payment to Dina.
+
+Notice Dina's channel balance goes from 50,000 satoshi to 100,000 satoshi. Chan's channel balance is reduced from 200,000 satoshi to 150,000 satoshi. The channel capacity hasn't changed, but 50,000 has moved from Chan's side of the channel to Dina's side of the channel.
+
+[[alice-dina-htlc-redeem-1]]
+.Dina settles Chan's HTLC off-chain
+image:images/alice-dina-htlc-redeem-1.png["Dina settles Chan's HTLC off-chain"]
+
+Chan now has the secret and has paid Dina 50,000 satoshi. He can do this without any risk, because the secret allows Chan to redeem the 50,100 HTLC from Bob. Chan has the option to commit that HTLC on chain and spend it by revealing the secret on the Bitcoin blockchain. But, like Dina, he'd rather avoid transaction fees. So instead, he sends the secret to Bob so they can update their channel balances to reflect a 50,100 satoshi Lightning payment from Bob to Chan. Chan has paid Dina 50,000 satoshi, and received 50,100 satoshi from Bob. So Chan has 100 satoshi more in his channel balances, which he earned as a routing fee.
+
+[[alice-dina-htlc-redeem-2]]
+.Chan settles Bob's HTLC off-chain
+image:images/alice-dina-htlc-redeem-2.png["Chan settles Bob's HTLC off-chain"]
+
+Bob now has the secret too. He can use it to spend Alice's HTLC on-chain. Or, he can avoid transaction fees by settling the HTLC in the channel with Alice. Bob sends the secret to Alice and they update the channel balance to reflect a 50,200 satoshi Lightning payment from Alice to Bob. Bob has recieved 50,200 satoshi from Alice and paid 50,100 satoshi to Chan, so he has an extra 100 satoshi in his channel balances from routing fees.
+
+[[alice-dina-htlc-redeem-3]]
+.Bob settles Alice's HTLC off-chain
+image:images/alice-dina-htlc-redeem-3.png["Bob settles Alice's HTLC off-chain"]
+
+Alice receives the secret and has settled the 50,200  satoshi HTLC. The secret can be used as a _receipt_ to prove that Dina got paid for that specific payment hash.
+
+The final channel balances reflect Alice's payment to Dina and the routing fees paid at each hop
+
+[[alice-dina-htlc-redeem-4]]
+.Channel balances after the payment
+image:images/alice-dina-htlc-redeem-4.png["Channel balances after the payment"]
 
 ==== Preventing theft of HTLCs
 
