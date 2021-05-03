@@ -2,6 +2,15 @@
 [[ch03_How_Lightning_Works]]
 == How the Lightning Network Works
 
+.A note for Early Release readers
+****
+With Early Release ebooks, you get books in their earliest form&mdash;the author's raw and unedited content as they write—so you can take advantage of these technologies long before the official release of these titles.
+
+This will be the 3rd chapter of the final book. Please note that the GitHub repo will be made active later on.
+
+If you have comments about how we might improve the content and/or examples in this book, or if you notice missing material within this chapter, please reach out to the editor at mcronin@oreilly.com.
+****
+
 Now that we've followed Alice as she set up a Lightning Wallet and purchased a coffee from Bob, we'll look under the hood and unpack the different components of the Lightning Network involved in that process.
 This chapter will give a high-level overview and will not delve into all the technical details.
 The goal is rather to help you to become aware of the most important concepts and building blocks of the Lightning Network.
@@ -223,7 +232,7 @@ So, in our example, Bob holds a commitment transaction that pays Alice _immediat
 
 The two channel partners hold half of the revocation secret, so that neither one knows the whole secret. If they share their half, then the other channel partner has the full secret and can use it to exercise the revocation condition. When signing a new commitment transaction, each channel partner revokes the previous commitment by giving the other party their half of the revocation secret.
 
-We will examine the revocation mechanism in more detail in <<channel_operation>>, where we will learn the details of how revocation secrets are constructed and used.
+We will examine the revocation mechanism in more detail in XREF HERE, where we will learn the details of how revocation secrets are constructed and used.
 
 In simple terms, Alice signs Bob's new commitment transaction only if Bob offers his half of the revocation secret for the previous commitment. Bob only signs Alice's new commitment transaction if she gives him her half of the revocation secret from the previous commitment.
 
@@ -233,7 +242,7 @@ The timelock is set to a number of blocks, up to 2016 (approximately two weeks).
 
 The timelock is adjustable and can be negotiated between channel partners. Usually, it is longer for larger capacity channels, and shorter for smaller channels, to align the incentives with the value of the funds.
 
-For every new update of the channel balance, new commitment transactions and new revocation secrets have to be created and saved. As long as a channel remains open, all revocation secrets _ever created_ for the channel need to be kept as they might be needed in the future. Fortunately, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network. Furthermore, due to a smart derivation mechanism used to derive revocation secrets we only need to store the most recent secret, because previous secrets can be derived from it (See <<revocation_secret_derivation>>.)
+For every new update of the channel balance, new commitment transactions and new revocation secrets have to be created and saved. As long as a channel remains open, all revocation secrets _ever created_ for the channel need to be kept as they might be needed in the future. Fortunately, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network. Furthermore, due to a smart derivation mechanism used to derive revocation secrets we only need to store the most recent secret, because previous secrets can be derived from it (See XREF HERE.)
 
 Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of Lightning nodes that require node operators to maintain backups.
 
@@ -336,7 +345,7 @@ When publishing a commitment transaction during a force close, the on-chain fees
 
 [NOTE]
 ====
-Hash Time-Locked Contracts (HTLCs) will be covered in detail in <<htlcs>>.
+Hash Time-Locked Contracts (HTLCs) will be covered in detail in XREF HERE.
 For now, assume that these are payments that are routed across the Lightning Network, rather than payments made directly between the two channel partners.
 These HTLCs are carried as additional outputs in the commitment transactions, thereby increasing the transaction size and on-chain fees.
 ====
@@ -386,11 +395,11 @@ This software is either:
 * A single-purpose _watchtower_ node that you run to watch your channels.
 * A third-party watchtower node that you pay to watch your channels.
 
-We will look at watchtowers in more detail in <<watchtowers>>.
+We will look at watchtowers in more detail in XREF HERE.
 
 Remember that the commitment transaction has a timeout period specified in a given number of blocks, up to a maximum of 2016 blocks.
 As long as you run your Lightning node once before the timeout period is reached, it will catch all cheating attempts.
-It is not advisable to take this kind of risk; it is important to keep a well maintained node running continuously (See <<node_operations>>).
+It is not advisable to take this kind of risk; it is important to keep a well maintained node running continuously (See XREF HERE).
 
 === Invoices
 
@@ -398,7 +407,7 @@ Most payments on the Lightning Network start with an invoice, generated by the r
 
 [NOTE]
 ====
-There is a way to send an "unsolicited" payment without an invoice, using a work-around in the protocol called _keysend_. We will examine this in <<keysend>>.
+There is a way to send an "unsolicited" payment without an invoice, using a work-around in the protocol called _keysend_. We will examine this in XREF HERE.
 ====
 
 An invoice is a simple payment instruction containing information such as a unique payment identifier, called a payment hash, a recipient, an amount, and an optional text description.
@@ -570,7 +579,7 @@ The onion routing protocol used in Lightning has the following properties:
 
 . Errors can be sent back from the erring node to the original sender, using the same onion routed protocol. Error onions are indistinguishable from routing onions, to external observers and intermediary nodes. Error routing enables the trial-and-error "probing" method used to find a path that has sufficient capacity to successfuly route a payment.
 
-Onion routing will be examined in detail in <<onion_routing>>.
+Onion routing will be examined in detail in XREF HERE.
 
 ==== Payment Forwarding Algorithm
 
@@ -640,7 +649,7 @@ The sender uses their Lightning wallet to pay the invoice, copying the invoice t
 
 There are some differences in the user experience however. A Bitcoin address is _reusable_. Bitcoin addresses never expire and if the owner of the address still holds the keys, the funds held within are always accessible. A sender can send any amount of bitcoin to a previously used address, and a recipient can post a single static address to receive many payments. While this goes against the best practices for privacy reasons, it is technically possible and in fact quite common.
 
-In Lightning however, each invoice can only be used once for a specific payment amount. You cannot pay more or less, you cannot use an invoice again and the invoice has an expiry time built in. In Lightning, a recipient has to generate a new invoice for each payment, specifying the payment amount in advance. There is an exception to this, a mechanism called _keysend_, which we will examine in <<keysend>>.
+In Lightning however, each invoice can only be used once for a specific payment amount. You cannot pay more or less, you cannot use an invoice again and the invoice has an expiry time built in. In Lightning, a recipient has to generate a new invoice for each payment, specifying the payment amount in advance. There is an exception to this, a mechanism called _keysend_, which we will examine in XREF HERE.
 
 ==== Selecting Outputs vs. Finding a Path
 
@@ -707,7 +716,7 @@ On the Bitcoin network, a user can send any amount of bitcoin that they own to a
 
 On the Lightning Network, a user can only send as much bitcoin as currently exists on their side of a particular channel to a channel partner. For instance, if a user owns one channel with 0.4 BTC on their side, and another channel with 0.2 BTC on their side, then the maximum they can send with one payment is 0.4 BTC. This is true regardless of how much bitcoin the user currently has in their Bitcoin wallet.
 
-Atomic Multi-Path Payments (AMPs) is a feature which, in the above example, allows the user to combine both their 0.4 BTC and 0.2 BTC channels to send a maximum of 0.6 BTC with one payment. AMPs are currently being tested across the Lightning Network, and are expected to be widely available and used by the time this book is completed. For more detail on AMPs, see <<atomic_multipath_payments>>.
+Atomic Multi-Path Payments (AMPs) is a feature which, in the above example, allows the user to combine both their 0.4 BTC and 0.2 BTC channels to send a maximum of 0.6 BTC with one payment. AMPs are currently being tested across the Lightning Network, and are expected to be widely available and used by the time this book is completed. For more detail on AMPs, see XREF HERE.
 
 If the payment is routed, every routing node along the routing path must have channels with capacity at least the same as the payment amount being routed. This must hold true for every single channel that the payment is routed through. The capacity of the lowest-capacity channel in a path sets the upper limit for the capacity of the entire path.
 
