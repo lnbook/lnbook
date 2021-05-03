@@ -317,6 +317,15 @@ As we saw in previous examples, we assume that Alice does not have a direct paym
 
 Now, Alice's node can construct a Lightning payment. In the next few sections we will see how Alice's node constructs a Hash Time-Locked Contract (HTLCs) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
 
+
+==== On-chain vs Off-chain settlement of HTLCs
+
+The purpose of the Lightning Network is to enable _off-chain_ transactions that are trusted just the same as on-chain transactions, because no one can cheat. The reason no one can cheat is because at any time, any of the participants can take their off-chain transactions on-chain. Each off-chain transaction is ready to be submitted to the Bitcoin blockchain at any time. Thus, the Bitcoin blockchain acts as a dispute-resolution and final settlement mechanism if necessary.
+
+The mere fact that any transaction can be taken on-chain at any time is precisely the reason that all those transactions can be kept off-chain. If you know you have recourse, you can continue to cooperate with the other participants and avoid the need for on-chain settlement and extra fees.
+
+In all the examples that follow, we will assume that any of these transactions can be made on-chain at any time. The participants will choose to keep them off-chain, but there is no difference in the functionality of the system other than the higher fees and delay imposed by on-chain mining of the transactions. The example works the same if all the transactions are on-chain or off-chain.
+
 === Hash Time Locked Contracts (HTLCs)
 
 In this section we explain how Hash Time Locked Contracts (HTLCs) work.
@@ -356,6 +365,7 @@ Let's see how we would implement this as an HTLC in Bitcoin Script. In <<offered
 
 [[offered_htlc]]
 .HTLC implemented in Bitcoin Script (BOLT3)
+[source,linenum]
 ----
 # To remote node with revocation key
 OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
@@ -379,6 +389,8 @@ Wow that looks complicated! Don't worry though, we will take it one step at a ti
 The Bitcoin Script currently used in the Lightning Network is quite complex because it is optimized for on-chain space efficiency, which makes very compact but difficult to read.
 
 In the following sections, we will focus on the main elements of the script and present simplified scripts that are slightly different from what is actually used in Lightning.
+
+The main part of the HTLC is in lines 12 and 13 of <<offered_htlc>>. Let's build it up from scratch!
 
 ==== Payment pre-image and hash verification
 
@@ -461,6 +473,106 @@ The final channel balances reflect Alice's payment to Dina and the routing fees 
 image:images/alice-dina-htlc-redeem-4.png["Channel balances after the payment"]
 
 ==== Preventing theft of HTLCs
+
+There's a catch. Did you notice it?
+
+If Alice, Bob and Chan create the HTLCs as shown above, they face a small but not insignificant risk of loss. Any of those HTLCs can be redeemed (spent) by anyone who knows the secret. At first only Dina knows the secret. Dina is supposed to only spend the HTLC from Chan. But Dina could spend all three HTLCs at the same time, or even in a single spending transaction! After all Dina knows the secret before anyone else. Similarly, once Chan knows the secret he is only supposed to spend the HTLC offered by Bob. But what if Chan also spends Alice's offered HTLC too?
+
+This is not _trustless_! It fails the most important security feature. We need to fix this.
+
+The HTLC script must have an additional condition that binds each HTLC to a specific recipient. We do this by requiring a digital signature that matches the public key of each recipient, thereby preventing anyone else from spending that HTLC. Since only the designated recipient has the ability to produce a digital signature matching that public key, only the designated recipient can spend that HTLC.
+
+Let's look at the scripts again with this modification in mind. Alice's HTLC for Bob is modified to include Bob's Public Key and the +OP_CHECKSIG+ operator.
+
+Here's the modified HTLC script:
+
+----
+OP_SHA256 <H> OP_EQUALVERIFY <Bob's Pub> OP_CHECKSIG
+----
+
+[TIP]
+====
+Notice that we also changed +OP_EQUAL+ to +OP_EQUALVERIFY+. When an operator has the suffix +VERIFY+ it does not return +TRUE+ or +FALSE+ on the stack. Instead it *halts* execution and fails the script if the result is false and continues without any stack output if it is true.
+====
+
+To redeem this HTLC, Bob has to present an unlocking script that includes a signature from Bob's private key as well as the secret payment pre-image, like this:
+
+----
+<Bob's Signature> <R>
+----
+
+The unlocking and locking script are combined and evaluated by the scripting engine, as follows:
+
+----
+<Bob's Sig> <R> OP_SHA256 <H> OP_EQUALVERIFY <Bob's Pub> OP_CHECKSIG
+----
+
+1. +<Bob's Sig>+ is pushed on to the stack
+1. +R+ is pushed on to the stack
+1. OP_SHA256 pops and hashes +R+ from the top of the stack and pushes H~R~ on to the stack
+1. +H+ is pushed on to the stack
+1. OP_EQUALVERIFY pops H and H~R~ and compares them. If they are not the same, execution halts. Otherwise, we continue without output to the stack
+1. +<Bob's Pub> key is pushed to the stack
+1. OP_CHECKSIG pops +<Bob's Sig>+ and +<Bob's Pub>+ and verifies the signature. The result (TRUE/FALSE) is pushed to the stack.
+
+As you can see, this is slightly more complicated, but now we have fixed the HTLC and made sure only the intended recipient can spend it.
+
+==== Hash Optimization
+
+Let's look at the first part of the HTLC script so far:
+
+----
+OP_SHA256 <H> OP_EQUALVERIFY
+----
+
+If we look at this in a symbolic representation above, it looks like the +OP_+ operators take up the most space. But that's not the case. Bitcoin Script is encoded in binary, with each operator representing one byte. Meanwhile, the +<H>+ value we use as a placeholder for the payment hash is a 32-byte (256-bit) value. You can find a listing of all the Bitcoin Script operators and their binary and hex encoding in https://en.bitcoin.it/wiki/Script[Bitcoin Wiki: Script], or in https://github.com/bitcoinbook/bitcoinbook/blob/develop/appdx-scriptops.asciidoc[Mastering Bitcoin Applendix: Transaction Script Language Operators, Constants, and Symbols].
+
+Represented in hexadecimal, our HTLC script would look like this:
+
+----
+a8 0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3 88
+----
+
+In hexadecimal encoding, +OP_SHA256+ is +a8+ and +OP_EQUALVERIFY+ is +88+. The total length of this script is 34 bytes, of which 32 bytes are the hash.
+
+As we've mentioned previously, any participant in the Lightning network should be able to take an off-chain transaction they hold and put it on-chain if they need to enforce their claim to funds. To take a transaction on-chain, they'd have to pay transaction fees to the miners and these fees are proportional to the *size in bytes* of the transaction.
+
+Therefore, we want to find ways to minimize the on-chain "weight" of transactions by optimizing the script as much as possible. One way to do that is to add another hash function on top of the SHA256 algorithm, one that produces smaller hashes. The Bitcoin Script language provides the +OP_HASH160+ operator that "double hashes" a pre-image: first the pre-image is hashed with SHA256 and then the resulting hash is hashed again with the RIPEMD160 hash algorithm. The hash resulting from RIPEMD160 is 160 bits or 20 bytes, much more compact. In Bitcoin Script this is a very common optimization that is used in many of the common address formats.
+
+So, let's use that optimization instead. Our SHA256 hash is +057596...69f6b3+. Putting that through another round of hasing with RIPEMD160 gives us the result:
+
+----
+R = "Dinas secret"
+H256 = SHA256(R)
+H256 = 0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3
+H160 = RIPEMD160(H)
+H160 = 9e017f6767971ed7cea17f98528d5f5c0ccb2c71
+----
+
+Alice can calculate the RIPEMD160 hash of the payment hash that Dina provides and use the shorter hash in her HTLC, as can Bob and Chan!
+
+The "optimized" HTLC script would look like this:
+
+----
+OP_HASH160 <H160> OP_EQUALVERIFY
+----
+
+Encoded in hex this is:
+
+----
+a9 9e017f6767971ed7cea17f98528d5f5c0ccb2c71 88
+----
+
+Where OP_HASH160 is +a9+ and OP_EQUALVERIFY is +88+. This script is only 22 bytes long! We've saved 12 bytes from every transaction that redeems an HTLC on-chain.
+
+With that optimization, you now see how we arrive at the HTLC script shown in lines 12 and 13 of <<offered_htlc>>:
+
+----
+...
+	OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
+	OP_CHECKSIG
+...
+----
 
 ==== HTLC timeout (failure)
 
