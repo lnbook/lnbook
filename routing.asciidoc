@@ -315,6 +315,11 @@ image:images/alice-dina-invoice-1.png["Alice requests an invoice from Dina's web
 
 As we saw in previous examples, we assume that Alice does not have a direct payment channel to Dina. Instead, Alice has a channel to Bob, Bob has a channel to Chan and Chan has a channel to Dina. To pay Dina, Alice must find a path that connects her to Dina. We will discuss that step in more detail in <<path_finding>>. For now, let's assume that Alice is able to gather information about available channels and sees that there is a path from her to Dina, via Bob and Chan.
 
+[NOTE]
+====
+Remember how Bob and Chan might expect a small compensation for routing the payment through their nodes? Alice wants to pay Dina 50,000 satoshis, but as you will see in the following sections she will send Bob 50,200 satoshis. The extra 200 satoshis will pay Bob and Chan 100 satohis each, as a routing fee.
+====
+
 Now, Alice's node can construct a Lightning payment. In the next few sections we will see how Alice's node constructs a Hash Time-Locked Contract (HTLCs) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
 
 
@@ -409,6 +414,8 @@ Alice can create a transaction output that pays, 50,200 satoshi with a locking s
 ----
 OP_SHA256 0575...f6b3 OP_EQUAL
 ----
+
+
 
 Bob can't spend this HTLC until he knows Dina's secret, so spending the HTLC is conditional on Bob's fullfilment of the payment all the way to Dina.
 
@@ -529,7 +536,7 @@ Let's look at the first part of the HTLC script so far:
 OP_SHA256 <H> OP_EQUALVERIFY
 ----
 
-If we look at this in a symbolic representation above, it looks like the +OP_+ operators take up the most space. But that's not the case. Bitcoin Script is encoded in binary, with each operator representing one byte. Meanwhile, the +<H>+ value we use as a placeholder for the payment hash is a 32-byte (256-bit) value. You can find a listing of all the Bitcoin Script operators and their binary and hex encoding in https://en.bitcoin.it/wiki/Script[Bitcoin Wiki: Script], or in https://github.com/bitcoinbook/bitcoinbook/blob/develop/appdx-scriptops.asciidoc[Mastering Bitcoin Applendix: Transaction Script Language Operators, Constants, and Symbols].
+If we look at this in a symbolic representation above, it looks like the +OP_+ operators take up the most space. But that's not the case. Bitcoin Script is encoded in binary, with each operator representing one byte. Meanwhile, the +<H>+ value we use as a placeholder for the payment hash is a 32-byte (256-bit) value. You can find a listing of all the Bitcoin Script operators and their binary and hex encoding in https://en.bitcoin.it/wiki/Script[Bitcoin Wiki: Script], or in https://github.com/bitcoinbook/bitcoinbook/blob/develop/appdx-scriptops.asciidoc[Mastering Bitcoin Appendix: Transaction Script Language Operators, Constants, and Symbols].
 
 Represented in hexadecimal, our HTLC script would look like this:
 
@@ -614,7 +621,7 @@ Finally, once the stack has been cleaned up, there should be a public key and si
 
 As the HTLCs are extended from Alice to Dina, the time-lock refund clause in each HTLC has a _different_ cltv_expiry value. We will see this in more detail as we talk about <<onion_routing>>. But suffice it to say that to ensure an orderly unwinding of a payment that fails, each hop needs to wait a bit less for their refund. The different between time-locks for each hop is called the cltv_expiry_delta and is set by each node and advertized to the network as we will see in <<gossip>>.
 
-For example, Alice sets the refund time-lock on the first HTLC to a block height of +500 blocks (from the current block height). Bob would then set the time-lock cltv_expiry on the HTLC to Chan to 450 blocks. Chan would set the time-lock to 400 blocks from the current block height. This way, Chan can get a refund on the HTLC he offered to Dina _before_ Bob gets a refund on the HTLC he offered to Chan. Bob can get a refund of the HTLC he offered to Chan before Alice can get a refund for the HTLC she offered to Bob. The decrementing time-lock prevents race conditions and ensures the HTLC chain is unwound backwards, from the destination towards the origin.
+For example, Alice sets the refund time-lock on the first HTLC to a block height of current+500 blocks ("current" being the current block height). Bob would then set the time-lock cltv_expiry on the HTLC to Chan to current+450 blocks. Chan would set the time-lock to current+400 blocks from the current block height. This way, Chan can get a refund on the HTLC he offered to Dina _before_ Bob gets a refund on the HTLC he offered to Chan. Bob can get a refund of the HTLC he offered to Chan before Alice can get a refund for the HTLC she offered to Bob. The decrementing time-lock prevents race conditions and ensures the HTLC chain is unwound backwards, from the destination towards the origin.
 
 === Conclusion
 
@@ -624,4 +631,4 @@ To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, A
 
 Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment pre-image. Once an HTLC reaches Dina, she reveals the pre-image which flows backwards resolving all the HTLCs offered.
 
-Finally, we saw how a time-locked refund clause completes the HTLC, ensuring that every participant can get a refund if the payment fails but for whatever reason one of the participants doesn't cooperate in unwinding the HTLCs. By always having the option to go on-chain for a refund, the HTLC achieves the fairness goal of atomicity and trustless operation. 
+Finally, we saw how a time-locked refund clause completes the HTLC, ensuring that every participant can get a refund if the payment fails but for whatever reason one of the participants doesn't cooperate in unwinding the HTLCs. By always having the option to go on-chain for a refund, the HTLC achieves the fairness goal of atomicity and trustless operation.
