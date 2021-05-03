@@ -361,9 +361,9 @@ In our gold coin example, Alice had a contract enforced by escrow like this:
 _Alice will reimburse Bob with 12 gold coins if you can show a valid message that hashes to:_ +0575...f6b3+. _Bob has 24 hours to show the secret after the contract was signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
 ====
 
-Let's see how we would implement this as an HTLC in Bitcoin Script. In <<offered_htlc>> we see an HTLC Bitcoin Script as currently used in the Lightning Network. You can find this definition in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT3 - Transactions]:
+Let's see how we would implement this as an HTLC in Bitcoin Script. In <<received_htlc>> we see an HTLC Bitcoin Script as currently used in the Lightning Network. You can find this definition in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT3 - Transactions]:
 
-[[offered_htlc]]
+[[received_htlc]]
 .HTLC implemented in Bitcoin Script (BOLT3)
 [source,linenum]
 ----
@@ -373,12 +373,13 @@ OP_IF
     OP_CHECKSIG
 OP_ELSE
     <remote_htlcpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
-    OP_NOTIF
-        # To local node via HTLC-timeout transaction (timelocked).
-        OP_DROP 2 OP_SWAP <local_htlcpubkey> 2 OP_CHECKMULTISIG
-    OP_ELSE
-        # To remote node with preimage.
+    OP_IF
+        # To local node via HTLC-success transaction.
         OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
+        2 OP_SWAP <local_htlcpubkey> 2 OP_CHECKMULTISIG
+    OP_ELSE
+        # To remote node after timeout.
+        OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
         OP_CHECKSIG
     OP_ENDIF
 OP_ENDIF
@@ -390,7 +391,7 @@ The Bitcoin Script currently used in the Lightning Network is quite complex beca
 
 In the following sections, we will focus on the main elements of the script and present simplified scripts that are slightly different from what is actually used in Lightning.
 
-The main part of the HTLC is in lines 12 and 13 of <<offered_htlc>>. Let's build it up from scratch!
+The main part of the HTLC is in line 10 of <<received_htlc>>. Let's build it up from scratch!
 
 ==== Payment pre-image and hash verification
 
@@ -434,7 +435,9 @@ Alice will now extend the HTLC across the network so that it reaches Dina.
 .Propagating the HTLC across the network
 image:images/alice-dina-htlc-1.png["Propagating the HTLC across the network"]
 
-Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan. Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC.
+Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
+
+Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC. This is a really important point, because it ensures end-to-end _atomicity_ of the HTLC. To spend the HTLC, one needs to reveal the secret, which then makes it possible for others to spend their HTLC also. Either all the HTLCs are spendable, or none of the HTLCs are spendable: atomicity!
 
 Since Alice's HTLC is 100 satoshi more that the HTLC Bob gave to Chan, Bob will earn 100 satoshi as a routing fee if this payment completes.
 
@@ -472,7 +475,8 @@ The final channel balances reflect Alice's payment to Dina and the routing fees 
 .Channel balances after the payment
 image:images/alice-dina-htlc-redeem-4.png["Channel balances after the payment"]
 
-==== Preventing theft of HTLCs
+[[preventing_theft]]
+==== Signature binding - preventing theft of HTLCs
 
 There's a catch. Did you notice it?
 
@@ -565,34 +569,59 @@ a9 9e017f6767971ed7cea17f98528d5f5c0ccb2c71 88
 
 Where OP_HASH160 is +a9+ and OP_EQUALVERIFY is +88+. This script is only 22 bytes long! We've saved 12 bytes from every transaction that redeems an HTLC on-chain.
 
-With that optimization, you now see how we arrive at the HTLC script shown in lines 12 and 13 of <<offered_htlc>>:
+With that optimization, you now see how we arrive at the HTLC script shown in line 10 of <<received_htlc>>:
 
 ----
 ...
-	OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
+    # To local node via HTLC-success transaction.
+    OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY...
+----
+
+==== HTLC cooperative and timeout failure
+
+So far we looked at the "Hash" part of HTLC, and how it would work if everyone cooperated and was online at the time of payment.
+
+What happens if someone goes offline or fails to cooperate? What happens if the payment cannot succeed?
+
+We need to ensure a way to "fail gracefully", because occasional routing failures are inevitable. There are two ways to fail: cooperatively and with a time-locked refund.
+
+Cooperative failure is relatively simple: the HTLC is unwound by every participant in the route removing the HTLC output from their commitment transactions without changing the balance. We'll look at how that works in detail in <<channel_operation>>.
+
+Let's look at how we can reverse an HTLC without the cooperation of one or more participants. We need to make sure that if one of the participants does not cooperate, the funds are not simply locked in the HTLC _forever_. This would give someone the opportunity to ransom the funds of another participant: "I'll leave your funds tied up forever if you don't pay me ransom."
+
+To prevent this, every HTLC script includes a refund clause that is connected to a time-lock. Remember our original escrow contract? "Bob has 24 hours to show the secret after the contract is signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded"
+
+The time-locked refund is an important part of the script that ensures _atomicity_, so that the entire end-to-end payment either succeeds or fails gracefully. There is not "half paid" state to worry about. If there is a failure, every participant can either unwind the HTLC cooperatively with their channel partner, or put the time-locked refund transaction on-chain unilaterally to get their money back.
+
+To implement this refund in Bitcoin Script, we use a special operator +OP_CHECKLOCKTIMEVERIFY+ also known +OP_CLTV+ for short. Here's the script, as seen previously in line 13 of <<received_htlc>>:
+
+----
+...
+	OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
 	OP_CHECKSIG
 ...
 ----
 
-==== HTLC timeout (failure)
+The +OP_CLTV+ operator takes an expiry time defined as the block height after which this transaction is valid. If the tranaction timelock is not set the same as +<cltv_expiry>+, the evaluation of the script fails and the transaction is invalid. Otherwise, the script continues without any output to the stack. Remember, the +VERIFY+ suffix means this operator does not output +TRUE+ or +FALSE+, but instead either halts/fails, or continus without stack output.
 
-----
-OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
-OP_CHECKSIG
-----
+Essentially, the +OP_CLTV+ acts as a "gatekeeper" preventing the script from proceeding any further if the <cltv_expiry> block height has not been reached on the Bitcoin blockchain.
 
-==== Incremental timelocks
+The +OP_DROP+ operator simply drops the topmost item on the script stack. This is necessary in the beginning, because there is a "leftover" item from the previous script lines. It is necessary *after* +OP_CLTV+ in order to remove the +<cltv_expiry>+ item from the top of the stack as it is no longer necessary.
 
-In order to implement the "refund" functionality, we rely on the "absolute time lock" functionality of Bitcoin script.
+Finally, once the stack has been cleaned up, there should be a public key and signature left behind, that +OP_CHECKSIG+ can verify. As we saw in <<preventing_theft>>, this is necessary to ensure that only the rightful owner of the funds can claim them, by binding this output to their public key and requiring a signature.
 
-Alice can present this script to Bob in order to kick off the conditional payment.
-For the chained aspect, Alice needs to be able to communicate the proper payment details to each hop in the route.
-Recall that each hop will specify a forwarding fee rate, as well as other parameters that express their forwarding policy.
-In addition to this forwarding rate, Alice also needs to be concerned about what time locks to use.
-Each node in the hop needs some time to be able to settle the outgoing, then incoming payment on-chain in the worst case.
-As a result, when constructing the final route, we need to give each node some buffer time, we call this before time, the "time lock delta".
-Factoring in this time-lock delta, the time-lock of the outgoing HTLC will decrease as the route progresses, as the outgoing HTLC will expire before the incoming HTLC.
-This set of decrementing time-locks is critical to the operation of the system, as it ensure out atomicity property for each hop, assuming they're able to get into the chain in time.
+==== Decrementing time-locks
 
-In the next section, we'll go into the exact mechanism of how Alice is able to deliver forwarding details to each hop in the route.
-In addition, we'll dive further into proper time-lock construction, as incorrect time-lock set up can violate our atomicity property and lead to a loss of funds.
+As the HTLCs are extended from Alice to Dina, the time-lock refund clause in each HTLC has a _different_ cltv_expiry value. We will see this in more detail as we talk about <<onion_routing>>. But suffice it to say that to ensure an orderly unwinding of a payment that fails, each hop needs to wait a bit less for their refund. The different between time-locks for each hop is called the cltv_expiry_delta and is set by each node and advertized to the network as we will see in <<gossip>>.
+
+For example, Alice sets the refund time-lock on the first HTLC to a block height of +500 blocks (from the current block height). Bob would then set the time-lock cltv_expiry on the HTLC to Chan to 450 blocks. Chan would set the time-lock to 400 blocks from the current block height. This way, Chan can get a refund on the HTLC he offered to Dina _before_ Bob gets a refund on the HTLC he offered to Chan. Bob can get a refund of the HTLC he offered to Chan before Alice can get a refund for the HTLC she offered to Bob. The decrementing time-lock prevents race conditions and ensures the HTLC chain is unwound backwards, from the destination towards the origin.
+
+=== Conclusion
+
+In this chapter we saw how Alice can pay Dina even though she doesn't have a direct payment channel. Alice can find a path that connects her to Dina and route a payment across several payment channels so that it reaches Dina.
+
+To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, Alice needs to implement a fairness protocol in cooperation with all the intermediary nodes in the path. The fairness protocol is currently implemented as a _Hash Time-Locked Contract (HTLC)_, which commits funds to a payment hash derived from a secret payment pre-image.
+
+Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment pre-image. Once an HTLC reaches Dina, she reveals the pre-image which flows backwards resolving all the HTLCs offered.
+
+Finally, we saw how a time-locked refund clause completes the HTLC, ensuring that every participant can get a refund if the payment fails but for whatever reason one of the participants doesn't cooperate in unwinding the HTLCs. By always having the option to go on-chain for a refund, the HTLC achieves the fairness goal of atomicity and trustless operation. 
