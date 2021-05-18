@@ -1,11 +1,11 @@
 [[routing_on_a_network_of_payment_channels]]
 == Routing on a Network of Payment channels
 
-In this section we will finally unpack how payment channels can be connected to form a _network of payment channels_ via a process called _routing_. Specifically, we will look at the first part of the routing layer, the Atomic & Trustless Multihop Payment protocol. This is highlighted by a double outline in the protocol suite, shown in <<LN_protocol_routing_highlight>>:
+In this chapter we will finally unpack how payment channels can be connected to form a _network of payment channels_ via a process called _routing_. Specifically, we will look at the first part of the routing layer, the Atomic & Trustless Multihop Payment protocol. This is highlighted by a double outline in the protocol suite, shown in <<LN_protocol_routing_highlight>>:
 
 [[LN_protocol_routing_highlight]]
 .The Lightning Network Protocol Suite
-image::images/LN-protocol-routing-highlight.png[]
+image::images/LN-protocol-routing-highlight.png["The Lightning Network Protocol Suite"]
 
 === Routing a payment
 
@@ -13,13 +13,14 @@ In this section we will examine routing from the perspective of Dina, a gamer wh
 
 The innovation of routed payment channels allows Dina to receive tips without maintaining a separate channel with every one of her fans who want to tip her.
 As long as there exists a path of well-funded channels from that viewer to Dina, she will be able to receive payment from that fan.
-The nodes along the path from the fan to Dina are intermediaries and called "routing nodes" in the context of routing a payment.
 
-There is no functional difference between the "routing nodes" and the nodes operated by Dina's fans. Any Lightning node is capable of routing payments across its payment channels.
+In <<dina_routing_diagram>> we see a possible network layout created by various payment channels between Lightning nodes. Everyone in this diagram can send Dina a payment via the other nodes by constructing a path. For example "Fan 4" can route a payment to Dina via Fan 3, Bob, and Chan. Similarly, Alice can route a payment to Dina via Bob and Chan.
 
-[[dina-routing-diagram]]
-.Any one of Dina's fans in the diagram can pay her by routing via the nodes in between them and Dina
-image:images/dina-routing-diagram.png["Any one of Dina's fans in the diagram can pay her by routing via the nodes in between them and Dina"]
+[[dina_routing_diagram]]
+.Fans connected indirectly to Dina on the Lightning Network
+image:images/dina-routing-diagram.png["Fans connected indirectly to Dina on the Lightning Network"]
+
+The nodes along the path from the fan to Dina are intermediaries and called "routing nodes" in the context of routing a payment. There is no functional difference between the "routing nodes" and the nodes operated by Dina's fans. Any Lightning node is capable of routing payments across its payment channels.
 
 Importantly, the routing nodes are unable to steal the funds while routing a payment from a fan to Dina.
 Furthermore, routing nodes cannot lose money while participating in the routing process.
@@ -35,9 +36,9 @@ In this chapter, we'll dive into the mechanism of routing in the Lightning Netwo
 
 First, we will clarify the concept of "routing" and compare it to that of "path finding", as these are often confused and used interchangeably.
 
-Next, we will construct the fairness protocol: A Conditional Chained End-to-End Secure Payment (CCESP) used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between 4 people.
+Next, we will construct the fairness protocol: An atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between 4 people.
 
-Finally, we will look at the CCESP implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
+Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
 
 === Routing vs. Path Finding
 
@@ -55,8 +56,8 @@ In theory, one can examine the _channel graph_ and connect a series of payment c
 
 === Creating a network of payment channels
 
-Before we dive into the concept of a conditional chained end-to-end secure payment, let's work through an example.
-Let us to return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
+Before we dive into the concept of an atomic trustless multihop payment, let's work through an example.
+Let us return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
 Alice now watches a live stream from Dina the gamer, and wants to send her a tip via the Lightning Network.
 However, Alice has no direct channel with Dina.
 Alice could open a direct channel, however that would require liquidity and on-chain fees which could be more than the value of the tip itself.
@@ -76,7 +77,7 @@ And no direct channel from Alice to Dina is required.
 
 [[routing-network]]
 .A network of payment channels
-image:images/routing-network.png[]
+image:images/routing-network.png["A network of payment channels"]
 
 The main challenge is to do this in a way that prevents Bob and Chan from stealing the money that Alice wants delivered to Dina.
 
