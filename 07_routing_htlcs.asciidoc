@@ -82,9 +82,9 @@ The main challenge is to do this in a way that prevents Bob and Chan from steali
 
 To understand how the Lightning Network protects the payment while being routed, we can compare to an example of routing physical payments with gold coins in the real world.
 
-Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina. However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help. This is shown in <<alice-dina-routing-1>>.
+Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina. However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help. This is shown in <<alice_dina_routing_1>>.
 
-[[alice-dina-routing-1]]
+[[alice_dina_routing_1]]
 .Alice wants to pay Dina 10 gold coins
 image::images/gold-coins-network1.png[]
 
@@ -93,7 +93,7 @@ In the physical world contracts could be used for safely carrying out a series o
 
 Alice could negotiate a contract with Bob which reads:
 
-[[alice-bob-contract-1]]
+[[alice_bob_contract_1]]
 ====
 _I Alice will give you Bob 10 gold coins if you pass them on to Chan_
 ====
@@ -104,7 +104,7 @@ Assuming these issues are magically solved, it's still unclear how to leverage s
 
 Let's improve our contract, to incorporate these considerations, as follows:
 
-[[alice-dina-routing-2]]
+[[alice_bob_contract_2]]
 ====
 _I Alice will reimburse you Bob with 10 gold coins if you can prove to me (for example via a receipt) that you have delivered 10 gold coins to Chan_
 ====
@@ -120,15 +120,15 @@ Alice can this make this attractive to both Bob and Chan, by offering them fees 
 
 The contract would then read:
 
-[[alice-dina-routing-3]]
+[[alice_bob_contract_3]]
 ====
 _I Alice will reimburse you Bob with 12 gold coins if you can prove to me (for example via a receipt) that you have delivered 11 golden coins to Chan_
 ====
 
 Alice now promises Bob 12 gold coins. There are 10 to be delivered to Dina and 2 for the fees. She promises 12 to Bob if he can prove that he has forwarded 11 to Chan.
-The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment. In <<alice-dina-routing-2>> we see how this arrangement would get 10 gold coins to Dina via Bob and Chan.
+The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment. In <<alice_dina_routing_2>> we see how this arrangement would get 10 gold coins to Dina via Bob and Chan.
 
-[[alice-dina-routing-2]]
+[[alice_dina_routing_2]]
 .Alice pays Bob, Bob pays Chan, Chan pays Dina
 image::images/gold-coins-network2.png[]
 
@@ -153,15 +153,15 @@ For now, we keep things simple and assume that Dina's secret is simply the text 
 
 In order to "commit" to this secret, Dina computes the SHA256 hash which when encoded in hex, can be displayed as: `+0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3+`.
 
-To facilitate Alice's payment, Dina will create the payment secret and the payment hash and send the payment hash to Alice. In <<alice-dina-routing-3>> we see that Dina sends the payment hash to Alice via some external channel (dashed line), such as an email or text message:
+To facilitate Alice's payment, Dina will create the payment secret and the payment hash and send the payment hash to Alice. In <<alice_dina_routing_3>> we see that Dina sends the payment hash to Alice via some external channel (dashed line), such as an email or text message:
 
-[[alice-dina-routing-3]]
+[[alice_dina_routing_3]]
 .Dina sends the hashed secret to Alice
 image::images/gold-coins-network3.png["Dina sends the hashed secret to Alice"]
 
 Alice doesn't know the secret but she can rewrite her contract to use the hash of the secret as a proof of payment:
 
-[[alice-dina-routing-4]]
+[[alice_bob_contract_4]]
 ====
 _I Alice will reimburse you Bob with 12 gold coins if you can show me a valid message that hashes to:`+057596...+`.
 You can acquire this message by setting up a similar contract with Chan who has to set up a similar contract with Dina.
@@ -177,7 +177,7 @@ Similarly, Chan will also demand a fee and will expect to receive 11 gold coins 
 
 Bob's contract with Chan will read:
 
-[[alice-dina-routing-5]]
+[[alice_bob_contract_5]]
 ====
 _I Bob will reimburse you Chan with 11 gold coins if you can show me a valid message that hashes to:`+057596...+`.
 You can acquire this message by setting up a similar contract with Dina.
@@ -186,7 +186,7 @@ In order to assure you that you will be reimbursed I will provide the 11 gold co
 
 Once Chan gets the message from the escrow that Bob has deposited the 11 gold coins, Chan sets up a similar contract with Dina:
 
-[[alice-dina-routing-6]]
+[[alice_bob_contract_6]]
 ====
 _I Chan will reimburse you Dina with 10 golden coins if you can show me a valid message that hashes to:`+057596...+`.
 In order to assure you that you will be reimbursed after revealing the secret I will provide the 10 gold coins to an trusted escrow._
@@ -225,7 +225,7 @@ The deposit is locked with the escrow service for a certain amount of time, and 
 
 In order to factor this in, the contract between Alice and Bob is once again amended with a new clause:
 
-[[alice-dina-routing-7]]
+[[alice_bob_contract_7]]
 ====
 _Bob has 24 hours to show the secret after the contract was signed.
 If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
@@ -236,7 +236,7 @@ Even if he successfully pays Chan, if he receives the proof of payment later tha
 
 In turn, Bob will alter his contract with Chan in the following way:
 
-[[alice-dina-routing-8]]
+[[alice_bob_contract_8]]
 ====
 _Chan has 22 hours to show the secret after the contract was signed.
 If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
@@ -244,7 +244,7 @@ If he does not provide the secret by this time, Bob's deposit will be refunded b
 
 As you might have guessed, Chan will also alter his contract with Dina:
 
-[[alice-dina-routing-9]]
+[[alice_bob_contract_9]]
 ====
 _Dina has 20 hours to show the secret after the contract was signed.
 If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
@@ -302,9 +302,9 @@ For Alice to pay Dina, Alice will need Dina's node to generate a Lightning invoi
 Lightning payments can be sent without an invoice, using a feature called _keysend_, which we will discuss in more detail in <<keysend>>. For now, we will explain the simpler payment flow using an invoice.
 ====
 
-Alice visits Dina's site, enters the amount of 50,000 satoshis in a form and in response Dina's Lightning node generates a payment request for 50,000 satoshis in the form of a Lightning invoice. This interaction takes place over the web and outside the Lightning network, as shown in <<alice-dina-invoice-1>>:
+Alice visits Dina's site, enters the amount of 50,000 satoshis in a form and in response Dina's Lightning node generates a payment request for 50,000 satoshis in the form of a Lightning invoice. This interaction takes place over the web and outside the Lightning network, as shown in <<alice_dina_invoice_1>>:
 
-[[alice-dina-invoice-1]]
+[[alice_dina_invoice_1]]
 .Alice requests an invoice from Dina's website
 image::images/alice-dina-invoice-1.png["Alice requests an invoice from Dina's website"]
 
@@ -356,7 +356,7 @@ The use of a cryptographic hash function is one element that guarantees ((("trus
 
 In our gold coin example, Alice had a contract enforced by escrow like this:
 
-[[alice_bob_contract]]
+[[alice_bob_contract_10]]
 ====
 _Alice will reimburse Bob with 12 gold coins if you can show a valid message that hashes to:_ +0575...f6b3+. _Bob has 24 hours to show the secret after the contract was signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
 ====
