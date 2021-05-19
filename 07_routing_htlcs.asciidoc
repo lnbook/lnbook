@@ -66,18 +66,15 @@ Instead, Alice can use her existing open channels to send a tip to Dina _without
 
 This is possible, as long as there exists some path of channels from Alice to Dina with sufficient capacity to route the tip.
 
-From previous chapters, we know Alice has an open channel with Bob, the coffee shop owner.
-Bob, in turn, has an open channel with the software developer Chan who helps him with the point of sale system he uses in his coffee shop.
-Chan is also the owner of a large software company which develops the game that Dina plays, and they already have an open channel which Dina uses to pay for the game's license and in-game items.
+As you can see in <<routing_network>>, Alice has an open channel with Bob, the coffee shop owner. Bob, in turn, has an open channel with the software developer Chan who helps him with the point of sale system he uses in his coffee shop. Chan is also the owner of a large software company which develops the game that Dina plays, and they already have an open channel which Dina uses to pay for the game's license and in-game items.
 
-If we draw out this series of payment channels, it's possible to manually trace a _path_ from Alice to Dina that uses Bob and Chan as intermediary routing nodes.
+[[routing_network]]
+.A network of payment channels between Alice and Dina
+image:images/routing-network.png["A network of payment channels between Alice and Dina"]
+
+It's possible to trace a _path_ from Alice to Dina that uses Bob and Chan as intermediary routing nodes.
 Alice can then craft a _route_ from this outlined path, and use it to send a tip of a few thousand satoshis to Dina, with the payment being _forwarded_ by Bob and Chan.
-Essentially, Alice will pay Bob, who will pay Chan, who will pay Dina.
-And no direct channel from Alice to Dina is required.
-
-[[routing-network]]
-.A network of payment channels
-image:images/routing-network.png["A network of payment channels"]
+Essentially, Alice will pay Bob, who will pay Chan, who will pay Dina. And no direct channel from Alice to Dina is required.
 
 The main challenge is to do this in a way that prevents Bob and Chan from stealing the money that Alice wants delivered to Dina.
 
@@ -85,62 +82,60 @@ The main challenge is to do this in a way that prevents Bob and Chan from steali
 
 To understand how the Lightning Network protects the payment while being routed, we can compare to an example of routing physical payments with gold coins in the real world.
 
-Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina.
-However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help.
+Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina. However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help. This is shown in <<alice-dina-routing-1>>.
 
 [[alice-dina-routing-1]]
 .Alice wants to pay Dina 10 gold coins
 image:images/gold-coins-network1.png[]
 
-She can pay Bob to pay Chan to pay Dina, but how does she make sure that Bob or Chan don't run off with the coins after receiving them?
+Alice can pay Bob to pay Chan to pay Dina, but how does she make sure that Bob or Chan don't run off with the coins after receiving them?
 In the physical world contracts could be used for safely carrying out a series of payments.
 
 Alice could negotiate a contract with Bob which reads:
 
 [[alice-bob-contract-1]]
 ====
-_I (Alice) will give you (Bob) 10 gold coins if you pass them on to Chan_
+_I Alice will give you Bob 10 gold coins if you pass them on to Chan_
 ====
 
-While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might breach the contract and hope to not get caught by law enforcement.
-Even if Bob gets caught by law enforcement, Alice faces the risk that he might be bankrupt and be unable to return her 10 gold coins.
-Assuming these issues are magically solved, it's still unclear how to leverage such a contract to achieve our desired outcome: the coins ultimately being delivered to Dina.
+While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might breach the contract and hope not to get caught.
+Even if Bob is caught and prosecuted, Alice faces the risk that he might be bankrupt and be unable to return her 10 gold coins.
+Assuming these issues are magically solved, it's still unclear how to leverage such a contract to achieve our desired outcome: getting the coins delivered to Dina.
 
-We thus improve our contract:
+Let's improve our contract, to incorporate these considerations, as follows:
 
-[alice-dina-routing-2]
+[[alice-dina-routing-2]]
 ====
-_I (Alice) will reimburse you (Bob) with 10 gold coins if you can prove to me (for example via a receipt) that you already have delivered 10 gold coins to Chan_
+_I Alice will reimburse you Bob with 10 gold coins if you can prove to me (for example via a receipt) that you have delivered 10 gold coins to Chan_
 ====
 
 You might ask yourself why should Bob sign such a contract.
-He has to pay Chan but ultimately gets nothing out of the exchange, and he runs the risk that Alice might not reimburse him.
-Bob could offer Chan a similar contract to pay Dina, but similarly Chan has no reason to accept it either.
+He has to pay Chan but ultimately gets nothing out of the exchange, and he runs the risk that Alice might not reimburse him. Bob could offer Chan a similar contract to pay Dina, but similarly Chan has no reason to accept it either.
+
 Even putting aside the risk, Bob and Chan must _already_ have 10 gold coins to send, otherwise they wouldn't be able to participate in the contract.
+
 Thus Bob and Chan face both risk and opportunity cost for agreeing to this contract, and they would need to be compensated in order for them to accept it.
 
 Alice can this make this attractive to both Bob and Chan, by offering them fees of 1 gold coin each, if they transmit her payment to Dina.
-The final contract would instead read:
 
-[alice-dina-routing-3]
+The contract would then read:
+
+[[alice-dina-routing-3]]
 ====
-_I (Alice) will reimburse you (Bob) with 12 gold coins if you can prove to me (for example via a receipt) that you already have delivered 11 golden coins to Chan_
+_I Alice will reimburse you Bob with 12 gold coins if you can prove to me (for example via a receipt) that you have delivered 11 golden coins to Chan_
 ====
 
-Alice now promises Bob 12 gold coins.
-There are 10 to be delivered to Dina and 2 for the fees.
-She promises 12 to Bob if he can prove that he has forwarded 11 to Chan.
-The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment.
+Alice now promises Bob 12 gold coins. There are 10 to be delivered to Dina and 2 for the fees. She promises 12 to Bob if he can prove that he has forwarded 11 to Chan.
+The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment. In <<alice-dina-routing-2>> we see how this arrangement would get 10 gold coins to Dina via Bob and Chan.
 
 [[alice-dina-routing-2]]
 .Alice pays Bob, Bob pays Chan, Chan pays Dina
 image:images/gold-coins-network2.png[]
 
-As there is still the issue of trust and the risk that either Alice or Bob don't honor the contract, all parties decide to use an escrow service.
+As there is still the issue of trust and the risk that either Alice or Bob won't honor the contract, all parties decide to use an escrow service.
 At the start of the exchange, Alice could "lock up" these 12 golden coins in escrow that will only be paid to Bob once he proves that he's paid 11 golden coins to Chan.
 
-This escrow service is an "ideal functionality", which will later be replaced by a more trust-minimized mechanism.
-Let's assume for now that everyone trusts this escrow.
+This escrow service is an idealized one, which does not introduce other risks (e.g. counterparty risk). Later we will see how we can replace the escrow with a Bitcoin smart contract. Let's assume for now that everyone trusts this escrow service.
 
 In the Lightning Network, the receipt (proof of payment) could take the form of a secret that only Dina knows.
 In practice, this secret would be a large random number that is large enough to prevent others from guessing it (typically _very, very_ large number, encoded using 256 bits!).
@@ -154,27 +149,26 @@ latexmath:[\(H = SHA256(R)\)]
 We call this hash of the payment's secret the payment hash.
 The secret which "unlocks" the payment is called the payment secret.
 
-For now, we keep things simple and assume that Dina's secret is simply the text line: `+Dinas secret+`.
-In order to "commit" to this secret, she computes the SHA256 hash which when encoded in hex, can be displayed as: `+0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3+`.
-footnote:[You can verify this by typing `echo -n "Dinas secret" | sha256sum` to your Linux command line shell.]
+For now, we keep things simple and assume that Dina's secret is simply the text line: `+Dinas secret+`. This secret message is called the _payment secret_ or _payment pre-image_.
 
-To facilitate Alice's payment, Dina will create the secret and the payment hash and send the payment hash to Alice.
+In order to "commit" to this secret, Dina computes the SHA256 hash which when encoded in hex, can be displayed as: `+0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3+`.
+
+To facilitate Alice's payment, Dina will create the payment secret and the payment hash and send the payment hash to Alice. In <<alice-dina-routing-3>> we see that Dina sends the payment hash to Alice via some external channel (dashed line), such as an email or text message:
 
 [[alice-dina-routing-3]]
 .Dina sends the hashed secret to Alice
-image:images/gold-coins-network3.png[]
+image:images/gold-coins-network3.png["Dina sends the hashed secret to Alice"]
 
 Alice doesn't know the secret but she can rewrite her contract to use the hash of the secret as a proof of payment:
 
-[alice-dina-routing-4]
+[[alice-dina-routing-4]]
 ====
-_I (Alice) will reimburse you (Bob) with 12 gold coins if you can show me a valid message that hashes to:`+057596...+`.
-You can acquire this message by setting up a similar Contract with Chan who has to set up a similar contract with Dina.
-In order to assure you that you will get reimbursed I will provide the 12 gold coins to an trusted escrow before you set up your next contract._
+_I Alice will reimburse you Bob with 12 gold coins if you can show me a valid message that hashes to:`+057596...+`.
+You can acquire this message by setting up a similar contract with Chan who has to set up a similar contract with Dina.
+In order to assure you that you will be reimbursed I will provide the 12 gold coins to an trusted escrow before you set up your next contract._
 ====
 
 This new contract now protects Alice from Bob not forwarding to Chan, protects Bob from not being reimbursed by Alice, and ensures that there will be proof that Dina was ultimately paid via the hash of Dina's secret.
-This secret message that hashes to the +057596...+ is called a _pre-image_.
 
 After Bob and Alice agree to the contract, and Bob receives the message from the escrow that Alice has deposited the 12 gold coins, Bob can now negotiate a similar contract with Chan.
 
@@ -183,19 +177,19 @@ Similarly, Chan will also demand a fee and will expect to receive 11 gold coins 
 
 Bob's contract with Chan will read:
 
-[alice-dina-routing-5]
+[[alice-dina-routing-5]]
 ====
-_I (Bob) will reimburse you (Chan) with 11 gold coins if you can show me a valid message that hashes to:`+057596...+`.
+_I Bob will reimburse you Chan with 11 gold coins if you can show me a valid message that hashes to:`+057596...+`.
 You can acquire this message by setting up a similar contract with Dina.
-In order to assure you that you will get reimbursed I will provide the 11 gold coins to an trusted escrow before you set up your next contract._
+In order to assure you that you will be reimbursed I will provide the 11 gold coins to an trusted escrow before you set up your next contract._
 ====
 
 Once Chan gets the message from the escrow that Bob has deposited the 11 gold coins, Chan sets up a similar contract with Dina:
 
-[alice-dina-routing-6]
+[[alice-dina-routing-6]]
 ====
-_I (Chan) will reimburse you (Dina) with 10 golden coins if you can show me a valid message that hashes to:`+057596...+`.
-In order to assure you that you will get reimbursed after revealing the secret I will provide the 10 gold coins to an trusted escrow._
+_I Chan will reimburse you Dina with 10 golden coins if you can show me a valid message that hashes to:`+057596...+`.
+In order to assure you that you will be reimbursed after revealing the secret I will provide the 10 gold coins to an trusted escrow._
 ====
 
 Everything is now in place.
@@ -206,7 +200,7 @@ It is now up to Dina to reveal the secret, which is the pre-image to the hash sh
 
 Dina now sends +"Dinas secret"+ to Chan.
 
-He checks that +"Dinas secret" hashes to +057596...+. Chan now has proof of payment and so instructs the escrow service to release the 10 golden coins to Dina.
+Chan checks that +"Dinas secret" hashes to +057596...+. Chan now has proof of payment and so instructs the escrow service to release the 10 golden coins to Dina.
 
 Chan now provides the secret to Bob. Bob checks it and instructs the escrow service to release the 11 gold coins to Chan.
 
@@ -220,7 +214,7 @@ With a chain of contracts like this in place, Bob and Chan could not run away wi
 However, one issue still remains.
 If Dina refused to release her secret pre-image, then Chan, Bob, and Alice would all have their coins stuck in escrow but wouldn't be reimbursed.
 And similarly if anyone else along the chain failed to pass on the secret, the same thing would happen.
-So while no one can steal money from Alice everyone can still lose money.
+So while no one can steal money from Alice everyone still have their money stuck in escrow permanently.
 
 Luckily, this can be resolved by adding a deadline to the contract.
 
@@ -231,7 +225,7 @@ The deposit is locked with the escrow service for a certain amount of time, and 
 
 In order to factor this in, the contract between Alice and Bob is once again amended with a new clause:
 
-[alice-dina-routing-7]
+[[alice-dina-routing-7]]
 ====
 _Bob has 24 hours to show the secret after the contract was signed.
 If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
@@ -242,24 +236,24 @@ Even if he successfully pays Chan, if he receives the proof of payment later tha
 
 In turn, Bob will alter his contract with Chan in the following way:
 
-[alice-dina-routing-8]
+[[alice-dina-routing-8]]
 ====
 _Chan has 22 hours to show the secret after the contract was signed.
 If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
 ====
 
-As you might have guessed, Chan is now incentivized to also alter his contract with Dina:
+As you might have guessed, Chan will also alter his contract with Dina:
 
-[alice-dina-routing-9]
+[[alice-dina-routing-9]]
 ====
 _Dina has 20 hours to show the secret after the contract was signed.
 If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
 ====
 
-With such a chain of contracts we can ensure that, after 24 hours, the payment will successfully deliver from Alice to Bob to Chan to Dina, or it will fail and everyone will be refunded.
+With such a chain of contracts we can ensure that, after 24 hours, the payment will successfully go from Alice to Bob to Chan to Dina, or it will fail and everyone will be refunded.
 Either the contract fails or succeeds, there's no middle ground.
 
-In the context of the Lightning Network, we call this "all or nothing" property _atomicity_.
+In the context of the Lightning Network, we call this "all or nothing" property ((("atomicity")))_atomicity_.
 
 As long as the escrow is trustworthy and faithfully performs its duty, then no party will have their coins stolen in the process.
 
@@ -308,7 +302,7 @@ For Alice to pay Dina, Alice will need Dina's node to generate a Lightning invoi
 Lightning payments can be sent without an invoice, using a feature called _keysend_, which we will discuss in more detail in <<keysend>>. For now, we will explain the simpler payment flow using an invoice.
 ====
 
-Alice visits Dina's site, enter the amount of 50,000 satoshis in a form and in response, Dina's Lightning node generate a payment request for 50,000 satoshis in the form of a Lightning invoice.
+Alice visits Dina's site, enters the amount of 50,000 satoshis in a form and in response Dina's Lightning node generates a payment request for 50,000 satoshis in the form of a Lightning invoice. This interaction takes place over the web and outside the Lightning network, as shown in <<alice-dina-invoice-1>>:
 
 [[alice-dina-invoice-1]]
 .Alice requests an invoice from Dina's website
@@ -338,9 +332,9 @@ In this section we explain how Hash Time Locked Contracts (HTLCs) work.
 
 The first part of a Hash Time-Locked Contract is the "Hash". This refers to the use of a cryptographic hash algorithm to commit to a randomly generated secret. Knowledge of the secret allows redemption of the payment. The cryptographic hash function, guarantees that while it's infeasible for anyone to guess the secret pre-image, it's easy for anyone to verify the hash, and there's only one possible pre-image that resolves the payment condition.
 
-Alice has a Lightning invoice from Dina. Inside that invoice Dina has encoded a _payment hash_, which is the cryptographic hash of a secret that Dina's node produced. Dina's secret is called the _payment pre-image_. The payment hash acts as an identifier that can be used to route the payment to Dina. The payment pre-image acts as a receipt and proof of payment once the payment is complete.
+In <<alice_dina_invoice_2>> we see Alice getting a Lightning invoice from Dina. Inside that invoice Dina has encoded a _payment hash_, which is the cryptographic hash of a secret that Dina's node produced. Dina's secret is called the _payment pre-image_. The payment hash acts as an identifier that can be used to route the payment to Dina. The payment pre-image acts as a receipt and proof of payment once the payment is complete.
 
-[[alice-dina-invoice-2]]
+[[alice_dina_invoice_2]]
 .Alice gets a payment hash from Dina
 image:images/alice-dina-invoice-2.png["Alice gets a payment hash from Dina"]
 
@@ -356,7 +350,7 @@ H = SHA256(R)
 
 In <<payment_hash_and_preimage>> +H+ is the hash, or _payment hash_ and +R+ is the secret or _payment pre-image_.
 
-The use of a cryptographic hash function is one element that guarantees _trustless operation_. The payment intermediaries do not need to trust each other because they know that no one can guess the secret or fake it.
+The use of a cryptographic hash function is one element that guarantees ((("trustless")))_trustless operation_. The payment intermediaries do not need to trust each other because they know that no one can guess the secret or fake it.
 
 ==== HTLCs in Bitcoin Script
 
@@ -391,7 +385,7 @@ OP_ELSE
 OP_ENDIF
 ----
 
-Wow that looks complicated! Don't worry though, we will take it one step at a time and simplfy it.
+Wow that looks complicated! Don't worry though, we will take it one step at a time and simplify it.
 
 The Bitcoin Script currently used in the Lightning Network is quite complex because it is optimized for on-chain space efficiency, which makes very compact but difficult to read.
 
@@ -416,11 +410,9 @@ Alice can create a transaction output that pays, 50,200 satoshi with a locking s
 OP_SHA256 0575...f6b3 OP_EQUAL
 ----
 
+Bob can't spend this HTLC until he knows Dina's secret, so spending the HTLC is conditional on Bob's fulfillment of the payment all the way to Dina.
 
-
-Bob can't spend this HTLC until he knows Dina's secret, so spending the HTLC is conditional on Bob's fullfilment of the payment all the way to Dina.
-
-Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secrect pre-image value +R+
+Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secret pre-image value +R+
 
 The unlocking script and locking script would combined to produce:
 
@@ -439,11 +431,11 @@ The Bitcoin Script engine would evaluate this script as follows:
 
 Alice will now extend the HTLC across the network so that it reaches Dina.
 
-[[alice-dina-htlc-1]]
+[[alice_dina_htlc_1]]
 .Propagating the HTLC across the network
 image:images/alice-dina-htlc-1.png["Propagating the HTLC across the network"]
 
-Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
+In <<alice_dina_htlc_1>> we see te HTLC propagated across the network from Alice to Dina. Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
 
 Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC. This is a really important point, because it ensures end-to-end _atomicity_ of the HTLC. To spend the HTLC, one needs to reveal the secret, which then makes it possible for others to spend their HTLC also. Either all the HTLCs are spendable, or none of the HTLCs are spendable: atomicity!
 
@@ -455,31 +447,35 @@ Similarly, Chan can extend a 50,000 HTLC to Dina. He isn't risking anything or t
 
 ==== Back-propagating the secret
 
-Once Dina receives a 50,000 HTLC from Chan, she can now get paid. Dina could simply commit this HTLC on-chain and spend it by revealing the secret in the spending transaction. Or, instead, Dina can update the channel balance with Chan by giving him the secret. There's no reason to incur a transaction fee and go on-chain. So, instead, Dina sends the secret to Chan and they agree to update their channel balances to reflect a 50,000 satoshi Lightning payment to Dina.
+Once Dina receives a 50,000 HTLC from Chan, she can now get paid. Dina could simply commit this HTLC on-chain and spend it by revealing the secret in the spending transaction. Or, instead, Dina can update the channel balance with Chan by giving him the secret. There's no reason to incur a transaction fee and go on-chain. So, instead, Dina sends the secret to Chan and they agree to update their channel balances to reflect a 50,000 satoshi Lightning payment to Dina. In <<alice_dina_htlc_redeem_1>> we see Dina giving the secret to Chan, thereby fulfilling the HTLC.
 
-Notice Dina's channel balance goes from 50,000 satoshi to 100,000 satoshi. Chan's channel balance is reduced from 200,000 satoshi to 150,000 satoshi. The channel capacity hasn't changed, but 50,000 has moved from Chan's side of the channel to Dina's side of the channel.
-
-[[alice-dina-htlc-redeem-1]]
+[[alice_dina_htlc_redeem_1]]
 .Dina settles Chan's HTLC off-chain
 image:images/alice-dina-htlc-redeem-1.png["Dina settles Chan's HTLC off-chain"]
 
-Chan now has the secret and has paid Dina 50,000 satoshi. He can do this without any risk, because the secret allows Chan to redeem the 50,100 HTLC from Bob. Chan has the option to commit that HTLC on chain and spend it by revealing the secret on the Bitcoin blockchain. But, like Dina, he'd rather avoid transaction fees. So instead, he sends the secret to Bob so they can update their channel balances to reflect a 50,100 satoshi Lightning payment from Bob to Chan. Chan has paid Dina 50,000 satoshi, and received 50,100 satoshi from Bob. So Chan has 100 satoshi more in his channel balances, which he earned as a routing fee.
+Notice Dina's channel balance goes from 50,000 satoshi to 100,000 satoshi. Chan's channel balance is reduced from 200,000 satoshi to 150,000 satoshi. The channel capacity hasn't changed, but 50,000 has moved from Chan's side of the channel to Dina's side of the channel.
 
-[[alice-dina-htlc-redeem-2]]
+Chan now has the secret and has paid Dina 50,000 satoshi. He can do this without any risk, because the secret allows Chan to redeem the 50,100 HTLC from Bob. Chan has the option to commit that HTLC on chain and spend it by revealing the secret on the Bitcoin blockchain. But, like Dina, he'd rather avoid transaction fees. So instead, he sends the secret to Bob so they can update their channel balances to reflect a 50,100 satoshi Lightning payment from Bob to Chan. In <<alice_dina_htlc_redeem_2>> we see Chan sending the secret to Bob and receiving a payment in return.
+
+[[alice_dina_htlc_redeem_2]]
 .Chan settles Bob's HTLC off-chain
 image:images/alice-dina-htlc-redeem-2.png["Chan settles Bob's HTLC off-chain"]
 
-Bob now has the secret too. He can use it to spend Alice's HTLC on-chain. Or, he can avoid transaction fees by settling the HTLC in the channel with Alice. Bob sends the secret to Alice and they update the channel balance to reflect a 50,200 satoshi Lightning payment from Alice to Bob. Bob has recieved 50,200 satoshi from Alice and paid 50,100 satoshi to Chan, so he has an extra 100 satoshi in his channel balances from routing fees.
+Chan has paid Dina 50,000 satoshi, and received 50,100 satoshi from Bob. So Chan has 100 satoshi more in his channel balances, which he earned as a routing fee.
 
-[[alice-dina-htlc-redeem-3]]
+Bob now has the secret too. He can use it to spend Alice's HTLC on-chain. Or, he can avoid transaction fees by settling the HTLC in the channel with Alice. In <<alice_dina_htlc_redeem_3>> we see that Bob sends the secret to Alice and they update the channel balance to reflect a 50,200 satoshi Lightning payment from Alice to Bob.
+
+[[alice_dina_htlc_redeem_3]]
 .Bob settles Alice's HTLC off-chain
 image:images/alice-dina-htlc-redeem-3.png["Bob settles Alice's HTLC off-chain"]
 
+Bob has recieved 50,200 satoshi from Alice and paid 50,100 satoshi to Chan, so he has an extra 100 satoshi in his channel balances from routing fees.
+
 Alice receives the secret and has settled the 50,200  satoshi HTLC. The secret can be used as a _receipt_ to prove that Dina got paid for that specific payment hash.
 
-The final channel balances reflect Alice's payment to Dina and the routing fees paid at each hop
+The final channel balances reflect Alice's payment to Dina and the routing fees paid at each hop, as shown in <<alice_dina_htlc_redeem_4>>
 
-[[alice-dina-htlc-redeem-4]]
+[[alice_dina_htlc_redeem_4]]
 .Channel balances after the payment
 image:images/alice-dina-htlc-redeem-4.png["Channel balances after the payment"]
 
