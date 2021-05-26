@@ -35,8 +35,8 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Nodes (LN Clients)](04_node_client.asciidoc) | #################### | :heavy_check_mark: |
 | [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
-| [Part 2 Introduction](part2_intro.asciidoc) | # | :lock_with_ink_pen: |
-| [Routing (HTLCs)](routing.asciidoc) | #################### | :lock_with_ink_pen: |
+| [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :mag: |
+| [Routing (HTLCs)](07_routing_htlcs.asciidoc) | ############### | :mag: |
 | [Channel Construction in Detail](channel-construction.asciidoc) | ########### | :lock_with_ink_pen: |
 | [Channel operation with HTLCs and Statemachine](channel-operation.asciidoc) | ###### | :lock_with_ink_pen: |
 | [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
@@ -52,7 +52,7 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 97843
+Total Word Count: 101126
 
 Target Word Count: 100,000-120,000
 
