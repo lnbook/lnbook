@@ -13,6 +13,33 @@ image::images/LN-protocol-channel-highlight.png["The Lightning Network Protocol 
 
 Before we understand payment channels, we have to take a small step back and understand how ownership and control work in Bitcoin.
 
+The legal meaning of "ownership" is not necessarily the same as the practical and technical meaning of ownership Bitcoin. When someone says they "own" bitcoin they typically mean that they know the private key of a Bitcoin address that has some unspent transaction outputs (see <<bitcoin_fundamentals_review>>). The private key allows them to sign a transaction to spend that bitcoin by transferring it to a different address. In Bitcoin "ownership" of bitcoin can be defined as the _ability to spend_ that bitcoin.
+
+In most cases, that definition of ownership will coincide with the legal definition, as the only one who has the private key is usually the "legal owner" of that bitcoin. However, that is not always the case. There are two key exceptions that make Bitcoin ownership distinct from the legal concept of ownerhsip.
+
+Firstly, more than one person can come to know the same private key, either through theft or because the original holder of the key makes a copy and gives it to someone else. Are all these people owners? In a practical sense they are, because any one of the people who know the private key can spend the bitcoin without the approval of any other.
+
+Secondly, Bitcoin has multisignature addresses where multiple private keys are needed to sign before spending (see <<multisig>>). From a practical perspective, ownership depends on the quorum (K) and total (N) defined in the K-of-N scheme. If one or more people has enough keys to make quorum, then they *all* equally own the bitcoin. For example, a 1-of-10 multisignature scheme would allow any one (K) of 10 (N) signers to spend a bitcoin amount locked in that address. This is similar to the scenario where ten people have a copy of the same private key and any of them can independently spend it. But there is also the scenario where noone has quorum. In a 2-of-2 scheme like that used in the Lightning Network, each of the signers cannot spend the bitcoin without obtaining a signature from the other party. Who owns the bitcoin in that case? No one really has ownership because no one has control. They each own the equivalent of a voting share in the decision, but both votes are needed. The closest parallel to this in law is "tenancy in common" for real eastate or a corporation when no one shareholder has 50% of the vote. A key problem with a 2-of-2 scheme (in both Bitcoin and the law) is what happens if one of the parties is unavailable, or if there is a vote deadlock and any one party refuses to cooperate.
+
+The solution to this problem in both law and Bitcoin is to negotiate the "exit" condition before you enter into such an agreement. In real estate for example, a sale agreement or "quit claim" can be signed in advance. In a corporation you can have clauses to deal with sales or deadlocks or inheritance. In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed by both signers to spend any funds, before putting those funds into the address.
+
+////
+If you have an unpublished but signed transaction from a 2-of-2 multisignature address, where some outputs are sent to an address you own, and additionally you exclusively know one of the private keys of the multisignature address, then you effectively own the bitcoin of that output.
+Without your help no other transaction from the 2-of-2 multisignature address can be produced (as only you possesses one of the needed keys to sign a transaction that spends from this address)
+However, without the help of anybody else you can transfer the funds to an address which you control.
+You do that by broadcasting the transaction to the bitcoin network which will accept it as it has valid signatures.
+As the funds in this transaction go to a regular address for which you control the private key you can again move the funds and thus you effectively own them.
+On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-of-2 multisignature address.
+While your funds on the Lightning Network are called to be "off-chain" they are actually very much on chain and very much owned by you just like you might own other bitcoin.
+
+One thing about the Lightning Network is however messing with this understanding of ownership.
+On the Lightning Network there exist several presigned Transactions which allocate some of the bitcoin to you and some to your channel partner.
+Without the ability to sequence transaction and invalidate old ones via the penalty based revocation mechanism (or other techniques) we could not define clear ownership as the funds would be distributed among its two owners according to which ever transaction would first be broadcasted and successfully mined.
+
+If the last paragraph of this summary was confusing: No worries! We are getting there now!
+
+////
+
 ==== Holding signed transactions without broadcasting
 
 ==== Chaining transactions without broadcasting
