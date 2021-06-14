@@ -1,6 +1,6 @@
-# Wire Protocol: Framing & Extensibility
+= Wire Protocol: Framing & Extensibility
 
-## Intro
+== Intro
 
 In this chapter, we'll dive into the wire protocol of the Lightning network,
 and also cover all the various extensibility levers that have been built into
@@ -10,7 +10,7 @@ to being able to write a custom wire protocol parser, a reader of this chapter
 will gain a deep understanding with respect of the various upgrade mechanisms
 that have been built into the protocol.
 
-## Wire Framing
+== Wire Framing
 
 First, we being by describing the high level structure of the wire _framing_
 within the protocol. When we say framing, we mean the way that the bytes are
@@ -30,7 +30,7 @@ framing, we assume the encryption layer has already been stripped away (when
 decoding), or that we haven't yet encrypted the set of bytes before we send
 them on the wire (encoding).
 
-### High-Level Wire Framing
+=== High-Level Wire Framing
 
 With that said, we're ready to being describe the high-level schema used to
 encode messages on the wire:
@@ -58,7 +58,7 @@ nodes are able to provide information in the wire messages that older nodes
 feature combined with a very flexible wire message extensibility format also
 allows the protocol to achieve _forwards_ compatibility as well.
 
-### Type Encoding
+=== Type Encoding
 
 With this high level background provided, we'll now start at the most primitive
 layer: parsing primitive types. In addition to encoding integers, the Lightning
@@ -73,30 +73,31 @@ encoding/decode any of the higher level types.
 In the following table, we'll map the higher-level name of a given type to the
 high-level routine used to encode/decode the type.
 
-// TODO(roasbeef): finish
-
-| High Level Type | Framing | Comment |
-| --------------- | ------- | ------- |
-| `node_alias` | A 32-byte fixed-length byte slice.      | When decoding, reject if contents are not a valid UTF-8 string. |
-| `channel_id` | A 32-byte fixed-length byte slice that maps an outpoint to a 32 byte value.      | Given an outpoint, one can convert it to a `channel_id` by taking the txid of the outpoint and XOR'ing it with the index (interpreted as the lower 2 bytes). |
-| `short_chan_id` | An unsigned 64-bit integer (`uint64`) | Composed of the block height (24 bits), transaction index (24 bits), and output index (16 bits) packed into 8 bytes. |
-| `milli_satoshi` | An unsigned 64-bit integer (`uint64`) | Represents 1000th of a satoshi. |
-| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin. |
-| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin. |
-| `pubkey`  | An secp256k1 public key encoded in _compressed_ format, occupying 33 bytes. | Occupies a fixed 33-byte length on the wire. |
-| `sig`     | An ECDSA signature of the secp256k1 Elliptic Curve. | Encoded as a _fixed_ 64-byte byte slice, packed as `R || S`. |
-| `uint8`   | An 8-bit integer. | |
-| `uint16`  | A 16-bit integer. ||
-| `uint64`  | A 64-bit integer. || 
-| `[]byte`  | A variable length byte slice. | Prefixed with a 16-bit integer denoting the length of the bytes. |
-| `color_rgb` | RGB color encoding. | Encoded as a series if 8-bit integers. |
-| `net_addr` | The encoding of a network address. | Encoded with a 1 byte prefix that denotes the type of address, followed by the address body. |
+.High-level message types
+[options="header"]
+|================================================================================
+| High Level Type | Framing | Comment 
+| `node_alias` | A 32-byte fixed-length byte slice.      | When decoding, reject if contents are not a valid UTF-8 string. 
+| `channel_id` | A 32-byte fixed-length byte slice that maps an outpoint to a 32 byte value.      | Given an outpoint, one can convert it to a `channel_id` by taking the txid of the outpoint and XOR'ing it with the index (interpreted as the lower 2 bytes). 
+| `short_chan_id` | An unsigned 64-bit integer (`uint64`) | Composed of the block height (24 bits), transaction index (24 bits), and output index (16 bits) packed into 8 bytes. 
+| `milli_satoshi` | An unsigned 64-bit integer (`uint64`) | Represents 1000th of a satoshi. 
+| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin. 
+| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin. 
+| `pubkey`  | An secp256k1 public key encoded in _compressed_ format, occupying 33 bytes. | Occupies a fixed 33-byte length on the wire. 
+| `sig`     | An ECDSA signature of the secp256k1 Elliptic Curve. | Encoded as a _fixed_ 64-byte byte slice, packed as `R \|\| S`
+| `uint8`   | An 8-bit integer.  |
+| `uint16`  | A 16-bit integer.  |
+| `uint64`  | A 64-bit integer.  |
+| `[]byte`  | A variable length byte slice. | Prefixed with a 16-bit integer denoting the length of the bytes. 
+| `color_rgb` | RGB color encoding. | Encoded as a series if 8-bit integers. 
+| `net_addr` | The encoding of a network address. | Encoded with a 1 byte prefix that denotes the type of address, followed by the address body. 
+|================================================================================
 
 In the next section, we'll describe the structure of each of the wire messages
 including the prefix type of the message along with the contents of its message
 body.
 
-### Type Length Value (TLV) Message Extensions
+=== Type Length Value (TLV) Message Extensions
 
 Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
 and if while parsing a messages, extra bytes are left over, then those bytes
@@ -107,7 +108,7 @@ Protocol itself. We'll opine further upon this notion towards the end of the
 chapter. First, we'll turn our attention to exactly what those "extra bytes" at
 the end of a message can be used for.
 
-#### The Protcol Buffer Message Format
+==== The Protcol Buffer Message Format
 
 The Protocol Buffer (protobuf) message serialization format started out as an
 internal format used at Google, and has blossomed into one of the most popular
@@ -129,7 +130,7 @@ there're types/fields that it doesn't understand, then it simply _ignores_
 them. This allows old clients and new clients to _co-exist_, as all clients can
 parse _some_ portion of the newer message format.
 
-#### Forwards & Backwards Compatibility
+==== Forwards & Backwards Compatibility
 
 Protobufs are extremely popular amongst developers as they have built in
 support for both _forwards_ and _backwards_ compatibility. Most developers are
@@ -147,7 +148,7 @@ clients that don't update can still use Bitcoin, and if they encounters any
 transactions they don't understand, then they simply ignore them as their funds
 aren't using those new features.
 
-#### Lighting's Protobuf Inspired Message Extension Format: `TLV`
+==== Lighting's Protobuf Inspired Message Extension Format: `TLV`
 
 In order to be able to upgrade messages in both a forwards and backwards
 compatible manner, in addition to feature bits (more on that later), the LN
@@ -250,7 +251,7 @@ chapter cone we talked about how the Lighting Protocol is upgraded in practice
 and in theory.
 
 
-### Wire Messages
+=== Wire Messages
 
 In this section, well outline the precise structure of each of the wire
 messages within the protocol. We'll do so in two parts: first we'll enumerate
@@ -260,36 +261,39 @@ each of the wire messages (partitioned into logical groupings).
 
 First, we'll lead with an enumeration of all the currently defined types:
 
-| Type Integer | Message Name | Category |
-| ------------ | ------------ | -------- |
-| 16  | `init`             |  Connection Establishment        |
-| 17  | `error`             | Error Communication |
-| 18  | `ping`             | Connection Liveness |
-| 19  | `pong`             | Connection Liveness|
-| 32  | `open_channel`             |          Channel Funding|
-| 33  | `accept_channel`             |          Channel Funding|
-| 34  | `funding_created`             |          Channel Funding|
-| 35  | `funding_signed`             |          Channel Funding|
-| 36  | `funding_locked`             |          Channel Funding + Channel Operation|
-| 38  | `shutdown`             | Channel Closing         |
-| 39  | `closing_signed`             |         Channel Closing |
-| 128 | `update_add_htlc`             |          Channel Operation|
-| 130 | `update_fulfill_hltc`             |          Channel Operation|
-| 131 | `update_fail_htlc`             |          Channel Operation|
-| 132 | `commit_sig`             |          Channel Operation|
-| 133 | `revoke_and_ack`             |          Channel Operation|
-| 134 | `update_fee`             |          Channel Operation|
-| 135 | `update_fail_malformed_htlc`             |          Channel Operation|
-| 136 | `channel_reestablish`             |         Channel Operation |
-| 256 | `channel_announcement`             |          Channel Announcement|
-| 257 | `node_announcement`             |          Channel Announcement|
-| 258 | `channel_update`             |          Channel Announcement|
-| 259 | `announce_signatures`             |          Channel Announcement|
-| 261 | `query_short_chan_ids`             |          Channel Graph Syncing|
-| 262 | `reply_short_chan_ids_end`             |          Channel Graph Syncing|
-| 263 | `query_channel_range`             |          Channel Graph Syncing|
-| 264 | `reply_channel_range`             |          Channel Graph Syncing|
-| 265 | `gossip_timestamp_range`             |          Channel Graph Syncing|
+.Message Types
+[options="header"]
+|==============================================================================
+| Type Integer | Message Name | Category 
+| 16  | `init`             |  Connection Establishment        
+| 17  | `error`             | Error Communication 
+| 18  | `ping`             | Connection Liveness 
+| 19  | `pong`             | Connection Liveness
+| 32  | `open_channel`             |          Channel Funding
+| 33  | `accept_channel`             |          Channel Funding
+| 34  | `funding_created`             |          Channel Funding
+| 35  | `funding_signed`             |          Channel Funding
+| 36  | `funding_locked`             |          Channel Funding + Channel Operation
+| 38  | `shutdown`             | Channel Closing         
+| 39  | `closing_signed`             |         Channel Closing 
+| 128 | `update_add_htlc`             |          Channel Operation
+| 130 | `update_fulfill_hltc`             |          Channel Operation
+| 131 | `update_fail_htlc`             |          Channel Operation
+| 132 | `commit_sig`             |          Channel Operation
+| 133 | `revoke_and_ack`             |          Channel Operation
+| 134 | `update_fee`             |          Channel Operation
+| 135 | `update_fail_malformed_htlc`             |          Channel Operation
+| 136 | `channel_reestablish`             |         Channel Operation 
+| 256 | `channel_announcement`             |          Channel Announcement
+| 257 | `node_announcement`             |          Channel Announcement
+| 258 | `channel_update`             |          Channel Announcement
+| 259 | `announce_signatures`             |          Channel Announcement
+| 261 | `query_short_chan_ids`             |          Channel Graph Syncing
+| 262 | `reply_short_chan_ids_end`             |          Channel Graph Syncing
+| 263 | `query_channel_range`             |          Channel Graph Syncing
+| 264 | `reply_channel_range`             |          Channel Graph Syncing
+| 265 | `gossip_timestamp_range`             |          Channel Graph Syncing
+|==============================================================================
 
 In the above table, the `Category` field allows us to quickly categonize a
 message based on its functionality within the protocol itself. At a high level,
@@ -326,7 +330,7 @@ this roadmap laid out, we'll now visit each message category in order to define
 the precise structure and semantics of all defined messages within the LN
 protocol.
 
-#### Connection Establishment Messages
+==== Connection Establishment Messages
 
 Messages in this category are the very first message sent between peers once
 they establish a transport connection. At the time of writing of this chapter,
@@ -377,7 +381,7 @@ such a feature would be a theoretical new channel type within the protocol: if
 your peer doesn't know of this feature, they you don't want to keep the
 connection as they're unable to open your new preferred channel type.
 
-#### Error Communication Messages
+==== Error Communication Messages
 
 Messages in this category are used to send connection level errors between two
 peers. As we'll see later, another type of error exists in the protocol: an
@@ -404,7 +408,7 @@ have a channel with may indicate that the channel cannot continue without
 manual intervention, so the only option at that point is to force close the
 channel by broadcasting the latest commitment state of the channel.
 
-#### Connection Liveness
+==== Connection Liveness
 
 Messages in this section are used to probe to determine if a connection is
 still live or not. As the LN protocol somewhat abstracts over the underlying
@@ -445,7 +449,7 @@ default the LN uses an _encrypted_ transport, so a passive network monitor
 cannot read the plaintext bytes, thus only has timing and packet sizes to go
 off of.
 
-#### Channel Funding
+==== Channel Funding
 
 As we go on, we enter into the territory of the core messages that govern the
 functionality and semantics of the Lightning Protocol. In this section, we'll
@@ -584,7 +588,7 @@ Once the funding transaction obtains a `minimum_depth` number of confirmations,
 then the `funding_locked` message is to be sent by both sides. Only after this
 message has been received, and sent can the channel being to be used.
 
-#### Channel Closing
+==== Channel Closing
 
 * type: `38`
 * fields:
@@ -716,7 +720,7 @@ then it won't be able to decrypt the packet. As a result it also can't properly
 forward the HTLC, therefore it'll send this message to signify that the HTLC
 has been corrupted somewhere along the route back to the sender.
 
-#### Channel Announcement
+==== Channel Announcement
 
 Messages in this category are used to announce components of the Channel Graph
 authenticated data structure to the wider network. The Channel Graph has a
@@ -811,7 +815,7 @@ advertise their channel to the network, then they'll each send the
 `announce_signatures` message which allows both sides to emplace the 4
 signatures required to generate a `announce_signatures` message.
 
-#### Channel Graph Syncing
+==== Channel Graph Syncing
 
 The `query_short_chan_ids` allows a peer to obtain the channel information
 related to a series of short channel IDs:
@@ -886,7 +890,7 @@ also set the `first_timestamp` and `timestamp_range` fields if they wish to
 receive a backlog of updates they may have missed while they were down.
 
 
-## Feature Bits & Protocol Extensibility
+== Feature Bits & Protocol Extensibility
 
 As the Lighting Network is a decentralized system, no one entity can enforce a
 protocol change or modification upon all the users of the system. This
@@ -908,7 +912,7 @@ extensibility mechanisms within the network which can be used to upgrade the
 network partially or fully in a decoupled, desynchronized, decentralized
 manner.
 
-### Feature Bits as an Upgrade Discoverability Mechanism
+=== Feature Bits as an Upgrade Discoverability Mechanism
 
 An astute reader may have noticed the various locations that "feature bits" are
 included within the Lightning Protocol. A "feature bit" is a bitfield that can
@@ -925,11 +929,14 @@ Using these two bits optional and required, we can construct a simple
 compatibility matrix that nodes/users can consult in order to determine if a
 peer is compatible with a desired feature:
 
+.Feature Bit Compatability Matrix
+[options="header"]
+|========================================================
 |Bit Type|Remote Optional|Remote Required|Remote Unknown
-|--------|--------|--------|
-|Local Optional|✅|✅|✅|
-|Local Required|✅|✅|❌|
-|Local Unknown|✅|❌|❌|
+|Local Optional|✅|✅|✅
+|Local Required|✅|✅|❌
+|Local Unknown|✅|❌|❌
+|========================================================
 
 From this simplified compatibility matrix, we can see that as long as the other
 party *knows* about our feature bit, then can interact with them using the
@@ -964,7 +971,7 @@ not. The feature bits within the `init` message all peers to understand kif
 they can maintain a connection, and also which features are negotiated for the
 lifetime of a given connection.
 
-### Utilizing TLV Records for Forwards+Backwards Compatibility
+=== Utilizing TLV Records for Forwards+Backwards Compatibility
 
 As we learned earlier in the chapter, Type Length Value, or TLV records can be
 used to extend messages in a forwards and backwards compatible manner.
@@ -989,7 +996,7 @@ network need to understand new upgrade in order to start utilizing it without
 any permission. Commonly these tow peers may be the receiver and sender of a
 payment, or it may the initiator and responder of a new payment channel.
 
-### A Taxonomy of Upgrade Mechanisms 
+=== A Taxonomy of Upgrade Mechanisms 
 
 Rather than there being a single widely utilized upgrade mechanism within the
 network (such as soft forks for base layer Bitcoin), there exist a wide
@@ -997,7 +1004,7 @@ gradient of possible upgrade mechanisms within the Lighting Network. In this
 section, we'll enumerate the various upgrade mechanism within the network, and
 provide a real-world example of their usage in the past.
 
-#### Internal Network Upgrades
+==== Internal Network Upgrades
 
 We'll start with the upgrade type that requires the most extra protocol-level
 coordination: internal network upgrades. An internal network upgrade is
@@ -1028,7 +1035,7 @@ are required to forward the payment. However, if a new upgrade type instead
 changed the _HTLC_ format, then the entire path would need to be upgraded,
 otherwise the payment wouldn't be able to be fulfilled.
 
-#### End to End Upgrade
+==== End to End Upgrades
 
 To contrast the internal network upgrade, in this section we'll describe the
 _end to end_ network upgrade. This upgrade type differs from the internal
@@ -1058,7 +1065,7 @@ end encrypted, this payment type was safe, since none of the intermediate nodes
 are able to fully unwrap the onion to uncover the payment pre-image that
 corresponded to that payment hash.
 
-#### Channel Construction Level Updates
+==== Channel Construction Level Updates
 
 The final broad category of updates within the network are those that happen at
 the channel construction level, but which don't modify the structure of the
