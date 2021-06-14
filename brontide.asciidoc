@@ -1,6 +1,6 @@
-# Brontide: Lightning's Encrypted Message Transport
+= Brontide: Lightning's Encrypted Message Transport
 
-## Intro
+== Intro
 
 Unlike the vanilla Bitcoin P2P network, every node in the Lightning Network is
 identified by a unique public key which serves as it identity. By default, this
@@ -18,7 +18,7 @@ custom encrypted message transport Lightning uses, commonly referred to as
 "Brontide" (more on that later) can be dropped into any context that requires
 encrypted communication between two parties.
 
-## The Channel Graph as Decentralized Public Key Infrastructure
+== The Channel Graph as Decentralized Public Key Infrastructure
 
 As we learned in the chapter on multi-hop forwarding, very node has a long-term
 identity that is used as the identifier for a vertex during path finding and
@@ -48,7 +48,7 @@ Lightning network is able to significantly simply its encrypted transport
 protocol as it doesn't need to deal with all the complexities that come along
 with TLS, the Transport Layer Security protocol.
 
-## Why Not TLS?
+== Why Not TLS?
 
 Readers familiar with the TLS system may be wondering at this point: why wasn't
 TLS used in spite of the drawbacks of the existing PKI system? It is indeed a
@@ -80,7 +80,7 @@ to continual scrutiny of the TLS protocol over decades. In a way, the existence
 of Noise allows the community to effective "start over", with a more compact,
 simplified protocol that retains all the added benefits of TLS.
 
-## The Noise Protocol Framework
+== The Noise Protocol Framework
 
 The Noise Protocol Framework is a modern, extensible, and flexible message
 encryption protocol designed by the creators of the Signal protocol. The Signal
@@ -114,7 +114,7 @@ Lightning Network, the flavor of Noise use will be referred to from here on as
 "Brontide". A brontide is a low billowing noise, similar to what one would hear
 during a thunderstorm when very far away.
 
-### Noise Protocol Handshakes
+=== Noise Protocol Handshakes
 
 The Noise protocol is extremely flexible in that it advertises several
 handshakes, each with different security and privacy properties for a would be
@@ -129,7 +129,7 @@ handshake. Instead, a clever series of Elliptic-Curve Diffie-Hellman (ECDH) and
 Message Authentication Code (MAC) checks are used to authenticate the
 responder.
 
-### Handshake Notation & Protocol Flow
+=== Handshake Notation & Protocol Flow
 
 Each handshakes typically consist of several steps. At each step some
 (possibly) encrypted material is sent to the opposite party, an ECDH (or
@@ -148,9 +148,9 @@ refer to a new ephemeral key. ECDH operations between two keys are notated as
 the concatenation of two keys. As an example, `ee` represents an ECDH operation
 between two ephemeral keys.
 
-## Brontide: Lightning's P2P Encryption
+== Brontide: Lightning's P2P Encryption
 
-### High-Level Overview
+=== High-Level Overview
 
 Using the notation laid out earlier, we can succinctly describe the `Noise_XK`
 as follows: 
@@ -196,7 +196,7 @@ variant, the ASCII string is hashed into a digest, which is used to initialize
 the starting handshake state. In the context of Brontide, the ASCII string
 describing the protocol is: `Noise_XK_secp256k1_ChaChaPoly_SHA256`.
 
-### Brontide: A Handshake in Three Acts
+=== Brontide: A Handshake in Three Acts
 
 The handshake portion of Brontide can be see prated into three distinct "acts".
 The entire handshake takes 1.5 round trips between the initiator and responder.
@@ -263,7 +263,7 @@ handshake as:
 
   * `a || b` denotes the concatenation of two byte strings `a` and `b`
 
-#### Handshake Session State Initialization
+==== Handshake Session State Initialization
 
 Before starting the handshake process, both sides need to initialize the
 starting state that they'll use to advance the handshake process. To start,
@@ -295,7 +295,7 @@ does indeed know the public key of the responder.
    Bitcoin's compressed format:
    * `h = SHA-256(h || ls.pub.serializeCompressed())`
 
-#### Handshake Acts
+==== Handshake Acts
 
 After the initial handshake initialization, we can begin the actual execution
 of the handshake process. The Brontide handshake is compromised of a series of
@@ -313,7 +313,7 @@ act, the initiator transmits their long-term static public key to the
 responder, and executes the final DH operation to mix that into the final
 resulting shared secret.
 
-##### Act One
+===== Act One
 
 ```
     -> e, es
@@ -374,7 +374,7 @@ and 16 bytes for the `poly1305` tag.
      * The received ciphertext is mixed into the handshake digest. This step serves
        to ensure the payload wasn't modified by a MITM.
 
-##### Act Two
+===== Act Two
 
 ```
    <- e, ee
@@ -432,7 +432,7 @@ for the `poly1305` tag.
      * The received ciphertext is mixed into the handshake digest. This step serves
        to ensure the payload wasn't modified by a MITM.
 
-##### Act Three
+===== Act Three
 
 ```
    -> s, se
@@ -502,7 +502,7 @@ construction, and 16 bytes for a final authenticating tag.
 10. `rn = 0, sn = 0`
      * The sending and receiving nonces are initialized to 0.
 
-#### Transport Message Encryption
+==== Transport Message Encryption
 
 At the conclusion of Act Three, both sides have derived the encryption keys, which
 will be used to encrypt and decrypt messages for the remainder of the
@@ -545,7 +545,7 @@ The structure of packets on the wire resembles the following:
 The prefixed message length is encoded as a 2-byte big-endian integer, for a
 total maximum packet length of `2 + 16 + 65535 + 16` = `65569` bytes.
 
-##### Encrypting and Sending Messages
+===== Encrypting and Sending Messages
 
 In order to encrypt and send a Lightning message (`m`) to the network stream,
 given a sending key (`sk`) and a nonce (`sn`), the following steps are
@@ -566,7 +566,7 @@ completed:
     * The nonce `sn` MUST be incremented after this step.
 5. Send `lc || c` over the network buffer.
 
-##### Receiving and Decrypting Messages
+===== Receiving and Decrypting Messages
 
 In order to decrypt the _next_ message in the network stream, the following
 steps are completed:
@@ -583,7 +583,7 @@ steps are completed:
     plaintext packet `p`.
     * The nonce `rn` MUST be incremented after this step.
 
-#### Lightning Message Key Rotation
+==== Lightning Message Key Rotation
 
 Changing keys regularly and forgetting previous keys is useful to prevent the
 decryption of old messages, in the case of later key leakage (i.e.  backwards
