@@ -9,56 +9,144 @@ The messages exchanged by Alice and Bob's nodes are defined in https://github.co
 .The Lightning Network Protocol Suite
 image::images/LN-protocol-channel-highlight.png["The Lightning Network Protocol Suite"]
 
+=== A different way of using the Bitcoin system
+
+The Lightning Network is often described as a "Layer 2 Bitcoin Protocol", which makes it sound distinct from Bitcoin. Another way to describe Lightning is as a "different way to use Bitcoin". Let's explore that.
+
+Normally, Bitcoin transactions are broadcast to everyone and recorded on the Bitcoin blockchain in order to be considered "valid". As we will see however, if someone holds a pre-signed Bitcoin transaction that gives them the exclusive ability to spend that Bitcoin, they effectively own that Bitcoin even if they don't broadcast the transaction.
+
+Effectively, the pre-signed Bitcoin transaction is like a post-dated cheque, that can be "cashed" at anytime. Unlike the traditional banking system however, this transaction is not a "promise" of payment (also known as an IOU), but a verifiable bearer instrument that is equivalent to cash. The Bitcoin system guarantees that this pre-signed transaction can be broadcast and recorded at any time.
+
+The Lightning Network is simpy a different and creative way of using Bitcoin. In the Lightning Network a combination of recorded (on-chain) and pre-signed but withheld (off-chain) transactions form a "layer" of payments that is a faster, cheaper and more private way to use Bitcoin. You can see this relationship between on-chain and off-chain Bitcoin transactions in <<on_off_chain>>:
+
+[[on_off_chain]]
+.Lightning payment channel made of on-chain and off-chain transactions
+image::images/on_off_chain.png["Lightning payment channel made of on-chain and off-chain transactions"]
+
+Lightning is Bitcoin. It's just a different way of using the Bitcoin system.
+
 === Bitcoin ownership and control
 
 Before we understand payment channels, we have to take a small step back and understand how ownership and control work in Bitcoin.
 
-The legal meaning of "ownership" is not necessarily the same as the practical and technical meaning of ownership Bitcoin. When someone says they "own" bitcoin they typically mean that they know the private key of a Bitcoin address that has some unspent transaction outputs (see <<bitcoin_fundamentals_review>>). The private key allows them to sign a transaction to spend that bitcoin by transferring it to a different address. In Bitcoin "ownership" of bitcoin can be defined as the _ability to spend_ that bitcoin.
+When someone says they "own" bitcoin they typically mean that they know the private key of a Bitcoin address that has some unspent transaction outputs (see <<bitcoin_fundamentals_review>>). The private key allows them to sign a transaction to spend that bitcoin by transferring it to a different address. In Bitcoin "ownership" of bitcoin can be defined as the _ability to spend_ that bitcoin.
 
-In most cases, that definition of ownership will coincide with the legal definition, as the only one who has the private key is usually the "legal owner" of that bitcoin. However, that is not always the case. There are two key exceptions that make Bitcoin ownership distinct from the legal concept of ownerhsip.
+Keep in mind that the term "ownership" as used in Bitcoin is distinct from the term "ownership" used in a legal sense. A thief who has the private keys and can spend Bitcoin is a de-facto "owner" of that Bitcoin even though they are not a lawful owner.
+
+[TIP]
+====
+Bitcoin ownership is only about control of keys and the ability to spend the bitoin with those keys. As the popular Bitcoin saying by Andreas Antonopoulos goes: "Your keys, your coins - not your keys, not your coins"
+====
+
+==== Diversity of ownership and multisig
+
+Ownership and control of private keys is not always in the hands of one person. That's where things get interesting and complicated.
 
 Firstly, more than one person can come to know the same private key, either through theft or because the original holder of the key makes a copy and gives it to someone else. Are all these people owners? In a practical sense they are, because any one of the people who know the private key can spend the bitcoin without the approval of any other.
 
-Secondly, Bitcoin has multisignature addresses where multiple private keys are needed to sign before spending (see <<multisig>>). From a practical perspective, ownership depends on the quorum (K) and total (N) defined in the K-of-N scheme. If one or more people has enough keys to make quorum, then they *all* equally own the bitcoin. For example, a 1-of-10 multisignature scheme would allow any one (K) of 10 (N) signers to spend a bitcoin amount locked in that address. This is similar to the scenario where ten people have a copy of the same private key and any of them can independently spend it. But there is also the scenario where noone has quorum. In a 2-of-2 scheme like that used in the Lightning Network, each of the signers cannot spend the bitcoin without obtaining a signature from the other party. Who owns the bitcoin in that case? No one really has ownership because no one has control. They each own the equivalent of a voting share in the decision, but both votes are needed. The closest parallel to this in law is "tenancy in common" for real eastate or a corporation when no one shareholder has 50% of the vote. A key problem with a 2-of-2 scheme (in both Bitcoin and the law) is what happens if one of the parties is unavailable, or if there is a vote deadlock and any one party refuses to cooperate.
+Secondly, Bitcoin has multisignature addresses where multiple private keys are needed to sign before spending (see <<multisig>>). From a practical perspective, ownership depends on the quorum (K) and total (N) defined in the K-of-N scheme. If one or more people has enough keys to make quorum, then they *all* equally own the bitcoin. For example, a 1-of-10 multisignature scheme would allow any one (K) of 10 (N) signers to spend a bitcoin amount locked in that address. This is similar to the scenario where ten people have a copy of the same private key and any of them can independently spend it.
 
-The solution to this problem in both law and Bitcoin is to negotiate the "exit" condition before you enter into such an agreement. In real estate for example, a sale agreement or "quit claim" can be signed in advance. In a corporation you can have clauses to deal with sales or deadlocks or inheritance. In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed by both signers to spend any funds, before putting those funds into the address.
+==== Joint ownership without independent control
 
-////
-If you have an unpublished but signed transaction from a 2-of-2 multisignature address, where some outputs are sent to an address you own, and additionally you exclusively know one of the private keys of the multisignature address, then you effectively own the bitcoin of that output.
-Without your help no other transaction from the 2-of-2 multisignature address can be produced (as only you possesses one of the needed keys to sign a transaction that spends from this address)
-However, without the help of anybody else you can transfer the funds to an address which you control.
-You do that by broadcasting the transaction to the bitcoin network which will accept it as it has valid signatures.
-As the funds in this transaction go to a regular address for which you control the private key you can again move the funds and thus you effectively own them.
-On the Lightning Network ownership of your funds is almost always encoded with you having a pre-signed transaction spending from a 2-of-2 multisignature address.
-While your funds on the Lightning Network are called to be "off-chain" they are actually very much on chain and very much owned by you just like you might own other bitcoin.
+There is also the scenario where *no one* has quorum. In a 2-of-2 scheme like that used in the Lightning Network, each of the signers cannot spend the bitcoin without obtaining a signature from the other party. Who owns the bitcoin in that case? No one really has ownership because no one has control. They each own the equivalent of a voting share in the decision, but both votes are needed. A key problem with a 2-of-2 scheme (in both Bitcoin and the law) is what happens if one of the parties is unavailable, or if there is a vote deadlock and any one party refuses to cooperate.
 
-One thing about the Lightning Network is however messing with this understanding of ownership.
-On the Lightning Network there exist several presigned Transactions which allocate some of the bitcoin to you and some to your channel partner.
-Without the ability to sequence transaction and invalidate old ones via the penalty based revocation mechanism (or other techniques) we could not define clear ownership as the funds would be distributed among its two owners according to which ever transaction would first be broadcasted and successfully mined.
+==== Preventing "locked" and unspendable Bitcoin
 
-If the last paragraph of this summary was confusing: No worries! We are getting there now!
+If one of the two signers of a 2-of-2 multisig cannot or will not sign, the funds become unspendable. Not only can this scenario occur accientally (loss of keys), but it can be used as a form of blackmail by either party: "I won't sign unless you pay me a part of the funds".
 
-////
+Payment channels in Lightning are based on a 2-of-2 multisig address, with the two channel partners as signers in the multisig. At this time, channels are funded only by one of the two channel partners: When you choose to "open" a channel you deposit funds into the 2-of-2 multisig address with a transaction. Once that transaction is mined and the funds are in the multisig, you can't get them back without cooperation from your channel partner, because you need their signature (also) to spend the 2-of-2.
 
-==== Holding signed transactions without broadcasting
+In the next section, as we look at how to open (create) a Lightning channel, we will see how we can prevent loss of funds or any blackmail scenario between the two partners by implementing a fairness protocol for the channel construction.
 
-==== Chaining transactions without broadcasting
-
-==== Solving malleability (SegWit)
-
-==== A different way of using the Bitcoin system
-
-==== Cryptographic protocol vs. message protocol
 
 === Constructing a payment channel
 
-==== Node public keys
+In <<what_is_payment_channel>, we described payment channels as a _financial relatonship_ between two Lightning Nodes, which is established by funding a 2-of-2 multisignature address from the two channel partners.
+
+Let's assume that Alice's wallet wants to construct a payment channel to connect to Bob's store directly. First, the two nodes (Alice's and Bob's) have to establish an internet connection to each other, so that they can negotiate a payment channel.
+
+==== Cryptographic protocol vs. message protocol
+
+We will be using the term "protocol" to describe two different protocols in this scenario. First, there is a _message protocol_, which establishes how the Lightning Nodes communicate over the internet and what messages they exchange with each other. Second, there is the _cryptographic protocol_ which establishes how the two nodes negotiate and secure a payment channel and other smart contracts build with Bitcoin Script.
+
+==== Node private and public keys
+
+Every node on the Lightning Network is identified by a _node public key_. The public key uniquely identifies the specific node and is usually presented as a hexadecimal encoding. For example, Rene Pickhardt currently runs a Lightning Node (+ln.rene-pickhardt.de+) that is identified by the following node public key:
+
+----
+03efccf2c383d7bf340da9a3f02e2c23104a0e4fe8ac1a880c8e2dc92fbdacd9df
+----
+
+Each node generates a root private key when first initialized. The private key is kept private at all times (never shared) and securely stored in the node's wallet. From that private key, the node derives a public key which is the node identifier and shared with the network. Since the key space is enormous, as long as each node generates the private key randomly, it will have a unique public key, which can therefore uniquely identify it on the network.
+
+==== Node network address
+
+Additionally, every node also advertizes a network address where it can be reached, in one of several possible formats:
+
+TCP/IP:: An IPv4 or IPv6 address and TCP port number
+
+TCP/Tor:: A Tor "onion" address and TCP port number
+
+The network address identifier is written as +Address:Port+, which is consistent with international standards for network identifiers, as used for example on the web.
+
+For example, Rene's node with node public key +03efcc...acd9df+ currently advertizes it's network address as the TCP/IP address:
+
+----
+144.76.235.20:9735
+----
+
+[TIP]
+====
+The default TCP port for the Lightning Network is 9735, but a node can choose to listen on any TCP port.
+====
+
+==== Node identifiers
+
+Together the node public key and network address are written in the following format, separated by an +@+ sign, as +NodeID@Address:Port+
+
+So the full identifier for Rene's node would be:
+
+----
+03efccf2c383d7bf340da9a3f02e2c23104a0e4fe8ac1a880c8e2dc92fbdacd9df@144.76.235.20:9735
+----
+
+The identifier above is often encoded in a QR code, making it easier for users to scan, if they want to connect their own node to the specific node identified by that address.
+
+Much like Bitcoin Nodes, Lightning Nodes advertize their presence on the Lightning Network by "gossiping" their node public key and network address. That way, other nodes can find them and keep an inventory (database) of all the known nodes that they can connect to and exchange the messages that are defined in the Lightning P2P message protocol.
+
+==== Connecting nodes as direct peers
+
+In order for Alice's node to connect to Bob's node, she will need Bob's node public key, or the full address containing the public key, IP or Tor address and port. Because Bob runs a store, Bob's node address can be retrieved from an invoice or a store payment page on the web. Alice can scan a QR code that contains the address and instruct her node to connect to Bob's node.
+
+Once Alice has connected to Bob's node, their nodes are now directly connected _peers_.
+
+[TIP]
+====
+To open a payment channel, two nodes must first be _connected_ as direct peers by opening a connection over the internet (or Tor).
+====
 
 ==== Generating a multisignature address
+
+
 
 === Funding the channel
 
 ==== The funding transaction
+
+==== Holding signed transactions without broadcasting
+
+
+=== Refund before funding
+
+To prevent loss of funds, we cannot put our bitcoin into a 2-of-2 until we have a way to get a refund if things go wrong. Essentially, we plan the "exit" from the channel before we enter into this arrangement.
+
+Consider the legal construct of a prenuptual agreement, also known as a "prenup". When two people enter into a marriage their money is bound together by law (depending on jursidiction). Prior to entering into the marriage, they can sign an agreement that specifies how to separate their money if they dissolve their marriage through divorce.
+
+In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed by both signers to spend any funds, before putting those funds into the address.
+
+==== Chaining transactions without broadcasting
+
+==== Solving malleability (SegWit)
 
 ==== The refund transaction
 
