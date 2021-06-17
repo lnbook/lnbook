@@ -153,13 +153,88 @@ Once the transaction has sufficient confirmations, Alice and Bob exchange a +fun
 
 ===== The open_channel message
 
+Alice's node requests a payment channel with Bob's node, by sending an +open_channel+ message. The message contains information about Alice's _expectations_ for the channel setup, which Bob may accept or decline.
 
+The structure of the +open_channel+ message (taken from BOLT#2) is shown in <<open_channel_message>> below:
+
+[[open_channel_message]]
+.The open_channel message
+----
+[chain_hash:chain_hash]
+[32*byte:temporary_channel_id]
+[u64:funding_satoshis]
+[u64:push_msat]
+[u64:dust_limit_satoshis]
+[u64:max_htlc_value_in_flight_msat]
+[u64:channel_reserve_satoshis]
+[u64:htlc_minimum_msat]
+[u32:feerate_per_kw]
+[u16:to_self_delay]
+[u16:max_accepted_htlcs]
+[point:funding_pubkey]
+[point:revocation_basepoint]
+[point:payment_basepoint]
+[point:delayed_payment_basepoint]
+[point:htlc_basepoint]
+[point:first_per_commitment_point]
+[byte:channel_flags]
+[open_channel_tlvs:tlvs]
+----
+
+The fields contained in this message specify the channel parameters that Alice wants as well as various configuration settings from Alice's nodes that reflect the security expectations for the operation of the channel.
+
+Channel construction parameters include:
+
+chain_hash:: This identifies which blockchain (e.g. Bitcoin mainnet) will be used for this channel. It is usually the hash of the genesis block of that blockchain.
+
+funding_satoshis:: The amount Alice will use to fund the channel, which is the total channel capacity.
+
+push_msat:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding.
+
+funding_pubkey:: The public key Alice will contribute to the 2-of-2 multisig that anchors this channel.
+
+_basepoint:: Master keys, used to derive child keys for various parts of the commitment, revocation, routed payment (HTLCs) and closing transactions. These will be used and explained in subsequent chapters.
 
 ===== The accept_channel message
 
-==== Generating a multisignature address
+In response to Alice's +open_channel+ message, Bob sends back the +accept_channel+ message shown in <<accept_channel_message>> below:
+
+[[accept_channel_message]]
+.The accept_channel message
+----
+[32*byte:temporary_channel_id]
+[u64:dust_limit_satoshis]
+[u64:max_htlc_value_in_flight_msat]
+[u64:channel_reserve_satoshis]
+[u64:htlc_minimum_msat]
+[u32:minimum_depth]
+[u16:to_self_delay]
+[u16:max_accepted_htlcs]
+[point:funding_pubkey]
+[point:revocation_basepoint]
+[point:payment_basepoint]
+[point:delayed_payment_basepoint]
+[point:htlc_basepoint]
+[point:first_per_commitment_point]
+[accept_channel_tlvs:tlvs]
+----
+
+As you can see, this is similar to the +open_channel+ message and contains Bob's node expectations and configuration values.
+
+The two most important fields in +accept_channel+ that Alice will use to construct the payment channel are:
+
+funding_pubkey:: This is the public key Bob's node contributes for the 2-of-2 multisig address that anchors the channel.
+
+minimum_depth:: This is the number of confirmations that Bob's node expects for the funding transaction before it considers the channel "open" and ready to use.
 
 ==== The funding transaction
+
+Once Alice's node receives Bob's +accept_channel+ message, it has the information necessary to construct the _funding transaction_ that anchors the channel to the Bitcoin blockchain.
+
+==== Generating a multisignature address
+
+The funding transaction sends some amount of bitcoin (+funding_satoshis+ from the +open_channel+ message) to a 2-of-2 multisignature output that is constructed from Alice and Bob's +funding_pubkey+ public keys. 
+
 
 
 
