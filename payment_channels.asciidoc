@@ -65,10 +65,6 @@ In <<what_is_payment_channel>, we described payment channels as a _financial rel
 
 Let's assume that Alice's wallet wants to construct a payment channel to connect to Bob's store directly. First, the two nodes (Alice's and Bob's) have to establish an internet connection to each other, so that they can negotiate a payment channel.
 
-==== Cryptographic protocol vs. message protocol
-
-We will be using the term "protocol" to describe two different protocols in this scenario. First, there is a _message protocol_, which establishes how the Lightning Nodes communicate over the internet and what messages they exchange with each other. Second, there is the _cryptographic protocol_ which establishes how the two nodes negotiate and secure a payment channel and other smart contracts build with Bitcoin Script.
-
 ==== Node private and public keys
 
 Every node on the Lightning Network is identified by a _node public key_. The public key uniquely identifies the specific node and is usually presented as a hexadecimal encoding. For example, Rene Pickhardt currently runs a Lightning Node (+ln.rene-pickhardt.de+) that is identified by the following node public key:
@@ -125,13 +121,47 @@ Once Alice has connected to Bob's node, their nodes are now directly connected _
 To open a payment channel, two nodes must first be _connected_ as direct peers by opening a connection over the internet (or Tor).
 ====
 
+=== Constructing the channel
+
+Now that Alice's and Bob's Lightning nodes are connected, they can begin the process of constructing a payment channel. In this section we will review the communications between their nodes, known as the _Lightning Peer Protocol for Channel Management_, and the cryptographic protocol that they use to build Bitcoin transactions.
+
+[TIP]
+====
+We describe two different protocols in this scenario. First, there is a _message protocol_, which establishes how the Lightning Nodes communicate over the internet and what messages they exchange with each other. Second, there is the _cryptographic protocol_ which establishes how the two nodes construct and sign Bitcoin transactions.
+====
+
+[[peer_protocol_channel_management]]
+==== Peer Protocol for Channel Management
+
+The Lightning Peer Protocol for Channel Management is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md[BOLT #2 - Peer Protocol for Channel Management]. In this chapter we will be reviewing the "Channel Establishment" and "Channel Closing" sections of BOLT#2 in more detail.
+
+==== Channel establishment message flow
+
+Channel establishment is achieved by the exchange of six messages between Alice and Bob's nodes (three from each peer): +open_channel+, +accept_channel+, +funding_created+, +funding_signed+, +funding_locked+ and +funding_locked+. The six messages are shown as a time-sequence diagram in <<funding_message_flow>>:
+
+[[funding_message_flow]]
+.The funding message flow
+image::images/funding_message_flow.png["The funding message flow"]
+
+In <<funding_message_flow>> Alice and Bob's node are represented by the vertical lines "A" and "B" on either side of the diagram. A time-sequence diagram like this shows time flowing downwards, and messages flowing from one side to the other between the two communication peers. The lines are sloped down to represent the elapsed time needed to transmit each message and the direction of the message is shown by an arrow at the end of each line.
+
+The channel establishment involves three parts. First, the two peers communicate their capabilities and expectations, with Alice initiating a request through +open_channel+ and Bob accepting the channel request through +accept_channel+.
+
+Second, Alice constructs the funding and refund transactions (as we will see later in this section) and sends +funding_created+ to Bob. Bob responds by sending back the necessary signatures with +funding_signed+. This interaction is the basis for the _cryptographic protocol_ to secure the channel and prevent theft. Alice can now broadcast the funding transaction (on-chain), to establish and anchor the payment channel. The transaction will need to be confirmed on the Bitcoin blockchain.
+
+Once the transaction has sufficient confirmations, Alice and Bob exchange a +funding_locked+ messages and the channel enters normal operating mode.
+
+===== The open_channel message
+
+
+
+===== The accept_channel message
+
 ==== Generating a multisignature address
 
-
-
-=== Funding the channel
-
 ==== The funding transaction
+
+
 
 ==== Holding signed transactions without broadcasting
 
@@ -150,21 +180,19 @@ In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed b
 
 ==== The refund transaction
 
-=== Funding message flow
+===== The funding_created message
 
-[[funding_message_flow]]
-.The funding message flow
-image::images/funding_message_flow.png["The funding message flow"]
+===== The funding_signed message
 
-==== The open_channel message
+===== The funding_locked message
 
-==== The accept_channel message
 
-==== The funding_created message
 
-==== The funding_signed message
 
-==== The funding_locked message
+
+
+
+
 
 === Closing the channel
 
