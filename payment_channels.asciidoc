@@ -233,27 +233,74 @@ Once Alice's node receives Bob's +accept_channel+ message, it has the informatio
 
 ==== Generating a multisignature address
 
-The funding transaction sends some amount of bitcoin (+funding_satoshis+ from the +open_channel+ message) to a 2-of-2 multisignature output that is constructed from Alice and Bob's +funding_pubkey+ public keys. 
+The funding transaction sends some amount of bitcoin (+funding_satoshis+ from the +open_channel+ message) to a 2-of-2 multisignature output that is constructed from Alice and Bob's +funding_pubkey+ public keys.
+
+Alice's node constructs a multisignature script as shown in <<A_B_multisig>> below:
 
 
+[[A_B_multisig]]
+.A 2-of-2 multisig script with Alice an Bob's funding_pubkey values
+----
+2 <Alice_funding_pubkey> <Bob_funding_pubkey> 2 CHECKMULTISIG
+----
 
+This script is encoded as a Pay-to-Witness-Script-Hash Bitcoin address, that looks something like this:
+
+----
+bc1q89ju02heg32yrqdrnqghe6132wek25p6sv6e564znvrvez7tq5zqt4dn02
+----
+==== Constructing the funding transaction
+
+Alice's node can now construct a funding transaction, sending the amount agreed with Bob (funding_satoshis) to the 2-of-2 multisig address. Let's assume that funding_satoshis was 140,000 and Alice is spending a 200,000 satoshi output and creating 60,000 satoshi change. The transaction will look something like this:
+
+[[A_B_funding_Tx]]
+.Alice constructs the funding transaction
+image::images/A_B_funding_Tx.png["Alice constructs the funding transaction"]
+
+Alice *does not broadcast* this transaction, because doing so would put her 140,000 satoshi at risk. Once spent to the 2-of-2 multisig, there is no way for Alice to recover her money without Bob's signature.
 
 ==== Holding signed transactions without broadcasting
 
+An important Bitcoin feature that makes Lightning possible is the ability to construct and sign transactions, but not broadcast them. The transaction is *valid* in every way, but until it is broadcast and confirmed on the Bitcoin blockchain it does is not recognized and its outputs are not spendable as they have not been create on the blockchain. We will use this capability many times in the Lightning Network and Alice's node uses the capability when constructing the funding transaction: holding it and not broadcasting it yet.
 
-=== Refund before funding
+==== Refund before funding
 
-To prevent loss of funds, we cannot put our bitcoin into a 2-of-2 until we have a way to get a refund if things go wrong. Essentially, we plan the "exit" from the channel before we enter into this arrangement.
+To prevent loss of funds, Alice cannot put her bitcoin into a 2-of-2 until she has a way to get a refund if things go wrong. Essentially, she must plan the "exit" from the channel before she enters into this arrangement.
 
 Consider the legal construct of a prenuptual agreement, also known as a "prenup". When two people enter into a marriage their money is bound together by law (depending on jursidiction). Prior to entering into the marriage, they can sign an agreement that specifies how to separate their money if they dissolve their marriage through divorce.
 
 In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed by both signers to spend any funds, before putting those funds into the address.
 
+==== The refund transaction
+
+Alice will therefore construct the "refund transaction" immediately after constructing (but not broadcasting) the funding transaction. The refund transaction is simple: it just spends the 2-of-2 multisig back to Alice's wallet. It will look like this:
+
+[[A_B_fund_refund_Tx]]
+.Alice also constructs the refund transaction
+image::images/A_B_fund_refund_Tx.png["Alice also constructs the refund transaction"]
+
 ==== Chaining transactions without broadcasting
 
-==== Solving malleability (SegWit)
+So now, Alice has the two transactions shown in <<A_B_fund_refund_Tx>> constructed. But you might be wondering how is this possible? Alice hasn't broadcast the funding transaction to the Bitcoin blockchain. As far as everyone is concerned that transaction doesn't exist. The refund transaction is constructed so as to *spend* one of the outputs of the funding transaction, even though that output doesn't exist yet either. How can you spend an output that hasn't been confirmed on the Bitcoin blockchain?
 
-==== The refund transaction
+The refund transaction is not yet a valid transaction. In order to be a valid transaction two things must happen:
+
+* The funding transaction must be broadcast and confirmed by the Bitcoin blockchain
+* The refund transaction's input needs Alice and Bob's signature
+
+But even though these two things haven't happened and even though Alice's node hasn't broadcast the funding transaction, she can still construct the refund transaction. She can do so because she can calculate the funding transaction's hash and reference it as an input in the refund transaction.
+
+Notice how Alice has calculated +6da3c2...387710+ as the funding transaction hash? If and when the funding transaction is broadcast, that hash will be recorded as the transaction ID of the funding transaction. Therefore, the 0 output of the funding transaction (the 2-of-2 address output) will then be referenced as output ID +6da3c2...387710:0+. The refund transaction can be constructed to spend that funding transaction output even though it doesn't exist yet because Alice knows what it's identifier will be once confirmed.
+
+This means that Alice can create a chained transaction by referencing an output that doesn't yet exist, knowing that the reference will be valid if the funding transaction is confirmed, making the refund transaction valid too. As we will see in the next section, this "trick" of chaining transactions before they are broadcast requires a very important feature of Bitcoin that was introduced in August of 2017: _Segregated Witness_.
+
+==== Solving malleability (Segregated Witness)
+
+Alice has to depend on the transaction ID of the funding transaction being known before confirmation. But before the introduction of  Segregated Witness (a.k.a Segwit) in August 2017, this was not sufficient to protect Alice. Because of the way transactions were constructed with the signatures (witnesses) included in the transaction ID, it was possible for a third party (e.g. Bob) to broadcast an alternative version of a transaction with a malleated (modified) transaction ID. This is known as _Transaction Malleability_ and made it impossible to implement payment channels securely.
+
+If Bob could modify Alice's funding transaction before it was confirmed and produce a replica that had a different transaction ID, Bob could make Alice's refund transaction invalid and hijack her bitcoin. Alice would be at Bob's mercy to get a signature to release her funds and could easily be blackmailed. Bob couldn't steal the funds, but he could prevent Alice from getting them back.
+
+The introduction of Segwit made transaction IDs immutable, meaning that Alice could be sure that the transaction ID of the funding tranaction would not change. As a result, Alice can be confident that if she gets Bob's signature on the refund transaction she has a way to recover her money. She now has a way to implement the Bitcoin equivalent of a "prenup" before locking her funds into the multisig.
 
 ===== The funding_created message
 
