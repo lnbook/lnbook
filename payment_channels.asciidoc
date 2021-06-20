@@ -273,7 +273,7 @@ In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed b
 
 ==== The refund transaction
 
-Alice will therefore construct the "refund transaction" immediately after constructing (but not broadcasting) the funding transaction. The refund transaction is simple: it just spends the 2-of-2 multisig back to Alice's wallet. It will look like this:
+Alice will therefore construct the "refund transaction" immediately after constructing (but not broadcasting) the funding transaction. The refund transaction spends the 2-of-2 multisig back to Alice's wallet. In practice, it is a bit more complicated as we will see in subsequent chapters, but for now let's keep things simple and assume it looks like this:
 
 [[A_B_fund_refund_Tx]]
 .Alice also constructs the refund transaction
@@ -304,16 +304,55 @@ The introduction of Segwit made transaction IDs immutable, meaning that Alice co
 
 ===== The funding_created message
 
+Now that Alice has constructed the necessary transactions, the channel construction message flow continues. Alice transmits the +funding_created+ message to Bob. In <<funding_created_message>> below you can see the contents of this message:
+
+[[funding_created_message]]
+.The funding_created message
+----
+[32*byte:temporary_channel_id]
+[sha256:funding_txid]
+[u16:funding_output_index]
+[signature:signature]
+----
+
+With this message, Alice gives Bob the important information about the funding transaction that anchors the payment channel:
+
+funding_txid:: This is the transaction ID of the funding transaction, and is used to create the channel ID once the channel is established
+
+funding_output_index:: This is the output index, so Bob knows which output of the transaction (e.g. output 0) is the 2-of-2 multisig output funded by Alice. This is also used to form the channel ID.
+
+Finally, Alice also sends the +signature+ corresponding to Alice's funding_pubkey and used to spend from the 2-of-2 multisig, so that the refund transaction can be signed.
+
 ===== The funding_signed message
+
+After receiving the +funding_created+ message from Alice, Bob now  knows the funding transaction ID and output index. The channel ID is made by a bitwise "exclusive or" (XOR) of the funding transaction ID and output index:
+
+----
+channel_id = funding_txid XOR funding_output_index
+----
+
+Bob will also need to send Alice his signature for the refund transaction, based on Bob's funding_pubkey which formed the 2-of-2 multisig. This will allow Alice to complete the refund transaction with all necessary signatures and be sure her money is refundable in case something goes wrong.
+
+Bob constructs a +funding_signed+ message and sends it to Alice. In <<funding_signed_message>> below, we see the contents of this message:
+
+[[funding_signed_message]]
+.The funding_signed message
+----
+
+[channel_id:channel_id]
+[signature:signature]
+
+----
+
+==== Broadcasting the funding transaction
+
+Upon receiving the +funding_signed+ message from Bob, Alice now has both signatures needed to sign the refund transaction. Her "exit plan" is now secure and therefore she can broadcast the funding transaction without fear of having her funds locked. If anything goes wrong, Alice can simply broadcast the refund transaction and get her money back, without any further help from Bob.
+
+Alice now sends the funding transaction to the Bitcoin network, so that it can be mined into the blockchain. Both Alice and Bob will be watching for this transaction and waiting for +minimum_depth+ confirmations (e.g. 6 confirmations) on the Bitcoin blockchain.
 
 ===== The funding_locked message
 
-
-
-
-
-
-
+As soon as the funding transaction has reached the required number of confirmations, both Alice and Bob send the +funding_locked+ message to each other and the channel can go into normal operation.
 
 
 === Closing the channel
