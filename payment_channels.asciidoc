@@ -259,6 +259,11 @@ image::images/A_B_funding_Tx.png["Alice constructs the funding transaction"]
 
 Alice *does not broadcast* this transaction, because doing so would put her 140,000 satoshi at risk. Once spent to the 2-of-2 multisig, there is no way for Alice to recover her money without Bob's signature.
 
+.Dual-funded payment channels
+****
+In the current implementation of Lightning, channels are funded only by the node initiating the channel (Alice in our example). Dual-funded channels have been proposed, but not yet implemented. In a dual-funded channel, both Alice and Bob would contribute inputs to the funding transaction. Dual-funded channels require a slightly more complicated message flow and cryptographic protocol, so they have not been implemented yet but are planned for a future update to the Lightning BOLTS.
+****
+
 ==== Holding signed transactions without broadcasting
 
 An important Bitcoin feature that makes Lightning possible is the ability to construct and sign transactions, but not broadcast them. The transaction is *valid* in every way, but until it is broadcast and confirmed on the Bitcoin blockchain it does is not recognized and its outputs are not spendable as they have not been create on the blockchain. We will use this capability many times in the Lightning Network and Alice's node uses the capability when constructing the funding transaction: holding it and not broadcasting it yet.
@@ -354,18 +359,36 @@ Alice now sends the funding transaction to the Bitcoin network, so that it can b
 
 As soon as the funding transaction has reached the required number of confirmations, both Alice and Bob send the +funding_locked+ message to each other and the channel can go into normal operation.
 
+=== Sending payments across the channel
 
-=== Closing the channel
+The channel is ready. In its initial state, all the capacity (140,000 satoshis) is on Alice's side, meaning that Alice can send payments to Bob across the channel, but Bob has no funds to send to Alice.
 
-==== The cooperative close transaction
+Let's assume that Alice wants to send 70,000 satoshis to Bob to pay her bill at Bob's coffee shop.
 
-=== Closing message flow
+In the next few sections we will show how payments are made across the payment channel and how the _channel state_ is updated.
 
-==== The shutdown message
+==== Splittng the balance
 
-==== The closing_signed message
+In principle, sending a payment from Alice to Bob is simply a matter of redistributing the balance of the channel. Before the payment is sent, Alice has 140,000 satoshis and Bob has none. After the 70,000 satoshi payment is sent, Alice has 70,000 satoshis and Bob has 70,000 satoshis.
 
-=== Updating the channel state
+Therefore, all Alice and Bob have to do is create and sign a transaction that spends the 2-of-2 multisig to two outputs paying Alice and Bob their corresponding balance. We call this updated transaction a _commitment transaction_. This signed and valid transaction can be used by either channel partner at any time to close the channel by broadcasting the it to the Bitcoin network.
+
+Since they both have this commitment transaction and can use it at any time, they can also just hold it and not broadcast it. It's their guarantee of a fair exit from the channel.
+
+==== Spending the same outputs multiple times
+
+You may be wondering how it is possible for Alice and Bob to spend the 2-of-2 output created by the funding transaction in a new commitment transaction. Isn't this a "double-spend" that the Bitcoin system is meant to prevent?
+
+It is indeed! In fact, we rely on Bitcoin's ability to *prevent* a double spend to make Lightning work. No matter how many commitment transactions Alice and Bob construct and sign, only one of them can actually get confirmed. As long as Alice and Bob hold these transactions and don't broadcast them, the funding output is unspent. But if a commitment transaction is broadcast and confirmed, it will spend the funding output. If Alice or Bob attempt to broadcast more than one commitment transaction, only one of them will be confirmed and the others will be rejected as attempted (and failed) double-spends.
+
+
+
+
+==== Revoking old commitment transactions
+
+You may have spotted a problem with our simple commitment transaction. Alice is still holding the "refund" transaction from when the channel was funded.
+
+==== Updating the channel state
 
 ==== The commitment transaction
 
@@ -384,5 +407,15 @@ As soon as the funding transaction has reached the required number of confirmati
 === Penalty mechanism
 
 ==== The penalty transaction
+
+=== Closing the channel
+
+==== The cooperative close transaction
+
+=== Closing message flow
+
+==== The shutdown message
+
+==== The closing_signed message
 
 === Conclusion
