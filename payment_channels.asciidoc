@@ -278,11 +278,15 @@ In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed b
 
 ==== The refund transaction
 
-Alice will therefore construct the "refund transaction" immediately after constructing (but not broadcasting) the funding transaction. The refund transaction spends the 2-of-2 multisig back to Alice's wallet. In practice, it is a bit more complicated as we will see in subsequent chapters, but for now let's keep things simple and assume it looks like this:
+Alice will therefore construct the "refund transaction" immediately after constructing (but not broadcasting) the funding transaction. The refund transaction spends the 2-of-2 multisig back to Alice's wallet. We call this refund transaction a _commitment transaction_ as it commits both channel partners to distributing the channel balance fairly. Since Alice funded the channel on her own, she gets the entire balance and both Alice and Bob commit to refunding Alice  with this transaction.
+
+In practice, it is a bit more complicated as we will see in subsequent chapters, but for now let's keep things simple and assume it looks like this:
 
 [[A_B_fund_refund_Tx]]
 .Alice also constructs the refund transaction
 image::images/A_B_fund_refund_Tx.png["Alice also constructs the refund transaction"]
+
+Later in this chapter we will see how more commitment transactions can be made to distribute the balance of the channel in different amounts.
 
 ==== Chaining transactions without broadcasting
 
@@ -371,42 +375,134 @@ In the next few sections we will show how payments are made across the payment c
 
 In principle, sending a payment from Alice to Bob is simply a matter of redistributing the balance of the channel. Before the payment is sent, Alice has 140,000 satoshis and Bob has none. After the 70,000 satoshi payment is sent, Alice has 70,000 satoshis and Bob has 70,000 satoshis.
 
-Therefore, all Alice and Bob have to do is create and sign a transaction that spends the 2-of-2 multisig to two outputs paying Alice and Bob their corresponding balance. We call this updated transaction a _commitment transaction_. This signed and valid transaction can be used by either channel partner at any time to close the channel by broadcasting the it to the Bitcoin network.
+Therefore, all Alice and Bob have to do is create and sign a transaction that spends the 2-of-2 multisig to two outputs paying Alice and Bob their corresponding balance. We call this updated transaction a _commitment transaction_.
 
-Since they both have this commitment transaction and can use it at any time, they can also just hold it and not broadcast it. It's their guarantee of a fair exit from the channel.
+In <<competing_commitments_1>> we see several commitment transactions:
 
-==== Spending the same outputs multiple times
+[[competing_commitments_1]]
+.Multiple commitment transactions
+image::images/competing_commitments_1.png[Multiple commitment transactions]
 
-You may be wondering how it is possible for Alice and Bob to spend the 2-of-2 output created by the funding transaction in a new commitment transaction. Isn't this a "double-spend" that the Bitcoin system is meant to prevent?
+The first commitment transaction shown in <<competing_commitments_1>> is the "refund transaction" that Alice constructed before funding the channel. In the diagram, we show this as "Commitment #0". After Alice pays Bob 70,000 satoshis, the new commitment transaction ("Commitment #1") has two outputs paying Alice and Bob their respective balance. We show two more commitment transactions (Commitment #2 and Commitment #3) which represent Alice paying Bob an additional 10,000 satoshis and then 20,000 satoshis respectively.
 
-It is indeed! In fact, we rely on Bitcoin's ability to *prevent* a double spend to make Lightning work. No matter how many commitment transactions Alice and Bob construct and sign, only one of them can actually get confirmed. As long as Alice and Bob hold these transactions and don't broadcast them, the funding output is unspent. But if a commitment transaction is broadcast and confirmed, it will spend the funding output. If Alice or Bob attempt to broadcast more than one commitment transaction, only one of them will be confirmed and the others will be rejected as attempted (and failed) double-spends.
+Each signed and valid commitment transaction can be used by either channel partner at any time to close the channel by broadcasting it to the Bitcoin network. Since they both have the most recent commitment transaction and can use it at any time, they can also just hold it and not broadcast it. It's their guarantee of a fair exit from the channel.
 
+==== Competing commitments
 
+You may be wondering how it is possible for Alice and Bob to have multiple commitment transactions, all of them attempting to spend the same 2-of-2 output from the funding transaction. Aren't these commitment transactions conflicting? Isn't this a "double-spend" that the Bitcoin system is meant to prevent?
 
+It is indeed! In fact, we rely on Bitcoin's ability to *prevent* a double spend to make Lightning work. No matter how many commitment transactions Alice and Bob construct and sign, only one of them can actually get confirmed.
+
+As long as Alice and Bob hold these transactions and don't broadcast them, the funding output is unspent. But if a commitment transaction is broadcast and confirmed, it will spend the funding output. If Alice or Bob attempt to broadcast more than one commitment transaction, only one of them will be confirmed and the others will be rejected as attempted (and failed) double-spends.
+
+If more than one commitment transaction are broadcast, there are many factors that will determine which one gets confirmed first: the amount of fees included, the speed of propagation of these competing transactions, network topology, etc. Essentially it becomes a race without a certain outcome. That doesn't sound very secure.
+
+==== Cheating with old commitment transactions
+
+Let's look more carefully at the commitment transactions in <<competing_commitments_1>>. All four commitment transactions are signed and valid. But only the last one accurately reflects the most recent channel balances. In this particular scenario, Alice has an opportunity to cheat, by broadcasting an older commitment and getting it confirmed on the Bitcoin blockchain. Let's say Alice transmits Commitment #0 and gets it confirmed: she will effectively close the channel and take all 140,000 satoshis herself. In fact, every commitment except for the last one will leave Alice in a better position and allow her to "cancel" the payments reflected in the channel.
+
+In the next section we will see how the Lightning Network resolves this problem - preventing older commitment transactions from being used by the channel partners by a mechanism of revocation and penalties. There are other ways to prevent the transmission of older commitment transactions but they require an upgrade to Bitcoin called _input rebinding_. We discuss this in more detail in <<eltoo>>.
 
 ==== Revoking old commitment transactions
 
-You may have spotted a problem with our simple commitment transaction. Alice is still holding the "refund" transaction from when the channel was funded.
+Bitcoin transactions do not expire and cannot be "cancelled". Neither can they be stopped or censored once they have been broadcast. So how do we "revoke" a transaction that another person holds that has already been signed?
 
-==== Updating the channel state
+The solution used in Lightning is another example of a fairness protocol. Instead of trying to control the ability to broadcast transaction, there is a built-in _penalty mechanism_ that ensures it is not in the best interest of a cheater to transmit an old commitment transaction. They can always broadcast it, but they will most likely lose money if they do so.
 
-==== The commitment transaction
+[TIP]
+====
+The word "revoke" is a misnomer because it implies that older commitments are somehow made invalid and cannot be broadcast and confirmed. But this is not the case, since valid Bitcoin transactions cannot be "revoked". Instead, the Lightning protocol uses a penalty mechanism to punish the channel partner who broadcasts an old commitment.
+====
+
+There are three elements that make up the Lightning protocol's revocation and penalty mechanism:
+
+* Asymmetric commitment transactions - Alice's commitment transactions are slightly different from those held by Bob.
+
+* Delayed spending - The payment to the party holding the commitment transaction is delayed (timelocked), whereas the payment to the other party can be claimed immediately.
+
+* Revokation keys to unlock a penalty option for old commitments.
+
+Let's look at these three elements in turn.
+
+==== Asymmetric commitment transactions
+
+Alice and Bob hold slightly different commitment transactions. Let's look specifically at Commitment #2 from <<competing_commitments_1>>, in more detail:
+
+[[commitment_2]]
+.Commitment Transaction #2
+image::images/commitment_2.png[Commitment Transaction #2]
+
+Alice and Bob hold two different variations of this transaction, as shown in <<asymmetric_1>>:
+
+[[asymmetric_1]]
+.Asymmetric commitment transactions
+image::images/asymmetric_1.png[Asymmetric commitment transactions]
+
+By convention, within the Lightning protocol, we refer to the two channel partners as _self_ (also known as _local_) and _remote_, depending on which side we're looking at. The outputs that pay each channel partner are called _to_local_ and _to_remote_ respectively.
+
+In <<asymmetric_1>> we see that Alice holds a transaction that pays 60,000 satoshis _to_self_ (can be spent by Alice's keys), and 80,000 satoshis _to_remote_ (can be spent by Bob's keys).
+
+Bob holds the mirror-image of that transaction, where the first output is 80,000 satoshis _to_self_ (can be spent by Bob's keys), and 60,000 satoshis _to_remote_ (can be spent by Alice's keys).
+
+==== Delayed (timelocked) spending to_self
+
+The purpose of holding asymmetric transactions is so that the _to_local_ output is always timelocked and can't be spent immediately, whereas the _to_remote_ output is not timelocked and can be spent immediately.
+
+In the commitment transaction held by Alice, for example, the _to_local_ output that pays her is timelocked for 432 blocks, whereas the _to_remote_ output that pays Bob can be spent immediately. Bob's commitment transaction for Commitment #2 is the mirror image: his own (_to_local_) output is timelocked and Alice's _to_remote_ output can be spent immediately.
+
+[[asymmetric_delayed_1]]
+.Asymmetric and delayed commitment transactions
+image::images/asymmetric_delayed_1.png[Asymmetric and delayed commitment transactions]
+
+That means that if Alice closes the channel by broadcasting and confirming the commitment transaction she holds, she cannot spend her balance for 432 blocks, but Bob can claim his balance immediately. If Bob closes the channel using the commitment transaction he holds, he cannot spend his output for 432 blocks while Alice can immediately spend hers.
+
+The delay is there for one reason: to allow the *remote* party to exercise a penalty option if an old (revoked) commitment should be broadcast by the other channel partner. Let's look at the revocation keys and penalty option next.
+
+==== Revocation keys
+
+As we discussed previously, the word "revocation" is a bit misleading because it implies that the "revoked" transaction cannot be used.
+
+In fact, the "revoked" transaction can be used but if it is used, and it has been "revoked", then one of the channel partners can take all of the channel funds by creating a penalty transaction.
+
+The way this works is that the _to_local_ output is not only timelocked, but it has two spending conditions in the script: It can be spent by _self_ after the timelock delay *or* it can be spent by _remote_ immediately with a revocation key for this commitment.
+
+So, in our example, each side holds a commitment transaction that includes a revocation option in the _to_local_ output, as shown in <<asymmetric_delayed_revocable_1>>:
+
+[[asymmetric_delayed_revocable_1]]
+.Asymmetric, delayed and revocable commitments
+image::images/asymmetric_delayed_revocable_1.png[Asymmetric, delayed and revocable commitments]
+
+[[commitment_transaction]]
+=== The commitment transaction
+
+Now that we understand the structure of commitment transactions and why we need asymmetric, delayed, revocable commitments, let's look at the Bitcoin Script that implements this.
+
+The first (_to_local_) output of a commitment transaction is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#to_local-output[BOLT #3 Commitment Transaction - to_local Output], as follows:
+
+----
+OP_IF
+    # Penalty transaction
+    <revocationpubkey>
+OP_ELSE
+    <to_self_delay>
+    OP_CHECKSEQUENCEVERIFY
+    OP_DROP
+    <local_delayedpubkey>
+OP_ENDIF
+OP_CHECKSIG
+----
+
+This is a conditional script (see <<conditional_scripts>>), which means the output can be spent if _either_ of the two conditions is met. The first clause allows the output to be spend by anyone who can sign for +<revocationpubkey>+. The second clause is timelocked by +<to_self_delay>+ blocks and can only be spent after that many blocks by anyone who can sign for +<local_delayedpubkey>+. In our example, we had set the +<to_self_delay>+ timelock to 432 blocks, but this is a configurable delay that is negotiated by the two channel partners. The +to_self_delay+ timelock duration is usually scaled by the channel capacity, meaning that larger capacity channels (more funds), have longer +to_self_delay+ timelocks to protect the parties.
+
+The second output (to_remote) output of the commitment transaction, is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#to_remote-output[BOLT #3 Commitment Transaction - to_remote Output] and in the simplest form is a Pay-to-Witness-Public-Key-Hash (P2WPKH) for +<remote_pubkey>+, meaning that it simply pays the owner who can sign for +<remote_pubkey>+.
+
+Now that we've defined the commitment transactions in detail, let's see how Alice and Bob advance the state of the channel, create and sign new commitment transactions and revoke old commitment transactions.
+
+=== Advancing the channel state
 
 ==== The commitment_signed message
 
-==== Asymmetric commitments
-
-==== Cheating with a prior state
-
-=== Revoking prior state
-
-==== Commitment revocation
-
 ==== The revoke_and_ack message
-
-=== Penalty mechanism
-
-==== The penalty transaction
 
 === Closing the channel
 
