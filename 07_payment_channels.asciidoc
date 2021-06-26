@@ -11,11 +11,11 @@ image::images/LN-protocol-channel-highlight.png["The Lightning Network Protocol 
 
 === A different way of using the Bitcoin system
 
-The Lightning Network is often described as a "Layer 2 Bitcoin Protocol", which makes it sound distinct from Bitcoin. Another way to describe Lightning is as a "different way to use Bitcoin". Let's explore that.
+The Lightning Network is often described as a "Layer 2 Bitcoin Protocol", which makes it sound distinct from Bitcoin. Another way to describe Lightning is as a "smarter way to use Bitcoin" or just as an "Application on top of Bitcoin". Let's explore that.
 
-Normally, Bitcoin transactions are broadcast to everyone and recorded on the Bitcoin blockchain in order to be considered "valid". As we will see however, if someone holds a pre-signed Bitcoin transaction that gives them the exclusive ability to spend that Bitcoin, they effectively own that Bitcoin even if they don't broadcast the transaction.
+Historicly, Bitcoin transactions are broadcast to everyone and recorded on the Bitcoin blockchain in order to be considered "valid". As we will see however, if someone holds a pre-signed Bitcoin transaction that spends a 2-of-2 multisig output that gives them the exclusive ability to spend that Bitcoin, they effectively own that Bitcoin even if they don't broadcast the transaction. 
 
-Effectively, the pre-signed Bitcoin transaction is like a post-dated cheque, that can be "cashed" at anytime. Unlike the traditional banking system however, this transaction is not a "promise" of payment (also known as an IOU), but a verifiable bearer instrument that is equivalent to cash. The Bitcoin system guarantees that this pre-signed transaction can be broadcast and recorded at any time.
+Effectively, the pre-signed Bitcoin transaction is like a post-dated cheque, that can be "cashed" at anytime. Unlike the traditional banking system however, this transaction is not a "promise" of payment (also known as an IOU), but a verifiable bearer instrument that is equivalent to cash. The Bitcoin system guarantees that this pre-signed transaction can be broadcast and recorded at any time. This of course is only true if this is the only pre-signed transaction. Within the Lightning Network two or more such pre-signed transactions exists and we will need a more sophisticated mechanism to still have the functionality of such a verifiable bearer instrument as you will also learn in this chapter.
 
 The Lightning Network is simpy a different and creative way of using Bitcoin. In the Lightning Network a combination of recorded (on-chain) and pre-signed but withheld (off-chain) transactions form a "layer" of payments that is a faster, cheaper and more private way to use Bitcoin. You can see this relationship between on-chain and off-chain Bitcoin transactions in <<on_off_chain>>:
 
@@ -35,14 +35,14 @@ Keep in mind that the term "ownership" as used in Bitcoin is distinct from the t
 
 [TIP]
 ====
-Bitcoin ownership is only about control of keys and the ability to spend the bitoin with those keys. As the popular Bitcoin saying by Andreas Antonopoulos goes: "Your keys, your coins - not your keys, not your coins"
+Bitcoin ownership is only about control of keys and the ability to spend the Bitcoin with those keys. As the popular Bitcoin saying by goes: "Your keys, your coins - not your keys, not your coins"
 ====
 
-==== Diversity of ownership and multisig
+==== Diversity of (independent) ownership and multisig
 
 Ownership and control of private keys is not always in the hands of one person. That's where things get interesting and complicated.
 
-Firstly, more than one person can come to know the same private key, either through theft or because the original holder of the key makes a copy and gives it to someone else. Are all these people owners? In a practical sense they are, because any one of the people who know the private key can spend the bitcoin without the approval of any other.
+Firstly, more than one person can come to know the same private key, either through theft or because the original holder of the key makes a copy and gives it to someone else. Are all these people owners? In a practical sense they are, because any one of the people who know the private key can spend the bitcoin without the approval of any other. They are to be considered independent owners because every single person can spend those coins without the help of the other person.
 
 Secondly, Bitcoin has multisignature addresses where multiple private keys are needed to sign before spending (see <<multisig>>). From a practical perspective, ownership depends on the quorum (K) and total (N) defined in the K-of-N scheme. If one or more people has enough keys to make quorum, then they *all* equally own the bitcoin. For example, a 1-of-10 multisignature scheme would allow any one (K) of 10 (N) signers to spend a bitcoin amount locked in that address. This is similar to the scenario where ten people have a copy of the same private key and any of them can independently spend it.
 
@@ -56,14 +56,14 @@ If one of the two signers of a 2-of-2 multisig cannot or will not sign, the fund
 
 Payment channels in Lightning are based on a 2-of-2 multisig address, with the two channel partners as signers in the multisig. At this time, channels are funded only by one of the two channel partners: When you choose to "open" a channel you deposit funds into the 2-of-2 multisig address with a transaction. Once that transaction is mined and the funds are in the multisig, you can't get them back without cooperation from your channel partner, because you need their signature (also) to spend the 2-of-2.
 
-In the next section, as we look at how to open (create) a Lightning channel, we will see how we can prevent loss of funds or any blackmail scenario between the two partners by implementing a fairness protocol for the channel construction.
+In the next section, as we look at how to open (create) a Lightning channel, we will see how we can prevent loss of funds or any blackmail scenario between the two partners by implementing a fairness protocol for the channel construction with the help of pre-signed transactions that spend the multisig output in a way that gives the peers in the channel exclusive ability to spend one of the outputs which encodes the amount of Bitcoin they own in the channel.
 
 
 === Constructing a payment channel
 
 In <<what_is_payment_channel>, we described payment channels as a _financial relatonship_ between two Lightning Nodes, which is established by funding a 2-of-2 multisignature address from the two channel partners.
 
-Let's assume that Alice's wallet wants to construct a payment channel to connect to Bob's store directly. First, the two nodes (Alice's and Bob's) have to establish an internet connection to each other, so that they can negotiate a payment channel.
+Let's assume that Alice's wallet wants to construct a payment channel to connect to Bob's store directly. First, the two nodes (Alice's and Bob's) have to establish a secure communication channel over the internet to each other, so that they can negotiate a payment channel.
 
 ==== Node private and public keys
 
@@ -105,6 +105,11 @@ So the full identifier for Rene's node would be:
 ----
 03efccf2c383d7bf340da9a3f02e2c23104a0e4fe8ac1a880c8e2dc92fbdacd9df@144.76.235.20:9735
 ----
+
+[TIP]
+====
+The alias of Rene's node is +ln.rene-pickhardt.de+ however this name exists just for better readability every node operator can announce an alias at free will and actually there is no mechnism that prevents node operators to select an alias that is already being in used. Thus in order to refer to a node one must use the +NodeID@Address:Port+ schema.
+====
 
 The identifier above is often encoded in a QR code, making it easier for users to scan, if they want to connect their own node to the specific node identified by that address.
 
