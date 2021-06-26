@@ -154,6 +154,11 @@ The channel establishment involves three parts. First, the two peers communicate
 
 Second, Alice constructs the funding and refund transactions (as we will see later in this section) and sends +funding_created+ to Bob. Bob responds by sending back the necessary signatures with +funding_signed+. This interaction is the basis for the _cryptographic protocol_ to secure the channel and prevent theft. Alice can now broadcast the funding transaction (on-chain), to establish and anchor the payment channel. The transaction will need to be confirmed on the Bitcoin blockchain.
 
+[TIP]
+====
+Pay attention with the name of the +funding_signed+ message which can be a bit confusing. This message does not contain a signature for the funding transaction but it rather containes a signature for the pre-signed transaction that allows Alice to spend the funding transaction and to claim her Bitcoin back from the multisig output that she will create with the funding transaction to open and fund the channel. 
+====
+
 Once the transaction has sufficient confirmations, Alice and Bob exchange a +funding_locked+ messages and the channel enters normal operating mode.
 
 ===== The open_channel message
@@ -188,17 +193,24 @@ The structure of the +open_channel+ message (taken from BOLT#2) is shown in <<op
 
 The fields contained in this message specify the channel parameters that Alice wants as well as various configuration settings from Alice's nodes that reflect the security expectations for the operation of the channel.
 
-Channel construction parameters include:
+Some of the channel construction parameters include:
 
 chain_hash:: This identifies which blockchain (e.g. Bitcoin mainnet) will be used for this channel. It is usually the hash of the genesis block of that blockchain.
 
 funding_satoshis:: The amount Alice will use to fund the channel, which is the total channel capacity.
 
-push_msat:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding.
+push_msat:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding. **Setting this value to anything but 0 means effectivly gifting money to your channel partner and should be down with caution.**
+
+to_self_delay:: A very important security parameter for the protocol. If Alice at any time unilaterally closes the channel against the will of Bob she commits to not accessing her own funds for the delay defined here. The higher this value the more security Bob has but the longer Alice might have to have her funds locked. 
 
 funding_pubkey:: The public key Alice will contribute to the 2-of-2 multisig that anchors this channel.
 
 _basepoint:: Master keys, used to derive child keys for various parts of the commitment, revocation, routed payment (HTLCs) and closing transactions. These will be used and explained in subsequent chapters.
+
+[TIP]
+====
+If you want to understand the other fields of this and comming messages that we do not discuss in this book we suggest to look them up in the BOLT specifications. It might seem tempting to say the other fields might not be too important as we do not discuss them here. That is not true. They would just let the scope of this book explode. We want to enable you to understand the fundamental principles well enough that you can fill in the details by eventually reading the actual protocol specification. 
+====
 
 ===== The accept_channel message
 
@@ -281,7 +293,7 @@ Consider the legal construct of a prenuptual agreement, also known as a "prenup"
 
 In Bitcoin, we can solve a deadlock in a 2-of-2 by having a transaction signed by both signers to spend any funds, before putting those funds into the address.
 
-==== The refund transaction
+==== Constructing the pre-signed refund transaction
 
 Alice will therefore construct the "refund transaction" immediately after constructing (but not broadcasting) the funding transaction. The refund transaction spends the 2-of-2 multisig back to Alice's wallet. We call this refund transaction a _commitment transaction_ as it commits both channel partners to distributing the channel balance fairly. Since Alice funded the channel on her own, she gets the entire balance and both Alice and Bob commit to refunding Alice  with this transaction.
 
@@ -299,7 +311,7 @@ So now, Alice has the two transactions shown in <<A_B_fund_refund_Tx>> construct
 
 The refund transaction is not yet a valid transaction. In order to be a valid transaction two things must happen:
 
-* The funding transaction must be broadcast and confirmed by the Bitcoin blockchain
+* The funding transaction must be broadcast to the Bitcoin Network. (To ensure the security of the Lightning Network we will also require it to be confirmed by the Bitcoin blockchain though this is not strictly necessary to chain transactions.)
 * The refund transaction's input needs Alice and Bob's signature
 
 But even though these two things haven't happened and even though Alice's node hasn't broadcast the funding transaction, she can still construct the refund transaction. She can do so because she can calculate the funding transaction's hash and reference it as an input in the refund transaction.
@@ -315,6 +327,13 @@ Alice has to depend on the transaction ID of the funding transaction being known
 If Bob could modify Alice's funding transaction before it was confirmed and produce a replica that had a different transaction ID, Bob could make Alice's refund transaction invalid and hijack her bitcoin. Alice would be at Bob's mercy to get a signature to release her funds and could easily be blackmailed. Bob couldn't steal the funds, but he could prevent Alice from getting them back.
 
 The introduction of Segwit made transaction IDs immutable, meaning that Alice could be sure that the transaction ID of the funding tranaction would not change. As a result, Alice can be confident that if she gets Bob's signature on the refund transaction she has a way to recover her money. She now has a way to implement the Bitcoin equivalent of a "prenup" before locking her funds into the multisig.
+
+
+
+[TIP]
+====
+You might have wondered how Bob would be able to alter a transaction created by Alice who spend her own Bitcoin to create the funding transaction. Bob certainly does not have Alice's private keys. However ECDSA signatures for a message are not unique. Knowing a signature (which is included to any valid transaction) allows one to produce many different looking signatures that are still valid. As the transaction hash commited to the signature before the segwit upgrade Bob would be able to alter this transaction id. This does not alter the semantics of the funding transaction it just breaks the chaning between the original funding transaction and the refund transaction.
+====
 
 ===== The funding_created message
 
@@ -335,7 +354,12 @@ funding_txid:: This is the transaction ID of the funding transaction, and is use
 
 funding_output_index:: This is the output index, so Bob knows which output of the transaction (e.g. output 0) is the 2-of-2 multisig output funded by Alice. This is also used to form the channel ID.
 
-Finally, Alice also sends the +signature+ corresponding to Alice's funding_pubkey and used to spend from the 2-of-2 multisig, so that the refund transaction can be signed.
+Finally, Alice also sends the +signature+ corresponding to Alice's funding_pubkey and used to spend from the 2-of-2 multisig. This is needed by Bob as he will also need to create his own version of a commitment transaction. That commitment transaction needs a signature from Alice which she provides to him. Note that the Commitment transaction of Alice and Bob look slightly different thus the signatures will be different. Knowing how the commitment transaction of the other party looks like is crucial and part of the protocol to provide the valid signature. 
+
+[TIP]
+====
+In the early days of the Lightning Network implementations had a vulnurability that the peer would not check on the Bitcoin Network if the +funding_txid+ actually existed. This would make the commitment transaction of that peer usless and allow the funder to steel the funds of the channel by just routing them somewhere. While this bug has been fixed we not it here for you to understand that even small subtleties like not making a check can have severe consequences. You can learn more about this on the developer mailinglist at https://lists.linuxfoundation.org/pipermail/lightning-dev/2019-September/002174.html
+====
 
 ===== The funding_signed message
 
@@ -345,7 +369,7 @@ After receiving the +funding_created+ message from Alice, Bob now  knows the fun
 channel_id = funding_txid XOR funding_output_index
 ----
 
-Bob will also need to send Alice his signature for the refund transaction, based on Bob's funding_pubkey which formed the 2-of-2 multisig. This will allow Alice to complete the refund transaction with all necessary signatures and be sure her money is refundable in case something goes wrong.
+Bob will also need to send Alice his signature for the refund transaction, based on Bob's funding_pubkey which formed the 2-of-2 multisig. While Bob already has his local refund transaction this will allow Alice to complete the refund transaction with all necessary signatures and be sure her money is refundable in case something goes wrong.
 
 Bob constructs a +funding_signed+ message and sends it to Alice. In <<funding_signed_message>> below, we see the contents of this message:
 
@@ -363,6 +387,11 @@ Bob constructs a +funding_signed+ message and sends it to Alice. In <<funding_si
 Upon receiving the +funding_signed+ message from Bob, Alice now has both signatures needed to sign the refund transaction. Her "exit plan" is now secure and therefore she can broadcast the funding transaction without fear of having her funds locked. If anything goes wrong, Alice can simply broadcast the refund transaction and get her money back, without any further help from Bob.
 
 Alice now sends the funding transaction to the Bitcoin network, so that it can be mined into the blockchain. Both Alice and Bob will be watching for this transaction and waiting for +minimum_depth+ confirmations (e.g. 6 confirmations) on the Bitcoin blockchain.
+
+[TIP]
+====
+Of course Alice will use the Bitcoin Protocol to verify that the signature that Bob sent her is indeed valid. This step is very crucial. If for some reason Bob was sending wrongful data to Alice her "exit plan" would be sabotaged. 
+====
 
 ===== The funding_locked message
 
