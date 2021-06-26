@@ -591,24 +591,92 @@ Alice decides to take a huge risk and broadcast the revoked Commitment #1, to st
 .Alice cheating
 image::images/cheating_commitment.png[Alice cheating]
 
-As you can see, Alice's old commitment has two outputs, one paying herself 70,000 satoshis (to_local output) and one paying Bob 70,000 satoshis. Unfortunately for Alice, she can't yet spend her 70,000 output because it has a 432 block (3 day) timelock. She is now hoping that Bob doesn't notice for three days.
+As you can see, Alice's old commitment has two outputs, one paying herself 70,000 satoshis (to_local output) and one paying Bob 70,000 satoshis. Alice can't yet spend her 70,000 to_local output because it has a 432 block (3 day) timelock. She is now hoping that Bob doesn't notice for three days.
 
 Unfortunately for Alice, Bob's node is dilligently monitoring the Bitcoin blockchain and sees an old commitment transaction broadcast and (eventually) confirmed on-chain.
 
-Bob's node will immediately broadcast a penalty transaction. Since this old commitment was revoked by Alice, Bob has the +per_commitment_secret+ that Alice sent him. He uses that secret to construct a signature for the +revocation_pubkey+. While Alice has to wait for 432, Bob can spend *both* outputs immediately. He can spend the +to_remote+ output with his private keys, because it was meant to pay him anyway. He can also spend the output meant for Alice with a signature from the revocation key. His node broadcasts the penalty transaction shown in <<penalty_transaction>>, below:
+Bob's node will immediately broadcast a penalty transaction. Since this old commitment was revoked by Alice, Bob has the +per_commitment_secret+ that Alice sent him. He uses that secret to construct a signature for the +revocation_pubkey+. While Alice has to wait for 432 blocks, Bob can spend *both* outputs immediately. He can spend the +to_remote+ output with his private keys, because it was meant to pay him anyway. He can also spend the output meant for Alice with a signature from the revocation key. His node broadcasts the penalty transaction shown in <<penalty_transaction>>, below:
 
 [[penalty_transaction]]
 .Cheating and penalty
 image::images/penalty_transaction.png[Cheating and penalty]
 
-Bob's penalty transaction pays 140,000 satoshis to his own wallet, taking the entire channel capacity. Aice has not only failed to cheat, she has lost everything in the attempt!
+Bob's penalty transaction pays 140,000 satoshis to his own wallet, taking the entire channel capacity. Alice has not only failed to cheat, she has lost everything in the attempt!
 
 === Closing the channel (cooperative close)
 
-==== The cooperative close transaction
+So far we've looked at the commitment transactions as one possible way to close a channel, unilaterally. This type of channel closure is not ideal, since it forces a timelock on the channel partner that uses it.
+
+A better way to close a channel is a cooperative close. In a cooperative close, the two channel partners negotiate a final commitment transaction called the _closing transaction_ that pays each party their balance immediatley to the destination wallet of their choice. Then, the partner that initiated the channel closing flow will broadcast the closing tranaction.
+
+The closing message flow is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#channel-close[BOLT #2 - Peer Protocol - Channel Close] and is shown in <<closing_message_flow>> below:
+
+[[closing_message_flow]]
+.The channel close message flow
+image::images/closing_message_flow.png[The channel close message flow]
 
 ==== The shutdown message
 
+Channel closing starts with one of the two channel partners sending the +shutdown+ message. The contents of this message are shown in <<shutdown_message>> below:
+
+[[shutdown_message]]
+.The shutdown message
+----
+
+[channel_id:channel_id]
+[u16:len]
+[len*byte:scriptpubkey]
+
+----
+
++channel_id+:: The channel identifier for the channel we want to close
++len+:: The length of the script of the destination wallet that this channel partner wants to receive their balance.
++scriptpubkey+:: A Bitcoin script of the destination wallet, in one of the "standard" Bitcoin address formats (P2PKH, P2SH, P2WPKH, P2WSH etc.)
+
+Let's say Alice sends the +shutdown+ message to Bob to close their channel. Alice will specify a Bitcoin script that corresponds to the Bitcoin address of her wallet. She's telling Bob - let's make a closing transactions that pays my balance to this wallet.
+
+Bob will respond with his own +shutdown+ message indicating that he agrees to cooperatively close the channel. His +shutdown+ message includes the script for his wallet address.
+
+Now both Alice and Bob have each other's preferred wallet address, they can construct identical closing transactions to settle the channel balance.
+
 ==== The closing_signed message
 
+Assuming the channel has no outstanind commitments or updates and the channel partners have exchanged the +shutdown+ messages shown in the previous section, they can now finish this cooperative close.
+
+The *funder* of the channel (Alice in our example) starts by sending a +closing_signed+ message to Bob. This message proposes a transaction fee for the on-chain transaction, and Alice's signature (the 2-of-2 mulisig) for the closing transaction. The +closing_signed+ message is shown in <<closing_signed_message>> below:
+
+[[closing_signed_message]]
+.The closing_signed message
+----
+[channel_id:channel_id]
+[u64:fee_satoshis]
+[signature:signature]
+----
+
++channel_id+:: The channel identifier
++fee_satoshis+:: The proposed on-chain transaction fee in satoshis
++signature+:: The sender's signature for the closing transaction
+
+When Bob receives this, he can reply with a +closing_signed+ message of his own. If he agrees with the fee, he simply returns the same proposed fee and his own signature. If he disagrees, he must propose a different +fee_satoshis+ fee.
+
+This negotiation may continue with back-and-forth +closing_signed+ messages until the two channel partners agree on a fee.
+
+Once Alice receives a +closing_signed+ message with the same fee as the one she proposed in her last message, the negotiation is complete. Alice signs and broadcasts the closing transaction and the channel is closed.
+
+==== The cooperative close transaction
+
+The cooperative close transaction looks similar to the last commitment transaction that Alice and Bob had agreed on. However, unlike the last commitment transaction, it does not have timelocks or penalty revocation keys in the outputs. Since both parties cooperate to produce this transaction and they won't be making any further commitments, there is no need for the asymmetric, delayed and revocable elements in this transaction.
+
+Alice broadcasts a transaction shown in <<closing_transaction>> below to close the channel:
+
+[[closing_transaction]]
+.The cooperative close transaction
+image::images/closing_transaction.png[The cooperative close transaction]
+
+As soon as this closing transaction is confirmed on the Bitcoin blockchain, the channel is closed. Now, Alice and Bob can spend their outputs whenever they want.
+
 === Conclusion
+
+In this section we looked at payment channels in much more detail. We examined three message flows used by Alice and Bob to negotiate funding, commitments and closing of the channel. We also showed the structure of the funding, commitment and closing transactions and looked at the revocation and penalty mechanism.
+
+In the next few sections we will discuss routing, HTLCs and their use in channel operations.  
