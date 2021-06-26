@@ -500,15 +500,112 @@ Now that we've defined the commitment transactions in detail, let's see how Alic
 
 === Advancing the channel state
 
+Alice and Bob operate the payment channel by _advancing the channel state_ through a series of commitments. Each commitment updates the balances to reflect payments that have flowed across the channel. Either Alice or Bob can initiate a new commitment to update the channel.
+
+To advance the state of the channel, Alice and Bob exchange two messages: +commitment_signed+ and +revoke_and_ack+. The +commitment_signed+ message can be sent by either channel partner when they have an update to the channel state. The other channel partner then may respond with +revoke_and_ack+ to _revoke_ the old commitment and _acknowledge_ the new commitment.
+
+In <<commitment_message_flow>> we see the Alice and Bob exchanging two pairs of +commitment_signed+ and +revoke_and_ack+. The first flow shows a state update initiated by Alice (left to right +commitment_signed+), which Bob responds (right to left +revoke_and_ack+). The second flow shows a state update initiated by Bob and responded to by Alice.
+
+[[commitment_message_flow]]
+.Commitment and revocation message flow
+image::images/commitment_message_flow.png[Commitment and revocation message flow]
+
 ==== The commitment_signed message
+
+The structure of the +commitment_signed+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#committing-updates-so-far-commitment_signed[BOLT #2 - Peer Protocol - commitment_signed] and shown in <<commitment_signed_message>>, below:
+
+[[commitment_signed_message]]
+.The commitment_signed message
+----
+[channel_id:channel_id]
+[signature:signature]
+[u16:num_htlcs]
+[num_htlcs*signature:htlc_signature]
+----
+
++channel_id+:: is the identifier of the channel
++signature+:: is the signature for the new remote commitment
++num_htlcs+:: is the number of updated HTLCs in this commitment
++htlc_signature+:: are the signatures for the updates
+
+[NOTE]
+====
+The use of HTLCs to commit updates will be explained in detail in <<htlcs>> and <<channel_operation>>
+====
+
+Alice's +commitment_signed+ message gives Bob the signature needed (Alice's part of the 2-of-2) for a new commitment transaction.
 
 ==== The revoke_and_ack message
 
-=== Closing the channel
+Now that Bob has a new commitment transaction, he can revoke the previous commitment by giving Alice a revocation key, and construct the new commitment with Alice's signature.
+
+The +revoke_and_ack+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#completing-the-transition-to-the-updated-state-revoke_and_ack[BOLT #2 - Peer Protocol - revoke_and_ack] and show in <<revoke_and_ack_message>> below:
+
+[[revoke_and_ack_message]]
+.The revoke_and_ack message
+----
+
+[channel_id:channel_id]
+[32*byte:per_commitment_secret]
+[point:next_per_commitment_point]
+
+----
+
++channel_id+:: This is the identifier of the channel
++per_commitment_secret+:: Used to generate a revocation key for the previous (old) commitment, effectively revoking it.
++next_per_commitment_point+:: Used to build a revocation_pubkey for the new commitment, so that it can later be revoked.
+
+==== Revoking and re-committing
+
+Let's look at this interaction between Alice and Bob more closely.
+
+Alice is giving Bob the means to create a new commitment. In return, Bob is revoking the old commitment to assure Alice that he won't use it. Alice can only trust the new commitment if she has the revocation key to punish Bob for publishing the old commitment. From Bob's perspective, he can safely "revoke" the old commitment by giving Alice the keys to penalize him, because he has a signature for a new commitment.
+
+When Bob responds with +revoke_and_ack+, he gives Alice a +per_commitment_secret+. This secret can be used to construct the revocation signing key for the old commitment, which allows Alice to seize all channel funds by exercising a penalty.
+
+As soon as Bob has given this secret to Alice, he *must not* ever broadcast that old commitment. If he does, he will give Alice the opportunity to penalize him by taking the funds. Essentially, Bob is giving Alice the ability to hold him accountable for broadcasting an old commitment and in effect he has "revoked" his ability to use that old commitment.
+
+Once Alice has received the +revoke_and_ack+ from Bob she can be sure that Bob cannot broadcast the old commitment without being penalized. She now has the keys necessary to create a penalty transaction if Bob broadcasts an old commitment.
+
+==== Cheating and penalty in practice
+
+In practice, both Alice and Bob have to monitor for "cheating". They are monitoring the Bitcoin blockchain for any commitment transactions related to any of the channels they are operating. If they see a commitment transaction confirmed on-chain they will check to see if it is the most recent commitment. If it is an "old" commitment, they must immediately construct and briadcast a penalty transaction. The penalty transaction spends *both* the +to_local+ and +to_remote+ outputs, closing the channel and sending both balances to the "cheated" channel partner.
+
+Let's review our channel between Alice and Bob and show a specific example of a penalty transaction. In <<competing_commitments_2>> we see the four commitments on Alice and Bob's channel. Alice has made three payments to Bob:
+
+* 70,000 satoshis paid and committed to Bob with Commitment #1
+* 10,000 satoshis paid and committed to Bob with Commitment #2
+* 20,000 satoshis paid and committed to Bob with Commitment #3
+
+[[competing_commitments_2]]
+.Revoked and current commitments
+image::images/competing_commitments_2.png[Revoked and current commitments]
+
+With each commitment, Alice has revoked the previous (older) commitment. The current state of the channel and the correct balance is represented by Commitment #3. All previous commitments have been revoked and Bob has the keys necessary to issue penalty transactions against them, in case Alice tries to broadcast one of them.
+
+Alice might have an incentive to cheat, because all the previous commitment transactions would give her a higher proportion of the channel balance than she is entitled. Let's say for example that Alice tried to broadcast Commitment #1. That commitment transaction would pay Alice 70,000 satoshis and Bob 70,000 satoshis. If Alice was able to broadcast and spend her to_local output she would effectively be stealing 30,000 satoshis from Bob by rolling back her last two payments to Bob.
+
+Alice decides to take a huge risk and broadcast the revoked Commitment #1, to steal 30,000 satoshis from Bob. In <<cheating_commitment>> we see Alice's old commitment that she broadcasts to the Bitcoin blockchain:
+
+[[cheating_commitment]]
+.Alice cheating
+image::images/cheating_commitment.png[Alice cheating]
+
+As you can see, Alice's old commitment has two outputs, one paying herself 70,000 satoshis (to_local output) and one paying Bob 70,000 satoshis. Unfortunately for Alice, she can't yet spend her 70,000 output because it has a 432 block (3 day) timelock. She is now hoping that Bob doesn't notice for three days.
+
+Unfortunately for Alice, Bob's node is dilligently monitoring the Bitcoin blockchain and sees an old commitment transaction broadcast and (eventually) confirmed on-chain.
+
+Bob's node will immediately broadcast a penalty transaction. Since this old commitment was revoked by Alice, Bob has the +per_commitment_secret+ that Alice sent him. He uses that secret to construct a signature for the +revocation_pubkey+. While Alice has to wait for 432, Bob can spend *both* outputs immediately. He can spend the +to_remote+ output with his private keys, because it was meant to pay him anyway. He can also spend the output meant for Alice with a signature from the revocation key. His node broadcasts the penalty transaction shown in <<penalty_transaction>>, below:
+
+[[penalty_transaction]]
+.Cheating and penalty
+image::images/penalty_transaction.png[Cheating and penalty]
+
+Bob's penalty transaction pays 140,000 satoshis to his own wallet, taking the entire channel capacity. Aice has not only failed to cheat, she has lost everything in the attempt!
+
+=== Closing the channel (cooperative close)
 
 ==== The cooperative close transaction
-
-=== Closing message flow
 
 ==== The shutdown message
 
