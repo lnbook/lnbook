@@ -433,7 +433,7 @@ If more than one commitment transaction are broadcast, there are many factors th
 
 ==== Cheating with old commitment transactions
 
-Let's look more carefully at the commitment transactions in <<competing_commitments_1>>. All four commitment transactions are signed and valid. But only the last one accurately reflects the most recent channel balances. In this particular scenario, Alice has an opportunity to cheat, by broadcasting an older commitment and getting it confirmed on the Bitcoin blockchain. Let's say Alice transmits Commitment #0 and gets it confirmed: she will effectively close the channel and take all 140,000 satoshis herself. In fact, every commitment except for the last one will leave Alice in a better position and allow her to "cancel" the payments reflected in the channel.
+Let's look more carefully at the commitment transactions in <<competing_commitments_1>>. All four commitment transactions are signed and valid. But only the last one accurately reflects the most recent channel balances. In this particular scenario, Alice has an opportunity to cheat, by broadcasting an older commitment and getting it confirmed on the Bitcoin blockchain. Let's say Alice transmits Commitment #0 and gets it confirmed: she will effectively close the channel and take all 140,000 satoshis herself. In fact, in this particular example every commitment except for the last one will leave Alice in a better position and allow her to "cancel" the payments reflected in the channel.
 
 In the next section we will see how the Lightning Network resolves this problem - preventing older commitment transactions from being used by the channel partners by a mechanism of revocation and penalties. There are other ways to prevent the transmission of older commitment transactions but they require an upgrade to Bitcoin called _input rebinding_. We discuss this in more detail in <<eltoo>>.
 
@@ -491,6 +491,11 @@ image::images/asymmetric_delayed_1.png[Asymmetric and delayed commitment transac
 That means that if Alice closes the channel by broadcasting and confirming the commitment transaction she holds, she cannot spend her balance for 432 blocks, but Bob can claim his balance immediately. If Bob closes the channel using the commitment transaction he holds, he cannot spend his output for 432 blocks while Alice can immediately spend hers.
 
 The delay is there for one reason: to allow the *remote* party to exercise a penalty option if an old (revoked) commitment should be broadcast by the other channel partner. Let's look at the revocation keys and penalty option next.
+
+[TIP]
+====
+The duration of the self delay is exchanged and offered Alice and Bob during the negotiation in the opening phase of the payment channel. Remember that the open_channel message and the accept_channel message both had a data field called +to_self_delay+. When Alice offeres to open a channel she suggests a value that she is willing to as her +to_self_delay+ if Bob finds this value resonably long he will reply with the accept_channel message and offering his +to_self_delay+ value. Only if that is also acceptable for Alice they exchange the other messages. Note how Alice and Bob can only indirectly request a certain value from each other by rejecting the suggestion of a certain value and abort the channel opening protocol. 
+====
 
 ==== Revocation keys
 
@@ -713,4 +718,6 @@ As soon as this closing transaction is confirmed on the Bitcoin blockchain, the 
 
 In this section we looked at payment channels in much more detail. We examined three message flows used by Alice and Bob to negotiate funding, commitments and closing of the channel. We also showed the structure of the funding, commitment and closing transactions and looked at the revocation and penalty mechanism.
 
-In the next few sections we will discuss routing, HTLCs and their use in channel operations.  
+In the next few sections we will discuss routing, HTLCs and their use in channel operations to actually conduct payments.
+
+Let us already note that local payments would be possible without HTLCs and the amount of payments that can be conducted in a channel is bascially only bound by the network traffic between Alice and Bob. As long as the channel partners are able to send a few Bytes of data back and forth to exchange the relevant data to agree to a new channel balance they have effectively conducted a payment. It is exactly this trick and obseveration that provides a much larger throughput of payments on the Lighting Network than the transaction throughput that can be handled by the Bitcoin Blockchain on the Bitcoin Network. 
