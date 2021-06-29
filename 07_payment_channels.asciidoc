@@ -13,11 +13,11 @@ image::images/LN-protocol-channel-highlight.png["The Lightning Network Protocol 
 
 The Lightning Network is often described as a "Layer 2 Bitcoin Protocol", which makes it sound distinct from Bitcoin. Another way to describe Lightning is as a "smarter way to use Bitcoin" or just as an "Application on top of Bitcoin". Let's explore that.
 
-Historicly, Bitcoin transactions are broadcast to everyone and recorded on the Bitcoin blockchain in order to be considered "valid". As we will see however, if someone holds a pre-signed Bitcoin transaction that spends a 2-of-2 multisig output that gives them the exclusive ability to spend that Bitcoin, they effectively own that Bitcoin even if they don't broadcast the transaction. 
+Historically, Bitcoin transactions are broadcast to everyone and recorded on the Bitcoin blockchain in order to be considered "valid". As we will see however, if someone holds a pre-signed Bitcoin transaction that spends a 2-of-2 multisig output that gives them the exclusive ability to spend that Bitcoin, they effectively own that Bitcoin even if they don't broadcast the transaction.
 
-Effectively, the pre-signed Bitcoin transaction is like a post-dated cheque, that can be "cashed" at anytime. Unlike the traditional banking system however, this transaction is not a "promise" of payment (also known as an IOU), but a verifiable bearer instrument that is equivalent to cash. The Bitcoin system guarantees that this pre-signed transaction can be broadcast and recorded at any time. This of course is only true if this is the only pre-signed transaction. Within the Lightning Network two or more such pre-signed transactions exists and we will need a more sophisticated mechanism to still have the functionality of such a verifiable bearer instrument as you will also learn in this chapter.
+Effectively, the pre-signed Bitcoin transaction is like a post-dated check (or cheque), that can be "cashed" at anytime. Unlike the traditional banking system however, this transaction is not a "promise" of payment (also known as an IOU), but a verifiable bearer instrument that is equivalent to cash. The Bitcoin system guarantees that this pre-signed transaction can be broadcast and recorded at any time. This of course is only true if this is the only pre-signed transaction. Within the Lightning Network two or more such pre-signed transactions exists and we will need a more sophisticated mechanism to still have the functionality of such a verifiable bearer instrument as you will also learn in this chapter.
 
-The Lightning Network is simpy a different and creative way of using Bitcoin. In the Lightning Network a combination of recorded (on-chain) and pre-signed but withheld (off-chain) transactions form a "layer" of payments that is a faster, cheaper and more private way to use Bitcoin. You can see this relationship between on-chain and off-chain Bitcoin transactions in <<on_off_chain>>:
+The Lightning Network is simply a different and creative way of using Bitcoin. In the Lightning Network a combination of recorded (on-chain) and pre-signed but withheld (off-chain) transactions form a "layer" of payments that is a faster, cheaper and more private way to use Bitcoin. You can see this relationship between on-chain and off-chain Bitcoin transactions in <<on_off_chain>>:
 
 [[on_off_chain]]
 .Lightning payment channel made of on-chain and off-chain transactions
@@ -31,7 +31,7 @@ Before we understand payment channels, we have to take a small step back and und
 
 When someone says they "own" bitcoin they typically mean that they know the private key of a Bitcoin address that has some unspent transaction outputs (see <<bitcoin_fundamentals_review>>). The private key allows them to sign a transaction to spend that bitcoin by transferring it to a different address. In Bitcoin "ownership" of bitcoin can be defined as the _ability to spend_ that bitcoin.
 
-Keep in mind that the term "ownership" as used in Bitcoin is distinct from the term "ownership" used in a legal sense. A thief who has the private keys and can spend Bitcoin is a de-facto "owner" of that Bitcoin even though they are not a lawful owner.
+Keep in mind that the term "ownership" as used in Bitcoin is distinct from the term "ownership" used in a legal sense. A thief who has the private keys and can spend Bitcoin is a _de-facto owner_ of that Bitcoin even though they are not a lawful owner.
 
 [TIP]
 ====
@@ -48,9 +48,9 @@ Bitcoin also has multisignature addresses where multiple private keys are needed
 
 There is also the scenario where *no one* has quorum. In a 2-of-2 scheme like that used in the Lightning Network, each of the signers cannot spend the bitcoin without obtaining a signature from the other party. Who owns the bitcoin in that case? No one really has ownership because no one has control. They each own the equivalent of a voting share in the decision, but both votes are needed. A key problem (pun intended) with a 2-of-2 scheme, in both Bitcoin and the law, is what happens if one of the parties is unavailable, or if there is a vote deadlock and any one party refuses to cooperate.
 
-==== Preventing "locked" and unspendable Bitcoin
+==== Preventing "locked" and un-spendable Bitcoin
 
-If one of the two signers of a 2-of-2 multisig cannot or will not sign, the funds become unspendable. Not only can this scenario occur accidentally (loss of keys), but it can be used as a form of blackmail by either party: "I won't sign unless you pay me a part of the funds".
+If one of the two signers of a 2-of-2 multisig cannot or will not sign, the funds become un-spendable. Not only can this scenario occur accidentally (loss of keys), but it can be used as a form of blackmail by either party: "I won't sign unless you pay me a part of the funds".
 
 Payment channels in Lightning are based on a 2-of-2 multisig address, with the two channel partners as signers in the multisig. At this time, channels are funded only by one of the two channel partners: When you choose to "open" a channel you deposit funds into the 2-of-2 multisig address with a transaction. Once that transaction is mined and the funds are in the multisig, you can't get them back without cooperation from your channel partner, because you need their signature (also) to spend the 2-of-2.
 
@@ -59,7 +59,7 @@ In the next section, as we look at how to open (create) a Lightning channel, we 
 
 === Constructing a payment channel
 
-In <<what_is_payment_channel>, we described payment channels as a _financial relatonship_ between two Lightning Nodes, which is established by funding a 2-of-2 multisignature address from the two channel partners.
+In <<what_is_payment_channel>, we described payment channels as a _financial relationship_ between two Lightning Nodes, which is established by funding a 2-of-2 multisignature address from the two channel partners.
 
 Let's assume that Alice wants to construct a payment channel allowing her to connect to Bob's store directly. First, the two nodes (Alice's and Bob's) have to establish an internet connection to each other, so that they can negotiate a payment channel.
 
@@ -75,7 +75,7 @@ Each node generates a root private key when first initialized. The private key i
 
 ==== Node network address
 
-Additionally, every node also advertizes a network address where it can be reached, in one of several possible formats:
+Additionally, every node also advertises a network address where it can be reached, in one of several possible formats:
 
 TCP/IP:: An IPv4 or IPv6 address and TCP port number
 
@@ -83,7 +83,7 @@ TCP/Tor:: A Tor "onion" address and TCP port number
 
 The network address identifier is written as +Address:Port+, which is consistent with international standards for network identifiers, as used for example on the web.
 
-For example, Rene's node with node public key +03efcc...acd9df+ currently advertizes it's network address as the TCP/IP address:
+For example, Rene's node with node public key +03efcc...acd9df+ currently advertises it's network address as the TCP/IP address:
 
 ----
 144.76.235.20:9735
@@ -106,12 +106,12 @@ So the full identifier for Rene's node would be:
 
 [TIP]
 ====
-The alias of Rene's node is +ln.rene-pickhardt.de+ however this name exists just for better readability every node operator can announce an alias at free will and actually there is no mechnism that prevents node operators to select an alias that is already being in used. Thus in order to refer to a node one must use the +NodeID@Address:Port+ schema.
+The alias of Rene's node is +ln.rene-pickhardt.de+ however this name exists just for better readability every node operator can announce an alias at free will and actually there is no mechanism that prevents node operators to select an alias that is already being in used. Thus in order to refer to a node one must use the +NodeID@Address:Port+ schema.
 ====
 
 The identifier above is often encoded in a QR code, making it easier for users to scan, if they want to connect their own node to the specific node identified by that address.
 
-Much like Bitcoin Nodes, Lightning Nodes advertize their presence on the Lightning Network by "gossiping" their node public key and network address. That way, other nodes can find them and keep an inventory (database) of all the known nodes that they can connect to and exchange the messages that are defined in the Lightning P2P message protocol.
+Much like Bitcoin Nodes, Lightning Nodes advertise their presence on the Lightning Network by "gossiping" their node public key and network address. That way, other nodes can find them and keep an inventory (database) of all the known nodes that they can connect to and exchange the messages that are defined in the Lightning P2P message protocol.
 
 ==== Connecting nodes as direct peers
 
@@ -154,7 +154,7 @@ Second, Alice constructs the funding and refund transactions (as we will see lat
 
 [TIP]
 ====
-Pay attention with the name of the +funding_signed+ message which can be a bit confusing. This message does not contain a signature for the funding transaction but it rather containes a signature for the pre-signed transaction that allows Alice to spend the funding transaction and to claim her Bitcoin back from the multisig output that she will create with the funding transaction to open and fund the channel. 
+The name of the +funding_signed+ message can be a bit confusing. This message does not contain a signature for the funding transaction but it rather contains Bob's signature for the refund transaction that allows Alice to claim her bitcoin back from the multisig.
 ====
 
 Once the transaction has sufficient confirmations, Alice and Bob exchange a +funding_locked+ messages and the channel enters normal operating mode.
@@ -197,9 +197,9 @@ chain_hash:: This identifies which blockchain (e.g. Bitcoin mainnet) will be use
 
 funding_satoshis:: The amount Alice will use to fund the channel, which is the total channel capacity.
 
-push_msat:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding. **Setting this value to anything but 0 means effectivly gifting money to your channel partner and should be down with caution.**
+push_msat:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding. **Setting this value to anything but 0 means effectively gifting money to your channel partner and should be down with caution.**
 
-to_self_delay:: A very important security parameter for the protocol. If Alice at any time unilaterally closes the channel against the will of Bob she commits to not accessing her own funds for the delay defined here. The higher this value the more security Bob has but the longer Alice might have to have her funds locked. 
+to_self_delay:: A very important security parameter for the protocol. If Alice at any time unilaterally closes the channel against the will of Bob she commits to not accessing her own funds for the delay defined here. The higher this value the more security Bob has but the longer Alice might have to have her funds locked.
 
 funding_pubkey:: The public key Alice will contribute to the 2-of-2 multisig that anchors this channel.
 
@@ -207,7 +207,7 @@ _basepoint:: Master keys, used to derive child keys for various parts of the com
 
 [TIP]
 ====
-If you want to understand the other fields of this and comming messages that we do not discuss in this book we suggest to look them up in the BOLT specifications. It might seem tempting to say the other fields might not be too important as we do not discuss them here. That is not true. They would just let the scope of this book explode. We want to enable you to understand the fundamental principles well enough that you can fill in the details by eventually reading the actual protocol specification. 
+If you want to understand the other fields of this and Lightning peer protocol messages that we do not discuss in this book we suggest you look them up in the BOLT specifications. These messages and fields are important, but cannot be covered in enough detail in the scope of this book. We want you to understand the fundamental principles well enough that you can fill in the details by reading the actual protocol specification (BOLTs).
 ====
 
 ===== The accept_channel message
@@ -287,7 +287,7 @@ An important Bitcoin feature that makes Lightning possible is the ability to con
 
 To prevent loss of funds, Alice cannot put her bitcoin into a 2-of-2 until she has a way to get a refund if things go wrong. Essentially, she must plan the "exit" from the channel before she enters into this arrangement.
 
-Consider the legal construct of a prenuptual agreement, also known as a "prenup". When two people enter into a marriage their money is bound together by law (depending on jursidiction). Prior to entering into the marriage, they can sign an agreement that specifies how to separate their assets if they dissolve their marriage through divorce.
+Consider the legal construct of a prenuptial agreement, also known as a "prenup". When two people enter into a marriage their money is bound together by law (depending on jurisdiction). Prior to entering into the marriage, they can sign an agreement that specifies how to separate their assets if they dissolve their marriage through divorce.
 
 We can create a similar agreement in Bitcoin. For example, we can create a refund transaction, which functions like a prenup, allowing the parties decide how the funds in their channel will be divided before their funds are actually locked into the multisignature funding address.
 
@@ -320,17 +320,15 @@ This means that Alice can create a chained transaction by referencing an output 
 
 ==== Solving malleability (Segregated Witness)
 
-Alice has to depend on the transaction ID of the funding transaction being known before confirmation. But before the introduction of  Segregated Witness (a.k.a Segwit) in August 2017, this was not sufficient to protect Alice. Because of the way transactions were constructed with the signatures (witnesses) included in the transaction ID, it was possible for a third party (e.g. Bob) to broadcast an alternative version of a transaction with a malleated (modified) transaction ID. This is known as _Transaction Malleability_ and made it impossible to implement payment channels securely.
+Alice has to depend on the transaction ID of the funding transaction being known before confirmation. But before the introduction of  Segregated Witness (a.k.a SegWit) in August 2017, this was not sufficient to protect Alice. Because of the way transactions were constructed with the signatures (witnesses) included in the transaction ID, it was possible for a third party (e.g. Bob) to broadcast an alternative version of a transaction with a malleated (modified) transaction ID. This is known as _Transaction Malleability_ and made it impossible to implement payment channels securely.
 
 If Bob could modify Alice's funding transaction before it was confirmed and produce a replica that had a different transaction ID, Bob could make Alice's refund transaction invalid and hijack her bitcoin. Alice would be at Bob's mercy to get a signature to release her funds and could easily be blackmailed. Bob couldn't steal the funds, but he could prevent Alice from getting them back.
 
-The introduction of Segwit made transaction IDs immutable, meaning that Alice could be sure that the transaction ID of the funding transaction would not change. As a result, Alice can be confident that if she gets Bob's signature on the refund transaction, she has a way to recover her money. She now has a way to implement the Bitcoin equivalent of a "prenup" before locking her funds into the multisig.
-
-
+The introduction of SegWit made unconfirmed transaction IDs immutable, meaning that Alice could be sure that the transaction ID of the funding transaction would not change. As a result, Alice can be confident that if she gets Bob's signature on the refund transaction, she has a way to recover her money. She now has a way to implement the Bitcoin equivalent of a "prenup" before locking her funds into the multisig.
 
 [TIP]
 ====
-You might have wondered how Bob would be able to alter a transaction created by Alice who spend her own Bitcoin to create the funding transaction. Bob certainly does not have Alice's private keys. However ECDSA signatures for a message are not unique. Knowing a signature (which is included to any valid transaction) allows one to produce many different looking signatures that are still valid. As the transaction hash commited to the signature before the segwit upgrade Bob would be able to alter this transaction id. This does not alter the semantics of the funding transaction it just breaks the chaning between the original funding transaction and the refund transaction.
+You might have wondered how Bob would be able to alter (malleate) a transaction created and signed by Alice. Bob certainly does not have Alice's private keys. However ECDSA signatures for a message are not unique. Knowing a signature (which is included in a valid transaction) allows one to produce many different looking signatures that are still valid. Before SegWit made this impossible, Bob could replace the signature with and equivalent valid signature that produced a different transaction ID, breaking the chain between the funding transaction and the refund transaction.
 ====
 
 ===== The funding_created message
@@ -352,11 +350,13 @@ funding_txid:: This is the transaction ID of the funding transaction, and is use
 
 funding_output_index:: This is the output index, so Bob knows which output of the transaction (e.g. output 0) is the 2-of-2 multisig output funded by Alice. This is also used to form the channel ID.
 
-Finally, Alice also sends the +signature+ corresponding to Alice's funding_pubkey and used to spend from the 2-of-2 multisig. This is needed by Bob as he will also need to create his own version of a commitment transaction. That commitment transaction needs a signature from Alice which she provides to him. Note that the Commitment transaction of Alice and Bob look slightly different thus the signatures will be different. Knowing how the commitment transaction of the other party looks like is crucial and part of the protocol to provide the valid signature. 
+Finally, Alice also sends the +signature+ corresponding to Alice's funding_pubkey and used to spend from the 2-of-2 multisig. This is needed by Bob as he will also need to create his own version of a commitment transaction. That commitment transaction needs a signature from Alice which she provides to him. Note that the Commitment transaction of Alice and Bob look slightly different thus the signatures will be different. Knowing how the commitment transaction of the other party looks like is crucial and part of the protocol to provide the valid signature.
 
-////
-why does alice send this signature alone? why not sign a transaction?
-////
+[TIP]
+====
+In the Lightning protocol we often see nodes sending signatures instead of entire signed transactions. That's because either side can reconstruct the same transaction and therefore only the signature is needed to make it valid. Sending only the signature and not the entire transaction saves a lot of network bandwidth.
+====
+
 
 ===== The funding_signed message
 
@@ -387,7 +387,7 @@ Alice now sends the funding transaction to the Bitcoin network, so that it can b
 
 [TIP]
 ====
-Of course Alice will use the Bitcoin Protocol to verify that the signature that Bob sent her is indeed valid. This step is very crucial. If for some reason Bob was sending wrongful data to Alice her "exit plan" would be sabotaged. 
+Of course Alice will use the Bitcoin Protocol to verify that the signature that Bob sent her is indeed valid. This step is very crucial. If for some reason Bob was sending wrongful data to Alice her "exit plan" would be sabotaged.
 ====
 
 ===== The funding_locked message
@@ -402,7 +402,7 @@ In the next few sections we will show how payments are made across the payment c
 
 Let's assume that Alice wants to send 70,000 satoshis to Bob to pay her bill at Bob's coffee shop.
 
-==== Splittng the balance
+==== Splitting the balance
 
 In principle, sending a payment from Alice to Bob is simply a matter of redistributing the balance of the channel. Before the payment is sent, Alice has 140,000 satoshis and Bob has none. After the 70,000 satoshi payment is sent, Alice has 70,000 satoshis and Bob has 70,000 satoshis.
 
@@ -438,7 +438,7 @@ In the next section we will see how the Lightning Network resolves this problem 
 
 ==== Revoking old commitment transactions
 
-Bitcoin transactions do not expire and cannot be "cancelled". Neither can they be stopped or censored once they have been broadcast. So how do we "revoke" a transaction that another person holds that has already been signed?
+Bitcoin transactions do not expire and cannot be "canceled". Neither can they be stopped or censored once they have been broadcast. So how do we "revoke" a transaction that another person holds that has already been signed?
 
 The solution used in Lightning is another example of a fairness protocol. Instead of trying to control the ability to broadcast transaction, there is a built-in _penalty mechanism_ that ensures it is not in the best interest of a cheater to transmit an old commitment transaction. They can always broadcast it, but they will most likely lose money if they do so.
 
@@ -493,12 +493,9 @@ image::images/asymmetric_delayed_1.png[Asymmetric and delayed commitment transac
 
 That means that if Alice closes the channel by broadcasting and confirming the commitment transaction she holds, she cannot spend her balance for 432 blocks, but Bob can claim his balance immediately. If Bob closes the channel using the commitment transaction he holds, he cannot spend his output for 432 blocks while Alice can immediately spend hers.
 
-The delay is there for one reason: to allow the *remote* party to exercise a penalty option if an old (revoked) commitment should be broadcast by the other channel partner. Let's look at the revocation keys and penalty option next.
+The delay is there for one reason: to allow the *remote* party to exercise a penalty option if an old (revoked) commitment should be broadcast by the other channel partner. Let's look at the revocation keys and penalty option next
 
-[TIP]
-====
-The duration of the self delay is exchanged and offered Alice and Bob during the negotiation in the opening phase of the payment channel. Remember that the open_channel message and the accept_channel message both had a data field called +to_self_delay+. When Alice offeres to open a channel she suggests a value that she is willing to as her +to_self_delay+ if Bob finds this value resonably long he will reply with the accept_channel message and offering his +to_self_delay+ value. Only if that is also acceptable for Alice they exchange the other messages. Note how Alice and Bob can only indirectly request a certain value from each other by rejecting the suggestion of a certain value and abort the channel opening protocol. 
-====
+The delay is negotiated by Alice and Bob, during the initial channel construction message flow, as a field called +to_self_delay+. To ensure the security of the channel, the delay is scaled to the capacity of the channel - meaning a channel with more funds has longer delays in the +to_self+ outputs in commitments. Alice's node includes a desired +to_self_delay+ in the +open_channel+ message. If Bob find this acceptable, his node includes the same value for +to_self_delay+ in the +accept_channel+ message. If they do not agree, then the channel is rejected (see +shutdown+ message).
 
 ==== Revocation keys
 
@@ -633,7 +630,7 @@ image::images/cheating_commitment.png[Alice cheating]
 
 As you can see, Alice's old commitment has two outputs, one paying herself 70,000 satoshis (to_local output) and one paying Bob 70,000 satoshis. Alice can't yet spend her 70,000 to_local output because it has a 432 block (3 day) timelock. She is now hoping that Bob doesn't notice for three days.
 
-Unfortunately for Alice, Bob's node is dilligently monitoring the Bitcoin blockchain and sees an old commitment transaction broadcast and (eventually) confirmed on-chain.
+Unfortunately for Alice, Bob's node is diligently monitoring the Bitcoin blockchain and sees an old commitment transaction broadcast and (eventually) confirmed on-chain.
 
 Bob's node will immediately broadcast a penalty transaction. Since this old commitment was revoked by Alice, Bob has the +per_commitment_secret+ that Alice sent him. He uses that secret to construct a signature for the +revocation_pubkey+. While Alice has to wait for 432 blocks, Bob can spend *both* outputs immediately. He can spend the +to_remote+ output with his private keys, because it was meant to pay him anyway. He can also spend the output meant for Alice with a signature from the revocation key. His node broadcasts the penalty transaction shown in <<penalty_transaction>>, below:
 
@@ -647,7 +644,7 @@ Bob's penalty transaction pays 140,000 satoshis to his own wallet, taking the en
 
 So far we've looked at the commitment transactions as one possible way to close a channel, unilaterally. This type of channel closure is not ideal, since it forces a timelock on the channel partner that uses it.
 
-A better way to close a channel is a cooperative close. In a cooperative close, the two channel partners negotiate a final commitment transaction called the _closing transaction_ that pays each party their balance immediatley to the destination wallet of their choice. Then, the partner that initiated the channel closing flow will broadcast the closing tranaction.
+A better way to close a channel is a cooperative close. In a cooperative close, the two channel partners negotiate a final commitment transaction called the _closing transaction_ that pays each party their balance immediately to the destination wallet of their choice. Then, the partner that initiated the channel closing flow will broadcast the closing transaction.
 
 The closing message flow is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#channel-close[BOLT #2 - Peer Protocol - Channel Close] and is shown in <<closing_message_flow>> below:
 
@@ -719,6 +716,8 @@ As soon as this closing transaction is confirmed on the Bitcoin blockchain, the 
 
 In this section we looked at payment channels in much more detail. We examined three message flows used by Alice and Bob to negotiate funding, commitments and closing of the channel. We also showed the structure of the funding, commitment and closing transactions and looked at the revocation and penalty mechanism.
 
-In the next few sections we will discuss routing, HTLCs and their use in channel operations.
+As we will see in the next few chapters, HTLCs are used even for local payments between channel partners. They are not necessary, but the protocol is much simpler if local (one channel) and routed (many channels) payments are done in the same way.
 
-Let us already note that local payments would be possible without HTLCs and the amount of payments that can be conducted in a channel is bascially only bound by the network traffic between Alice and Bob. As long as the channel partners are able to send a few Bytes of data back and forth to exchange the relevant data to agree to a new channel balance they have effectively conducted a payment. It is exactly this trick and obseveration that provides a much larger throughput of payments on the Lighting Network than the transaction throughput that can be handled by the Bitcoin Blockchain on the Bitcoin Network. 
+In a single payment channel, the number of payments per second is only bound by the network capacity between Alice and Bob. As long as the channel partners are able to send a few bytes of data back and forth to agree to a new channel balance they have effectively made a payment. This is why we can achieve a much greater throughput of payments on the Lighting Network (off-chain) than the transaction throughput that can be handled by the Bitcoin blockchain (on-chain).
+
+In the next few sections we will discuss routing, HTLCs and their use in channel operations.
