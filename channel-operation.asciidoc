@@ -1,6 +1,13 @@
 [[channel_operation]]
 == Channel Operation and Payment Forwarding
 
+In this chapter we will bring together payment channels and HTLCs. As mentioned in <<payment_channels>>, a simple payment over a payment channel uses HTLCs.
+
+Even though it is possible to send payments across a payment channels simply by updating the channel balances and creating new commitment transactions, the Lightning protocol uses HTLCs. The reason for this is to maintain the same protocol design regardless of whether a payment is only one hop (across a single payment channel), or several hops (routed across multiple payment channels).
+
+By maintaining the same abstraction for both local and remote, we not only simplify the protocol design but we also improve privacy. For the recipient of a payment there is no discernible difference between a payment made directly by their channel partner and a payment forwarded by their channel partner on behalf of someone else. 
+
+
 === Forwarding payments with HTLCs
 In previous chapters we have seen that payment channels are maintained by two nodes by keeping two disjoint sequences of commitment transactions.
 The pair of latest commitment transactions in both sequences encodes the current, agreed upon balance in the channel.
