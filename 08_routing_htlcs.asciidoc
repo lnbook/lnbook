@@ -46,7 +46,7 @@ It's important to note that we separate the concept of _routing_ from the concep
 
 Path Finding, which is covered in <<path_finding>> is the process of finding and choosing a contiguous path made of payment channels which connects the sender A to the recipient B. The sender of a payment does the path finding, by examining the _channel graph_ which they have assembled from channel announcements gossiped by other nodes.
 
-Routing refers to the series of interactions across the network that allow a payment to _flow_ from A to B, across the path previously selected by path finding. Routing is the _active_ process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
+Routing refers to the series of interactions across the network that attempt to forward a payment from some point A to another point B, across the path previously selected by path finding. Routing is the active process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
 
 An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
 
@@ -80,7 +80,7 @@ The main challenge is to do this in a way that prevents Bob and Chan from steali
 
 ==== A physical example of "routing"
 
-To understand how the Lightning Network protects the payment while being routed, we can compare to an example of routing physical payments with gold coins in the real world.
+To understand how the Lightning Network protects the payment while being routed, we can compare it to an example of routing physical payments with gold coins in the real world.
 
 Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina. However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help. This is shown in <<alice_dina_routing_1>>.
 
@@ -114,7 +114,7 @@ He has to pay Chan but ultimately gets nothing out of the exchange, and he runs 
 
 Even putting aside the risk, Bob and Chan must _already_ have 10 gold coins to send, otherwise they wouldn't be able to participate in the contract.
 
-Thus Bob and Chan face both risk and opportunity cost for agreeing to this contract, and they would need to be compensated in order for them to accept it.
+Thus Bob and Chan face both risk and opportunity cost for agreeing to this contract, and they would need to be compensated to accept it.
 
 Alice can this make this attractive to both Bob and Chan, by offering them fees of 1 gold coin each, if they transmit her payment to Dina.
 
@@ -122,7 +122,7 @@ The contract would then read:
 
 [[alice_bob_contract_3]]
 ====
-_I Alice will reimburse you Bob with 12 gold coins if you can prove to me (for example via a receipt) that you have delivered 11 golden coins to Chan_
+_I Alice will reimburse you Bob with 12 gold coins if you can prove to me (for example via a receipt) that you have delivered 11 gold coins to Chan_
 ====
 
 Alice now promises Bob 12 gold coins. There are 10 to be delivered to Dina and 2 for the fees. She promises 12 to Bob if he can prove that he has forwarded 11 to Chan.
@@ -133,7 +133,7 @@ The difference of 1 gold coin is the fee that Bob will earn for helping out with
 image::images/gold-coins-network2.png[]
 
 As there is still the issue of trust and the risk that either Alice or Bob won't honor the contract, all parties decide to use an escrow service.
-At the start of the exchange, Alice could "lock up" these 12 golden coins in escrow that will only be paid to Bob once he proves that he's paid 11 golden coins to Chan.
+At the start of the exchange, Alice could "lock up" these 12 gold coins in escrow that will only be paid to Bob once he proves that he's paid 11 gold coins to Chan.
 
 This escrow service is an idealized one, which does not introduce other risks (e.g. counterparty risk). Later we will see how we can replace the escrow with a Bitcoin smart contract. Let's assume for now that everyone trusts this escrow service.
 
@@ -165,7 +165,7 @@ Alice doesn't know the secret but she can rewrite her contract to use the hash o
 ====
 _I Alice will reimburse you Bob with 12 gold coins if you can show me a valid message that hashes to:`+057596...+`.
 You can acquire this message by setting up a similar contract with Chan who has to set up a similar contract with Dina.
-In order to assure you that you will be reimbursed I will provide the 12 gold coins to an trusted escrow before you set up your next contract._
+In order to assure you that you will be reimbursed I will provide the 12 gold coins to a trusted escrow before you set up your next contract._
 ====
 
 This new contract now protects Alice from Bob not forwarding to Chan, protects Bob from not being reimbursed by Alice, and ensures that there will be proof that Dina was ultimately paid via the hash of Dina's secret.
@@ -188,19 +188,19 @@ Once Chan gets the message from the escrow that Bob has deposited the 11 gold co
 
 [[alice_bob_contract_6]]
 ====
-_I Chan will reimburse you Dina with 10 golden coins if you can show me a valid message that hashes to:`+057596...+`.
+_I Chan will reimburse you Dina with 10 gold coins if you can show me a valid message that hashes to:`+057596...+`.
 In order to assure you that you will be reimbursed after revealing the secret I will provide the 10 gold coins to an trusted escrow._
 ====
 
 Everything is now in place.
 Alice has a contract with Bob and has placed 12 gold coins in escrow.
-Bob has a contract with Chan and has placed 11 gold coins in escrow
+Bob has a contract with Chan and has placed 11 gold coins in escrow.
 Chan has a contract with Dina and has placed 10 gold coins in escrow.
 It is now up to Dina to reveal the secret, which is the pre-image to the hash she has established as proof of payment.
 
 Dina now sends +"Dinas secret"+ to Chan.
 
-Chan checks that +"Dinas secret" hashes to +057596...+. Chan now has proof of payment and so instructs the escrow service to release the 10 golden coins to Dina.
+Chan checks that +"Dinas secret" hashes to +057596...+. Chan now has proof of payment and so instructs the escrow service to release the 10 gold coins to Dina.
 
 Chan now provides the secret to Bob. Bob checks it and instructs the escrow service to release the 11 gold coins to Chan.
 
@@ -232,7 +232,7 @@ If Bob does not provide the secret by this time, Alice's deposit will be refunde
 ====
 
 Bob, of course, now has to make sure he receives the proof of payment within 24 hours.
-Even if he successfully pays Chan, if he receives the proof of payment later than 24 hours he will not be reimbursed. To remove that risk, Bob must give Chan and even shorter deadline.
+Even if he successfully pays Chan, if he receives the proof of payment later than 24 hours he will not be reimbursed. To remove that risk, Bob must give Chan an even shorter deadline.
 
 In turn, Bob will alter his contract with Chan in the following way:
 
@@ -247,7 +247,7 @@ As you might have guessed, Chan will also alter his contract with Dina:
 [[alice_bob_contract_9]]
 ====
 _Dina has 20 hours to show the secret after the contract was signed.
-If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
+If she does not provide the secret by this time, Chan's deposit will be refunded by the escrow service and the contract becomes invalid._
 ====
 
 With such a chain of contracts we can ensure that, after 24 hours, the payment will successfully go from Alice to Bob to Chan to Dina, or it will fail and everyone will be refunded.
@@ -259,7 +259,7 @@ As long as the escrow is trustworthy and faithfully performs its duty, then no p
 
 The pre-condition to this _route_ working at all, is that all parties in the path have enough money to satisfy the required series of deposits.
 
-While this seems like a minor detail we will see in later this chapter that this requirement is actually one of the more difficult issues for Lightning Network nodes.
+While this seems like a minor detail we will see later in this chapter that this requirement is actually one of the more difficult issues for Lightning Network nodes.
 It becomes progressively more difficult as the size of the payment increases.
 Furthermore, the parties cannot use their money while it is locked in escrow.
 
@@ -435,7 +435,7 @@ Alice will now extend the HTLC across the network so that it reaches Dina.
 .Propagating the HTLC across the network
 image::images/alice-dina-htlc-1.png["Propagating the HTLC across the network"]
 
-In <<alice_dina_htlc_1>> we see te HTLC propagated across the network from Alice to Dina. Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
+In <<alice_dina_htlc_1>> we see the HTLC propagated across the network from Alice to Dina. Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
 
 Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC. This is a really important point, because it ensures end-to-end _atomicity_ of the HTLC. To spend the HTLC, one needs to reveal the secret, which then makes it possible for others to spend their HTLC also. Either all the HTLCs are spendable, or none of the HTLCs are spendable: atomicity!
 
@@ -606,7 +606,7 @@ To implement this refund in Bitcoin Script, we use a special operator +OP_CHECKL
 ...
 ----
 
-The +OP_CLTV+ operator takes an expiry time defined as the block height after which this transaction is valid. If the tranaction timelock is not set the same as +<cltv_expiry>+, the evaluation of the script fails and the transaction is invalid. Otherwise, the script continues without any output to the stack. Remember, the +VERIFY+ suffix means this operator does not output +TRUE+ or +FALSE+, but instead either halts/fails, or continus without stack output.
+The +OP_CLTV+ operator takes an expiry time defined as the block height after which this transaction is valid. If the transaction timelock is not set the same as +<cltv_expiry>+, the evaluation of the script fails and the transaction is invalid. Otherwise, the script continues without any output to the stack. Remember, the +VERIFY+ suffix means this operator does not output +TRUE+ or +FALSE+, but instead either halts/fails, or continus without stack output.
 
 Essentially, the +OP_CLTV+ acts as a "gatekeeper" preventing the script from proceeding any further if the <cltv_expiry> block height has not been reached on the Bitcoin blockchain.
 
@@ -616,7 +616,7 @@ Finally, once the stack has been cleaned up, there should be a public key and si
 
 ==== Decrementing time-locks
 
-As the HTLCs are extended from Alice to Dina, the time-lock refund clause in each HTLC has a _different_ cltv_expiry value. We will see this in more detail as we talk about <<onion_routing>>. But suffice it to say that to ensure an orderly unwinding of a payment that fails, each hop needs to wait a bit less for their refund. The different between time-locks for each hop is called the cltv_expiry_delta and is set by each node and advertized to the network as we will see in <<gossip>>.
+As the HTLCs are extended from Alice to Dina, the time-lock refund clause in each HTLC has a _different_ cltv_expiry value. We will see this in more detail as we talk about <<onion_routing>>. But suffice it to say that to ensure an orderly unwinding of a payment that fails, each hop needs to wait a bit less for their refund. The difference between time-locks for each hop is called the cltv_expiry_delta and is set by each node and advertized to the network as we will see in <<gossip>>.
 
 For example, Alice sets the refund time-lock on the first HTLC to a block height of current+500 blocks ("current" being the current block height). Bob would then set the time-lock cltv_expiry on the HTLC to Chan to current+450 blocks. Chan would set the time-lock to current+400 blocks from the current block height. This way, Chan can get a refund on the HTLC he offered to Dina _before_ Bob gets a refund on the HTLC he offered to Chan. Bob can get a refund of the HTLC he offered to Chan before Alice can get a refund for the HTLC she offered to Bob. The decrementing time-lock prevents race conditions and ensures the HTLC chain is unwound backwards, from the destination towards the origin.
 
