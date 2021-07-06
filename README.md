@@ -38,7 +38,7 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :mag: |
 | [Payment Channels in Detail](07_payment_channels.asciidoc) | ################# | :mag: |
 | [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :mag: |
-| [Channel operation and HTLC settlement](channel-operation.asciidoc) | ####### | :mag: |
+| [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :mag: |
 | [Onion Construction and Routing](onions.asciidoc) | # | :lock_with_ink_pen: |
 | [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
 | [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
