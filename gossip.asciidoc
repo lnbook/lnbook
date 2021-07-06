@@ -644,68 +644,388 @@ channel graph) has the following attributes:
 ##### Channel Announcement Validation
 
 Now that we know what a `channel_announcement` contains. We can now move onto
-to exactly _how_ to verify such an announcement.
+to exactly _how_ to verify such an announcement. Verifying a channel
+announcement entails verifying that:
 
+ 1. The `chain_hash` specified by the channel announcement belongs to a known,
+ and supported blockchain.
+
+ 2. An _unspent_ UTXO exists in the chain as identified by the short channel
+ ID.
+
+ 3. The unspent UTXO has a p2wsh multi-sig script that is composed of
+ `bitcoin_key_1`, and `bitcoin_key_2`, ordered in lexicographic order.
+
+ 4. The signatures of `node_signature_1`, `node_signature_2`,
+ `bitcoin_signature_1`, and `bitcoin_signature_2` are valid signatures under
+ the corresponding public keys over the defined message digest.  The message
+ digest is the serialization of the raw message bytes after the final
+ signature. More on this in the chapter that covers wire message framing.
+
+The channel announcement is a core component of the Lighting Network channel
+graph, as it itself is an unauthenticated proofs of the existence of a channel.
+As verification of channel announcement ensures that the output is _unspent_ in
+order to add a new edge (a channel) to the public channel graph an upfront
+chain fee must be paid. In addition to this by verifying the signatures of both
+the bitcoin and node signatures, we ensure that the parties advertising the
+channel are able to update the underlying multi-sig of the channel, and also
+are aware of each other (all pubkeys are signed).
+
+A channel announcement is made available to the public network only for the set
+of _public_ channels that wish to be used for forwarding/routing payments. Only
+a single instance of a channel announcement exists for a given channel. The
+channel announcement describes the "base" of a channel on the network (it's
+total capacity, location, participants, etc), but not the _shape_ of the
+channel. A prospective sender needs to know bout the shape and the shape in
+order to route through a channel. 
+
+In our terminology, the "base" of a channel is fixed and cannot be changed
+(only by spending the output which closes the channel). On the other hand, the
+"shape" of the channel can be changed simply by updating the information that
+advertise _how_ to route through the channel. When we say "how" , we refer to
+what fees to use, the largest payment accepted, etc. As the channels are
+bi-directional, that routing policy (how one should route through the channel)
+needs to be defined in both directions. We call this routing policy the
+`channel_update`, which both sides each being able to indecently update the
+routing policy for "their end" of the channel.
 
 #### Channel Update: Structure & Validation
 
+Now that we've covered the message that advertises the base (the unchangeable
+attributes that anchor a channel to the main chain) of a channel, we'll cover
+the advertisement that governs the "shape" of the channel, or its routing
+policy. The routing policy for a given channel announcement is referred to as
+the `channel_update` for the channel.
 
-// TODO(roasbeef): rename to "the structure of the channel graph"?
+Similar to the `channel_announcement`, then `channel_update` is authenticated
+via a digital signature, to ensure that only the party that actually _owns_ the
+channel is able to update the routing policy for said channel. This prevents
+other parties from spoofing "fake" channel updates. Unlike
+`channel_announcement`s which are created, then set it stone, a
+`channel_update` can be updated at any time by either end of a channel. As
+we'll see below, nodes in the network employ spam prevention and throttling
+heretics to ensure the update traffic doesn't overwhelm the network
+
+With the basics, covered, we'll now explore the precise structure of the
+`channel_update` and how each of the encoded fields are used by senders to
+route through a channel, and also how a forward ng node can "classify" its
+channel to tend towards certain types of traffic based on its selection of the
+`channel_update` parameters.
+
+##### Anatomy of a Channel Update
+
+The channel update is the lifeblood of the core of the routing network.
+Advertising a new `channel_update` allows routing nodes to modify their fees,
+the status of their channel, security parameters, and other critical routing
+information.
+
+First, we'll enumerate each field, and provide a brief description. In a later
+section, we'll examine the fields that dictate a channel's directional routing
+policy in more detail.
+
+  * `signature`: A valid ECDSA signature over the `channel_update` message
+    digest signed by the node that's advertising this update.
+
+  * `chain_hash`: A 32-byte hash that denotes the chain that this channel is
+    anchored in. This is typically the genesis hash of the chain.
+
+  * `short_channel_id`: The 64-bit short channel ID that identifies which
+    channel in the Channel Graph is being updated.
+
+  * `timestamp`: A 32-bit time stamp typically interpreted as a unix epoch
+   timestamp which allows an update to create a relative sequencing of their
+   channel updates. An update with a higher timestamp is more recent than one
+   with a lower one.
+
+  * `message_flags`: A bitfield that's used to denotes the presence of optional
+   fields.
+
+  * `cltv_expiry_delta`: A forwarding related security parameter for the
+   channel. This value denotes the minimum gap (or delta) between the incoming
+   and outgoing HTLCs that are to be routed thorough this channel.
+
+  * `htlc_minimum_msat`: A value that denotes the smallest HTLC that's
+   permitted to be routed through this channel. This is expressed in
+   milli-satoshis.
+
+  * `fee_base_msat`: The _base_ fee that must be paid for all payments routed
+   through this node regardless of payment size. This is expressed in
+   milli-satoshis.
+
+  * `fee_proportional_millionths`: The _proportional_fee to be paid in
+   millionths of milli-satoshi. This is the denominator to be used in _fixed
+   point_ arithmetic when computing the _rate_ that needs to be paid when
+   routing through a channel.
+
+  * `htlc_maximum_msat`: The largest HTLC that is permitted to be routed
+   through this channel. This is expressed in milli-satoshis.
+
+Now that we know all the fields of the `channel_update` message, we'll describe
+at a high level how verification of a channel update is to be carried out. Most
+importantly, the `signature` MUST be valid, and the `timestamp` MUST always be
+increasing in order to invalidate prior updates.
+
+##### Channel & Message Flags
+
+As mentioned earlier, there're two `channel_update` messages for each direction
+of the channel. Therefore, we need to be able to identify which direction of
+the channel is being updated. If we have two nodes Alice, and Bob, then there
+may exist a channel update in the direction of Alice -> Bob, as well as for Bob
+-> Alice. In the first case, we require Alice to be the one that signs the
+update (as she will be carrying the HTLC), and in the second case, we require
+that Bob is the one that signs the update.
+
+Thankfully, we can use a single bit to denote which direction is sending out
+the update. Recall that in the `channel_announcement` message, we sort the node
+public keys of both nodes lexicographically and refer to the "first" node as
+`node_1`, and the second as `node_2`. We then carry this over to the
+`channel_update` message within the `channel_flags` field. The field itself is
+a bit field, with the LSB denoting the "direction" of the channel update. If
+the bit is set, then this update belongs to `node_1`, otherwise to `node_2`.
+
+##### Routing Policy Control in Channel Updates
+
+The main purpose of the `channel_update` message is to allow nodes to be able
+to update their routing policy on the network. As conditions change, nodes may
+want to update aspects of their routing policy that dictate what can route
+through their channels, and how the HTLC that arrive at their channels should
+look like in order to be forwarded along.
+
+First, routing fees. In the LN, routing fees are the difference between the
+outgoing and incoming HTLCs of a forwarded payment. By sending out less than
+they receive, routing nodes are able to profit by earning a fees for their help
+to route the HTLC through the network. All HTLCs in the LN are expressed in
+`msat` or milli-satoshis instead of satoshis or Bitcoin. We use `msat`, as it
+allows us to charge fees for 1 sat payments. The routing fees has two
+component, `fee_base_msat` and `fee_proportional_millionths`. In order to
+calculate how much a payment of `N msat` should pay to route through a channel,
+we use the following equation:
+```
+fee = fee_base_msat + (N * fee_proportional_millionths) / 1,000,000
+```
+
+This may look a bit strange at first, but all we're doing in the latter half of
+the equation is computing the rate to be paid. Rather than floating point
+arithmetic, we use fixed point arithmetic with 1 million as our base. This lets
+us express very small amounts of fees to be paid in the `mast` unit. Let's say
+we use a value of `100,000` for `fee_proportional_millionths`, this is
+equivalent to a `10%` fee as `100,000/1,000,000 = 0.10` or `10%.
+
+Another important security related parameter for a channel is the
+`cltv_expiry_delta` field. This controls the delta between the incoming and
+outgoing HTLCs that the routing node dictates. We refer to this as a security
+parameter, as it's the of blocks between the expiry of the outgoing HTLC and
+the incoming HTLC. After the outgoing HTLC expires, the routing node has
+`cltv_expiry_delta` blocks to fully resolve it (sweep on timeout) before the
+incoming time-lock expires. If the routing node cannot resolve the outgoing
+HTLC within `cltv_expiry_delta` blocks, then a _race condition_ arises. This
+race condition can result in a loss of funds, as after this period, _both_ the
+outgoing and incoming time locks have expired. If the party that extended the
+incoming HTLC sweeps it on chain with the timeout clause and the party that
+accepted the outgoing HTLC redeems it with a pre-image, then the forwarding
+nodes has lots funds as it only sent funds out and didn't receive any in.
+
+The remaining fields will govern the availability of the channel, as well as
+the amount of HTLCs that can be routed through the channel. The `channel_flags`
+field is a bitfield that allows the owner of a `channel_update` to _disable_
+the channel in a particular direction. This allows a node to disable routing
+through the channel, but still permits it to use the channel for its own
+payments. If the second LSB bit is `1`, then the channel is disabled, otherwise
+it's enabled.
+
+Next, we have the `htlc_minimum_msat` and `htlc_maximum_msat` fields. As their
+name entails, this allows a node operator to restrict the _size_ of HTLCs that
+are permitted to be routed through the channel. Setting these values can
+recreate a sort of "routing profile" for the channel. As an example, if we set
+our `htlc_minimum_msat` to a very high value, then we signal that this channel
+isn't to be used to route micropayments. If we set our `htlc_maximum_msat` to a
+very low value, then we signal the converse, instead that this channel is only
+to be used for micropayments.
 
 ## Syncing the Channel Graph
 
+So far we've covered the _structure_ of the channel graph, its security
+properties, and various uses within the system. In this section, we'll cover
+the exact protocol that's used in order to synchronize the channel graph of a
+new node starting at zero. Recall the `short_channel_id` that's used to
+deterministically _locate_ a channel in the underlying block chain. Notice that
+as we move forward in the chain, then the absolute number of the 64-bit
+representation of the `short_channel_id` increases. Using this fact, if we
+start at a low blockheight say 1000, we can then use a lower bound (0 in this
+case) to "seek" through the channel graph. We'll update our min and max block
+height cursors in order to request all the `short_channel_id`s that exist in
+that range. Once we receive that, we can then ask a  node for the precise
+`channel_announcement`, `channel_update`, and `node_announcement` that allows
+us to insert that edge (and the vertexes) into our local channel graph.
 
+The protocol we just described above at a high level is used to allows nodes to
+sync all the known (active) channels within the Channel Graph from a particular
+block range onwards. Within the protocol itself, we use two pairs of messages
+to accomplish this sync: `query_channel_range` + `reply_channel_range`, and
+`query_short_channel_ids` + `reply_short_channel_ids_end`. 
 
-* introduce the NodeAnnouncement (purpose structure validation)
-  * go thru fields, ref ability to use Tor, etc
-  * ref feature bits at high level, say will be covered in later chapter
-  * node announcement validation
-  * acceptance critera
+Syncing is carried out in two phases, first `query_channel_range` is used to
+ask a node of all the short channel IDs it knows of between two block ranges.
+The responding peer then sends the set of known channel IDs in the
+`reply_channel_range` message. Once the syncing peer has the latest set of
+channel IDs for that block range, it uses `query_short_channel_ids` to query
+for the Channel Graph announcement messages related to that short channel ID.
+This process is repeated until a node arrives at the current height, after
+which it knows it has all the channel graph fragments known by the responding
+node.
 
+< insert flow diagram here>
 
-### Channel Announcement
+With the syncing protocol described, we'll now describe the structure of the
+messages in detail.
+
+First, the `query_channel_range` message:
+
+  * `chain_hash` : The genesis hash of the chain we're querying for channels
+    within.
+
+  * `first_block_num`: The first block in the range we're interested in short
+    channel IDs of.
+
+  * `number_of_blocks`: The number of blocks after `first_block_num` that the
+    query should encompass. This is the end point of our query.
+
+  * `query_channel_range_tlvs: A series of optional TLV fields that are used to
+    extend the query protocol.
+
+Upon receipt of this message, the receiver will compute the starting height
+`start_height = first_block_num`, and the ending height `end_height =
+start_height + number_of_blocks` and use that to query its local database to
+obtain a series of channel IDs whose funding transaction was created within
+that block range. After querying its local database for the set of relevant
+`short_channel_id`s, the responder then send the `reply_channel_range` message
+which has the following structure:
+
+  * `chain_hash`: The genesis hash of the chain that short channel IDs are
+    being returned for.
+
+  * `first_blocknum`: The first block number in the range of replies.
+
+  * `number_of_blocks`: The number of blocks after the frist block number that
+    channel IDs are being returned for.
+
+  * `full_information`: A byte that denotes if the sending node has all
+    information about this block range or not. For example, light clients may
+    not have full information.
+
+  * `len`:The number of bytes that's used to encode the `encoded_short_ids`.
+
+  * `encoded_short_ids`: The set of encoded short channel IDs.
+
+  * `reply_channel_range_tlvs`: A set of optional TLV records that are used to
+    extend the query protocol.
+
+In order to cut down on round trips to sync the full channel graph, and also to
+reduce the bandwidth expended somewhat, the protocol support optionally
+_compressing_ the set of returned channel IDs. The first bytes of the
+`encoded_short_ids` field denotes what type of encoding is used. The following
+encoded types are supported, with the protocol being extensible enough to allow
+other types to be added later:
+
+  * `0`: a set of uncompressed short channel IDs, in _ascending_ order
+
+  * `1`: a set of compressed short channel IDs, in ascending order, compressed
+   with zlib deflate
+  
+
+Next we move onto the query phase (which follows the "scan" phase). At this
+point the syncing node will examine its local channel graph to see if there're
+any items that it's missing. In other words it wants to compute the set
+difference between the set of channel IDs it received and what it knows in its
+local database. Any short channel IDs that it doesn't know of will be queried
+for in the next step.
+
+In order to query for short channel IDs, the syncing node will use the, the
+`query_short_channel_ids` message:
+
+  * `chain_hash`: The chain hash that denotes the genesis hash of the chain
+    we're querying for channels within.
+
+  * `len`: The number of bytes in the remaining payload.
+
+  * `encoded_short_channel_ids`: The set of encoded short channel IDs.
+
+  * `query_short_channel_ids_tlvs`: A set of optional TLV fields that are used
+    to extend the query system.
+
+Similar to the prior message in structure, this allows the syncing node toe
+request that the responding node send over the full information of the
+referenced short channel IDs, as they're missing from its local database.
+
+Upon receiving this message, the responding node should send over all
+`channel_announcement`, `channel_update`, and `node_announcement` messages (in
+that order) that are related to the reference short channel IDs. Note that the
+responding node can de-duplicate the `node_announcement` messages sent over in
+order to reduce redundant bandwidth usage.
+
+The `reply_short_channel_ids_end` message is sent once the responding node has
+sent over all the requested information:
+
+  * `chain_hash`: The chain hash that denotes the genesis hash of the chain
+    we're querying for channels within.
+
+  * `full_information`: A byte that denotes if the sending node has all
+    information about this block range or not. For example, light clients may
+    not have full information.
+
+Once this message is received, the syncing node will now increment its cursor,
+and start the scan phase again, until either it has all the channels it wants,
+or arrives at the current end of the main chain.
+
+At this point, our new node is able to sync the historical portion of the
+channel graph, and validate it entirely. At this point, we now enter the
+passive sync phase, rather than sync the new entries based on block height, we
+can opt to instead receive the set of updates as they stream in in real-time. 
 
 ## Ongoing Channel Graph Maintenance
 
-### Gossip Protocols in the Abstract
+At this pint, we're able to sync the channel graph based on the block heights
+that each of the channels were mined in. Once we have the full channel graph,
+we're able to use it to make decision w.r.t which channels to open, or for path
+finding to send payments. As mentioned earlier, the `channel_update` is a key
+component of the system as it allows routing nodes to update their routing
+policies due to changes in the market, chain conditions, or simply their own
+preference.
 
-* what is a gossip protocol?
-* why are they used?
-* what other famous uses of gossip protocols are out there?
-* when does it make sense to use a gossip protocol?
-* what are some use a gossip protocol?
-* why does LN uise
-* questions to ask for gossip rptocol
-  * what is being gossiped
-  * what is the expected delay bound?
-  * how is DoS prevented
+Once we're fully send the graph, we can now being to receive any new node
+announcements, channel announcements, or channel updates via the _gossip
+network_. By gossip network we simply mean a set of peers that rumor updates to
+the Channel Graph, in order to _eventually_ propagate their updates to the
+entire network. 
 
-## Gossip in LN
+It's important to note that peers on the network _won't_ immediately being to
+send out updates to the channel graph sent to them by other peers. Instead, a
+peer will only being to send out _real time updates_ once a special message has
+been sent, the `gossip_timestamp_filter` message. This allows the sender to
+communicate to the receiver that they wish to receive all updates to the
+channel graph that have a `timestamp` field (remember the `channel_update`
+message uses this field to sequence updates), greater than a specified value.
 
-### Channel Announcements
+The `gossip_timestamp_filter` message has the following structure:
 
-### Purpose
-### Structure
-### Validation
+  * `chain_hash`: The genesis hash of the chain they wish to receive updates
+   from.
 
-### Channel Updates
+  * `first_timestamp`: The timestamp after which, they want to receive Channel
+    Graph updates for.
 
-### Purpose
-### Structure
-### Validation
+  * `timestamp_range`: The number of seconds after `first_timestamp` they want
+    to receive updates for.
 
-### Node Announcements
+If a peer sends a `gossip_timestamp_filter` with a `first_timestamp` set to the
+current unix epoch time, they they're requesting that they receive all Channel
+Graph updates sequenced after that period of time. Note that if they set a
+timestmap in the _past_ , then the receiver should send all updates from that
+point onward, immediately after receiving the message.
 
-### Purpose
-### Structure
-### Validation
+This message can also be used to _disable_ receiving gossip messages from a
+peer all together, by setting an initial timestamp very far in the future.
+Peers on the network may use this to only sync from certain peers, or
+periodically rotate our syncing peers.
 
-* anser the three quesitons above
 
-* what: node info, chan info, channel updates
-
-* delay: 2 week liveness assumption, otherwise pruned, keep alive updates
-
-* DoS: real channel, proper validation of sigs, etc
-
-# Conlusion
