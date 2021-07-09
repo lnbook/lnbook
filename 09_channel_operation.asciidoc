@@ -1,15 +1,24 @@
 [[channel_operation]]
 == Channel Operation and Payment Forwarding
 
-In this chapter we will bring together payment channels and HTLCs. As mentioned in <<payment_channels>>, a simple payment over a payment channel uses HTLCs.
+In this chapter we will bring together payment channels and Hash Time-Locked Contracts (HTLCs). In <<payment_channels>> we explained the way Alice and Bob construct a payment channel between their two nodes. We also looked at the commitment and penalty mechanisms that secure the payment channel. In <<routing>> we looked at Hash Time-Locked Contracts (HTLCs) and how these can be used to route a payment across a path made of multiple payment channels. In this chapter we bring the two concepts together by looking at how HTLCs are managed on each payment channel, how the HTLCs are committed to the channel state and how they are settled to update the channel balances.
 
-Even though it is possible to send payments across a payment channels simply by updating the channel balances and creating new commitment transactions, the Lightning protocol uses HTLCs even for "local" payments across a payment channel. The reason for this is to maintain the same protocol design regardless of whether a payment is only one hop (across a single payment channel), or several hops (routed across multiple payment channels).
+Specifically, we will be discussing "Adding, Settling, Failing HTLCs" and the "Channel State Machine" that form the overlap between the Peer 2 Peer layer and the Routing layer, as highlighted by a double outline in <<LN_protocol_channelops_highlight>>:
+
+[[LN_protocol_channelops_highlight]]
+.The Lightning Network Protocol Suite
+image::images/LN_protocol_channelops_highlight.png["The Lightning Network Protocol Suite"]
+
+
+=== Local (single channel) vs Routed (multiple channels)
+
+Even though it is possible to send payments across a payment channel simply by updating the channel balances and creating new commitment transactions, the Lightning protocol uses HTLCs even for "local" payments across a payment channel. The reason for this is to maintain the same protocol design regardless of whether a payment is only one hop (across a single payment channel), or several hops (routed across multiple payment channels).
 
 By maintaining the same abstraction for both local and remote, we not only simplify the protocol design but we also improve privacy. For the recipient of a payment there is no discernible difference between a payment made directly by their channel partner and a payment forwarded by their channel partner on behalf of someone else.
 
 === Forwarding payments and updating commitments with HTLCs
 
-We will revisit our example from <<routing>>, to demonstrate how the HTLC from Alice to Dina gets committed to each payment channel. As you recall in our example, Alice is paying Dina 50,000 satoshis, by routing an HTLC via Bob and Chan. The network is shown in <<alice_dina_htlc_2>> below:
+We will revisit our example from <<routing>>, to demonstrate how the HTLCs from Alice to Dina gets committed to each payment channel. As you recall in our example, Alice is paying Dina 50,000 satoshis, by routing an HTLC via Bob and Chan. The network is shown in <<alice_dina_htlc_2>> below:
 
 [[alice_dina_htlc_2]]
 .Alice pays Dina with an HTLC routed via Bob and Chan
