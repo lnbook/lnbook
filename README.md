@@ -36,11 +36,11 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
 | [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :mag: |
-| [Payment Channels in Detail](07_payment_channels.asciidoc) | ############### | :mag: |
+| [Payment Channels in Detail](07_payment_channels.asciidoc) | ################# | :mag: |
 | [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :mag: |
-| [Channel operation with HTLCs and Statemachine](channel-operation.asciidoc) | ###### | :lock_with_ink_pen: |
-| [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
+| [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :mag: |
 | [Onion Construction and Routing](onions.asciidoc) | # | :lock_with_ink_pen: |
+| [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
 | [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
 | [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
@@ -52,7 +52,7 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 103616
+Total Word Count: 112999
 
 Target Word Count: 100,000-120,000
 
