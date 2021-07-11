@@ -93,25 +93,25 @@ We've already seen the basic structure of an HTLC in <<routing>>. The complete s
 [[offered_htlc_output_script]]
 .Offered HTLC output script:
 ----
-# To remote node with revocation key
+# Revocation
 OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
 OP_IF
     OP_CHECKSIG
 OP_ELSE
     <remote_HTLCpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
     OP_IF
-        # To local node via HTLC-success transaction.
+        # Redemption
         OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
         2 OP_SWAP <local_HTLCpubkey> 2 OP_CHECKMULTISIG
     OP_ELSE
-        # To remote node after timeout.
+        # Refund
         OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
         OP_CHECKSIG
     OP_ENDIF
 OP_ENDIF
 ----
 
-There are three conditions to claim this output. In the order they appear in the script, these are:
+There are three ways to claim this output. Try to read the script and see if you can figure it out (remember, it is a stack-based language so things appear "backwards"). In the order they appear in the script, these are:
 
 revocation:: The first clause of the OP_IF conditional is redeemable by Alice with a revocation key. If this commitment is later revoked, Alice will have a revocation key to claim this output in a penalty transaction, taking the whole channel balance.
 
@@ -146,7 +146,7 @@ The fields +num_htlcs+ and +htlc_signature+ now make more sense:
 
 +num_htlcs+:: This is the number of HTLCs that are outstanding in the commitment transaction. In our example, just one HTLC, the one Alice offered.
 
-+htlc_signature+:: This is an array of signatures (+num_htlcs+ in length), containing signature for the HTLC outputs.
++htlc_signature+:: This is an array of signatures (+num_htlcs+ in length), containing signatures for the HTLC outputs.
 
 Alice can send these signatures without hesitation: she can always get a refund if the HTLC expires without being routed to Dina.
 
