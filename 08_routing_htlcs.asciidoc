@@ -14,7 +14,7 @@ In this section we will examine routing from the perspective of Dina, a gamer wh
 The innovation of routed payment channels allows Dina to receive tips without maintaining a separate channel with every one of her fans who want to tip her.
 As long as there exists a path of well-funded channels from that viewer to Dina, she will be able to receive payment from that fan.
 
-In <<dina_routing_diagram>> we see a possible network layout created by various payment channels between Lightning nodes. Everyone in this diagram can send Dina a payment via the other nodes by constructing a path. For example "Fan 4" can route a payment to Dina via Fan 3, Bob, and Chan. Similarly, Alice can route a payment to Dina via Bob and Chan.
+In <<dina_routing_diagram>> we see a possible network layout created by various payment channels between Lightning nodes. Everyone in this diagram can send Dina a payment by constructing a path. Imagine "Fan 4" wants to send Dina a payment, do you see the path that could allow that to happen? Fan 4 could route a payment to Dina via Fan 3, Bob, and Chan. Similarly, Alice could route a payment to Dina via Bob and Chan.
 
 [[dina_routing_diagram]]
 .Fans connected indirectly to Dina on the Lightning Network
@@ -32,13 +32,7 @@ This enables fans to use intermediary nodes to pay Dina, without leaking private
 
 This process of connecting a series of payment channels with end-to-end security, and the incentive structure for nodes to _forward_ payments, is one of the key innovations of the Lightning Network.
 
-In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in-which payments flow through the network.
-
-First, we will clarify the concept of "routing" and compare it to that of "path finding", as these are often confused and used interchangeably.
-
-Next, we will construct the fairness protocol: An atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between 4 people.
-
-Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
+In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in-which payments flow through the network. First, we will clarify the concept of "routing" and compare it to that of "path finding", as these are often confused and used interchangeably. Next, we will construct the fairness protocol: An atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between 4 people. Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
 
 === Routing vs. Path Finding
 
@@ -48,24 +42,16 @@ Path Finding, which is covered in <<path_finding>> is the process of finding and
 
 Routing refers to the series of interactions across the network that attempt to forward a payment from some point A to another point B, across the path previously selected by path finding. Routing is the active process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
 
-An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob, yet there may not be an active _route_ on which to send the payment.
-
-One example is the scenario where all the nodes connecting Alice and Bob are currently off-line.
-
-In theory, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
+An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob (perhaps even more than one), yet there may not be an active _route_ on which to send the payment. One example is the scenario where all the nodes connecting Alice and Bob are currently off-line. In this example, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
 
 === Creating a network of payment channels
 
 Before we dive into the concept of an atomic trustless multihop payment, let's work through an example.
-Let us return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
-Alice now watches a live stream from Dina the gamer, and wants to send her a tip via the Lightning Network.
-However, Alice has no direct channel with Dina.
-Alice could open a direct channel, however that would require liquidity and on-chain fees which could be more than the value of the tip itself.
+Let's return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
+Now Alice is watching a live stream from Dina, the gamer, and wants to send Dina a tip of 50,000 satoshis via the Lightning Network. But Alice has no direct channel with Dina. What can Alice do?
 
-Instead, Alice can use her existing open channels to send a tip to Dina _without_ the need to open a channel directly with Dina.
-
-This is possible, as long as there exists some path of channels from Alice to Dina with sufficient capacity to route the tip.
-
+Alice could open a direct channel with Dina, however that would require liquidity and on-chain fees which could be more than the value of the tip itself. Instead, Alice can use her existing open channels to send a tip to Dina _without_ the need to open a channel directly with Dina. This is possible, as long as there exists some path of channels from Alice to Dina with sufficient capacity to route the tip.
+ 
 As you can see in <<routing_network>>, Alice has an open channel with Bob, the coffee shop owner. Bob, in turn, has an open channel with the software developer Chan who helps him with the point of sale system he uses in his coffee shop. Chan is also the owner of a large software company which develops the game that Dina plays, and they already have an open channel which Dina uses to pay for the game's license and in-game items.
 
 [[routing_network]]
@@ -74,7 +60,7 @@ image::images/routing-network.png["A network of payment channels between Alice a
 
 It's possible to trace a _path_ from Alice to Dina that uses Bob and Chan as intermediary routing nodes.
 Alice can then craft a _route_ from this outlined path, and use it to send a tip of a few thousand satoshis to Dina, with the payment being _forwarded_ by Bob and Chan.
-Essentially, Alice will pay Bob, who will pay Chan, who will pay Dina. And no direct channel from Alice to Dina is required.
+Essentially, Alice will pay Bob, who will pay Chan, who will pay Dina. No direct channel from Alice to Dina is required.
 
 The main challenge is to do this in a way that prevents Bob and Chan from stealing the money that Alice wants delivered to Dina.
 
@@ -275,7 +261,7 @@ In our gold coin example, we needed an "escrow" service in order to prevent any 
 
 The properties of the fairness protocol we want to create are:
 
-Trsutless Operation:: The participants in a routed payment do not need to trust each other, or any intermediary or third party. Instead, they trust the protocol to protect them from cheating.
+Trustless Operation:: The participants in a routed payment do not need to trust each other, or any intermediary or third party. Instead, they trust the protocol to protect them from cheating.
 
 Atomicity:: The payment is fully executed, or it fails and everyone is refunded. There is no possibility of an intermediary collecting a routed payment and not forwarding it to the next hop. Thus, the intermediaries can't cheat or steal.
 
@@ -622,9 +608,9 @@ For example, Alice sets the refund time-lock on the first HTLC to a block height
 
 === Conclusion
 
-In this chapter we saw how Alice can pay Dina even though she doesn't have a direct payment channel. Alice can find a path that connects her to Dina and route a payment across several payment channels so that it reaches Dina.
+In this chapter we saw how Alice can pay Dina even if she doesn't have a direct payment channel. Alice can find a path that connects her to Dina and route a payment across several payment channels so that it reaches Dina.
 
-To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, Alice needs to implement a fairness protocol in cooperation with all the intermediary nodes in the path. The fairness protocol is currently implemented as a _Hash Time-Locked Contract (HTLC)_, which commits funds to a payment hash derived from a secret payment pre-image.
+To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, Alice must implement a fairness protocol in cooperation with all the intermediary nodes in the path. The fairness protocol is currently implemented as a _Hash Time-Locked Contract (HTLC)_, which commits funds to a payment hash derived from a secret payment pre-image.
 
 Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment pre-image. Once an HTLC reaches Dina, she reveals the pre-image which flows backwards resolving all the HTLCs offered.
 
