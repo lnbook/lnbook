@@ -199,7 +199,7 @@ funding_satoshis:: The amount Alice will use to fund the channel, which is the t
 
 push_msat:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding. **Setting this value to anything but 0 means effectively gifting money to your channel partner and should be used with caution.**
 
-to_self_delay:: A very important security parameter for the protocol. If Alice at any time unilaterally closes the channel against the will of Bob she commits to not accessing her own funds for the delay defined here. The higher this value the more security Bob has but the longer Alice might have to have her funds locked.
+to_self_delay:: A very important security parameter for the protocol. The value in the `open_channel` message is used in the responder's commitment transaction, and the `accept_channel` the initiator's. This asymmetry exists to allow each side to express how long the other side needs to wait to unilaterally claim the funds in a commitment transaction. If Bob at any time unilaterally closes the channel against the will of Alice he commits to not accessing his own funds for the delay defined here. The higher this value the more security Alice has but the longer Bob might have to have his funds locked.
 
 funding_pubkey:: The public key Alice will contribute to the 2-of-2 multisig that anchors this channel.
 
