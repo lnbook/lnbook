@@ -715,6 +715,8 @@ Once Alice receives a +closing_signed+ message with the same fee as the one she 
 
 The cooperative close transaction looks similar to the last commitment transaction that Alice and Bob had agreed on. However, unlike the last commitment transaction, it does not have timelocks or penalty revocation keys in the outputs. Since both parties cooperate to produce this transaction and they won't be making any further commitments, there is no need for the asymmetric, delayed and revocable elements in this transaction.
 
+Typically the addresses used in this cooperative close transaction are generated freshly for each channel being closed. However, it's also possible for both sides to _lock in_ a "delivery" address to be used to send their cooperatively settled funds to. Within the TLV namespace of both the `open_channel` and `accept_channel` messages, both sides are free to specify an "upfront shutdown script". Commonly, this address is derived from keys that reside in cold storage. This practice serves to increase the securtiy of channels, as if a party is somehow hacked, then they hacker isn't able to cooperatively close the channel to an address they confirm. Instead, the non-hacked honest party will refuse to execute a cooperative channel closure if the specified upfront shutdown address isn't used. This feature effectively creates a "closed loop", restricting the flow of funds out of a given channel.
+
 Alice broadcasts a transaction shown in <<closing_transaction>> below to close the channel:
 
 [[closing_transaction]]
