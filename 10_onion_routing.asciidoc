@@ -104,7 +104,13 @@ Now that we know the terminology used in Lightning Onion Routing, let's restate 
 
 ==== Alice selects the path
 
-As we will see in <<gossip>>, Alice is able to construct a path to Dina because Lightning nodes announce their channels to the entire Lightning Network using the _Lightning Gossip Protocol_. After the initial channel announcement, Bob and Chan each sent out an additional "channel update" message with their routing fee and timelock expectations for payment routing.
+From <<routing>> we know that Alice will send a 50,000 satoshi payment to Dina via Bob and Chan. This payment is transmitted via a series of HTLCs, as shown in <<alice_dina_htlc_path>>, below:
+
+[[alice_dina_htlc_path]]
+.Payment path with HTLCs from Alice to Dina
+image::images/alice-dina-htlc.png[Payment path with HTLCs from Alice to Dina]
+
+As we see in <<gossip>>, Alice is able to construct this path to Dina because Lightning nodes announce their channels to the entire Lightning Network using the _Lightning Gossip Protocol_. After the initial channel announcement, Bob and Chan each sent out an additional "channel update" message with their routing fee and timelock expectations for payment routing.
 
 From the announcements and updates, Alice knows the following information about the channels between Bob, Chan and Dina:
 
@@ -114,7 +120,7 @@ From the announcements and updates, Alice knows the following information about 
 
 * A +fee_base_msat+ and +fee_proportional_millionths+ which Alice can use to calculate the total routing fee expected by that node for relay on that channel.
 
-This information is used by Alice to construct the following detailed path, shown in <<alice_dina_path_detail>>:
+This information is used by Alice to identify the nodes, channels, fees, and timelocks for the following detailed path, shown in <<alice_dina_path_detail>>:
 
 [[alice_dina_path_detail]]
 .A detailed path constructed from gossiped channel and node information
@@ -161,21 +167,128 @@ image::images/dina_onion_payload.png[Dina's payload is constructed by Alice]
 
 ==== Hop payload for Chan
 
-Next, Alice will construct the hop payload for Chan. This will tell Chan how to construct an outgoing HTLC to Dina.
+Next, Alice constructs the hop payload for Chan. This will tell Chan how to setup an outgoing HTLC to Dina.
 
-The hop payload for Chan includes three fields: +short_channel_id+, +amt_to_forward+ and +outgoing_cltv_value+.
-
-Recall from Chan's channel update, that Alice has the following information about the Chan-to-Dina channel:
+The hop payload for Chan includes three fields: +short_channel_id+, +amt_to_forward+ and +outgoing_cltv_value+:
 
 ----
-short_channel_id:  010002010a42be
-cltv_expiry_delta: 20 blocks
-fee:  100 satoshis
+short_channel_id: 010002010a42be
+amt_to_forward: 50,000,000
+outgoing_cltv_value: 700,018
 ----
 
-[NOTE]
+Alice serializes this payload in TLV format, as shown (simplified) in <<chan_onion_payload>> below:
+
+[[chan_onion_payload]]
+.Chan's payload is constructed by Alice
+image::images/chan_onion_payload.png[Chan's payload is constructed by Alice]
+
+==== Hop payload for Bob
+
+Finally, Alice constructs the hop payload for Bob, which also contains the same three fields as the hop payload for Chan, but with different values:
+
+----
+short_channel_id: 000004040a61f0
+amt_to_forward: 50,100,000
+outgoing_cltv_value: 700,038
+----
+
+As you can see, the +amt_to_forward+ field is 50,100,000 milli-satoshis, or 50,100 satoshis. That's because Chan expects a fee of 100 satoshis to route a payment to Dina. In order for Chan to "earn" that routing fee, Chan's incoming HTLC must be 100 satoshis more than Chan's outgoing HTLC. Since Chan's incoming HTLC is Bob's outgoing HTLC, the instructions to Bob reflect the fee Chan earns. In simple terms, Bob needs to be told to send 50,100 satoshi to Chan, so that Chan can send 50,000 satoshi and keep 100 satoshi.
+
+Similarly, Chan expects a timelock delta of 20 blocks. SO Chan's incoming HTLC must expire 20 blocks *later* than Chan's outgoing HTLC. To achieve this, Alice tells Bob to make his outgoing HTLC to Chan expire at block height 700,038 - 20 blocks later than Chan's HTLC to Dina.
+
+[TIP]
 ====
-Chan's channel update contains two fee components: fee_base_msat (fixed fee) and fee_proportional_millionths (proportional to payment amount). For simplicity, we assume the total calculated fee is 100 satoshis.
+Fees and timelock delta expectations for a channel are set by the difference between incoming and outgoing HTLCs. Since the incoming HTLC is created by the _preceding node_, the fee and timelock delta is set in the onion payload to that preceding node. Bob is told how to make an HTLC that meets Chan's fee and timelock expectations.
 ====
 
-Alice must now consider how to construct the _outgoing HTLC_ from Chan to Dina. But Alice must also consider how Chan's expectations affect Chan's _incoming HTLC_, which is Bob's _outgoing HTLC_. Chan expects to earn 100 satoshis in routing fees. That will be the difference in amounts between Chan's incoming HTLC and Chan's outgoing HTLC. Chan must send 50,000 satoshis to Dina, but he must receive 50,100 satoshis from Bob to satisfy his fee expectations.
+Alice serializes this payload in TLV format, as shown (simplified) in <<bob_onion_payload>> below:
+
+[[bob_onion_payload]]
+.Bob's payload is constructed by Alice
+image::images/bob_onion_payload.png[Bob's payload is constructed by Alice]
+
+==== Finished hop payloads
+
+Alice has now built the three hop payloads that will be wrapped in an onion. A simplified view of the payloads is shown in <<onion_hop_payloads>>, below:
+
+[[onion_hop_payloads]]
+.Hop payloads for all the hops
+image::images/onion_hop_payloads.png[Hop payloads for all the hops]
+
+==== Key generation
+
+Alice must now generate several keys that will be used to encrypt the various layers in the onion.
+
+Remember the goals of onion routing, that Alice can achieve with these keys:
+
+* Alice can encrypt each layer of the onion so that only the intended recipient can read it.
+* Every intermediary can check that the message is not modified.
+* No one in the path will know who sent this onion or where it is going. Alice doesn't reveal her identity as the sender or Dina's identity as the recipient of the payment.
+* Each hop only learns about the previous and next hop.
+* No one can know how long the path is, or where  in the path they are.
+
+
+[WARNING]
+====
+Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read BOLT #4 if you want to learn more.
+====
+
+To avoid revealing her identity, Alice does not use her own node's public key in building the onion. Instead, Alice creates a temporary 32-byte (256-bit) key called the _session key_. This serves as a temporary "identity" *for this onion only*. From this session key, Alice will build all the other keys that will be used in this onion.
+
+In addition, Alice generates several ephemeral keys and shared secret keys for each hop. Finally, Alice also generates keys to produce a random sequence that will be used as "filler" to pad the onion and obfuscate its length.
+
+The key generation, random byte generation, ephemeral keys and how they are used in packet construction are specified in three sections of BOLT #4:
+
+* https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#key-generation[Key Generation]
+* https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#pseudo-random-byte-stream[Random Byte Stream]
+* https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[Packet Construction]
+
+For simplicity and to avoid getting too technical, we have not included these details in the book. See the links above if you want to see the inner workings.
+
+One important detail that seems almost magical is the ability for Alice to create a _shared secret_ with another node simply by knowing their public keys. This is based on the invention of Diffie-Hellman key exchange (DH) in the 1970s that revolutionized cryptography. Lightning Onion Routing uses Elliptic Curve Diffie-Hellman (ECDH) on Bitcoin's +secp256k1+ curve. It's such a cool trick that we try to explain it in simple terms in <<ecdh_explained>>
+
+
+// To editor: Maybe put this in an appendix instead of a sidebar?
+
+.Elliptic Curve Diffie-Hellman (ECDH) explained
+****
+Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, they multiply each private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
+
++A = aG+
+
++B = bG+
+
+Now Alice and Bob can create a shared secret +ss+, a value that they can both calculate independently without exchanging any information, such that
+
++ss = aB = bA+
+
+Follow along, as we demonstrate the math that proves this is possible:
+
+ss
+
+= aB, calculated by Alice who knows +a+ and +B+
+
+= a(bG), because we know B = bG
+
+= (ab)G, because of associativity
+
+= (ba)G, because the curve is an abelian group
+
+= b(aG), because of associativity
+
+= bA, can be calculated by Bob who knows +b+ and +A+
+
+We have therefore shown that
+
+ss = aB = bA
+
+Alice can multiple her private key with Bob's public key to calculate +ss+
+
+Bob can multiply his private key with Alice's public key to calculate +ss+
+
+Thus, they will both get the same result which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
+
+****
+
+==== Wrapping the onion layers
