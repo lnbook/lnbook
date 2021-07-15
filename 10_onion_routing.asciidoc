@@ -228,16 +228,35 @@ Remember the goals of onion routing, that Alice can achieve with these keys:
 * Each hop only learns about the previous and next hop.
 * No one can know how long the path is, or where  in the path they are.
 
-
 [WARNING]
 ====
 Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read BOLT #4 if you want to learn more.
 ====
 
-To avoid revealing her identity, Alice does not use her own node's public key in building the onion. Instead, Alice creates a temporary 32-byte (256-bit) key called the _session key_. This serves as a temporary "identity" *for this onion only*. From this session key, Alice will build all the other keys that will be used in this onion.
 
-In addition, Alice generates several ephemeral keys and shared secret keys for each hop. Finally, Alice also generates keys to produce a random sequence that will be used as "filler" to pad the onion and obfuscate its length.
+The basis for all the keys used in the onion, is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie-Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named rho, mu, um and pad:
 
+rho:: Used to obfuscate the per-hop data between Alice and Bob.
+
+mu:: Used in the Hash-Based Message Authentication Code (HMAC) for integrity/authenticity verification.
+
+um:: Used in error reporting.
+
+pad:: Used to generate filler bytes for padding the onion to a fixed length.
+
+The relationship between the various keys and how they are generated is shown in the diagram <<onion_keygen>>, below:
+
+[[onion_keygen]]
+.Onion Key Generation
+image::images/onion_keygen.png[Onion Key Generation]
+
+[[session_key]]
+==== Alice's session key
+
+To avoid revealing her identity, Alice does not use her own node's public key in building the onion. Instead, Alice creates a temporary 32-byte (256-bit) key called the _session private key_ and corresponding _session public key_. This serves as a temporary "identity" and key *for this onion only*. From this session key, Alice will build all the other keys that will be used in this onion.
+
+[[keygen_details]]
+==== Key generation details
 The key generation, random byte generation, ephemeral keys and how they are used in packet construction are specified in three sections of BOLT #4:
 
 * https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#key-generation[Key Generation]
@@ -246,11 +265,15 @@ The key generation, random byte generation, ephemeral keys and how they are used
 
 For simplicity and to avoid getting too technical, we have not included these details in the book. See the links above if you want to see the inner workings.
 
+[[shared_secret]]
+==== Shared secret generation
+
 One important detail that seems almost magical is the ability for Alice to create a _shared secret_ with another node simply by knowing their public keys. This is based on the invention of Diffie-Hellman key exchange (DH) in the 1970s that revolutionized cryptography. Lightning Onion Routing uses Elliptic Curve Diffie-Hellman (ECDH) on Bitcoin's +secp256k1+ curve. It's such a cool trick that we try to explain it in simple terms in <<ecdh_explained>>
 
 
 // To editor: Maybe put this in an appendix instead of a sidebar?
 
+[[ecdh]]
 .Elliptic Curve Diffie-Hellman (ECDH) explained
 ****
 Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, they multiply each private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
@@ -291,4 +314,67 @@ Thus, they will both get the same result which they can use as a shared key to s
 
 ****
 
+[[fixed_length_onions]]
+==== Fixed-length Onions
+
+We've mentioned the fact that none of the "hop" nodes know how long the path is, or where they are in the path. How is this possible?
+
+If you have a set of directions, even if encrypted, can't you tell how far you are from the beginning or end simply by looking at *where* in the list of directions you are?
+
+The "trick" used in onion routing is to always make the path (the list of directions), the same length for every node. This is achieved by keeping the onion packet the same length at every step. As each layer is peeled, it is replaced with filler data (essentially junk) and the next hop gets an onion of the same size.
+
+The onion size is 1366 bytes made of:
+
+* 1 byte: A version byte
+* 33 bytes: A compression public session key (<<session_key>>) from which the per-hop shared secret (<<shared_secret>>) can be generated without revealing Alice's identity
+* 1300 bytes: The actual _onion payload_ containing the instructions for each hop
+* 32 bytes: An HMAC integrity checksum
+
+[[wrapping_the_onion]]
 ==== Wrapping the onion layers
+
+The process of wrapping the onion is detailed in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4 - Onion Routing - Packet Construction].
+
+In this section we will describe this process at a high-level and somewhat simplified - omitting certain details.
+
+For each hop Alice essentially repeats the same process for each hop:
+
+1. Alice generates the per-hop shared secret and the rho, mu, and pad keys
+
+1. Alice generates 1300 bytes of filler and fills the 1300-byte onion payload field with this filler.
+
+1. Alice calculates the HMAC for the hop payload
+
+1. Alice calculates the length of the hop payload + HMAC + space to store the length itself
+
+1. Alice _right shifts_ the onion payload by the calculated space needed to fit the hop payload. The rightmost "filler" data is discarded, making enough space on the left for the payload.
+
+1. Alice inserts the length + hop payload + HMAC at the front of the payload field in the space made from shifting the filler.
+
+1. Alice uses the _rho_ key to generate a 1300 byte one-time-pad.
+
+1. Alice obfuscates the entire onion payload by XOR-ing with the bytes generated from rho.
+
+1. Alice calculates the HMAC of the onion payload
+
+1. Alice adds the session public key (so that the hop can calculate the shared secret)
+
+1. Alice adds the version number.
+
+Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front and the whole onion payload encrypted with the rho byte-stream for the next hop.
+
+[[dina_onion_wrapping]]
+.Wrapping the onion for Dina
+image::images/dina_onion_wrapping.png[]
+
+[[chan_onion_wrapping]]
+.Wrapping the onion for Chan
+image::images/chan_onion_wrapping.png[]
+
+[[bob_onion_wrapping]]
+.Wrapping the onion for Bob
+image::images/bob_onion_wrapping.png[]
+
+[[onion_packet]]
+.The onion packet
+image::images/onion_packet.png[]
