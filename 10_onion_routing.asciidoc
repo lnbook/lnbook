@@ -321,14 +321,28 @@ We've mentioned the fact that none of the "hop" nodes know how long the path is,
 
 If you have a set of directions, even if encrypted, can't you tell how far you are from the beginning or end simply by looking at *where* in the list of directions you are?
 
-The "trick" used in onion routing is to always make the path (the list of directions), the same length for every node. This is achieved by keeping the onion packet the same length at every step. As each layer is peeled, it is replaced with filler data (essentially junk) and the next hop gets an onion of the same size.
+The "trick" used in onion routing is to always make the path (the list of directions), the same length for every node. This is achieved by keeping the onion packet the same length at every step.
 
-The onion size is 1366 bytes made of:
+At each hop, the hop payload appears at the beginning of the onion payload, followed by _what seem to be_ 19 more hop payloads. Every hop sees itself as the first of 20 hops.
+
+[TIP]
+====
+The onion payload is 1300 bytes. Each hop payload is 65 bytes or less (padded to 65 bytes if less). So the total onion payload can fit 20 hop payloads (1300 = 20 * 65). The maximum onion routed path is therefore 20 hops.
+====
+
+As each layer is "peeled off", more filler data (essentially junk) is added at the end of the onion payload so the next hop gets an onion of the same size and is once again the "first hop" in the onion.
+
+The onion size is 1366 bytes structured as shown in <<onion_packet>> below:
+
+[[onion_packet]]
+.The onion packet
+image::images/onion_packet.png[]
 
 * 1 byte: A version byte
-* 33 bytes: A compression public session key (<<session_key>>) from which the per-hop shared secret (<<shared_secret>>) can be generated without revealing Alice's identity
+* 33 bytes: A compressed public session key (<<session_key>>) from which the per-hop shared secret (<<shared_secret>>) can be generated without revealing Alice's identity
 * 1300 bytes: The actual _onion payload_ containing the instructions for each hop
 * 32 bytes: An HMAC integrity checksum
+
 
 [[wrapping_the_onion]]
 ==== Wrapping the onion layers
@@ -367,36 +381,62 @@ Next, Alice repeats the process. The new keys are calculated, the onion payload 
 
 ==== Wrapping Dina's hop payload
 
-In <<dina_onion_wrapping>> we see the 5 steps used to wrap Dina's hop payload in the onion. As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
+As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
 
-[[dina_onion_wrapping]]
-.Wrapping the onion for Dina
-image::images/dina_onion_wrapping.png[]
-
-Starting at the top of the diagram <<dina_onion_wrapping>>, we have an empty 1300 byte field, the fixed-length _onion payload_. The entire onion will be "wrapped" layer by layer into this structre. Each hop is 65 bytes or less (depending on the encoding). As a result, we can put a maximum of 20 hops in an onion.
-
-First, Alice fills the onion payload with a pseudo-random byte stream "filler", that is generated from the +pad+ key.
+Alice starts with an empty 1300 byte field, the fixed-length _onion payload_. Then, Alice fills the onion payload with a pseudo-random byte stream "filler", that is generated from the +pad+ key.
 
 [NOTE]
 ====
 Random byte-stream generation uses the ChaCha20 algorithm, as a Cryptographic Secure Pseudo-Random Number Generator (CSPRNG). Such an algorithm will generate a deterministic, long non-repeating stream of seemingly random bytes from an initial seed. The details are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#pseudo-random-byte-stream[BOLT #4 - Onion Routing - Pseudo Random Byte Stream].
 ====
 
-Next, Alice calculates a Hash-based Message Authentication Code (HMAC) for Dina's payload, which uses the _mu_ key as it's initialization key. The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
 
-In the third step from the top, we see Alice insert Dina's payload into the left side of the 1300 byte array, shifting the filler to the right and discarding anything that overflows.
+This is shown in <<onion_payload_filler>>:
 
-Another way to look at this is that Alice measures Dina's hop payload length, cuts off the equal size rightmost part of the filler, shifts the filler right to create an equal space in the left side of the onion payload and inserts Dina's payload in that space.
+[[onion_payload_filler]]
+.Filling the onion payload with a random byte-stream
+image::images/onion_payload_filler.png[]
 
-Next row down we see the result: the onion payload contains Dina's hop payload and then the filler byte-stream filling up the rest of the space.
 
-Finally, Alice obfuscates the entire onion payload so that *only Dina* can read it. To do this, Alice generates a byte-stream using the +rho+ key (which Dina also knows).
+Next, Alice calculates a Hash-based Message Authentication Code (HMAC) for Dina's payload, which uses the _mu_ key as it's initialization key. This is shown in <<dina_hop_payload_hmac>>:
 
-Next Alice applies an bitwise exclusive-or (XOR) between the onion payload and the rho-byte-stream. The result appears like a random (or encrypted) byte stream of 1300 bytes length. However, as we will see in the "unwrapping" section, if Dina applies the same onion XOR rho-key byte-stream operation, it will reveal the original onion payload. One of the properties of bitwise XOR is that if you do it twice you get back to the original data. Since only Alice and Dina have the +rho+ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the payload for Dina's eyes only.
+[[dina_hop_payload_hmac]]
+.Adding an HMAC integrity checksum to Dina's hop payload
+image::images/dina_hop_payload_hmac.png[]
+
+The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
+
+
+Alice will now insert Dina's hop payload into the left side of the 1300 byte array, shifting the filler to the right and discarding anything that overflows. This is visualized in <<onion_add_dina>>:
+
+[[onion_add_dina]]
+.Adding Dina's hop payload
+image::images/onion_add_dina.png[]
+
+Another way to look at this is that Alice measures the length of Dina's hop payload, shifts the filler right to create an equal space in the left side of the onion payload and inserts Dina's payload in that space.
+
+Next row down we see the result: the 1300 byte onion payload contains Dina's hop payload and then the filler byte-stream filling up the rest of the space.
+
+Finally, Alice obfuscates the entire onion payload so that *only Dina* can read it.
+
+To do this, Alice generates a byte-stream using the +rho+ key (which Dina also knows). Alice uses a bitwise exclusive-or (XOR) between the bits of the onion payload and the byte-stream created from +rho+. The result appears like a random (or encrypted) byte stream of 1300 bytes length. This step is shown in <<onion_obfuscate_dina>>:
+
+[[onion_obfuscate_dina]]
+.Obfuscating the onion payload
+image::images/onion_obfuscate_dina.png[]
+
+One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in the "unwrapping" section, if Dina applies the same XOR operation with the byte-stream generated from +rho+, it will reveal the original onion payload.
+
+[TIP]
+====
+XOR is an _involutory_ function which means that if it is applied twice it undoes itself. Specifically XOR(XOR(a, b), b) = a. This property is used extensively in symmetric-key cryptography.
+====
+
+Since only Alice and Dina have the +rho+ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
 
 ==== Wrapping Chan's hop payload
 
-In <<chan_onion_wrapping>> we see the steps used to wrap Chan's hop payload in the onion.
+In <<chan_onion_wrapping>> we see the steps used to wrap Chan's hop payload in the onion. These are the same steps Alice used to wrap Dina's hop payload.
 
 [[chan_onion_wrapping]]
 .Wrapping the onion for Chan
@@ -404,11 +444,11 @@ image::images/chan_onion_wrapping.png[]
 
 Alice starts with the 1300 onion payload created for Dina. The first 65 (or less) bytes of this are Dina's payload obfuscated and the rest is filler. Alice must be careful not to overwrite Dina's payload.
 
-Alice adds an HMAC checksum to Chan's payload and inserts it at the "front" (left side) of the onion payload, shifting the existing payload to the right by an equal amount. The excess overflowing to the right is discarded. It is encrypted filler anyway, so it doesn't matter. As long as we keep to 20 hops or less we will not discard any hop payload by accident.
+Alice adds an HMAC checksum to Chan's payload and inserts it at the "front" (left side) of the onion payload, shifting the existing payload to the right by an equal amount.
 
-Now Chan's payload is in the front of the onion. When Chan sees this he has no idea how many payloads came before or after. It looks like the 1st of 20 always!
+Now Chan's payload is in the front of the onion. When Chan sees this he has no idea how many payloads came before or after. It looks like the 1st of 20 hops always!
 
-Finally, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan shared secret _rho_ key. Only Alice and Chan have this _rho_ key and only they can produce the byte stream to obfuscate and de-obfuscate the onion at this step.
+Finally, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan +rho+ key. Only Alice and Chan have this +rho+ key and only they can produce the byte stream to obfuscate and de-obfuscate the onion.
 
 ==== Wrapping Bob's hop payload
 
@@ -432,9 +472,9 @@ The final onion payload is read to send to Bob. Alice doesn't need to add any mo
 
 Alice calculates an HMAC for the onion payload, to cryptographically secure it with a checksum that Bob can verify. Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the rho, mu, and pad keys. Finally Alice puts the onion version number (+0+ currently) in the front. This allows for future upgrades of the onion packet format.
 
-The result can be seen in <<onion_packet>> below:
+The result can be seen in <<onion_packet_2>> below:
 
-[[onion_packet]]
+[[onion_packet_2]]
 .The onion packet
 image::images/onion_packet.png[]
 
