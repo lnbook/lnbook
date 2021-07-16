@@ -337,7 +337,9 @@ The process of wrapping the onion is detailed in https://github.com/lightningnet
 
 In this section we will describe this process at a high-level and somewhat simplified - omitting certain details.
 
-For each hop Alice essentially repeats the same process for each hop:
+Here it is step-by-step below. Come back to this list, as we explore each step with our real-world example.
+
+For each hop the sender (Alice) repeats the same process:
 
 1. Alice generates the per-hop shared secret and the rho, mu, and pad keys
 
@@ -363,18 +365,77 @@ For each hop Alice essentially repeats the same process for each hop:
 
 Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front and the whole onion payload encrypted with the rho byte-stream for the next hop.
 
+==== Wrapping Dina's hop payload
+
+In <<dina_onion_wrapping>> we see the 5 steps used to wrap Dina's hop payload in the onion. As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
+
 [[dina_onion_wrapping]]
 .Wrapping the onion for Dina
 image::images/dina_onion_wrapping.png[]
+
+Starting at the top of the diagram <<dina_onion_wrapping>>, we have an empty 1300 byte field, the fixed-length _onion payload_. The entire onion will be "wrapped" layer by layer into this structre. Each hop is 65 bytes or less (depending on the encoding). As a result, we can put a maximum of 20 hops in an onion.
+
+First, Alice fills the onion payload with a pseudo-random byte stream "filler", that is generated from the +pad+ key.
+
+[NOTE]
+====
+Random byte-stream generation uses the ChaCha20 algorithm, as a Cryptographic Secure Pseudo-Random Number Generator (CSPRNG). Such an algorithm will generate a deterministic, long non-repeating stream of seemingly random bytes from an initial seed. The details are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#pseudo-random-byte-stream[BOLT #4 - Onion Routing - Pseudo Random Byte Stream].
+====
+
+Next, Alice calculates a Hash-based Message Authentication Code (HMAC) for Dina's payload, which uses the _mu_ key as it's initialization key. The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
+
+In the third step from the top, we see Alice insert Dina's payload into the left side of the 1300 byte array, shifting the filler to the right and discarding anything that overflows.
+
+Another way to look at this is that Alice measures Dina's hop payload length, cuts off the equal size rightmost part of the filler, shifts the filler right to create an equal space in the left side of the onion payload and inserts Dina's payload in that space.
+
+Next row down we see the result: the onion payload contains Dina's hop payload and then the filler byte-stream filling up the rest of the space.
+
+Finally, Alice obfuscates the entire onion payload so that *only Dina* can read it. To do this, Alice generates a byte-stream using the +rho+ key (which Dina also knows).
+
+Next Alice applies an bitwise exclusive-or (XOR) between the onion payload and the rho-byte-stream. The result appears like a random (or encrypted) byte stream of 1300 bytes length. However, as we will see in the "unwrapping" section, if Dina applies the same onion XOR rho-key byte-stream operation, it will reveal the original onion payload. One of the properties of bitwise XOR is that if you do it twice you get back to the original data. Since only Alice and Dina have the +rho+ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the payload for Dina's eyes only.
+
+==== Wrapping Chan's hop payload
+
+In <<chan_onion_wrapping>> we see the steps used to wrap Chan's hop payload in the onion.
 
 [[chan_onion_wrapping]]
 .Wrapping the onion for Chan
 image::images/chan_onion_wrapping.png[]
 
+Alice starts with the 1300 onion payload created for Dina. The first 65 (or less) bytes of this are Dina's payload obfuscated and the rest is filler. Alice must be careful not to overwrite Dina's payload.
+
+Alice adds an HMAC checksum to Chan's payload and inserts it at the "front" (left side) of the onion payload, shifting the existing payload to the right by an equal amount. The excess overflowing to the right is discarded. It is encrypted filler anyway, so it doesn't matter. As long as we keep to 20 hops or less we will not discard any hop payload by accident.
+
+Now Chan's payload is in the front of the onion. When Chan sees this he has no idea how many payloads came before or after. It looks like the 1st of 20 always!
+
+Finally, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan shared secret _rho_ key. Only Alice and Chan have this _rho_ key and only they can produce the byte stream to obfuscate and de-obfuscate the onion at this step.
+
+==== Wrapping Bob's hop payload
+
+In <<bob_onion_wrapping>> we see the steps used to wrap Bob's hop payload in the onion.
+
+All right, by now this is easy!
+
 [[bob_onion_wrapping]]
 .Wrapping the onion for Bob
 image::images/bob_onion_wrapping.png[]
 
+Start with the onion payload (obfuscated) containing Chan's and Dina's hop payloads.
+
+Calculate an HMAC and stick it on the end of Bob's hop payload. Insert Bob's hop payload at the beginning and shift everything else over to the right, dropping a Bob-hop-payload-size chunk from the end (it was filler anyway).
+
+Obfuscate the whole thing XOR with the _rho_ key from the Alice-Bob-shared-secret so that only Bob can unwrap this.
+
+==== The final onion packet
+
+The final onion payload is read to send to Bob. Alice doesn't need to add any more hop payloads.
+
+Alice calculates an HMAC for the onion payload, to cryptographically secure it with a checksum that Bob can verify. Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the rho, mu, and pad keys. Finally Alice puts the onion version number (+0+ currently) in the front. This allows for future upgrades of the onion packet format.
+
+The result can be seen in <<onion_packet>> below:
+
 [[onion_packet]]
 .The onion packet
 image::images/onion_packet.png[]
+
+==== Sending the onion
