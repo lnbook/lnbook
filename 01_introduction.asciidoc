@@ -15,7 +15,7 @@ We assume you already have some basic knowledge about Bitcoin, but if not, don't
 While the bulk of this book is written for programmers, the first few chapters are written to be approachable by anyone regardless of technical experience. In this chapter, we'll start with some terminology, then move to looking at trust and its application in these systems, and finally we'll discuss the history and future of the Lightning Network. Let's get started.
 
 
-=== Lightning Network Basic Concepts
+=== Lightning Network basic concepts
 
 As we explore how the Lightning Network actually works, we will encounter some technical terminology that might, at first, be a bit confusing. While all of these concepts and terms will be explained in detail as we progress through the book and are defined in the glossary, some basic definitions now will make it easier to understand the concepts in the next two chapters. If you don't understand all of the words in these definitions yet, that's okay. You'll understand more as you move through the text.
 
@@ -57,7 +57,7 @@ Contrast that to traditional systems like banking where you _must_ place your tr
 
 Trustless does not mean devoid of trust. It means that trust is not a necessary prerequisite to all transactions and that you can transact even with people you don't trust because the system prevents cheating.
 
-Before we get into how the Lightning Network works, it's important to understand one basic concept that underlies Bitcoin, the Lightning Network and many other such systems: something we call a _fairness protocol_. A fairness proctocol is a way to _achieve fair outcomes between participants, who do not need to trust each other, without the need for a central authority_ and it is the backbone of decentralized systems like Bitcoin.
+Before we get into how the Lightning Network works, it's important to understand one basic concept that underlies Bitcoin, the Lightning Network and many other such systems: something we call a _fairness protocol_. A fairness proctocol is a way to _achieve fair outcomes between participants, who do not need to trust each other and without the need for a central authority_. It is the backbone of decentralized systems like Bitcoin.
 
 
 === Fairness without central authority
@@ -66,13 +66,13 @@ When people have competing interests, how can they establish enough trust to eng
 
 In broad terms, there are a handful of ways to ensure fair outcomes in interactions between individuals who may have competing interests:
 
-* Require trust - you only interact with people whom you already trust, due to prior interactions, reputation, or familial relationships. This works well enough at small scale, especially within families and small groups, that it is the most common basis for cooperative behavior. Unfortunately, it doesn't scale and it suffers from tribalist (in-group) bias.
+* Require trust - you only interact with people who you already trust due to prior interactions, reputation, or familial relationships. This works well enough within families and other small groups where it is the most common basis for cooperative behavior. Unfortunately, it doesn't scale and it suffers from tribalist (in-group) bias.
 
 * Rule of law - establish rules for interactions that are enforced by an institution. This scales better, but it cannot scale globally due to differences in customs and traditions, as well as the inability to scale the institutions of enforcement. One nasty side-effect of this solution is that the institutions become more and more powerful as they get bigger and that may lead to corruption.
 
-* Trusted third parties - put an intermediary in every interaction to enforce fairness. Combined with the "rule of law" to provide oversight of intermediaries, this scales better, but suffers from the same imbalance of power: the intermediaries get very powerful and may attract corruption. Concentration of power leads to systemic risk and systemic failure ("Too big to fail").
+* Trusted third parties - put an intermediary in every interaction to enforce fairness. Combined with the "rule of law" to provide oversight of intermediaries, this scales better, but suffers from the same imbalance of power: the intermediaries get very powerful and may attract corruption. Concentration of power leads to systemic risk and systemic failure where intermediaries can become "too big to fail".
 
-* Game theoretical fairness protocols - this last category emerges from the combination of the internet and cryptography and is the subject of this section. Let's see how it works and what its advantages and disadvantages are.
+* Game theoretical fairness protocols - this last category emerges from the combination of the internet and cryptography. Let's see how it works, and what its advantages and disadvantages are.
 
 ==== Trusted protocols without intermediaries
 
@@ -80,7 +80,7 @@ Cryptographic systems like Bitcoin and the Lightning Network are systems that al
 
 The big distinction between a cryptographic system like this and a traditional financial system is that in traditional finance you have a _trusted third party_, for example a bank, to ensure that outcomes are fair. A significant problem with such systems is that they give too much power to the third party, and they are also vulnerable to a _single point of failure_. If the trusted third party itself violates trust or attempts to cheat, the basis of trust breaks.
 
-As you study cryptographic systems, you will notice a certain pattern: instead of relying on a trusted third party, these systems attempt to prevent unfair outcomes by using a system of incentives and disincentives. In cryptographic systems you place trust in the _protocol_, which is effectively a system with a set of rules that, if properly designed, will correctly apply the desired incentives and disincentives. The advantage of this approach is two-fold: Not only do you avoid trusting a third party, you also reduce the need to enforce fair outcomes. So long as the participants follow the agreed protocol and stay within the system, the incentive mechanism in that protocol achieves fair outcomes without enforcement.
+As you study cryptographic systems, you will notice a certain pattern: instead of relying on a trusted third party, these systems attempt to prevent unfair outcomes by using a system of incentives and disincentives. In cryptographic systems you place trust in the _protocol_, which is effectively a system with a set of rules which, if properly designed, will correctly apply the desired incentives and disincentives. The advantage of this approach is two-fold: not only do you avoid trusting a third party, you also reduce the need to enforce fair outcomes. So long as the participants follow the agreed protocol and stay within the system, the incentive mechanism in that protocol achieves fair outcomes without enforcement.
 
 The use of incentives and disincentives to achieve fair outcomes is one aspect of a branch of mathematics called _game theory_, which studies "models of strategic interaction among rational decision makers" footnote:[Wikipedia "Game Theory": https://en.wikipedia.org/wiki/Game_theory]. Cryptographic systems that control financial interactions between participants, such as Bitcoin and the Lightning Network, rely heavily on game theory to prevent participants from cheating and allow participants who don't trust each other to achieve fair outcomes.
 
@@ -102,12 +102,12 @@ A much better solution exists: the siblings are taught to play a game called "sp
 
 [WARNING]
 ====
-While the infamous chip battles of the 1980's neatly illustrate the point, any similarity between the scenario above and any of the authors' actual childhood experiences with their cousins is entirely coincidental... Or is it?
+While the infamous chip battles of the 1980s neatly illustrate the point, any similarity between the scenario above and any of the authors' actual childhood experiences with their cousins is entirely coincidental... Or is it?
 ====
 
 ==== Security primitives as building blocks
 
-In order for a fairness protocol like this to work, there need to be certain guarantees, or _security primitives_, that can be combined to ensure enforcement. The first security primitive is _strict time ordering/sequencing_: the "splitting" action must happen before the "choosing" action. It's not immediately obvious, but unless you can guarantee that action A happens before action B, then the protocol falls apart. The second security primitive is _commitment with non-repudiation_. Each sibling must commit to their choice of role: either splitter or chooser. Also, once the splitting has been completed, the splitter is committed to the split they created - they cannot repudiate that choice and go try again.
+In order for a fairness protocol like this to work, there need to be certain guarantees, or _security primitives_, that can be combined to ensure enforcement. The first security primitive is _strict time ordering/sequencing_: the "splitting" action must happen before the "choosing" action. It's not immediately obvious, but unless you can guarantee that action A happens before action B, then the protocol falls apart. The second security primitive is _commitment with non-repudiation_. Each sibling must commit to their choice of role: either splitter or chooser. Also, once the splitting has been completed, the splitter is committed to the split they created - they cannot repudiate that choice and try again.
 
 Cryptographic systems offer a number of security primitives that can be combined in different ways to construct a fairness protocol. In addition to sequencing and commitment, we can also use many other tools:
 
@@ -115,7 +115,7 @@ Cryptographic systems offer a number of security primitives that can be combined
 - Digital signatures for authentication, non-repudiation, and proof of ownership of a secret.
 - Encryption/decryption to restrict access to information to authorized participants only.
 
-This is only a small list of a whole "menagerie" of security and cryptographic primitives that are in use. More basic primitives and combinations are invented all the time.
+This is only a small list of a whole "menagerie" of security and cryptographic primitives that are in use. Additional basic primitives and combinations are invented all the time.
 
 In our real-life example, we saw one form of fairness protocol called "split and choose". This is just one of a myriad different fairness protocols that can be built by combining the building blocks of security primitives in different ways. But the basic pattern is always the same: two or more participants interact without trusting each other, by engaging in a series of steps that are part of an agreed protocol. The protocol's steps arrange incentives and disincentives to ensure that if the participants are rational, cheating is counter-productive and fairness is the automatic outcome. Enforcement is not necessary to get fair outcomes - it is only necessary to keep the participants from breaking out of the agreed protocol.
 
@@ -133,14 +133,14 @@ The "fairness protocol" pattern can also be found in many different aspects of t
 
 * Those who forward payments know that if they commit funds forward, they can either get a refund or they get paid by the node preceding them.
 
-Again and again, we see this pattern. Fair outcomes are not enforced by any authority. They emerge as the natural consequence of a protocol that rewards fairness and punishes cheating. A fairness protocol that harnesses self-interest by directing it towards fair outcomes.
+Again and again, we see this pattern. Fair outcomes are not enforced by any authority. They emerge as the natural consequence of a protocol that rewards fairness and punishes cheating. This fairness protocol harnesses self-interest by directing it towards fair outcomes.
 
 Bitcoin and the Lightning Network are both implementations of fairness protocols. So why do we need the Lightning Network? Isn't Bitcoin enough?
 
 
 === Motivation for the Lightning Network
 
-Bitcoin is a system that records transactions on a globally replicated public ledger. Every transaction is seen, validated and stored by every participating computer. As you can imagine, this generates a lot of data and is difficult to scale.
+Bitcoin is a system that records transactions on a globally-replicated public ledger. Every transaction is seen, validated and stored by every participating computer. As you can imagine, this generates a lot of data and is difficult to scale.
 
 As Bitcoin and the demand for transactions grew, the number of transactions in each block increased until it eventually reached the block size limit.
 Once blocks are "full", excess transactions are left to wait in a queue. Many users will increase the fees they're willing to pay in order to buy space for their transactions in the next block.
@@ -149,9 +149,9 @@ If demand continues to outpace the capacity of the network, an increasing number
 
 To solve this problem, we could increase the block size limit to create space for more transactions. An increase in the "supply" of block space will lead to a lower price equilibrium for transaction fees.
 
-However, increasing block size shifts the cost to node operators and requires them to expend more resources to validate and store the blockchain. Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. Furthermore, once validated, each transaction and block must be propagated to the node's "neighbors", multiplying the bandwidth requirements. As such, the greater the block size, the greater the bandwidth, processing, and storage requirements for each individual node. Increasing transaction capacity in this way has the undesirable effect of centralizing the system by reducing the number of nodes and node operators. Since node operators are not compensated for running nodes, if nodes are very expensive to run, only a few well-funded node operators will continue to run nodes.
+However, increasing the block size shifts the cost to node operators because it requires them to expend more resources to validate and store the blockchain. Because blockchains are gossip protocols, each node is required to know and validate every single transaction that occurs on the network. Furthermore, once validated, each transaction and block must be propagated to the node's "neighbors", multiplying the bandwidth requirements. As such, the greater the block size, the greater the bandwidth, processing, and storage requirements for each individual node. Increasing transaction capacity in this way has the undesirable effect of centralizing the system by reducing the number of nodes and node operators. Since node operators are not compensated for running nodes, if nodes are very expensive to run, only a few well-funded node operators will continue to run nodes.
 
-==== Scaling Blockchains
+==== Scaling blockchains
 
 The side effects of increasing the block size or decreasing the block time with respect to centralization of the network are severe as a few calculations with the numbers show.
 
@@ -165,16 +165,15 @@ Users also have many other demands on their bandwidth and cannot be expected to 
 
 Furthermore, storing this information locally would result in 864 gigabytes per day. This is roughly one terabyte of data, or the size of a hard drive.
 
+Verifying 40,000 ECDSA signatures per second is also barely feasible (c.f.: https://bitcoin.stackexchange.com/questions/95339/how-many-bitcoin-transactions-can-be-verified-per-second) making the _Initial Blockchain Download (IBD)_ of the Bitcoin blockchain (synchronizing and verifying everything starting from the genesis block) almost impossible without very expensive hardware.
 
-Verifying 40,000 ECDSA signatures per second is also barely feasible (c.f.: https://bitcoin.stackexchange.com/questions/95339/how-many-bitcoin-transactions-can-be-verified-per-second) making the _Initial Blockchain Download (IBD)_ of the Bitcoin blockchain  (synchronizing and verifying everything starting from the genesis block) almost impossible without very expensive hardware.
-
-While 40,000 transactions per second seems like a lot, it only achieves parity with traditional financial payment networks at peak times. Innovations in machine-to-machine payments, micro-transactions and other applications are likely to push demand to many orders higher than that.
+While 40,000 transactions per second seems like a lot, it only achieves parity with traditional financial payment networks at peak times. Innovations in machine-to-machine payments, micro-transactions and other applications are likely to push demand to many orders higher than this.
 
 Simply put: You can't scale a blockchain to validate the entire world's transactions in a decentralized way.
 
 _But what if each node wasn't required to know and validate every single transaction? What if there was a way to have scalable off-chain transactions, without losing the security of the Bitcoin network?_
 
-In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _"The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments"_
+In February 2015, Joseph Poon and Thaddeus Dryja proposed a possible solution to the Bitcoin Scalability Problem, with the publication of _The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments_
 footnote:[Joseph Poon, Thaddeus Dryja - "The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments" (https://lightning.network/lightning-network-paper.pdf).]
 
 In the (now outdated) whitepaper, Poon and Dryja estimate that in order for Bitcoin to reach the 47,000 transactions per second processed at peak by Visa, it would require 8 GB blocks.
@@ -185,9 +184,9 @@ Pricing users out of running nodes would force the average user to trust third p
 
 The Lightning Network proposes a new network, a "second layer", where users can make payments to each other peer-to-peer, without the necessity of publishing a transaction to the Bitcoin blockchain for each payment.
 Users may pay each other on the Lightning Network as many times as they want, without creating additional Bitcoin transactions or incurring on-chain fees.
-They only make use of the Bitcoin blockchain in order to load bitcoin onto the Lightning network initially and to "settle", that is, to remove bitcoin from the Lightning Network.
-The result is that many more Bitcoin payments can take place "off-chain", with only the initial loading and final settlement transactions needing to be validated and stored by Bitcoin nodes.
-Aside from reducing the burden on nodes, payments on the Lightning Network are cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published to all participants of the network and furthermore not stored permanently.
+They only make use of the Bitcoin blockchain in order to load bitcoin onto the Lightning Network initially and to "settle", that is, to remove bitcoin from the Lightning Network.
+The result is that many more bitcoin payments can take place "off-chain", with only the initial loading and final settlement transactions needing to be validated and stored by Bitcoin nodes.
+Aside from reducing the burden on nodes, payments on the Lightning Network are cheaper for users as they do not need to pay blockchain fees, and more private for users as they are not published on a public ledger and furthermore, are not stored permanently.
 
 While the Lightning Network was initially conceived for Bitcoin, it can be implemented on any blockchain that meets some basic technical requirements. Other blockchains, such as Litecoin, already support the Lightning Network. Additionally, several other blockchains are developing similar "second layer" or "layer 2" solutions to help them scale.
 
@@ -205,7 +204,7 @@ The Lightning Network is a network that operates as a "second layer" protocol on
 
 
 [[user-stories]]
-=== Lightning Network Use Cases, Users, and Their Stories
+=== Lightning Network use cases, users, and their stories
 
 In order to better understand how the Lightning Network actually works, and why people use it, we'll be following a number of users and their stories.
 
@@ -223,7 +222,7 @@ Chan is a Chinese entrepreneur who sells information services related to the Lig
 gamer::
 Dina is a teenage gamer from Russia. She plays many different computer games, but her favorite ones are those that have an "in-game economy" based on real money. As she plays games, she also earns money by acquiring and selling virtual in-game items. The Lightning Network allows her to transact in small amounts for in-game items as well as earn small amounts for completing quests.
 
-=== Chapter Summary
+=== Chapter summary
 
 In this chapter, we talked about the fundamental concept that underlies both Bitcoin and the Lightning Network: the fairness protocol.
 
