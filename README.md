@@ -39,7 +39,7 @@ The current status of the book is "RELEASE PREP". See below for status of specif
 | [Payment Channels in Detail](07_payment_channels.asciidoc) | ################# | :heavy_check_mark: |
 | [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :heavy_check_mark: |
 | [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :mag: |
-| [Onion Construction and Routing](10_onion_routing.asciidoc) | ############# | :lock_with_ink_pen: |
+| [Onion Construction and Routing](10_onion_routing.asciidoc) | ########## | :lock_with_ink_pen: |
 | [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
 | [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
@@ -52,7 +52,7 @@ The current status of the book is "RELEASE PREP". See below for status of specif
 | [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 113657
+Total Word Count: 86412
 
 Target Word Count: 100,000-120,000
 
