@@ -90,7 +90,7 @@ This is the essence of onion routing. The sender wraps a message in layers, spec
 
 Now, let's look at the details of the onion routing implementation in the Lightning Network.
 
-=== Onion routing HTLCs
+=== Introduction to onion routing of HTLCs
 
 Onion routing in the Lightning Network appears complex at first glance, but once you understand the basic concept is really quite simple.
 
@@ -134,7 +134,7 @@ There are two possible formats that Alice can use for the information communicat
 
 Alice will start building the hop data from the end of the path backwards: Dina, Chan, Bob.
 
-==== Final node payload for Dina
+===== Final node payload for Dina
 
 Alice first build the payload that will be delivered to Dina. Dina will not be constructing an "outgoing HTLC", because Dina is the final node and payment recipient. For this reason, the payload for Dina is different that all the others, but only Dina will know this since it will be encrypted in the innermost layer of the onion. Essentially, this is the "secret letter to Dina" we saw in our physical envelope example.
 
@@ -165,7 +165,7 @@ Alice serializes it in TLV format as shown (simplified) <<dina_onion_payload>> b
 .Dina's payload is constructed by Alice
 image::images/dina_onion_payload.png[Dina's payload is constructed by Alice]
 
-==== Hop payload for Chan
+===== Hop payload for Chan
 
 Next, Alice constructs the hop payload for Chan. This will tell Chan how to setup an outgoing HTLC to Dina.
 
@@ -183,7 +183,7 @@ Alice serializes this payload in TLV format, as shown (simplified) in <<chan_oni
 .Chan's payload is constructed by Alice
 image::images/chan_onion_payload.png[Chan's payload is constructed by Alice]
 
-==== Hop payload for Bob
+===== Hop payload for Bob
 
 Finally, Alice constructs the hop payload for Bob, which also contains the same three fields as the hop payload for Chan, but with different values:
 
@@ -208,7 +208,7 @@ Alice serializes this payload in TLV format, as shown (simplified) in <<bob_onio
 .Bob's payload is constructed by Alice
 image::images/bob_onion_payload.png[Bob's payload is constructed by Alice]
 
-==== Finished hop payloads
+===== Finished hop payloads
 
 Alice has now built the three hop payloads that will be wrapped in an onion. A simplified view of the payloads is shown in <<onion_hop_payloads>>, below:
 
@@ -251,12 +251,12 @@ The relationship between the various keys and how they are generated is shown in
 image::images/onion_keygen.png[Onion Key Generation]
 
 [[session_key]]
-==== Alice's session key
+===== Alice's session key
 
 To avoid revealing her identity, Alice does not use her own node's public key in building the onion. Instead, Alice creates a temporary 32-byte (256-bit) key called the _session private key_ and corresponding _session public key_. This serves as a temporary "identity" and key *for this onion only*. From this session key, Alice will build all the other keys that will be used in this onion.
 
 [[keygen_details]]
-==== Key generation details
+===== Key generation details
 The key generation, random byte generation, ephemeral keys and how they are used in packet construction are specified in three sections of BOLT #4:
 
 * https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#key-generation[Key Generation]
@@ -266,7 +266,7 @@ The key generation, random byte generation, ephemeral keys and how they are used
 For simplicity and to avoid getting too technical, we have not included these details in the book. See the links above if you want to see the inner workings.
 
 [[shared_secret]]
-==== Shared secret generation
+===== Shared secret generation
 
 One important detail that seems almost magical is the ability for Alice to create a _shared secret_ with another node simply by knowing their public keys. This is based on the invention of Diffie-Hellman key exchange (DH) in the 1970s that revolutionized cryptography. Lightning Onion Routing uses Elliptic Curve Diffie-Hellman (ECDH) on Bitcoin's +secp256k1+ curve. It's such a cool trick that we try to explain it in simple terms in <<ecdh_explained>>
 
@@ -278,33 +278,46 @@ One important detail that seems almost magical is the ability for Alice to creat
 ****
 Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, they multiply each private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
 
-+A = aG+
+ A = aG
 
-+B = bG+
+ B = bG
 
 Now Alice and Bob can create a shared secret +ss+, a value that they can both calculate independently without exchanging any information, such that
 
-+ss = aB = bA+
+ ss = aB = bA
 
 Follow along, as we demonstrate the math that proves this is possible:
 
-ss
+ ss
 
-= aB, calculated by Alice who knows +a+ and +B+
+ = aB
 
-= a(bG), because we know B = bG
+calculated by Alice who knows both +a+ and +B+
 
-= (ab)G, because of associativity
+ = a(bG)
 
-= (ba)G, because the curve is an abelian group
+because we know
 
-= b(aG), because of associativity
+ = (ab)G
 
-= bA, can be calculated by Bob who knows +b+ and +A+
+because of associativity
+
+ = (ba)G
+
+because the curve is an abelian group
+
+ = b(aG)
+
+because of associativity
+
+ = bA
+
+can be calculated by Bob who knows +b+ and +A+
+
 
 We have therefore shown that
 
-ss = aB = bA
+ ss = aB = bA
 
 Alice can multiple her private key with Bob's public key to calculate +ss+
 
@@ -313,6 +326,14 @@ Bob can multiply his private key with Alice's public key to calculate +ss+
 Thus, they will both get the same result which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
 
 ****
+
+[[wrapping_the_onion]]
+=== Wrapping the onion layers
+
+The process of wrapping the onion is detailed in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4 - Onion Routing - Packet Construction].
+
+In this section we will describe this process at a high-level and somewhat simplified - omitting certain details.
+
 
 [[fixed_length_onions]]
 ==== Fixed-length Onions
@@ -343,15 +364,9 @@ image::images/onion_packet.png[]
 * 1300 bytes: The actual _onion payload_ containing the instructions for each hop
 * 32 bytes: An HMAC integrity checksum
 
+==== Wrapping the onion (outlined)
 
-[[wrapping_the_onion]]
-==== Wrapping the onion layers
-
-The process of wrapping the onion is detailed in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4 - Onion Routing - Packet Construction].
-
-In this section we will describe this process at a high-level and somewhat simplified - omitting certain details.
-
-Here it is step-by-step below. Come back to this list, as we explore each step with our real-world example.
+Here is the process of wrapping the onion, outlined below. Come back to this list, as we explore each step with our real-world example.
 
 For each hop the sender (Alice) repeats the same process:
 
@@ -478,4 +493,4 @@ The result can be seen in <<onion_packet_2>> below:
 .The onion packet
 image::images/onion_packet.png[]
 
-==== Sending the onion
+=== Sending the onion
