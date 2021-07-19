@@ -5,7 +5,7 @@
 <img src="images/cover_thumb.png" width=200 alt="Mastering Lightning Cover">
 
 ## About
-Mastering the Lightning Network is an O'Reilly Media book, due for publication in Q2'2021, and announced in August 2019  by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)).
+Mastering the Lightning Network is an O'Reilly Media book, due for publication in Q4'2021, and announced in August 2019  by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)).
 
 The book describes the Lightning Network (LN), a Peer-to-Peer protocol running on top of Bitcoin and other blockchains, which provides near-instant, secure, micro-payments.
 
@@ -13,7 +13,7 @@ The book is suitable for technical readers with an understanding of the fundamen
 
 ## Status
 
-The current status of the book is "IN PROGRESS". See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
+The current status of the book is "RELEASE PREP". See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
 
 ### Legend
 
@@ -35,24 +35,24 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Nodes (LN Clients)](04_node_client.asciidoc) | #################### | :heavy_check_mark: |
 | [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
-| [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :mag: |
-| [Payment Channels in Detail](07_payment_channels.asciidoc) | ################# | :mag: |
-| [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :mag: |
+| [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :heavy_check_mark: |
+| [Payment Channels in Detail](07_payment_channels.asciidoc) | ################# | :heavy_check_mark: |
+| [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :heavy_check_mark: |
 | [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :mag: |
-| [Onion Construction and Routing](onions.asciidoc) | # | :lock_with_ink_pen: |
+| [Onion Construction and Routing](10_onion_routing.asciidoc) | ########## | :lock_with_ink_pen: |
 | [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
 | [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
 | [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
 | [Lightning Applications (LApps)]() | # | :thought_balloon: |
-| [LN Security and Privacy]() | # | :lock_with_ink_pen: |
+| [LN Security and Privacy](security_privacy_ln.asciidoc) | ################ | :lock_with_ink_pen: |
 | [LN's Future]() | # | :thought_balloon: |
 | APPENDICES | APPENDICES | APPENDICES |
 | [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ########### | :heavy_check_mark: |
 | [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 112999
+Total Word Count: 86412
 
 Target Word Count: 100,000-120,000
 
