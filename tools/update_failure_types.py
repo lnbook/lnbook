@@ -40,10 +40,10 @@ failure_types_table.write("| type | symbolic name | meaning\n")
 for f in failure_types:
 
 	# Convert each match into a dictionary
-    f = f.groupdict()
+	f = f.groupdict()
 
 	# Escape "|" character because it is used as table column separator in asciidoc
-    f["type_code"] = re.sub(r'\|','\|', f["type_code"])
+	f["type_code"] = re.sub(r'\|','\|', f["type_code"])
 
 	# Write each failure type in the table
 	failure_types_table.write(f'| {f["type_code"]} | {f["type_name"]} | {f["description"]}\n')
