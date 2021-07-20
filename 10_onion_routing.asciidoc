@@ -544,9 +544,15 @@ If Bob extracts and removes his hop payload, the remaining onion will not be 130
 
 ==== Bob generates filler
 
-Bob generates filler in a slightly different way than Alice, but following the same general principle.
+Bob generates filler in a slightly different way than Alice, but following the same general principle. 
 
-First, Bob *extends* the onion payload by 1300 bytes and filles them with +0+ values. Now the onion packet is 2600 bytes long, with the first half containing the data Alice sent and the next half containing zeroes. This empty space will become obfuscated and turn into "filler", by the same process that Bob uses to deobfuscate his own hop payload. Let's see how that works.
+First, Bob *extends* the onion payload by 1300 bytes and filles them with +0+ values. Now the onion packet is 2600 bytes long, with the first half containing the data Alice sent and the next half containing zeroes. This operation is shown in <<bob_extends>>:
+
+[[bob_extends]]
+.Bob extends the onion payload by 1300 (zero-filled) bytes
+image::images/bob_extends.png[Bob extends the onion payload by 1300 (zero-filled) bytes]
+
+This empty space will become obfuscated and turn into "filler", by the same process that Bob uses to deobfuscate his own hop payload. Let's see how that works.
 
 ==== Bob de-obfuscates his hop payload
 
@@ -561,7 +567,11 @@ Next, Bob applies the 2600 bytes of +rho+ byte stream to the 2600 bytes onion pa
 
 The first 1300 bytes will become de-obfuscated by this XOR operation, because it is the same operation Alice applied and XOR is involutory. So Bob will _reveal_ his hop payload followed by some data that seems scrambled.
 
-At the same time, applying the +rho+ byte stream to the 1300 zeroes that were added to the onion payload will turn them into seemingly random filler data.
+At the same time, applying the +rho+ byte stream to the 1300 zeroes that were added to the onion payload will turn them into seemingly random filler data. This operation is shown in <<bob_deobfuscates>>:
+
+[[bob_deobfuscates]]
+.Bob de-obfuscates the onion, obfuscates the filler
+image::images/bob_deobfuscates.png[Bob de-obfuscates the onion, obfuscates the filler]
 
 ==== Bob verifies the hop payload
 
@@ -569,7 +579,11 @@ Now Bob can confirm that his hop payload is correct. It contains an HMAC field. 
 
 ==== Bob removes his payload and left shifts the onion
 
-Now Bob can remove his hop payload from the front of the onion and left-shift the remaining data. An amount of data equal to Bob's hop payload from the second-half 1300 bytes of filler will now shift into the onion payload space.
+Now Bob can remove his hop payload from the front of the onion and left-shift the remaining data. An amount of data equal to Bob's hop payload from the second-half 1300 bytes of filler will now shift into the onion payload space. This is shown in <<bob_removes_shifts>>:
+
+[[bob_removes_shifts]]
+.Bob removes the hop payload and left-shifts the rest, filling the gap with new filler
+image::images/bob_removes_shifts.png[Bob removes the hop payload and left-shifts the rest, filling the gap with new filler]
 
 Now Bob can keep the first half 1300 bytes, and discard the extended (filler) 1300 bytes.
 
