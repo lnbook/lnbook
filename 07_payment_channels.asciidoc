@@ -197,6 +197,8 @@ chain_hash:: This identifies which blockchain (e.g. Bitcoin mainnet) will be use
 
 funding_satoshis:: The amount Alice will use to fund the channel, which is the total channel capacity.
 
+channel_reserve_satoshis:: The minimum balance in satoshis that is reserved on each side of a channel. We will come back to this when we talk about penalties.
+
 push_msat:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding. **Setting this value to anything but 0 means effectively gifting money to your channel partner and should be used with caution.**
 
 to_self_delay:: A very important security parameter for the protocol. The value in the `open_channel` message is used in the responder's commitment transaction, and the `accept_channel` the initiator's. This asymmetry exists to allow each side to express how long the other side needs to wait to unilaterally claim the funds in a commitment transaction. If Bob at any time unilaterally closes the channel against the will of Alice he commits to not accessing his own funds for the delay defined here. The higher this value the more security Alice has but the longer Bob might have to have his funds locked.
@@ -650,6 +652,10 @@ Bob's node will immediately broadcast a penalty transaction. Since this old comm
 image::images/penalty_transaction.png[Cheating and penalty]
 
 Bob's penalty transaction pays 140,000 satoshis to his own wallet, taking the entire channel capacity. Alice has not only failed to cheat, she has lost everything in the attempt!
+
+==== The channel reserve: ensuring skin in the game
+
+You may have noticed there is a special situation that needs to be dealt with: if Alice could keep spending her balance until it is zero, she would be in a position to close the channel by broadcasting an old commitment transaction without risking a penalty: either the revoked commitment transaction succeeds after the delay, or the cheater gets caught but there's no consequence because the penalty is zero. From a game theory perspective, it is free money to attempt to cheat in this situation. This is why the channel reserve is in play, so a prospective cheater always faces the risk of a penalty.
 
 === Closing the channel (cooperative close)
 
