@@ -1,2 +1,76 @@
 [[path_finding]]
 == Path Finding and Payment Delivery
+
+Payment delivery on the Lightning Network depends on finding a path from the sender to the recipient, a process called _path finding_.
+
+=== Path finding: what problem are we solving?
+
+The term path finding may be somewhat misleading, because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
+
+But, as the Lightning Network has grown explosively, the path finding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2000 channels _each_. A visualizationfootnote:[Produced by explorer.acinq.co from published channel updates] of just a small subset of the Lightning Network channel graph (as of July 2021) is shown in <<lngraph>>:
+
+[[lngraph]]
+image::images/LNGraphJuly2021.png[]
+
+If the sender and recipient are connected to other well-connected nodes and have at least one channel with adequate capacity - there will be thousands of paths. The problem becomes: choosing the _best_ path that will succeed in payment delivery, out of a list of thousands of possible paths.
+
+==== Selecting the best path
+
+To select the "best" path, we have to first define what we mean by "best". There may be many different criteria such as:
+
+* Paths with enough capacity. Obviously if a path doesn't have enough capacity to route our payment, then it is not a suitable path
+
+* Paths with low fees. If we have several candidates, we may want to select ones with lower fees.
+
+* Paths with short timelocks. We may want to avoid locking our funds for too long and therefore select paths with shorter timelocks.
+
+All of these criteria may be desirable to some extent and selecting paths that are favorable across many dimensions is not an easy task. Optimization problems like this may be too complex to solve for the "best" solution, but often can be solved for some approximation of the optimal. Which is good news, because otherwise path finding would be an intractable problem.
+
+=== Fundamentals of path finding
+
+The problem of path finding in the Lightning Network falls under a general category of _graph theory_ in mathematics and the more specific category of _graph traversal_ in computer science.
+
+A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel capacity is split between the two channel partners and the payment capacity is different in each direction.
+
+==== Uncertainty of balances
+
+If we knew the exact channel balances of every channel, we could easily compute one or more payment paths using any of the standard path finding algorithms taught in good computer science programs. But we don't know the channel balances, we only know the aggregate channel capacity, which is advertised by nodes in channel announcements. In order for a payment to succeed, there must be adequate balance on the sending side of the channel. If we don't know how the capacity is distributed between the channel partners, we don't know if there is enough balance in the direction we are trying to send the payment.
+
+Balances are not announced in channel updates for two reasons: privacy and scalability. First, announcing balances would reduce the privacy of the Lightning Network as it would allow surveillance of payment by statistical analysis of the changes in balances. Second, if nodes announced balances (globally) with every payment, the Lightning Network's scaling would be as bad as that of on-chain Bitcoin transactions which are broadcast to all participants. Therefore, balances are not announced. To solve the path finding problem in the face of uncertainty of balances, we need innovative path finding strategies. These strategies must relate closely to the routing algorithm that is used, which is source-based onion-routing where it is the responsibility of the sender to find a path through the network.
+
+With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
+
+The fact that the path finding problem in the Lightning Network is not "fully solved" is a major point of criticism of the technology. Some critics go as far as stating that the problem is intractable and therefore the Lightning Network can't work at any significant scale. Obviously, we disagree.
+
+==== Path finding complexity
+
+Finding a path through a graph is a problem modern computers can solve rather efficiently.
+Developers mainly choose breadth-first search if the edges are all of equal weight.
+In cases where the edges are not of equal weight, the Dijkstra Algorithm is used.
+In our case the weights of the edges can represent the routing fees.
+Only edges with a capacity larger than the amount to be sent will be included in the search.
+In this basic form, path finding in the Lightning network is very simple and straight forward.
+
+However, as we discussed in the introduction, channel balances cannot be shared with every participant every time a payment takes place as this  would prevent scaling the network.
+This turns our easy theoretical computer science problem into a rather complex real-world problem.
+We now have to solve a path finding problem with only partial knowledge.
+For example, we suspect which edges might be able to forward a payment because their capacity seems big enough.
+But we can't be certain unless we try it out or ask the channel owners directly.
+Even if we were able to ask the channel owners directly, their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
+Not only do we have limited information but the information we have is highly dynamic and might change at any point in time without our knowledge.
+
+==== Keeping it simple
+
+The simplest path finding strategy currently implemented in Lightning nodes is to probe paths (by attempting to deliver a payment) until a path is found that has enough liquidity to deliver the payment.
+
+[NOTE]
+====
+This probing is done by the Lightning node or wallet and is not directly observed by the user of the software.
+However, the user might suspect that probing is taking place if the payment is not completed instantly.
+====
+
+While "blind probing" is not optimal and leaves ample room for improvement, it should be noted that even this simplistic strategy works surprisingly well for smaller payments and well-connected nodes.
+
+Most Lightning node and wallet implementation improve on this approach.
+
+==== 
