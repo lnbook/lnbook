@@ -52,9 +52,9 @@ balance::
     For example, Alice could open a channel with Bob for the value of 1 BTC.
     The channel balance is then 1 BTC to Alice and 0 BTC to Bob.
     As the users transact the channel balance will update.
-    For e.g. if Alice sends 0.2 BTC to Bob, then the balance is now 0.8 BTC to Alice and 0.2 to Bob.
+    For example if Alice sends 0.2 BTC to Bob, then the balance is now 0.8 BTC to Alice and 0.2 to Bob.
     When the channel is closed the bitcoin in the channel will be divided between the two channel partners according to the latest balance encoded in the commitment transaction.
-    In the Lightning Network the ability to send and receive payments is limited by channel balances.
+    In the Lightning Network, the ability to send and receive payments is limited by channel balances.
     See _capacity_.
 
 bech32::
@@ -64,7 +64,7 @@ bip, BIP::
     Bitcoin Improvement Proposals. A set of proposals that members of the Bitcoin community have submitted to improve Bitcoin. For example, BIP-21 is a proposal to improve the Bitcoin uniform resource identifier (URI) scheme. BIPs can be found at https://github.com/bitcoin/bips.
 
 bitcoin, Bitcoin::
-    Depending on context, could refer to the name of the currency unit (the coin), the network or the underlying enabling protocol. Written as bitcoin with a lowercase "b" usually refers to the currency unit. Bitcoin with an uppercase "B" usually refers to the protocol. See https://www.bitcoin.org for general information. The source code can be found at https://github.com/bitcoin/bitcoin.
+    Depending on the context, could refer to the name of the currency unit (the coin), the network or the underlying enabling protocol. Written as bitcoin with a lowercase "b" usually refers to the currency unit. Bitcoin with an uppercase "B" usually refers to the protocol. See https://www.bitcoin.org for general information. The source code can be found at https://github.com/bitcoin/bitcoin.
 
 Bitcoin mining::
     Bitcoin mining is the process of constructing a block from recent Bitcoin transactions and then solving a computational problem required as proof of work.
@@ -123,7 +123,7 @@ cold storage::
 
 Commitment Transaction::
      A commitment transaction is a Bitcoin transaction, signed by both channel partners, that encodes the latest balance of a channel.
-     Every time a new transaction is made or forwarded using the channel, the channel balance will update, and a new commmitment transaction will be signed by both parties.
+     Every time a new transaction is made or forwarded using the channel, the channel balance will update, and a new commitment transaction will be signed by both parties.
      Importantly, for a channel between Alice and Bob, both Alice and Bob keep their own version of the commitment transaction, which is also signed by the other party.
      At any point, the channel can be closed by either Alice or Bob if they submit their commitment transaction to the Bitcoin blockchain.
      Submitting an older (outdated) commitment transaction is considered "cheating" (i.e. a protocol breach) in the Lightning network and can be penalized by the other party, claiming all the funds in the channel for themselves.     
@@ -146,7 +146,9 @@ Diffie Hellman (DH) Key Exchange::
     It is an anonymous key agreement protocol that allows two parties, each having an elliptic-curve public-private key pair, to establish a shared secret over an insecure communication channel.
     This shared secret may be directly used as a key, or to derive another key.
     The key, or the derived key, can then be used to encrypt subsequent communications using a symmetric-key cipher.
-   
+    An example of the derived key would be the shared secret between the ephemeral session key of a sender of an onion with the node's public key of a hop of the onion as described and used by the SPHINX Mix Format.
+    Via https://en.wikipedia.org/w/index.php?title=Elliptic-curve_Diffie%E2%80%93Hellman&oldid=836070673
+
 digital signature::
     A digital signature is a mathematical scheme for verifying the authenticity of digital messages or documents.
     A valid digital signature gives a recipient reason to believe that the message was created by a known sender, that the sender cannot deny having sent the message, and that the message was not altered in transit.
@@ -171,7 +173,8 @@ encoding::
     For example, converting a human-readable form to a digitally space-efficient form.
 
 Electrum server::
-    An Electrum server is a Bitcoin node with an additional interface (API) is often required by bitcoin wallets that do not run a full node. For example, these wallets check the status of specific transactions or broadcasts transactions to the mempool using Electrum server APIs. Some Lightning wallets also use Electrum servers, so even if they are non-custodial, they may compromise user sovereignty in that users trust the Electrum server to provide accurate information and privacy in that calls made to the Electrum server may reveal private information.
+    An Electrum server is a Bitcoin node with an additional interface (API) is often required by bitcoin wallets that do not run a full node. For example, these wallets check the status of specific transactions or broadcast transactions to the mempool using Electrum server APIs. Some Lightning wallets also use Electrum servers, so even if they are non-custodial, they may compromise user sovereignty in that users trust the Electrum server to provide accurate information and privacy in that calls made to the Electrum server may reveal private information.
+
 
 ephemeral key::
     Ephemeral keys are mainly within the SPHINX Mix Format and Onion Routing on the Lightning Network.
@@ -182,7 +185,7 @@ ephemeral key::
 feature bits::
     A binary string that Lightning nodes use to communicate to each other which features they support.
     Feature bits are included in many types of communication, such as invoices or channel announcements.
-    They can be decoded using BOLT #9, and will tell nodes which features the node has enabled and whether these are backwards-compatible.
+    They can be decoded using BOLT #9, and will tell nodes which features the node has enabled, and whether these are backward-compatible.
     Also known as feature flags.
 
 fees::
@@ -207,8 +210,8 @@ globalfeatures::
 Gossip Protocol::
     Lightning Network nodes send and receive information about the topology of the Lightning Network through gossip messages which are exchanged with their peers.
     The gossip protocol is mainly defined in BOLT 7 and defines the format of the _node_announcement_, _channel_announcement_ and _channel_update messages_.
-    In order to prevent spam, node announcement messages will only be forwarded if the node already has a channel and channel announcement messages will only be forwarded if the funding transaction of the channel has been confirmed by the Bitcoin network.
-    Usually Lightning nodes connect with their channel partners, but it is fine to connect with any other Lightning node in order to process gossip messages.
+    In order to prevent SPAM, node announcement messages will only be forwarded if the node already has a channel and channel announcement messages will only be forwarded if the funding transaction of the channel has been confirmed by the Bitcoin network.
+    Usually, Lightning nodes connect with their channel partners, but it is fine to connect with any other Lightning node in order to process gossip messages.
 
 hardware wallet::
     A hardware wallet is a special type of Bitcoin wallet which stores the user's private keys in a secure hardware device.
@@ -245,9 +248,9 @@ invoice::
 
 JIT Routing::
    "Just in Time" Routing. 
-   An alternative to source-based routing first proposed by co-author René Pickhardt.
+   An alternative to source-based routing was first proposed by co-author René Pickhardt.
    With JIT routing, intermediary nodes along a path can pause an in-flight payment to rebalance their channels. 
-   This might allow them to successfully forward payments that might otherwise have failed due to lack of outgoing capacity. 
+   This might allow them to successfully forward payments that might otherwise have failed due to a lack of outgoing capacity. 
 
 Lightning message::
    A Lightning message is an encrypted data string that can be sent between two peers on the Lightning Network. Similar to other communication protocols, Lightning messages consist of a header and a body. The header and the body have their own HMAC. This ensures that the headers of fixed length will also be encrypted and adversaries won't be able to deduce what messages are being sent by inspecting the length.
@@ -279,7 +282,7 @@ millisatoshi::
     The smallest unit of account on the Lightning Network. A millisatoshi is one hundred billionth of a single bitcoin. A millisatoshi is one thousandth of one Satoshi. Millisatoshis do not exist, nor can they be settled on the Bitcoin network.
 
 mpp::
-A multipart payment (which is often also refered to as multipath payment) is a method for payments where the sender can split the payment amount into multiple smaller parts and deliver them potentially along multiple potentially disjoint paths. As the MPP strategies do not require a user to send the smaller splits along different paths, the term multipart payment is more accurate than multipath payment.
+A multipart payment (which is often also referred to as multipath payment) is a method for payments where the sender can split the payment amount into multiple smaller parts and deliver them potentially along multiple potentially disjoint paths. As the MPP strategies do not require one to send the smaller splits along different paths we find the term multipart payment more accurate than multipath payment.
 
 multisignature::
     Multisignature (multisig) refers to requiring more than one key to authorize a Bitcoin transaction.
@@ -304,7 +307,7 @@ Noise_XK::
     The template of the Noise protocol framework to establish an authenticated and encrypted communication channel between two peers of the Lightning Network.
     X means that no public key needs to be known from the initiator of the connection.
     K means that the public key of the receiver needs to be known.
-    More particularly (from: http://www.noiseprotocol.org/noise.html), the protocol enables encryption to a known recipient and strong forward secrecy. This payload is encrypted based on an ephemeral-ephemeral DH as well as an ephemeral-static DH with the recipient's static key pair. Assuming the ephemeral private keys are secure, and the recipient is not being actively impersonated by an attacker that has stolen its static private key, this payload cannot be decrypted. Sender authentication is resistant to key-compromise impersonation (KCI). The sender authentication is based on an ephemeral-static DH ("es" or "se") between the sender's static key pair and the recipient's ephemeral key pair. Assuming the corresponding private keys are secure, this authentication cannot be forged.
+    More particular (from: http://www.noiseprotocol.org/noise.html) the protocol enables encryption to a known recipient and strong forward secrecy. This payload is encrypted based on an ephemeral-ephemeral DH as well as an ephemeral-static DH with the recipient's static key pair. Assuming the ephemeral private keys are secure, and the recipient is not being actively impersonated by an attacker that has stolen its static private key, this payload cannot be decrypted. Sender authentication is resistant to key-compromise impersonation (KCI). The sender authentication is based on an ephemeral-static DH ("es" or "se") between the sender's static key pair and the recipient's ephemeral key pair. Assuming the corresponding private keys are secure, this authentication cannot be forged.
     // the noise protocol documentation is according to their IPR section public domain. The author is Trevor Perrin (noise@trevp.net)
 
 onion routing::
@@ -320,10 +323,10 @@ output::
     An output is essentially an amount of bitcoin that can be spent, as well as a script that defines what conditions need to be fulfilled for that bitcoin to be spent.
     Every bitcoin transaction consumes the outputs of the sender and creates new outputs that can be spent later by the receiver.
     A typical bitcoin output will require the signature of the owner to be spent, but outputs can require the fulfillment of more complex scripts.
-    For example, a multisignature script requires that two or more users to sign before an ouput can be spent, which is a fundamental building block of the Lightning Network.
+    For example, a multisignature script requires that two or more users to sign before an output can be spent, which is a fundamental building block of the Lightning Network.
 
 P2PKH::
-    P2PKH or Pay-to-PubKey-Hash is a type of transaction that pays a Bitcoin address that contain P2PKH scripts.
+    P2PKH or Pay-to-PubKey-Hash is a type of transaction that pays a Bitcoin address that contains P2PKH scripts.
     An output locked by a P2PKH script can be unlocked (spent) by presenting a public key and a digital signature created by the corresponding private key.
 
 P2SH::
@@ -359,13 +362,13 @@ peer::
 penalty transaction::
     See Breach Remedy Transaction.
 
-private channel:
+private channel::
     A channel not announced to the rest of the network. 
     Technically "private" is a misnomer as these channels can still be identified through routing hints and commitment transactions.
     They are better described as "unannounced" channels.
     With an unannounced channel, the channel partners can send and receive payments between each other as normal.
-    However, the rest of the network will not be aware of the channel and so cannot typically use it to route payments.
-    As the number and capacity of unanounced channels is unknown, the total public channel count and capacity is only a portion of the total Lightning Network.
+    However, the rest of the network will not be aware of it and so cannot typically use it to route payments.
+    As the number of and capacity of unannounced channels is unknown, the total public channel count and capacity only accounts for a portion of the total Lightning Network.
 
 preimage::
     In mathematics, given a function $f$ and a value $h$ the preimage of $h$ with respect to $f$ is the set of values $R = \{r_1,r_2,...\}$ such that $f(r_i) = h$ for all $\r_i \in R$.
@@ -388,7 +391,7 @@ Revocable Sequence Maturity Contract::
     This contract is used to construct a payment channel between two Bitcoin or Lightning Network users who do not need to trust each other.
     The name comes from a sequence of states which are encoded as commitment transactions and can be revoked if wrongfully published and mined by the Bitcoin network.
     These contracts are commonly referred to as RSMCs.
-    Unlike an HTLC, whose timeout is to make a HTLC temporary and which therefore should be absolute, a RSMC timeout is meant to only start when a commitment transaction is mined, and therefore should be using a Relative Timelock.
+    Unlike an HTLC, whose timeout is to make an HTLC temporary, and therefore should be absolute; a RSMC timeout is meant to only start when a commitment transaction is mined, and therefore should be using a Relative Timelock.
 
 revocation key::
     Each Revocable Sequence Maturity Contract contains two revocation keys.
@@ -503,10 +506,11 @@ wallet::
     
 watchtower::
     Watchtowers are a security service on the Lightning network that monitor channels.
-    In case one of the channel partners goes offline or loses their backup, a watchtower keeps its own backups and can restore channel information.
-    They also monitor the Bitcoin blockchain and can submit a penalty transaction in the event that one of the partners tries to "cheat" by broadcasting an outdated state.
+    In the case that one of the channel partners goes offline or loses their backup, a watchtower keeps their own backups and can restore their channel information.
+    They also monitor the Bitcoin blockchain and can submit a penalty transaction in the case that one of the partners tries to "cheat" by broadcasting an outdated state.
+
     Watchtowers can be run by the channel partners themselves, or as a paid service offered by a third party.
-    Wathctowers have no control over the funds in the channels themselves.
+    Watchtowers have no control over the funds in the channels themselves.
     
 zombie channel::
     An open channel where one of the channel partners has gone permanently offline. 
