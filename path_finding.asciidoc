@@ -14,11 +14,15 @@ image::images/LNGraphJuly2021.png[]
 
 If the sender and recipient are connected to other well-connected nodes and have at least one channel with adequate capacity - there will be thousands of paths. The problem becomes: choosing the _best_ path that will succeed in payment delivery, out of a list of thousands of possible paths.
 
+Delivering a payment can be described as a _transportation problem_. You want to transport some satoshis from your node via your channels and along one or several paths to a recipient.
+
+The problem is difficult because we don't know if remote channels can actually fulfill the routing requests as we do not know their local balance. Which means we have uncertainty. This is why we refer to path finding in this chaptersince we are trying to find paths with _enough liquidity_ through the network that allow the transportation of the satoshis.
+
 ==== Selecting the best path
 
 To select the "best" path, we have to first define what we mean by "best". There may be many different criteria such as:
 
-* Paths with enough capacity. Obviously if a path doesn't have enough capacity to route our payment, then it is not a suitable path
+* Paths with enough liquidity. Obviously if a path doesn't have enough liquidity to route our payment, then it is not a suitable path.
 
 * Paths with low fees. If we have several candidates, we may want to select ones with lower fees.
 
@@ -30,7 +34,7 @@ All of these criteria may be desirable to some extent and selecting paths that a
 
 The problem of path finding in the Lightning Network falls under a general category of _graph theory_ in mathematics and the more specific category of _graph traversal_ in computer science.
 
-A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel capacity is split between the two channel partners and the payment capacity is different in each direction.
+A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel balance is split between the two channel partners and the payment liquidity is different in each direction. A directed graph with numerical capacity constrains on its edges is called a _flow network_, a mathematical construct used to optimize transportation and other similar networks. Flow networks can be used as a framework when solutions need to achieve a specific flow while minimizing cost, known as the Minimum Cost Flow Problem (MCFP)_. 
 
 ==== Uncertainty of balances
 
@@ -38,15 +42,13 @@ If we knew the exact channel balances of every channel, we could easily compute 
 
 Balances are not announced in channel updates for two reasons: privacy and scalability. First, announcing balances would reduce the privacy of the Lightning Network as it would allow surveillance of payment by statistical analysis of the changes in balances. Second, if nodes announced balances (globally) with every payment, the Lightning Network's scaling would be as bad as that of on-chain Bitcoin transactions which are broadcast to all participants. Therefore, balances are not announced. To solve the path finding problem in the face of uncertainty of balances, we need innovative path finding strategies. These strategies must relate closely to the routing algorithm that is used, which is source-based onion-routing where it is the responsibility of the sender to find a path through the network.
 
-With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations.
-
-The fact that the path finding problem in the Lightning Network is not "fully solved" is a major point of criticism of the technology. Some critics go as far as stating that the problem is intractable and therefore the Lightning Network can't work at any significant scale. Obviously, we disagree.
+With only partial information about the network topology available this is a real challenge and active research is still being conducted into optimizing this part of the Lightning Network implementations
 
 ==== Path finding complexity
 
 Finding a path through a graph is a problem modern computers can solve rather efficiently.
 Developers mainly choose breadth-first search if the edges are all of equal weight.
-In cases where the edges are not of equal weight, the Dijkstra Algorithm is used.
+In cases where the edges are not of equal weight, an algorithm based on Dijkstra Algorithm is used, such as A* ("a-star") or
 In our case the weights of the edges can represent the routing fees.
 Only edges with a capacity larger than the amount to be sent will be included in the search.
 In this basic form, path finding in the Lightning network is very simple and straight forward.
@@ -61,7 +63,7 @@ Not only do we have limited information but the information we have is highly dy
 
 ==== Keeping it simple
 
-The simplest path finding strategy currently implemented in Lightning nodes is to probe paths (by attempting to deliver a payment) until a path is found that has enough liquidity to deliver the payment.
+The path finding mechanism implemented in Lightning nodes is to first create a list of candidate paths, filtered and sorted by some function. Then, the node or wallet will probe paths (by attempting to deliver a payment) in a trial-and-error loop until a path is found that successfully delivers the payment.
 
 [NOTE]
 ====
@@ -71,6 +73,6 @@ However, the user might suspect that probing is taking place if the payment is n
 
 While "blind probing" is not optimal and leaves ample room for improvement, it should be noted that even this simplistic strategy works surprisingly well for smaller payments and well-connected nodes.
 
-Most Lightning node and wallet implementation improve on this approach.
+Most Lightning node and wallet implementation improve on this approach, by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees), or some combination of cost/capacity.
 
-==== 
+====
