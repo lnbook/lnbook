@@ -1,0 +1,349 @@
+=== HTLC Packet Forwarding: Source Based Onion Routing
+
+So far you have learnt that payment channels can be connected to a network which can be utilized to send payment from one participant to another one through a path of payment channels.
+You have seen that with the use of HTLCs the intermediary nodes along the path are not able to steal any funds that they are supposed to forward and also how a node can set up and settle an HTLC.
+With this bare foundation laid, the following questions may have come across you mind:
+
+- Who chooses the path for a candidate route?
+- How is a path selected as a candidate to attempt to route the HTLC for a payment?
+- How much information do nodes know about the total path?
+- How exactly does a payment flow through the network at each node?
+
+In the network today, the sender is the one that selects the route and decides nearly all the details of the resulting route.
+
+As for how path finding is done, there is no single approach that all nodes in the network use.
+Instead, answer to the second question has a very large solution space, meaning there are several algorithms and neuritics used in the network today.
+Most commonly, a variation of Dijkstra's algorithm is used which takes into account additional Lightning Network details such as fees and time-locks.
+Remember from earlier that a path turns into a route which is used to trigger a payment attempt.
+As several conditions need to be satisfied for the HTLC to be completely extended, the sender may need to try several routes until one succeeds.
+However, the user of the wallet typically will not be aware of these failed path finding attempts, just as when we load a web-page on the Internet, we don't learn of any TCP packet retransmissions.
+
+In the early days of the network, a payment could only utilize a single channel in its final route.
+With the rise of Multi-Path Payments, the sender is able to split the amount into smaller pieces, and use distinct strategies to route all the payment chunks.
+This splitting behavior is similar to IP packet fragmentation on the IP layer: each node expresses its Maximum Payment Unit, with the sender using this as a guide to adequately split all payments.
+In later chapters, we'll discuss further details of payment splitting and combination once we get to advanced path finding.
+
+At a high level, each node in the route is only _explicitly_ told: how to validate the incoming HTLC packet (remember all details need to be correct for a payment to flow!), who the next hop in the route is, and how to modify the incoming HTLC packet into a valid outgoing HTLC packet to forward to the next node.
+Combined with the fact that intermediate forwarding nodes aren't explicitly given the sender and receiver of a payment, nodes are given the _least_ amount of information they need to successfully forward a payment.
+In addition to these privacy enhancing attributes, intermediate nodes aren't able to arbitrarily modify an HTLC packet, as all information is encrypted and cryptically authenticated with integrity checks carried out at each hop to ensure contents haven't been modified.
+Readers familiar with onion routing may have realized that we'll be using some clever cryptographic technique application to achieve all thees traits.
+We call this series of clever application of cryptographic techniques: sourced based onion routing!
+
+Source based routing (the non-cryptographic portion of onion routing), is distinct from how packets are typically transmitted on the IP layer.
+On the Internet today, packet switching is widely used to transmit data across the Internet.
+Packet switching typically explicitly indicates the sender and receiver of a given packet.
+Intermediate routing nodes then attempt to deliver the packet on a best effort basis, with great freedom with to exactly _how_ they select the next node in the route.
+However, the lack of encryption, end-to-end integrity checks, and arbitrary choice of routes may this a poor system to use in a _payment network_.
+
+Source routing instead has the sender select the route entirely (which all we'll learn later is important due to fees and timelocks).
+The onion routing layers then gives the sender nearly completely control of the route, and allows the sender to only tell the intermediate nodes what they need to successfully forward a payment.
+Onion routing is used in several popular protocols on the Internet, with the most notable of them being Tor.
+In the Lightning Network, we use a specific onion routing _packet_ format called Sphinx, with some special modifications made in order to make it more suited to the unique constraints of the Lightning Network.
+
+[NOTE]
+====
+While the Lightning Network also uses an onion routing scheme it is actually very different to the onion routing scheme that is used in the TOR network.
+Aside from the distinct cryptographic techniques they use, the biggest difference is that TOR is being used for arbitrary data to be exchanged between two participants where on the Lightning Network the main use case is to pay people and transfer data that encodes monetary value.
+In the Lightning Network, we're only concerned with transmitting the details that are needed for a successful payment.
+On the Lightning Network there is no analogy to the exit nodes of the Tor Network as there's no need to "exit" the network: all payments flow within the network.
+Although, in an idea model only a precise amount of information is leaked by a route, in practice several "side channels' exist, that may allow an adversary to deduce more information about a route.
+As an example, information about CTLV deltas, or the set of possible routes in the network may give away additional information about a given route.
+Similar to Tor, onion routing in the Lightning Network isn't secure against a global passive adversary (one that can monitor all links and information flows in the network).
+Today in the network, every node in the route sees the same payment hash, meaning that if two nodes are "compromised" more details of the route are leaked.
+On the TOR network nodes can theoretically be connected via a full graph as every node could create an encrypted connection with every other node on top of the Internet Protocol almost instantaneously and at no cost.
+On the Lightning Network payments can only flow along existing payment channels.
+Removing and adding of those channels is a slow and expensive process as it requires on-chain bitcoin transactions.
+On the Lightning Network nodes might not be able to forward a payment package because they do not own enough funds on their side of the payment channel.
+On the other hand there are hardly any plausible reasons other then its wish to act maliciously why a TOR node might not be able to forward an onion.
+Last but not least the Lightning Network can actually run on Tor to use it as a message transport layer.
+This means that all connections of a node with its peers and the resulting communication will by obfuscated once more through the TOR network.
+====
+
+Lets stick to our example in which Alice still wants to tip Dina and has decided to use the path via Bob and Chan.
+We note that there might have been alternative paths from Alice to Dina but for now we will just assume it is this path that Alice has decided to use.
+In order to kick off the transfer, Alice needs to send a special message to Bob to kick off the multi-hop transfer.
+You'll learn about the specific structure of this message in later chapters, but for now we'll call it an "HTLC Add" message.
+Aside from the amount, the payment hash, and the time-lock, this message also contains an opaque field use to store encrypted forwarding information.
+Today in the network, this field is 1366 bytes, as that's the _fixed_ size length of the onion packet. #TODO(roasbeef): explain security properties earlier
+This onion contains all the information about the path that Alice intends to use to send the payment to Dina.
+However Bob who receives the onion cannot read all the information about the path as most of the onion is hidden from him through a sequence of encryptions.
+The name onion comes from the analogy to an onion that consists of several layers. In our case every layer corresponds to one round of encryption.
+Each round of encryption uses different encryption keys.
+They are chosen by Alice in a way that only the rightful recipient of an onion can peel of (decrypt) the top layer of the onion.
+
+For example after Bob received the onion from Alice he will be able to decrypt the first layer and he will only see the information that he is supposed to forward the onion to Chan by setting up an HTLC with Chan.
+The HTLC with Chan should use the same Payment Hash as the receiving HTLC from Alice.
+The amount of the forwarded HTLC was specified in Bob decrypted layer of the onion.
+It will be slightly smaller than the amount of his incoming HTLC from Alice.
+The difference of these two amounts has to be at least as big as to cover the routing fees that Bob's node announced earlier on the gossip protocol.
+
+In order to set up the HTLC Bob will modify the onion a little bit in a deterministic manner.
+He removes the information that he could read from it and passes it along to Chan.
+
+Chan in turn is only able to see that he is supposed to forward the package to Dina.
+Chan knows he received the onion from Bob but has no clue that it was actually Alice who initiated the onion in the first place.
+In this way every participant is only able to peel of one layer of the onion by decrypting it.
+Each participant will only learn the information it has to learn to fulfill the routing request.
+For example Bob will explicitly be told that Alice offered him an HTLC and sent him an onion and that he is supposed to offer an HTLC to Chan and forward a slightly modified onion.
+Bob isn't explicitly told if Alice is the originator of this payment as she could also just have forwarded the payment to him.
+Due to the layered encryption he cannot see the inside of Chan's, and Dina's layer.
+The only thing Bob is told explicitly is that he was involved in a path that involved Alice, him and Chan.
+
+While the Onion is decrypted layer by layer while it travels along the path from Alice via Bob and Chan to Dina it is created from the inside layer to the outside layers via several rounds of encryption.
+Being created from the inside means that the construction starts with the Onion Package that Dina is supposed to receive in plain text.
+Let us now look at the construction of the Onion that Alice has to follow and at the exact information that is being put inside each layer of the onion.
+
+The onions are a data structure that at every hop consists of four parts:
+
+1. The version byte
+2. The header consisting of a public key that can be used by the recipient to produce the shared secret for decrypting the outer layer and to derive the public key that has to be put in the header of the modified onion for the next recipient.
+3. The payload
+4. an authentication via an HMAC.
+
+For now we will ignore how the public keys are derived and exchanged and focus on the payload of the onion.
+Only the payload is actually encrypted and will be peeled of layer by layer.
+The payload consists of a sequence of a sequence of per hop data.
+This data can come in two formats the legacy one and the Type Length Value (TLV) Format.
+While the TLV format offers more flexibility in both cases the routing information that is encoded into the onion is the same for every but the last hop.
+For example, with the new TLV format, the sender can actually included the preimage in the payload for the last hop.
+This is nice as it allow a payer to initiate a payment without the necessity to ask the payer for an invoice and payment hash first.
+We will this feature called key send in a different chapter.
+
+A node needs three pieces of information to forward the package:
+
+1. The short channel id of the next channel along which it is supposed to forward the onion by setting up an HTLC with the same payment hash.
+2. The amount that it is supposed to be forwarded and thus being used in the HTLC.
+3. Timelock information encoded to a `cltv_delta` is the last piece of information that is needed as HTLCs are hashed time locked contracts.
+
+For easier readability we have used just a small integer as `short_channel_ids` in the following example and graphics.
+
+[[routing-onion-1]]
+.`per_hop` payload of Dinas onion and the encrypted
+image:images/routing-onion-1.png[]
+
+We can see that Alice has created some per hop data for Dina.
+The short channel id is set to 0 signaling Dina that this payment is intended to be for her.
+Note that this example is slightly simplified, in that Dina can also use attributes of the onion packet format itself to be able to know when she's the final hop.
+The amount to forward is set to 3000.
+On the incoming HTLCs Dina should have seen that exact amount.
+Usually this amount is intended to say how many satoshis should be forwarded.
+Since the short channel id was set to zero in this particular case it is interpreted as the payment amount.
+Finally the CLTV delta which Dina should use to forward the payment is also set to block height 800 (the current height minus Dina's CLTV grace delta) as Dina is the final hop.
+These data fields consist of 20 Bytes.
+The Lightning Network protocol permits usage of up to 65 bytes to signal routing information in the Onion for every hop.
+
+- 1 Byte Realm which signals nodes how to decode the following 32 Bytes.
+- 32 Byte for routing payload information (20 of which we have already used).
+- 32 Byte of a Hashed Message Authentication code.
+
+As we'll see in later sections, the more modern onion payloads used in Lightning today are much more flexible in that they allow a series of arbitrary key-values pairs.
+These arbitrary key-value pairs can be used to extend the protocol in an end-to-end manner, as it many cases, only the sender and receiver need to know how to interpret the data.
+In the next diagram we can see how the per hop payload for Dina looks like.
+
+[[routing-onion-2]]
+.`per_hop` payload of Dinas onion and the encrypted
+image:images/routing-onion-2.png[]
+
+On important feature to protect the privacy is to make sure that onions are always of equal length independent of their position along the payment path.
+Thus onions are always expected to contain 20 entries of 65 Bytes with per hop data.
+If this wasn't the case, and the onion packet shrank as it was being processed, then this would leak information about the true path length to nodes in the route as the packet would be smaller the further down the route we went.
+Since Dina is the final recipient of the payment, we only have 65 bytes worth of data to fill with actual content.
+The remaining bytes are filled with random bytes to pad out the packet in an unpredictable manner.
+
+Taking a step back, before Alice is able to prepare the remainder of the packet, we needs to generate an ephemeral key (a key only used once).
+This ephemeral key is then used to generate a series of additional keys, which are themselves used for encryption, authentication, and also as input to a CSPRNG to deterministically generate the set of random filler bytes.
+In the spirit of onion encryption, Alice will begin encrypting the payload from the last hop, adding a new layer of encryption with each new hop.
+During processing, each node will authenticate the contents of the payload, then process the packet (decrypting it and shifting around some bytes) to prepare it for processing by the next node in the route.
+As we want each node to use a new shared secret to authenticate and encrypt its portion of the packet, the Sphinx onion packet format uses a _re-randomization_ scheme to allow Alice to generate a single ephemeral Diffie-Hellman key for the entire route.
+Rather than occupying space in the routing payload for N public keys, with this little trick, we're able to only include a single public key, which is used for ECDH at each step, and randomized in a deterministic manner for the next hop.
+
+[[routing-onion-3]]
+.`per_hop` payload of Dinas onion and the encrypted
+image:images/routing-onion-3.png[]
+
+You can see that Alice put the encrypted payload inside the full Onion Package which contains the public keys from the secret key that she used to derive the shared secret.
+The full onion packet also has a version byte in the beginning (for future extensibility) and an HMAC for the entire Onion.
+When Dina receives the Onion packet she will extract the public key from the unencrypted part of the onion package.
+Dina then uses ECDH to derive the shared secret using that ephemeral public key which she'll use to process the packet in full.
+The properties of ECDH make is such that only Alice and Dina are able to derive the corresponding shared secret.
+
+After the encrypted Onion for Dina is created Alice will create the next outer layer by creating the onion for Chan.
+
+She truncates 65 Bytes from the end of the encrypted onion and prepends the truncated onion with 65 Byte per Hop data for Chan.
+The per hop data follows the same structure as the per hop data for Dina.
+Thus she starts with the Realm Byte that she will set to 0 again.
+Then comes the short channel id.
+This is set to 452 as Chan is meant to use the channel with this channel ID as the next outgoing channel.
+She sets the amount to 3000 satoshi as this is the amount that Dina is supposed to receive.
+Finally she uses the CLTV delta added to the current height that was announced for this channel on the gossip protocol and that Chan should use for the HTLC when he forwards the Onion.
+Notice how this CTLV expiry (the expiry is the current height plus the delta) increase as we travel forwards (towards the sender) in the route.
+As we'll see later, this series of decrementing time-locks must carefully be set in order to avoid time-based race conditions in the created contracts.
+Again 12 Bytes of zeros are padded and an HMAC is computed.
+Note that she did not have to compute filler this time as she already has too much data with the encrypted inner onion.
+That is why the inner onion had to be truncated at the end.
+This is the plain text version of Chans Onion payload and can be seen in the following diagram:
+
+[[routing-onion-4]]
+.`per_hop` payload of Dinas onion and the encrypted
+image:images/routing-onion-4.png[]
+
+We emphasize that Chan cannot decrypt the inner part of the onion (that's still encrypted from his PoV), as he cannot derive the encryption keys.
+However the information for Chan should also be protected from others.
+Thus Alice conducts another ECDH.
+This time with Chan's public key and the randomized ephemeral key pair.
+She uses the shared secret to encrypt the onion payload.
+She would be able to construct the entire onion for Chan - which actually Bob does while he forwards the onion.
+The Onion that Chan would receive can be seen in the following diagram:
+
+[[routing-onion-5]]
+.`per_hop` payload of Dinas onion and the encrypted
+image:images/routing-onion-5.png[]
+
+Note that in the entire onion there will be Chan's ephemeral public key.
+We've omitted the details here for brevity, but notice how only a single ephemeral key is communicated.
+During processing each node will re-randomize the ephemeral key for the following node.
+Luckily the ephemeral keys that Alice used for the ECDH with Dina can be derived from the ephemeral key that she used for Chan.
+Thus after Chan decrypts his layer he can use the shared secret and his ephemeral public key to derive the ephemeral public key that Dina is supposed to use and store it in the header of the Onion that he forwards to Dina.
+The exact process to generate the ephemeral keys for every hop will be explained at the very end of the chapter.
+Similarly it is important to recognize that Alice removed data from the end of Davids onion payload to create space for the per hop data in Chan's onion.
+Thus when Chan has received his onion and removed his routing hints and per hop data the onion would be too short and he somehow needs to be able to append the 65 Bytes of filled junk data in a way that the HMACs will still be valid.
+This process of filler generation as well as the process of deriving the ephemeral keys is described in the end of this chapter.
+What is important to know is that every hop can derive the Ephemeral Public key that is necessary for the next hop and that the onions save space by always storing only one ephemeral key instead of all the keys for all the hops.
+
+
+Finally after Alice has computed the encrypted version for Chan she will use the exact same process to compute the encrypted version for Bob.
+For Bobs onion she actually computes the header and provides the ephemeral public key herself.
+Note how Chan was still supposed to forward 3000 satoshis but how Bob was supposed to forward a different amount.
+The difference is the routing fee for Chan.
+Bob on the other hand will only forward the onion if the difference between the amount to forward and the HTLC that Alice sets up while transferring the Onion to him is large enough to cover for the fees that he would like to earn.
+
+[NOTE]
+====
+We have not discussed the exact cryptographic algorithms and schemes that are being used to compute the ciphertext from the plain text.
+Also we have not discussed how the HMACs are being computed at every step and how everything fits together while the Onions are always being truncated and modified on the outer layer.
+For readers seeking more details with respect to the cryptographic algorithms used, we invite them to review BOLT 04 itself in full.
+====
+
+[[routing-onion-6]]
+.`per_hop` payload of Dinas onion and the encrypted
+image:images/routing-onion-6.png[]
+
+Since we use the network itself for transport of these onion packets, Alice is able to construct the entire onion without needing to communicate directly with each node in the route.
+She only needs a public key from each participant which is the public `node_id` of the Lightning node and known to Alice.
+In the network today, Alice learns about the public key via the gossip network, which is described in Chapter N.
+
+
+===== CLTV expiry and deltas
+
+==== Pitfalls with source based Routing and HTLCs
+
+In the first part of the routing chapter you have learnt that payments securely flow through the network via a path of HTLCs.
+You saw how a single HTLC is negotiated between two peers and added to the commitment transaction of each peer.
+In the second part you have seen how the necessary information for setting up HTLCs along a path of hops are being transferred via onion packets from the source to the sender.
+However, in the above scenarios, we only discussed flows where everything goes as expected (the optimistic path).
+In this section, we'll now turn out attention into the various scenarios where the payment flow across the route breaks down.
+
+First, it's important to know that once a node sends a fully valid onion packet out to the first hop, they cannot directly influence the course of the route.
+In other words:
+
+* You cannot force nodes to forward the onion immediately.
+* You cannot force nodes to send back an error if they cannot forward the onion because of missing liquidity or other reasons.
+* You cannot be sure that the recipient has the preimage to the payment hash or releases it as soon as the HTLCs of the correct amount arrived.
+
+When sending out an HTLC and its corresponding onion packet, you as the sender must be prepared to wait the worst-case CTLV timelock period before funds are returned back to the sender (if the route fails).
+This explicit awareness of the worst-case delay when sending a payment may be difficult to explain properly from a user experience perspective for end user wallets.
+You want to quickly pay a person but the payment path that your node has chosen has CLTV deltas that quickly add up to several 100 blocks which is a couple of days on the Bitcoin network.
+This means now that if nodes on the path misbehave - on purpose or maybe just because they have a downtime which your node didn't know about - you will have to wait even though you don't see a preimage.
+You must not send out another onion along a different path which uses the same payment hash because there is a risk that both payments will eventually settle.
+While our own experience is that most payments find a path and settle in far less than 10 seconds, the Lightning Network protocol cannot and does not give any service level agreement that within this time payments will settle or fail.
+
+[NOTE]
+====
+There are some ideas that might solve this issue to some degree by allowing the payer to abort a payment. You can find more about this idea under the terms `cancelable payments` or `stuckless payments`. However the proposals that exist only reverse the problem as now the sender can misbehave and the recipient loses control. Another solution is to use many paths in a multipath payment and include some redundancy and ignore the problem that a path takes longer to complete.
+====
+
+Despite these principle problems there are plausible situations in which the routing process fails and in which honest nodes can and should react.
+This is why the onion protocol has the ability to send back errors in a fail-fast manner that allows nodes to remove the HTLC *off-chain*, without the need to close the channels.
+Some - but not all - of the reasons for errors could be:
+
+* A node does not have enough liquidity to set up the next HTLC
+* The next payment channel does not exist anymore as it might have been closed while the onion was being routed to the node which was supposed to forward the onion along its channel.
+* While the channel might still be open - as the funding transaction was never spent - it might happen that the other peer is offline. This of course prevents the node to forward the onion.
+* The key exchanges of the sender might have been wrong so the decryption of the onion failed or the HMACs do not match. (also in case someone tried to tamper with the onion)
+* The recipient might not have issued an invoice and does not know the payment details.
+* The amount of the final HTLC is too low and the recipient does not want to release the preimage.
+
+If any of the above errors are encountered, a node will send back an encrypted error reply onion back to the sender.
+The reply onion will be encrypted at each hop with the same shared secrets that have been used to construct the onion or decrypt a layer.
+These shared keys are all known to the originator of the payment.
+The innermost onion contains the error message and an HMAC for the error message.
+The process makes sure that the sender of the onion and recipient of the reply can be sure that the error really originated from the node that the error message says it's from.
+Another important step in the process of handling errors is to abort the routing process.
+We discussed that the sender of a payment cannot just remove the HTLC on the channel along which the sender sent the payment.
+Recall for example the situation in which Alice sent an onion to Bob who set up an HTLC with Chan.
+If Alice wanted to remove the HTLC with Bob this would put a financial risk on Bob.
+He fears that his HTLC with Chan might still be fulfilled meaning that he could not claim the reimbursement from Alice.
+Thus Bob would never agree to remove the HTLC with Alice unless he has already removed his HTLC with Chan.
+If however the HTLC between Alice and Bob are set up and the HTLC between Bob and Chan are set up but Chan encounters problems with forwarding the onion it is perfectly Chan has more options than Alice.
+While sending back the error Onion to Bob, Chan could ask him to remove the HTLC.
+Bob has no risk in removing the HTLC with Chan and Chan also has no risk as there is no downstream HTLC.
+Removing an HTLC is the reverse of adding one in the first place from the PoV of the commitment transaction.
+In case of errors, peers signal that they wish to remove the HTLC by sending an `update_fail_htlc` or `update_fail_malformed_htlc` message.
+These messages contain the id of an HTLC that should be removed in the next version of the commitment transaction.
+In the same handshake-like process that was used to exchange `commitment_signed` and `revoke_and_ack` messages, the new state and thus pair of commitment signatures has to be negotiated and agreed upon.
+This also means while the balance of a channel that was involved in a failed routing process will not have changed at the end it will have negotiated two new commitment transactions.
+Despite having the same balance it must not got back to the previous commitment transaction which did not include the HTLC as this commitment transaction was revoked.
+If it was used to force close the channel the channel partner would have the ability to create a penalty transaction and get all the funds.
+
+==== Settling HTLCs
+In the last section you learned about the error cases that can happen with onion routing via the chain of HTLCs.
+You've learned how HTLCs are removed if there is an error.
+Of course HTLCs also need to be removed and the balance needs to be updated if the chain of HTLCs was successfully set up to the destination and the preimage is being released.
+Not surprisingly this process is initiated with another lightning message called `update_fulfill_htlc`.
+You will remember that HTLCs are set up and supposed to be removed with a new balance for the recipient in exchange for a secret `preimage`.
+Recalling the full-duplex protocol with `commitment_signed` and `revoke_and_ack` messages you might wonder how to make this exchange `preimage` for the new state atomic.
+The cool thing is it doesn't have to be.
+Once a channel partner with an accepted incoming HTLC knows the preimage, they can just safely pass it to the channel partner.
+That is why the `update_fulfill_htlc` message contains only the `channel_id`, the `id` of the HTLC, and the `preimage`.
+You might think that the channel partner could now refuse to sign a new channel state by sending `commitment_siged` and `revoke_and_ack` messages.
+This is not a problem though.
+In that case the recipient of the offered HTLC can just go on chain by force closing the channel.
+Once this has happened the preimage can be used to claim the HTLC output.
+
+==== Some Considerations for routing nodes
+Accepting an HTLC removes funds from a peer that the peer cannot utilize unless the HTLC is removed due to success or failure.
+Similarly forwarding an HTLC binds some of the funds from your nodes payment channel until the HTLC has been removed again.
+As we've explained at the very beginning of the chapter, engaging into the forwarding process of HTLCs does neither yield a direct risk to lose any funds nor does it gain the chance to gain any funds.
+However the funds in jeopardy could be locked for some time.
+In the worst case the routing process needs to be resolved on-chain as the payment channel was forced closed due to some other circumstances.
+In that case outstanding HTLCs produce additional on-chain food print and costs.
+Thus there are two small economic risks involved with the participation in the routing process:
+
+. Higher on-chain fees in case of forced channel closures due to the higher footprint of HTLCs.
+. Opportunity costs of locked funds. While the HTLC is active the funds cannot be used for any other purpose.
+
+Owners of routing nodes might want to monitor the routing behavior and opportunities and compare them to the on-chain costs and the opportunity costs in order to compute their own routing fees that they wish to charge in order to accept and forward HTLCs.
+
+Additionally, one should notice that HTLCs are outputs in the commitment transaction.
+The Lightning network protocol allows users to pay a single satoshi.
+However it is impossible to set up HTLCs for this small amount.
+The reason is that the corresponding outputs in the commitment transaction would be below the dust limit.
+Such cases are solved in practice with the following trick:
+Instead of setting up an HTLC the amount is taken from the output of the sender but not added to the output of the recipient.
+Thus the HTLCs which are below the dust limit can be understood to be additional fees in the commitment transaction.
+Most Lightning Nodes support the configuration of minimum accepted HTLC values.
+Operators have to consider if they want to risk overpaying fees or losing funds in the forced channel closure cases because the commitment transactions have been added to the fees.
+
+Explain fee and time-lock considerations
+The “HTLC Switch” analogy compared to regular network switch
+Circuit map concept, how to handle forwarding
+Pipeline styles for HTLCs
+Error handling and encryption for HTLCs
+
+Explain “one little trick” of DH re-randomization
+Explain how we keep the packet size fixed, what’s MAC’d, etc
+Introduce the new modern payload format which uses TLV
+
+=== Routing failures
+
+// Failure to route, stuck payments.
