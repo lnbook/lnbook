@@ -36,18 +36,22 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
 | [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :mag: |
+| [Routing (HTLCs)](07_routing_htlcs.asciidoc) | ############### | :mag: |
+| [Channel Construction in Detail](channel-construction.asciidoc) | ########### | :lock_with_ink_pen: |
+| [Channel operation with HTLCs and Statemachine](channel-operation.asciidoc) | ###### | :lock_with_ink_pen: |
 <<<<<<< HEAD
 | [Payment Channels in Detail](07_payment_channels.asciidoc) | ################# | :mag: |
 | [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :mag: |
 | [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :mag: |
 | [Onion Construction and Routing](onions.asciidoc) | # | :lock_with_ink_pen: |
-=======
-| [Routing (HTLCs)](07_routing_htlcs.asciidoc) | ############### | :mag: |
-| [Channel Construction in Detail](channel-construction.asciidoc) | ########### | :lock_with_ink_pen: |
-| [Channel operation with HTLCs and Statemachine](channel-operation.asciidoc) | ###### | :lock_with_ink_pen: |
->>>>>>> 4a7437a9f29134750901309424007a8c8835a7c4
 | [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
+=======
+| [Payment Channels in Detail](07_payment_channels.asciidoc) | ################# | :mag: |
+| [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :mag: |
+| [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :mag: |
+>>>>>>> f44e103b8b410aa2c0751a5036c94f1b2ea929e7
 | [Onion Construction and Routing](onions.asciidoc) | # | :lock_with_ink_pen: |
+| [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
 | [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
 | [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
 | [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
@@ -60,10 +64,14 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Total Word Count: 112999
 =======
 Total Word Count: 101126
 >>>>>>> 4a7437a9f29134750901309424007a8c8835a7c4
+=======
+Total Word Count: 112999
+>>>>>>> f44e103b8b410aa2c0751a5036c94f1b2ea929e7
 
 Target Word Count: 100,000-120,000
 
