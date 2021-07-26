@@ -101,7 +101,7 @@ A fair tradeoff (cost for complexity) is to buy a small SSD to boot the OS from 
 
 [NOTE]
 ====
-Raspberri Pis are a common choice for running node software, due to the cost and parts availability.
+Raspberry Pis are a common choice for running node software, due to the cost and parts availability.
 The OS that runs on the device usually boots from an SD card.
 For most use-cases, this is a non-issue, but Bitcoin Core is notorious for being I/O heavy.
 You should make sure to place the Bitcoin blockchain and Lightning data directory on a different drive because long-term intensive I/O can cause an SD card to fail.
@@ -177,7 +177,7 @@ In addition to a Bitcoin and Lightning node, MyNode can optionally install a var
 
 ==== Umbrel
 
-Famous for their UX/UI, _Umbrel_ provides a very easy and accessible way to get your Bitcoin and Lightning node up and running in no time, especially for beginners. A very distinctive feature is that _Umbrel_ utilizes Neutrino/SPV during the Inital Blockchain Download so you can instantly start using your node. Once Bitcoin Core is fully synced in the background it automatically switches over and disables SPV mode. Umbrel OS supports the Raspberry Pi 4 and can also be installed on any Linux-based OS or on a virtual machine on macOS or Windows. You can also connect any wallet that supports Bitcoin Core P2P, Bitcoin Core RPC, the Electrum protocol or lndconnect.
+Famous for their UX/UI, _Umbrel_ provides a very easy and accessible way to get your Bitcoin and Lightning node up and running in no time, especially for beginners. A very distinctive feature is that _Umbrel_ utilizes Neutrino/SPV during the Initial Blockchain Download (IBD) so you can instantly start using your node. Once Bitcoin Core is fully synced in the background it automatically switches over and disables SPV mode. Umbrel OS supports the Raspberry Pi 4 and can also be installed on any Linux-based OS or on a virtual machine on macOS or Windows. You can also connect any wallet that supports Bitcoin Core P2P, Bitcoin Core RPC, the Electrum protocol or lndconnect.
 
 There's no need to wait for a rainy day - you can find the project here: https://getumbrel.com
 
@@ -512,6 +512,7 @@ The basic steps are as follows:
 
 . Assign a static IP address for your node so that it is always the same one. You can use the IP address it currently has. On your Internet router, look for "Static Leases" under the DHCP configuraiton. Map the MAC address to the IP address you selected. Now your node will always have that IP address allocated to it. Alternatively, you can look at your router's DHCP configuration and find out what its DHCP address range is. Select an unused address _outside_ of the DHCP address range. Then, on the server, configure the network to stop using DHCP and hard-code the selected non-DHCP IP address into the operating system network configuration.
 
+
 . Finally, set up "Port Forwarding" on your Internet router to route incoming traffic on specific ports to the selected IP address of your server.
 
 Once done re-configuring, repeat the port check using one of the websites from the previous sections.
@@ -607,7 +608,7 @@ The advantage of this technique lies in the fact that the Lightning node that re
 
 As an additional measure of security, you can make your second node a hidden TOR service so that its IP address is not known. That further reduces the opportunity for attacks and increases your privacy.
 
-You will need to set up a script that runs at regular intervals. The purpose of this script is to creates an invoice on your hidden node and to pay that invoice from your shop's node, thereby shifting funds over to your hidden node.
+You will need to set up a script that runs at regular intervals. The purpose of this script is to create an invoice on your hidden node and to pay that invoice from your shop's node, thereby shifting funds over to your hidden node.
 
 Keep in mind that this technique does not move funds into cold storage. Both Lightning nodes are hot wallets. The objective of this sweep is to move funds from a very well-known hot wallet to an obscure hot wallet.
 
@@ -752,8 +753,6 @@ As a Lightning node operator, one of the recurring tasks you will need to perfor
 
 As soon as you get your Lightning node up and running, you can fund its Bitcoin wallet and then start opening channels with those funds.
 
-This task can be partially automated with the use of an _autopilot_, which is a software module that opens channels automatically based on some heuristic rules. Autopilot software is still in its infancy and it doesn't always select the best channel partners for you. It might be better, especially in the beginning, to open channels manually.
-
 You must choose channel partners carefully as your node's ability to send payments depends on who your channel partners are and how well connected they are to the rest of the Lightning Network. You also want to have more than one channel to avoid being susceptible to a single point of failure. Since Lightning now supports multi-path payments, you can split your initial funds into several channels and route bigger payments by combining their capacity. At the same time, avoid making your channels too small. Since you need to pay Bitcoin transaction fees to open and close a channel, the channel balance should not be so small that the on-chain fees consume a significant portion. It's all about balance!
 
 To summarize:
@@ -832,7 +831,7 @@ For example, if the autopilot recommends opening a channel with a small node tha
 However, if it opens a channel with a well-connected node that also has many large channels, it will probably recommend a larger channel size.
 
 As you can see the +c-lightning+ autopilot is not as automatic as +lnd+'s, but it gives you a little bit more control.
-These differences reflect personal preferences and could actually be the deciding factor for you to chose one implementation over the other.
+These differences reflect personal preferences and could actually be the deciding factor for you to choose one implementation over the other.
 
 Keep in mind that current autopilots will primarily use public information from the gossip protocol about the current topology of the Lightning Network.
 It is obvious that your personal requirements for channels can only be reflected to a certain degree.
