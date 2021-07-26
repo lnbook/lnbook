@@ -406,6 +406,11 @@ Next, Alice repeats the process. The new keys are calculated, the onion payload 
 For the final hop, the HMAC included in step #3 over the plaintext instructions is actually _all zero_. 
 The final hop uses this signal to determine that it is indeed the final hop in the route.
 Alternatively, the fact that the `short_chan_id` included in the payload to denote the "next hop" is all zero can be used as well.
+
+Note that at each phase the _mu_ key is used to generate an HMAC over the _encrypted_ (from the PoV of the node processing the payload) onion packet, as well as over the contents of the packet with a single layer of encryption removed.
+This outer HMAC allows the node processing the packet to verify the integrity of the onion packet (no bytes modified).
+The inner HMAC is then revealed during the inverse of the "shift and encrypt" routine described above, which serves as the _outer_ HMAC for the next hop.
+
 ==== Wrapping Dina's hop payload
 
 As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
