@@ -1,14 +1,14 @@
 [role="pagenumrestart"]
 [[ch03_How_Lightning_Works]]
-== How the Lightning Network Works
+== How the Lightning Network works
 
-Now that we've followed Alice as she set up a Lightning Wallet and purchased a coffee from Bob, we'll look under the hood and unpack the different components of the Lightning Network involved in that process.
+Now that we've followed Alice as she set up a Lightning wallet and purchased a coffee from Bob, we'll look under the hood and unpack the different components of the Lightning Network involved in that process.
 This chapter will give a high-level overview and will not delve into all the technical details.
 The goal is rather to help you to become aware of the most important concepts and building blocks of the Lightning Network.
 
 If you have experience in computer science, cryptography, Bitcoin, and protocol development, then this chapter should be enough for you to be able to fill out the connecting details by yourself.
-If you are less experienced, this chapter shall give you a good enough overview so you will have an easier time understanding the formal protocol specifications, known as BOLTs (Basis of Lightning Technology).
-In case you are a beginner, this chapter will help you better understand the technical chapters of the book.
+If you are less experienced, this chapter will give you a good enough overview so you have an easier time understanding the formal protocol specifications, known as BOLTs (Basis of Lightning Technology).
+In you are a beginner, this chapter will help you better understand the technical chapters of the book.
 
 If you need a refresher on the fundamentals of Bitcoin, you can find a summary review of the following topics in <<bitcoin_fundamentals_review>>:
 
@@ -25,8 +25,9 @@ If you need a refresher on the fundamentals of Bitcoin, you can find a summary r
 
 We'll start with a one sentence definition of what the Lightning Network (LN) is and break it down in the remainder of this chapter.
 
-**The Lightning Network (LN) is a peer-to-peer network of _payment channels_ implemented as smart contracts on the _Bitcoin blockchain_ as well as a communication protocol that defines how participants set up and execute these smart contracts**
+**The Lightning Network (LN) is a peer-to-peer network of _payment channels_ implemented as smart contracts on the _Bitcoin blockchain_ as well as a communication protocol that defines how participants set up and execute these smart contracts.**
 
+[[what_is_payment_channel]]
 === What is a payment channel?
 
 There are several ways to describe a payment channel, depending on the context. Let's start at a high level and then add some more detail.
@@ -56,20 +57,20 @@ The smart contract is set up to penalize a channel member if they try to submit 
 
 [NOTE]
 ====
-If you have an unpublished transaction from a 2-of-2 multisignature address, that pays you part of the balance, then a signature from the other party ensures that you can independently publish this transaction anytime by adding your own signature.
+If you have an unpublished transaction from a 2-of-2 multisignature address that pays you part of the balance, then a signature from the other party ensures that you can independently publish this transaction anytime by adding your own signature.
 
 The ability to hold a partially-signed transaction, offline and unpublished, with the option to publish and own that balance at any time, is the basis of the Lightning Network.
 ====
 
 === Routing payments across channels
 
-Once several participants have channels from one party to another, payment can also be "forwarded" from payment channel to payment channel, by setting up a _path_ across the network connecting several payment channels together.
+Once several participants have channels from one party to another, payments can also be "forwarded" from payment channel to payment channel, by setting up a _path_ across the network connecting several payment channels together.
 
 For example, Alice can send money to Charlie if Alice has a channel with Bob and Bob has a channel with Charlie.
 
-By the design of the Lightning Network, it is possible to extend the smart contracts which operate the channel so that Bob has no way of stealing the funds that are being forwarded through his channels.
+By the design of the Lightning Network, it is possible to extend the smart contracts which operate the channel so that Bob has no way of stealing the funds that are being forwarded through his channel.
 
-In the same way that the smart contract protects the channel partners, so they don't need to trust each other, the entire network protects the participants so that they can forward payments without trusting any of the other participants.
+In the same way that the smart contract protects the channel partners so they don't need to trust each other, the entire network protects the participants so that they can forward payments without trusting any of the other participants.
 
 Since the channels are constructed from multisignature addresses and the balance update transactions are pre-signed Bitcoin transactions, all the trust that is needed to operate the Lightning Network comes from the trust in the decentralized Bitcoin network!
 
@@ -109,7 +110,7 @@ Payment channels have a few very interesting and useful properties:
 
 Bitcoin was about five years old when talented developers first figured out how payment channels could be constructed and by now there are at least three different methods known.
 This chapter will focus on the channel construction method first described in the https://lightning.network/lightning-network-paper.pdf[Lightning Network whitepaper] by Joseph Poon and Thaddeus Dryja in 2015. These are known as _Poon-Dryja_ channels, and are the channel construction method currently used in the Lightning Network.
-The other two proposed methods are _Duplex Micropayment_ channels, introduced by Christian Decker around the same time as the "Poon-Dryja" channels and _eltoo_ channels, introduced in 2018 by Christian Decker, Rusty Russel and (author of this book) Olaoluwa Osuntokun.
+The other two proposed methods are _Duplex Micropayment_ channels, introduced by Christian Decker around the same time as the "Poon-Dryja" channels and _eltoo_ channels, introduced in 2018 by Christian Decker, Rusty Russel and (co-author of this book) Olaoluwa Osuntokun.
 
 Eltoo channels have some interesting properties and simplify the implementation of payment channels. However, eltoo channels require a change in the Bitcoin scripting language and therefore cannot be implemented on the Bitcoin mainnet as of 2020.
 
@@ -121,7 +122,7 @@ In summary, a multi-signature address is where bitcoin is locked so that it requ
 
 Multisignature scripts and addresses are explained in more detail in <<multisig>>.
 
-==== Funding Transaction
+==== Funding transaction
 
 The fundamental building block of a payment channel, is a 2-of-2 multisignature address. The two channel partners fund the payment channel by sending bitcoin to the multisignature address. This transaction is called the _funding transaction_, and is recorded on the Bitcoin blockchain. footnote:[While the original Lightning whitepaper described channels funded by both channel partners, the current specification, as of 2020, assumes that just one partner commits funds to the channel.]
 
@@ -137,7 +138,7 @@ The funds sent to the multisignature address in the funding transaction are some
 
 ===== Example of a poor channel opening procedure
 
-If you think carefully about 2-of-2 multisignature addresses, you will realize that putting your funds into such an address seems to carry some risk. What if your channel partner refuses to sign a transaction to "release" the funds? Are they stuck forever? Let's look at that scenario and how the Lightning Network protocol avoids it, next.
+If you think carefully about 2-of-2 multisignature addresses, you will realize that putting your funds into such an address seems to carry some risk. What if your channel partner refuses to sign a transaction to "release" the funds? Are they stuck forever? Let's now look at that scenario and how the Lightning Network protocol avoids it.
 
 Alice and Bob want to create a payment channel. They each create a private/public key pair and then exchange public keys. Now, they can construct a multisignature 2-of-2 with the two public keys, forming the foundation for their payment channel.
 
@@ -156,22 +157,22 @@ By holding a signed commitment transaction, each channel partner can get their f
 The commitment transaction that Alice prepared in the previous example, was a "refund" of her initial payment to the multisignature address. More generally however, a commitment transaction splits the funds of the payment channel, paying the two channel partners according to the distribution (balance) they each hold. At first, Alice holds all the balance, so it is a simple refund. But as funds flow from Alice to Bob, they will exchange signatures for new commitment transactions that represent the new balance distribution, with some part of the funds paid to Alice and some paid to Bob.
 
 Let us assume Alice opens a channel with a capacity of 100k satoshi with Bob.
-Initially, Alice owns 100k satoshi, the entirety of the funds in the channel. Here's how the payment channel protocol would work:
+Initially, Alice owns 100k satoshi, the entirety of the funds in the channel. Here's how the payment channel protocol works:
 
-. Alice creates a new private / public key pair and informs Bob that she wishes to open a channel via the `open_channel` message (a message in the Lightning Network protocol).
-. Bob also creates a new private / public key pair and agrees to accept a channel from Alice, sending his public key to Alice via the `accept_channel` message.
+. Alice creates a new private/public key pair and informs Bob that she wishes to open a channel via the `open_channel` message (a message in the Lightning Network protocol).
+. Bob also creates a new private/public key pair and agrees to accept a channel from Alice, sending his public key to Alice via the `accept_channel` message.
 . Alice now creates a funding transaction from her wallet that sends 100k satoshi to the multisignature address with a locking script +2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG+.
 . Alice does not yet broadcast this funding transaction but sends Bob the transaction ID in a `funding_created` message.
 . Both Alice and Bob create their version of a commitment transaction. This transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
 . Alice and Bob don't need to exchange these commitment transactions, since they each know how they are constructed and can build both independently. They only need to exchange signatures.
 . Alice provides a signature for Bob's commitment transaction. This signature was already included in the `funding_created` message.
-. Bob provides a signature for Alice's Commitment Transaction and sends this back to Alice via the `funding_signed` message.
-. Now that signatures have been exchanged Alice will broadcast the funding transaction to the Bitcoin network.
+. Bob provides a signature for Alice's commitment transaction and sends this back to Alice via the `funding_signed` message.
+. Now that signatures have been exchanged, Alice will broadcast the funding transaction to the Bitcoin network.
 
 By following this protocol, Alice does not give up ownership of her 100k satoshi even though the funds are sent to a 2-of-2 multisignature address for which Alice controls only one key.
-If Bob stops responding to Alice she will be able to broadcast her commitment transaction and receive her funds back.
+If Bob stops responding to Alice, she will be able to broadcast her commitment transaction and receive her funds back.
 Her only costs are the fees for the on-chain transactions.
-As long as she follows the protocol this is her only risk when opening a channel.
+As long as she follows the protocol, this is her only risk when opening a channel.
 
 After this initial exchange, commitment transactions are created each time the channel balance changes. In other words, each time a payment is sent between Alice and Bob, new commitment transactions are created and signatures are exchanged. Each new commitment transaction encodes the latest balance between Alice and Bob.
 
@@ -184,17 +185,17 @@ Now that we understand commitment transactions, let's look at some of the more s
 How many commitment transactions does Alice hold after she pays 30k satoshi to Bob? She holds two: the original one paying her 100k satoshi and the more recent one, paying her 70k satoshi and Bob 30k satoshi.
 
 In the channel protocol we have seen so far, nothing stops Alice from publishing a previous commitment transaction. A cheating Alice could publish the commitment transaction which grants her 100k satoshi.
-Since that commitment transaction was signed by Bob he can't prevent Alice from transmitting it.
+Since that commitment transaction was signed by Bob, he can't prevent Alice from transmitting it.
 
 Some mechanism is needed to prevent Alice from publishing an old commitment transaction. Let us now find out how this can be achieved and how it enables the Lightning Network to operate without requiring any trust between Alice and Bob.
 
-Because Bitcoin is censorship resistant, no one can prevent someone from publishing an old commitment transaction. To prevent this form of cheating, we construct commitment transactions so that if an old one is transmitted, the cheater can be punished. By making the penalty large enough, we create a strong incentive against cheating and this makes the system secure.
+Because Bitcoin is censorship resistant, no one can prevent someone from publishing an old commitment transaction. To prevent this form of cheating, commitment transactions are constructed so that if an old one is transmitted, the cheater can be punished. By making the penalty large enough, we create a strong incentive against cheating and this makes the system secure.
 
 The way the penalty works is by giving the cheated party an opportunity to claim the balance of the cheater. So if someone attempts to cheat by broadcasting an old commitment transaction, in which they are paid a higher balance than they are due, the other party can punish them by taking *both* their own balance and the balance of the cheater. The cheater loses everything.
 
 [TIP]
 ====
-You might notice that if Alice drains her channel balance almost completely, she could then risk cheating with little risk. Bob's penalty wouldn't be so painful if her channel balance is low. To prevent this, the Lightning protocol requires each channel partner to keep a minimum balance in the channel (called the "reserve") so they always have "skin in the game".
+You might notice that if Alice drains her channel balance almost completely, she could then try cheating with little risk. Bob's penalty wouldn't be so painful if her channel balance is low. To prevent this, the Lightning protocol requires each channel partner to keep a minimum balance in the channel (called the "reserve") so they always have "skin in the game".
 ====
 
 Let us go through the channel construction scenario again, adding a penalty mechanism to protect against cheating:
@@ -211,13 +212,13 @@ With a strong penalty mechanism, Alice is not tempted to cheat by publishing an 
 
 [NOTE]
 ====
-In Mastering Bitcoin, Andreas Antonopoulos (the author of this book) states it as follows:
-"A key characteristic of bitcoin is that once a transaction is valid, it remains valid and does not expire. The only way to cancel a transaction is by double-spending its inputs with another transaction before it is mined."
+In Mastering Bitcoin, Andreas Antonopoulos (the co-author of this book) states it as follows:
+"A key characteristic of Bitcoin is that once a transaction is valid, it remains valid and does not expire. The only way to cancel a transaction is by double-spending its inputs with another transaction before it is mined."
 ====
 
 Now that we understand _why_ a penalty mechanism is needed and how it will prevent cheating, let's see _how_ it works in detail.
 
-Usually, the commitment transaction has at least two outputs, paying each channel partner. We change this to add a _timelock delay_ and a _revocation secret_, to one of the payments. The timelock prevents the owner of the output from spending it immediately once the commitment transaction is included in a block. The revocation secret allows either party to immediately spend that payment, bypassing the timelock.
+Usually, the commitment transaction has at least two outputs, paying each channel partner. We change this to add a _timelock delay_ and a _revocation secret_ to one of the payments. The timelock prevents the owner of the output from spending it immediately once the commitment transaction is included in a block. The revocation secret allows either party to immediately spend that payment, bypassing the timelock.
 
 So, in our example, Bob holds a commitment transaction that pays Alice _immediately_, but his own payment is delayed and revocable. Alice also holds a commitment transaction, but hers is the opposite: it pays Bob immediately but her own payment is delayed and revocable.
 
@@ -227,23 +228,23 @@ We will examine the revocation mechanism in more detail in <<channel_operation>>
 
 In simple terms, Alice signs Bob's new commitment transaction only if Bob offers his half of the revocation secret for the previous commitment. Bob only signs Alice's new commitment transaction if she gives him her half of the revocation secret from the previous commitment.
 
-With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use old commitments as they sign the new ones. What we mean is that while it still technically possible to use old commitments, the penalty mechanism makes it economically irrational to do so.
+With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use old commitments as they sign the new ones. What we mean is that while it is still technically possible to use old commitments, the penalty mechanism makes it economically irrational to do so.
 
-The timelock is set to a number of blocks, up to 2016 (approximately two weeks). If either channel partner publishes a commitment transaction without cooperating with the other partner, they will have to wait for that number of blocks (e.g. 2 weeks) to claim their balance. The other channel partner can claim their own balance at any time. Furthermore, if the commitment they published was previously revoked, the channel partner can *also* immediately claim the cheating party's balance, bypassing the timelock and punishing the cheater.
+The timelock is set to a number of blocks up to 2016 (approximately two weeks). If either channel partner publishes a commitment transaction without cooperating with the other partner, they will have to wait for that number of blocks (e.g. 2 weeks) to claim their balance. The other channel partner can claim their own balance at any time. Furthermore, if the commitment they published was previously revoked, the channel partner can *also* immediately claim the cheating party's balance, bypassing the timelock and punishing the cheater.
 
 The timelock is adjustable and can be negotiated between channel partners. Usually, it is longer for larger capacity channels, and shorter for smaller channels, to align the incentives with the value of the funds.
 
-For every new update of the channel balance, new commitment transactions and new revocation secrets have to be created and saved. As long as a channel remains open, all revocation secrets _ever created_ for the channel need to be kept as they might be needed in the future. Fortunately, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network. Furthermore, due to a smart derivation mechanism used to derive revocation secrets we only need to store the most recent secret, because previous secrets can be derived from it (See <<revocation_secret_derivation>>.)
+For every new update of the channel balance, new commitment transactions and new revocation secrets have to be created and saved. As long as a channel remains open, all revocation secrets _ever created_ for the channel need to be kept as they might be needed in the future. Fortunately, the secrets are rather small and it is only the channel partners who need to keep them, not the entire network. Furthermore, due to a smart derivation mechanism used to derive revocation secrets, we only need to store the most recent secret because previous secrets can be derived from it (See <<revocation_secret_derivation>>.)
 
 Nevertheless, managing and storing the revocation secrets is one of the more elaborate parts of Lightning nodes that require node operators to maintain backups.
 
 [NOTE]
 ====
-Technologies such as Watchtower services or changing the channel construction protocol to the "eltoo" protocol might be future strategies to mitigate these issues and reduce the need for revocation secrets, penalty transactions and channel backups.
+Technologies such as watchtower services or changing the channel construction protocol to the "eltoo" protocol might be future strategies to mitigate these issues and reduce the need for revocation secrets, penalty transactions and channel backups.
 ====
 
 Alice can close the channel at any time if Bob does not respond, claiming her fair share of the balance.
-After publishing the *last* commitment transaction on-chain Alice has to wait for the timelock to expire before she can spend her funds from the commitment transaction. As we will see later, there is an easier way to close a channel without waiting, as long as Alice and Bob are both online and cooperate to close the channel with the correct balance allocation. But the commitment transactions stored by each channel partner act as a failsafe, ensuring they do not lose funds if there is a problem with their channel partner.
+After publishing the *last* commitment transaction on-chain, Alice has to wait for the timelock to expire before she can spend her funds from the commitment transaction. As we will see later, there is an easier way to close a channel without waiting, as long as Alice and Bob are both online and cooperate to close the channel with the correct balance allocation. But the commitment transactions stored by each channel partner act as a failsafe, ensuring they do not lose funds if there is a problem with their channel partner.
 
 ==== Announcing the channel
 
@@ -256,7 +257,7 @@ By contrast, the channel partners may decide not to announce the channel, making
 
 [NOTE]
 ====
-You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, its existence and capacity will be revealed when the channel closes, because those details will be visible on-chain in the final settlement transaction. Its existence can also leak in a variety of other ways, so we avoid calling it "private".
+You may hear the term "private channel", used to describe an unannounced channel. We avoid using that term because it is misleading and creates a false sense of privacy. While an unannounced channel will not be known to others while it is in use, its existence and capacity will be revealed when the channel closes because those details will be visible on-chain in the final settlement transaction. Its existence can also leak in a variety of other ways, so we avoid calling it "private".
 ====
 
 Unannounced channels are still used to route payments but only by the nodes which are aware of their existence, or given "routing hints" about a path that includes an unannounced channel.
@@ -281,7 +282,7 @@ However, sometimes closing a channel is desirable or necessary. For example:
 * You want to reduce the balance held on your Lightning channels for security reasons and want to send funds to "cold storage".
 * Your channel partner becomes unresponsive for a long time and you cannot use the channel anymore.
 * The channel is not being used often because your channel partner is not a well-connected node, so you want to use the funds for another channel with a better-connected node.
-* Your channel partner has breached the protocol either due to a software bug or on purpose forcing you to close the channel to protect your funds.
+* Your channel partner has breached the protocol either due to a software bug or on purpose, forcing you to close the channel to protect your funds.
 
 There are three ways to close a payment channel:
 
@@ -289,17 +290,17 @@ There are three ways to close a payment channel:
 * Force close (the bad way)
 * Protocol breach (the ugly way)
 
-Each of these methods is useful for different circumstances which we will explore in the next section of this chapter.
+Each of these methods is useful for different circumstances, which we will explore in the next section of this chapter.
 For example, if your channel partner is offline you will not be able to follow "the good way" because a mutual close cannot be done without a cooperating partner.
 Usually, your Lightning Network software will automatically select the best closing mechanism available under the circumstances.
 
 ===== Mutual close (the good way)
 
-Mutual Close is when both channel partners agree to the closure of a channel and is the preferred method of channel close.
+Mutual close is when both channel partners agree to close a channel and is the preferred method of channel closure.
 
 When you decide that you want to close a channel, your Lightning Network node will inform your channel partner about your intention.
-Now both your node and the channel parter's node work together to close the channel.
-No new routing attempts will be accepted from either channel partner and any ongoing routing attempts will be settled or removed after they time-out.
+Now both your node and the channel partner's node work together to close the channel.
+No new routing attempts will be accepted from either channel partner and any ongoing routing attempts will be settled or removed after they time out.
 Finalizing the routing attempts takes time, so a mutual close can also take some time to complete.
 
 Once there are no pending routing attempts, the nodes cooperate to prepare a _closing transaction_.
@@ -314,7 +315,7 @@ Despite the waiting time, a mutual close is typically faster than a force close.
 
 ===== Force close (the bad way)
 
-A Force Close is when one channel partner attempts to close a channel without the other channel partner's consent.
+A force close is when one channel partner attempts to close a channel without the other channel partner's consent.
 
 This is usually in the case that one of the channel partners is unreachable, and so a mutual close is not possible.
 In this case, you would initiate a force close to unilaterally close the channel and "free" the funds.
@@ -330,13 +331,13 @@ In the case that you broadcasted an earlier commitment transaction, the timelock
 
 When publishing a commitment transaction during a force close, the on-chain fees will be higher than a mutual close for several reasons:
 
-. When the commitment transaction was negotiated, the channel partners didn't know how much the on-chain fees would be at the future time the transaction would be broadcast. Since the fees cannot be changed without changing the outputs of the commitment transaction (needs both signatures) and since the force close happens when a channel partner is not available to sign, the protocol developers decided to be very generous with the fee rate included in the commitment transactions. It can be up to five times higher than the fee estimators suggest at the time the commitment transaction is negotiated.
+. When the commitment transaction was negotiated, the channel partners didn't know how much the on-chain fees would be at the future time the transaction would be broadcast. Since the fees cannot be changed without changing the outputs of the commitment transaction (which needs both signatures) and since the force close happens when a channel partner is not available to sign, the protocol developers decided to be very generous with the fee rate included in the commitment transactions. It can be up to five times higher than the fee estimators suggest at the time the commitment transaction is negotiated.
 . The commitment transaction includes additional outputs for any pending routing attempts (HTLCs), which makes the commitment transaction larger (in terms of bytes) than a mutual close transaction. Larger transactions incur more fees.
 . Any pending routing attempts will have to be resolved on-chain causing additional on-chain transactions.
 
 [NOTE]
 ====
-Hash Time-Locked Contracts (HTLCs) will be covered in detail in <<htlcs>>.
+Hashed TimeLock Contracts (HTLCs) will be covered in detail in <<htlcs>>.
 For now, assume that these are payments that are routed across the Lightning Network, rather than payments made directly between the two channel partners.
 These HTLCs are carried as additional outputs in the commitment transactions, thereby increasing the transaction size and on-chain fees.
 ====
@@ -345,17 +346,17 @@ In general, a force close is not recommended unless absolutely necessary.
 Your funds will be locked for a longer time and the person who opened the channel will have to pay higher fees.
 Furthermore, you might have to pay on-chain fees to abort or settle routing attempts even if you didn't open the channel.
 
-If the channel partner is known to you, you might consider contacting that individual or company and inquire why their Lightning Node is down and request that they restart it so that you can achieve a mutual close of the channel.
+If the channel partner is known to you, you might consider contacting that individual or company to inquire why their Lightning Node is down and request that they restart it so that you can achieve a mutual close of the channel.
 
 You should consider a force close only as the last resort.
 
-===== Protocol Breach (the ugly way)
+===== Protocol breach (the ugly way)
 
-A Protocol Breach is when your channel partner tries to cheat you, whether deliberately or not, by publishing an outdated commitment transaction to the Bitcoin blockchain, essentially initiating a (dishonest) force close from their side.
+A protocol breach is when your channel partner tries to cheat you, whether deliberately or not, by publishing an outdated commitment transaction to the Bitcoin blockchain, essentially initiating a (dishonest) force close from their side.
 
 Your node must be online and watching new blocks and transactions on the Bitcoin blockchain to detect this.
 
-Because your channel partner's payment will be encumbered by a timelock, your node has some time to act before the timelock expires to detect a protocol breach and publish a _punishment transaction_.
+Because your channel partner's payment will be encumbered by a timelock, your node has some time to act to detect a protocol breach and publish a _punishment transaction_ before the timelock expires.
 
 If you successfully detect the protocol breach and enforce the penalty, you will receive all of the funds in the channel, including your channel partner's funds.
 
@@ -370,7 +371,7 @@ If there is any balance allocated to you, you will have to pay on-chain fees to 
 
 As with a force close, all pending routing attempts will also have to be resolved in the commitment transaction.
 
-A Protocol Breach can be executed faster than a mutual close, as you do not wait to negotiate a close with your partner, and faster than a force close as you do not need to wait for your timelock to expire.
+A protocol breach can be executed faster than a mutual close, as you do not wait to negotiate a close with your partner, and faster than a force close as you do not need to wait for your timelock to expire.
 
 Game theory predicts that cheating is not an appealing strategy because it is easy to detect a cheater, and the cheater risks losing _all_ of their funds while only standing to gain what they had in an earlier state.
 Furthermore, as the Lightning Network matures, and watchtowers become widely available, cheaters will be able to be detected by a third party even if the cheated channel partner is offline.
@@ -383,7 +384,7 @@ You do so by running software that monitors the public Bitcoin blockchain for on
 This software is either:
 
 * A properly maintained Lightning node, running 24/7.
-* A single-purpose _watchtower_ node that you run to watch your channels.
+* A single-purpose watchtower node that you run to watch your channels.
 * A third-party watchtower node that you pay to watch your channels.
 
 We will look at watchtowers in more detail in <<watchtowers>>.
@@ -401,18 +402,18 @@ Most payments on the Lightning Network start with an invoice, generated by the r
 There is a way to send an "unsolicited" payment without an invoice, using a work-around in the protocol called _keysend_. We will examine this in <<keysend>>.
 ====
 
-An invoice is a simple payment instruction containing information such as a unique payment identifier, called a payment hash, a recipient, an amount, and an optional text description.
+An invoice is a simple payment instruction containing information such as a unique payment identifier (called a payment hash), a recipient, an amount, and an optional text description.
 
-The most important part of the invoice is the payment hash, that allows the payment to travel across multiple channels in an _atomic_ way. Atomic, in computer science, means any action or state change that is either completed successfully or not at all - there is no possibility of an intermediate state or partial action. In the Lightning Network that means that the payment either travels the whole path or fails completely. It cannot be partially completed such that an intermediate node on the path can receive the payment and keep it.
+The most important part of the invoice is the payment hash, which allows the payment to travel across multiple channels in an _atomic_ way. Atomic, in computer science, means any action or state change that is either completed successfully or not at all - there is no possibility of an intermediate state or partial action. In the Lightning Network that means that the payment either travels the whole path or fails completely. It cannot be partially completed such that an intermediate node on the path can receive the payment and keep it.
 There is no such thing as a "partial payment" or "partly successful payment".
 
 Invoices are not communicated over the Lightning Network. Instead, they are communicated "out of band", using any other communication mechanism. This is similar to how Bitcoin addresses are communicated to senders outside the Bitcoin network, as a QR code, over email, or a text message. For example, Bob can present a Lightning invoice to Alice as a QR code, send it via email, or any other message channel.
 
 Invoices are usually encoded either as a long bech32-encoded string or as a QR code, to be scanned by a smartphone Lightning wallet. The invoice contains the amount of bitcoin that is requested and a signature of the recipient. The sender uses the signature to extract the public key (also known as the node ID) of the recipient so that the sender knows where to send the payment.
 
-Did you notice how this contrasts with Bitcoin and how different terms are used? In Bitcoin, the recipient passes an address to the sender. In Lightning, the recipient creates an invoice and sends an invoice to the sender. In Bitcoin, the sender sends funds to an address. In Lightning, the sender pays an invoice and the payment gets routed to the recipient. Bitcoin is based on the concept of an "address", and Lightning is a payment network and based on the concept of an "invoice". In Bitcoin we create a "transaction" whereas in Lightning we send a "payment".
+Did you notice how this contrasts with Bitcoin and how different terms are used? In Bitcoin, the recipient passes an address to the sender. In Lightning, the recipient creates an invoice and sends an invoice to the sender. In Bitcoin, the sender sends funds to an address. In Lightning, the sender pays an invoice and the payment gets routed to the recipient. Bitcoin is based on the concept of an "address", and Lightning is a payment network based on the concept of an "invoice". In Bitcoin, we create a "transaction" whereas in Lightning we send a "payment".
 
-==== Payment Hash and Preimage
+==== Payment hash and preimage
 
 The most important part of the invoice is the _payment hash_. When constructing the invoice, Bob will make a payment hash as follows:
 
@@ -426,11 +427,11 @@ latexmath:[H = SHA256(r)].
 The term _preimage_ comes from mathematics. In any function _y = f(x)_, the set of inputs that produce a certain value _y_ are called the preimage of _y_. In this case, the function is the SHA256 hash algorithm and any value _r_ that produces the hash _H_ is called a preimage.
 ====
 
-There is no known way to find the inverse of SHA256 (compute a preimage from a hash). Only Bob knows the value +r+, so it is Bob's secret. But once Bob reveals +r+, anyone who has the hash +H+ can check that +r+ is the correct secret, by calculating +SHA256(r)+ and seeing that it matches +H+.
+There is no known way to find the inverse of SHA256 (i.e. compute a preimage from a hash). Only Bob knows the value +r+, so it is Bob's secret. But once Bob reveals +r+, anyone who has the hash +H+ can check that +r+ is the correct secret, by calculating +SHA256(r)+ and seeing that it matches +H+.
 
 The payment process of the Lightning Network is only secure if +r+ is chosen completely randomly and is not predictable. This security relies on the fact that hash functions cannot be inverted or feasibly brute-forced and therefore no one can find +r+ from +H+.
 
-==== Additional Metadata
+==== Additional metadata
 
 Invoices can optionally include other useful metadata such as a short text description. If a user has several invoices to pay, the user can read the description and be reminded of what the invoice is about.
 
@@ -452,13 +453,13 @@ We have seen how the recipient creates an invoice that contains a payment hash. 
 
 In the next few sections, we will dive into the ideas and methods that are being used to deliver a payment over the Lightning Network and use all the concepts we have presented so far.
 
-First, let's look at the Lightning network's communication protocol.
+First, let's look at the Lightning Network's communication protocol.
 
 ==== The peer-to-peer gossip protocol
 
-As we mentioned previously, when a payment channel is constructed, the channel partners have the option of making it public, announcing its existence and details to the whole Lightning network.
+As we mentioned previously, when a payment channel is constructed, the channel partners have the option of making it public, announcing its existence and details to the whole Lightning Network.
 
-Channel announcements are communicated over a peer-to-peer _gossip protocol_. A peer-to-peer protocol is a communications protocol where each node connects to a random selection of other nodes in the network, usually over TCP/IP. Each of the nodes that are directly connected (over TCP/IP) to your node are called your _peers_. Your node in turn is one of their peers. Keep in mind, when we say that your node is connected to other peers, we don't mean that you have payment channels, but only via the gossip protocol.
+Channel announcements are communicated over a peer-to-peer _gossip protocol_. A peer-to-peer protocol is a communications protocol where each node connects to a random selection of other nodes in the network, usually over TCP/IP. Each of the nodes that are directly connected (over TCP/IP) to your node are called your _peers_. Your node in turn is one of their peers. Keep in mind, when we say that your node is connected to other peers, we don't mean that you have payment channels, but only that you are connected via the gossip protocol.
 
 After opening a channel, a node may choose to send out an announcement of the channel via the `channel_announcement` message to its peers.
 Every peer validates the information from the `channel_announcement` message and verifies that the funding transaction is confirmed on the Bitcoin blockchain.
@@ -476,7 +477,7 @@ The gossip protocol also has a variety of queries and messages to initially sync
 
 A major challenge for the participants of the Lightning Network is that the topology information that is being shared by the gossip protocol is only partial.
 For example, the capacity of the payment channels is shared on the gossip protocol via the `channel_announcement` message.
-However, this information is not as useful as the actual distribution of the capacity into the local balance between the two channel partners.
+However, this information is not as useful as the actual distribution of the capacity in terms of the local balance between the two channel partners.
 A node can only forward as much bitcoin as it actually owns (local balance) within that channel.
 
 While Lightning could have been designed to share balance information of channels and a precise topology, this has not been done for several reasons:
@@ -499,14 +500,14 @@ Payments on the Lightning Network are forwarded along a _path_ made of channels 
 
 [NOTE]
 ====
-A frequent criticism of the Lightning network is that "routing" is not solved, or even is an "unsolvable" problem. In fact, routing is trivial. Pathfinding, on the other hand, is a difficult problem. The two terms are often confused and need to be clearly defined to identify which problem we are attempting to solve.
+A frequent criticism of the Lightning Network is that "routing" is not solved, or even that it is an "unsolvable" problem. In fact, routing is trivial. Pathfinding, on the other hand, is a difficult problem. The two terms are often confused and need to be clearly defined to identify which problem we are attempting to solve.
 ====
 
 As we will see next, the Lightning Network currently uses a _source-based_ protocol for pathfinding and an _onion routed_ protocol for routing payments. Source-based means that the sender of the payment has to find a path through the network to the intended destination. Onion-routed means that the elements of the path are layered (like an onion), with each layer encrypted so that it can only be seen by one node at a time. We will discuss onion routing in the next section.
 
-=== Source-based Pathfinding
+=== Source-based pathfinding
 
-If we knew the exact channel balances of every channel we could easily compute a payment path using any of the standard pathfinding algorithms taught in any computer science program. This could even be solved in a way that optimizes the fees paid to nodes for forwarding the payment.
+If we knew the exact channel balances of every channel, we could easily compute a payment path using any of the standard pathfinding algorithms taught in any computer science class. This could even be solved in a way that optimizes the fees paid to nodes for forwarding the payment.
 
 However, the balance information of all channels is not and cannot be known to all participants of the network. We need more innovative pathfinding strategies.
 
@@ -514,10 +515,10 @@ With only partial information about the network topology, pathfinding is a real 
 
 [NOTE]
 ====
-One common criticism of path-finding in the Lightning network is that it is unsolvable because it is equivalent to the NP-complete _Traveling Salesperson Problem_, a fundamental problem in computational complexity theory. In fact, pathfinding in Lightning is not equivalent to TSP and falls into a different class of problems. We successfully solve these types of problems (pathfinding in graphs with incomplete information) every time we ask Google to give us driving directions with traffic avoidance. We also successfully solve this problem every time we route a payment on the Lightning network.
+One common criticism of path-finding in the Lightning network is that it is unsolvable because it is equivalent to the NP-complete _Traveling Salesperson Problem_, a fundamental problem in computational complexity theory. In fact, pathfinding in Lightning is not equivalent to TSP and falls into a different class of problems. We successfully solve these types of problems (pathfinding in graphs with incomplete information) every time we ask Google to give us driving directions with traffic avoidance. We also successfully solve this problem every time we route a payment on the Lightning Network.
 ====
 
-Pathfinding and routing can be implemented in a number of different ways and multiple path-finding and routing algorithms can co-exist on the Lightning network, just as multiple path-finding and routing algorithms exist on the internet. Source-based pathfinding is one of many possible solutions and is successful at the current scale of the Lightning network.
+Pathfinding and routing can be implemented in a number of different ways and multiple path-finding and routing algorithms can co-exist on the Lightning Network, just as multiple path-finding and routing algorithms exist on the internet. Source-based pathfinding is one of many possible solutions and is successful at the current scale of the Lightning Network.
 
 The pathfinding strategy currently implemented by Lightning nodes is to "probe" paths until one is found that has enough liquidity to forward the payment. This is an iterative process of trial and error, until success is achieved or no path is found. The algorithm currently does not necessarily result in the path with the lowest fees. While this is not optimal and certainly can be improved, even this simplistic strategy works quite well.
 
@@ -526,7 +527,7 @@ The user might only realize that probing is taking place if the payment does not
 
 [NOTE]
 ====
-On the Internet we use the internet protocol and an IP forwarding algorithm to forward internet packages from the sender to the destination. While these protocols have the nice property of allowing internet hosts to collaboratively find a path for information flow through the internet, we cannot reuse and adopt this protocol for forwarding payments on the Lightning Network. Unlike the internet, Lightning payments have to be _atomic_ and channel balances have to remain _private_. Furthermore, the channel capacity in Lightning changes frequently, unlike the Internet where connection capacity is relatively static. These constraints require novel strategies.
+On the Internet, we use the Internet protocol and an IP forwarding algorithm to forward Internet packages from the sender to the destination. While these protocols have the nice property of allowing Internet hosts to collaboratively find a path for information flow through the Internet, we cannot reuse and adopt this protocol for forwarding payments on the Lightning Network. Unlike the Internet, Lightning payments have to be _atomic_ and channel balances have to remain _private_. Furthermore, the channel capacity in Lightning changes frequently, unlike the Internet where connection capacity is relatively static. These constraints require novel strategies.
 ====
 
 Of course, pathfinding is trivial if we want to pay our direct channel partner and we have enough balance on our side of the channel to do so. In all other cases, our node uses information from the gossip protocol to do pathfinding. This includes currently known public payment channels, known nodes, known topology (how known nodes are connected), known channel capacities, and known fee policies set by the node owners.
@@ -545,13 +546,13 @@ A payment package used for routing is called an "onion". footnote:[The term "oni
 
 Let's use the onion analogy to follow a routed payment. On its route from payment sender (payer) to payment destination (payee) the onion is passed from node to node along the path. The sender constructs the entire onion, from the center out. First, the sender creates the payment information for the (final) recipient of the payment and encrypts it with a layer of encryption that only the recipient can decrypt. Then, the sender wraps that layer with instructions for the node in the path _immediately preceding the final recipient_ and encrypts with a layer that only that node can decrypt.
 
-The layers are built up with instructions working backward until the entire path is encoded in layers. The sender then gives the complete onion to the first node in the path that can only read the outermost layer. Each node peels a layer, and finds instructions inside revealing the next node in the path and passes the onion on. As each node peels one layer, it can't read the rest of the onion. All it knows is where the onion came from and where it is going next, without any indication as to who is the original sender or the ultimate recipient.
+The layers are built up with instructions working backward until the entire path is encoded in layers. The sender then gives the complete onion to the first node in the path which can only read the outermost layer. Each node peels a layer and finds instructions inside revealing the next node in the path and passes the onion on. As each node peels one layer, it can't read the rest of the onion. All it knows is where the onion has just come from and where it is going next, without any indication as to who is the original sender or the ultimate recipient.
 
 This continues until the onion reaches the payment destination (payee). Then, the destination node opens the onion and finds there are no further layers to decrypt and can read the payment information inside.
 
 [NOTE]
 ====
-Unlike a real onion, when peeling each layer, the nodes add some encrypted padding, to keep the size of the onion the same for the next node. As we will see, this makes it impossible for any of the intermediate nodes to know anything about the size (length) of the path, how many nodes are involved in routing, how many nodes preceded them or how many follow. This might increase privacy by preventing trivial traffic analysis attacks.
+Unlike a real onion, when peeling each layer, the nodes add some encrypted padding to keep the size of the onion the same for the next node. As we will see, this makes it impossible for any of the intermediate nodes to know anything about the size (length) of the path, how many nodes are involved in routing, how many nodes preceded them or how many follow. This increases privacy by preventing trivial traffic analysis attacks.
 ====
 
 The onion routing protocol used in Lightning has the following properties:
@@ -566,17 +567,17 @@ The onion routing protocol used in Lightning has the following properties:
 
 . Onions can have up to 20 hops or onion layers if you prefer. This allows for sufficiently long paths.
 
-. The encryption of the onion for every hop uses different ephemeral encryption keys with every single onion. Should a key (in particular the private key of a node) leak at some point in time an attacker cannot decrypt them. In simpler terms, keys are never reused in order to achieve more security.
+. The encryption of the onion for every hop uses different ephemeral encryption keys. Should a key (in particular the private key of a node) leak at some point in time an attacker cannot decrypt them. In simpler terms, keys are never reused in order to achieve more security.
 
-. Errors can be sent back from the erring node to the original sender, using the same onion routed protocol. Error onions are indistinguishable from routing onions, to external observers and intermediary nodes. Error routing enables the trial-and-error "probing" method used to find a path that has sufficient capacity to successfuly route a payment.
+. Errors can be sent back from the erring node to the original sender, using the same onion routed protocol. Error onions are indistinguishable from routing onions to external observers and intermediary nodes. Error routing enables the trial-and-error "probing" method used to find a path that has sufficient capacity to successfuly route a payment.
 
 Onion routing will be examined in detail in <<onion_routing>>.
 
-==== Payment Forwarding Algorithm
+==== Payment forwarding algorithm
 
 Once the sender of a payment finds a possible path across the network and constructs an onion, the payment is forwarded by each node in the path. Each node processes one layer of the onion and forwards it to the next node in the path.
 
-Each intermediary node receives a Lightning Message called `update_add_htlc` with a payment hash and an onion. The intermediary node executes a series of steps, called the _payment forwarding algorithm_:
+Each intermediary node receives a Lightning message called `update_add_htlc` with a payment hash and an onion. The intermediary node executes a series of steps, called the _payment forwarding algorithm_:
 
 . The node decrypts the outer layer of the onion and checks the message's integrity.
 
@@ -588,7 +589,7 @@ Each intermediary node receives a Lightning Message called `update_add_htlc` wit
 
 . It follows the routing hints to forward the modified onion package on its outgoing payment channel by also sending an `update_add_htlc` message which includes the same payment hash and the onion.
 
-. It works with its channel partner on the outgoing channel, to update the channel state.
+. It works with its channel partner on the outgoing channel to update the channel state.
 
 Of course, these steps are interrupted and aborted if an error is detected and an error message is sent back to the originator of the `update_add_htlc` message. The error message is also formatted as an onion and sent backwards on the incoming channel.
 
@@ -596,7 +597,7 @@ As the error propagates backwards on each channel along the path, the channel pa
 
 While the likelihood for a payment failure is high if it does not settle quickly, a node should never initiate another payment attempt along a different path before the onion returns with an error. The sender would pay twice if both payment attempts eventually succeeded.
 
-=== Peer-to-Peer Communication Encryption
+=== Peer-to-peer communication encryption
 
 The Lightning Network protocol is mainly a peer-to-peer protocol between its participants. As we saw in previous sections, there are two overlapping functions in the network, forming two logical networks that together are _The Lightning Network_:
 
@@ -604,7 +605,7 @@ The Lightning Network protocol is mainly a peer-to-peer protocol between its par
 
 2. A network of payment channels between channel partners. Channel partners also gossip about topology, meaning they are peer nodes in the gossip protocol.
 
-All communication between peers is sent via messages called _Lightning Messages_. These messages are all encrypted, using a cryptographic communications framework called the _Noise Protocol Framework_. The Noise Protocol Framework allows the construction of cryptographic communication protocols that offer authentication, encryption, forward secrecy and identity privacy. The Noise Protocol Framework is also used in a number of popular end-to-end encrypted communications systems such as WhatsApp, Wireguard, and I2P. More information can be found here:
+All communication between peers is sent via messages called _Lightning messages_. These messages are all encrypted, using a cryptographic communications framework called the _Noise Protocol Framework_. The Noise Protocol Framework allows the construction of cryptographic communication protocols that offer authentication, encryption, forward secrecy and identity privacy. The Noise Protocol Framework is also used in a number of popular end-to-end encrypted communications systems such as WhatsApp, Wireguard, and I2P. More information can be found here:
 
 https://noiseprotocol.org/
 
@@ -612,7 +613,7 @@ The use of the Noise Protocol Framework in the Lightning Network ensures that ev
 
 https://github.com/nayutaco/lightning-dissector
 
-=== Thoughts about Trust
+=== Thoughts about trust
 As long as a person follows the protocol and has their node secured, there is no major risk of losing funds when participating in the Lightning Network.
 However, there is the cost of paying on-chain fees when opening a channel.
 Any cost should come with a corresponding benefit.
@@ -622,15 +623,15 @@ Alice will need to have a small amount of trust in Bob.
 Alice has been to Bob's Cafe and clearly Bob is interested in selling her coffee, so Alice can trust Bob in this sense.
 There are mutual benefits to both Alice and Bob.
 Alice decides that the reward is enough for her to take on the cost of the on-chain fee for creating a channel to Bob.
-In contrast, Alice will not open a channel to someone unknown who just uninvitedly sent her an email asking her to open a channel to him.
+In contrast, Alice will not open a channel to someone unknown who just uninvitedly sent her an email asking her to open a new channel.
 
 === Comparison with Bitcoin
 
 While the Lightning Network is built on top of Bitcoin and inherits many of its features and properties, there are important differences that users of both networks need to be aware of.
 
-Some of these differences are differences in terminology. There are also architectural differences and differences in the user experience. In the next few sections we will examine the differences and similarities, explain the terminology and adjust our expectations.
+Some of these differences are differences in terminology. There are also architectural differences and differences in the user experience. In the next few sections, we will examine the differences and similarities, explain the terminology and adjust our expectations.
 
-==== Addresses vs. Invoices, Transactions vs. Payments
+==== Addresses vs. invoices, transactions vs. payments
 
 In a typical payment using Bitcoin, a user receives a Bitcoin address (e.g. scanning a QR code on a webpage, or receiving it in an instant message or email from a friend). They then use their Bitcoin wallet to create a transaction to send funds to this address.
 
@@ -642,7 +643,7 @@ There are some differences in the user experience however. A Bitcoin address is 
 
 In Lightning however, each invoice can only be used once for a specific payment amount. You cannot pay more or less, you cannot use an invoice again and the invoice has an expiry time built in. In Lightning, a recipient has to generate a new invoice for each payment, specifying the payment amount in advance. There is an exception to this, a mechanism called _keysend_, which we will examine in <<keysend>>.
 
-==== Selecting Outputs vs. Finding a Path
+==== Selecting outputs vs. finding a path
 
 In order to make a payment on the Bitcoin network, a sender needs to consume one or more Unspent Transaction Outputs (UTXOs).
 If a user has multiple UTXOs, they (or rather their wallet) will need to select which UTXO(s) to send.
@@ -654,14 +655,14 @@ As many possible channels and paths can be used to make a payment, the Lightning
 
 With technologies such as Atomic Multi-Path (AMP) and Multi-Path Payments (MPP), which we will review in subsequent chapters, several Lightning paths can be aggregated into a single atomic payment, just like several Bitcoin UTXO can be aggregated into a single atomic Bitcoin transaction.
 
-==== Change Outputs on Bitcoin vs. No Change on Lightning
+==== Change outputs on Bitcoin vs. no change on Lightning
 
-In order to make a payment on the Bitcoin network, the sender needs to consume one or more Unspent Transaction Outputs (UTXOs). UTXO can only be spent in full, they cannot be divided and partially spent. So if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, then they need to spend the entire 1 BTC UTXO by sending 0.8 BTC to the recipient and 0.2 BTC back to themselves as change. The 0.2 BTC change payment creates a new UTXO called a 'change output'.
+In order to make a payment on the Bitcoin network, the sender needs to consume one or more Unspent Transaction Outputs (UTXOs). UTXO can only be spent in full, they cannot be divided and partially spent. So if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, then they need to spend the entire 1 BTC UTXO by sending 0.8 BTC to the recipient and 0.2 BTC back to themselves as change. The 0.2 BTC change payment creates a new UTXO called a "change output".
 
 On Lightning, the funding transaction spends some Bitcoin UTXO, creating a multi-signature UTXO to open the channel. Once the bitcoin is locked within that channel, portions of it can be sent back and forth within the channel, without the need to create any change.
 This is because the channel partners simply update the channel balance and only create a new UTXO when the channel is eventually closed, with the channel closing transaction.
 
-==== Mining Fees vs. Routing Fees
+==== Mining fees vs. routing fees
 
 On the Bitcoin network, users pay fees to miners to have their transactions included in a block.
 These fees are paid to the miner who mines that particular block.
@@ -671,7 +672,7 @@ As miners will typically mine the most profitable transactions first, a user who
 On the Lightning Network, users pay fees to other (intermediary node) users to route payments through their channels.
 In order to route a payment, an intermediary node will have to move funds in two or more channels they own, as well as transmit the data for the sender's payment. Typically, the routing user will charge the sender based on the _value_ of the payment, having established a minimum _base fee_ (a flat fee for each payment) and a _fee rate_ (a pro-rated fee proportional to the value of the payment). Higher value payments will thus cost more to route, and a market for liquidity is formed, where different users charge different fees for routing through their channels.
 
-==== Varying Fees Depending Traffic vs. Announced Fees
+==== Varying fees depending on traffic vs. announced fees
 
 On the Bitcoin network, miners are profit-seeking and will typically include as many transactions in a block as possible, while staying within the block capacity called the _block weight_.
 
@@ -679,20 +680,20 @@ If there are more transactions in the queue (called the mempool) than can fit in
 Thus, when there are many transactions in the queue, users have to pay a higher fee to be included in the next block, or they have to wait until there are fewer transactions in the queue.
 This naturally leads to the emergence of a fee market where users pay based on how urgently they need their transaction included in the next block.
 
-The scarce resource on the Bitcoin network is the space in the blocks. Bitcoin users compete for block space. And the Bitcoin fee market is based on available block space. The scarce resource in the Lightning network is the channel liquidity (capacity of funds available for routing in channels) and channel connectivity (how many well connected nodes your channels can reach). Lightning users compete for capacity and connectivity and therefore the Lightning fee market is driven by capacity and connectivity.
+The scarce resource on the Bitcoin network is the space in the blocks. Bitcoin users compete for block space and the Bitcoin fee market is based on available block space. The scarce resource in the Lightning Network is the channel liquidity (capacity of funds available for routing in channels) and channel connectivity (how many well-connected nodes channels can reach). Lightning users compete for capacity and connectivity and therefore the Lightning fee market is driven by capacity and connectivity.
 
 On the Lightning Network, users are paying fees to the users routing their payments. Routing a payment, in economic terms, is nothing more than providing and assigning capacity to the sender. Naturally, routers who charge lower fees for the same capacity will be more attractive to route through. Thus a fee market exists where routers are in competition with each other over the fees they charge to route payments through their channels.
 
-==== Public Bitcoin Transactions vs. Private Lightning Payments
+==== Public Bitcoin transactions vs. private Lightning payments
 
 On the Bitcoin network, every transaction is publicly visible on the Bitcoin blockchain. While the addresses involved are pseudonymous and are not typically tied to an identity, they are still seen and validated by every other user on the network.
 In addition, blockchain surveillance companies collect and analyze this data en-masse and sell it to interested parties such as private firms, governments and intelligence agencies.
 
-Lightning Network payments, on the other hand, are almost completely private. Typically only the sender and the recipient are fully aware of the source, destination, and amount transacted in a particular payment. Furthermore, the receiver may not even know the source of the payment. As payments are onion-routed, the users who route the payment are only aware of the amount of the payment, but can neither determine the source nor the destination.
+Lightning Network payments on the other hand, are almost completely private. Typically, only the sender and the recipient are fully aware of the source, destination, and amount transacted in a particular payment. Furthermore, the receiver may not even know the source of the payment. As payments are onion-routed, the users who route the payment are only aware of the amount of the payment, but can neither determine the source nor the destination.
 
 In summary, Bitcoin transactions are broadcast publicly and stored forever. Lightning payments are executed between a few selected peers and information about them is privately stored and only until the channel is closed. Creating mass surveillance and analysis tools equivalent to those used on Bitcoin will be much harder on Lightning.
 
-==== Waiting for Confirmations vs. Instant Settlement
+==== Waiting for confirmations vs. instant settlement
 
 On the Bitcoin network, transactions are only settled once they have been included in a block, in which case they are said to be "confirmed" in that block. As more blocks are mined, the transaction acquires more "confirmations" and is considered more secure.
 
@@ -701,7 +702,7 @@ In practical terms, instant settlement means that payments take only a few secon
 
 Finally, when the channel is closed, a transaction is made on the Bitcoin network; once that transaction is confirmed, the channel is considered closed.
 
-==== Sending Arbitrary Amounts vs. Capacity Restrictions
+==== Sending arbitrary amounts vs. capacity restrictions
 
 On the Bitcoin network, a user can send any amount of bitcoin that they own to another user, without capacity restrictions. A single transaction can theoretically send up to 21 million bitcoin as a payment.
 
@@ -711,9 +712,9 @@ Atomic Multi-Path Payments (AMPs) is a feature which, in the above example, allo
 
 If the payment is routed, every routing node along the routing path must have channels with capacity at least the same as the payment amount being routed. This must hold true for every single channel that the payment is routed through. The capacity of the lowest-capacity channel in a path sets the upper limit for the capacity of the entire path.
 
-Hence, capacity and connectivity are critical and scarce resources in the Lightning network.
+Hence, capacity and connectivity are critical and scarce resources in the Lightning Network.
 
-==== Incentives for Large Value Payment vs. Small Value Payments
+==== Incentives for large value payment vs. small value payments
 
 The fee structure in Bitcoin is independent of the transaction value.
 A $1 million transaction has the same fee as a $1 transaction on Bitcoin, assuming a similar transaction size in bytes.
@@ -722,9 +723,9 @@ Therefore, in Lightning the payment fee increases with payment value.
 These opposing fee structures create different incentives and lead to different usage in regards to transaction value.
 A transaction of greater value will be cheaper on Bitcoin and hence users will prefer Bitcoin for large value transactions. Similarly, on the other end of the scale, users will prefer Lightning for small value transactions.
 
-==== Using the Blockchain as a Ledger vs. as a Court System
+==== Using the Blockchain as a ledger vs. as a court system
 
-On the Bitcoin Network, every transaction is eventually recorded in a block on the blockchain.
+On the Bitcoin network, every transaction is eventually recorded in a block on the blockchain.
 The blockchain thus forms a complete history of every transaction since Bitcoin's creation, and a way to fully audit every bitcoin in existence.
 Once a transaction is included in the blockchain it is final.
 Thus, no disputes can arise and it is unambiguous how much bitcoin is controlled by a particular address at a particular point in the blockchain.
@@ -732,11 +733,11 @@ Thus, no disputes can arise and it is unambiguous how much bitcoin is controlled
 On the Lightning Network, the balance in a channel at a particular time is known only to the two channel partners, and is only made visible to the rest of the network when the channel is closed.
 When the channel is closed, the final balance of the channel is submitted to the Bitcoin blockchain, and each partner receives their share of the bitcoin in that channel.
 For instance, if the opening balance was 1 BTC paid by Alice, and Alice made a payment of 0.3 BTC to Bob, then the final balance of the channel is 0.7 BTC for Alice and 0.3 BTC for Bob.
-If Alice tries to cheat by submitting the opening state of the channel to the Bitcoin blockchain, with 1 BTC for Alice and 0 BTC for Bob, then Bob can retaliate by submitting the true final state of the channel, as well as create a penalty transaction that gives him all bitcoin in the channel.
-For the Lightning network, the Bitcoin blockchain acts as a court system.
+If Alice tries to cheat by submitting the opening state of the channel to the Bitcoin blockchain, with 1 BTC for Alice and 0 BTC for Bob, then Bob can retaliate by submitting the true final state of the channel, as well as create a penalty transaction that gives him all the bitcoin in the channel.
+For the Lightning Network, the Bitcoin blockchain acts as a court system.
 Like a robotic judge, Bitcoin records the initial and final balances of each channel, and approves penalties if one of the parties tries to cheat.
 
-==== Offline vs. Online, Asynchronous vs. Synchronous
+==== Offline vs. online, asynchronous vs. synchronous
 
 When a Bitcoin user sends funds to a destination address he does not need to know anything about the recipient. The recipient might be offline or online, and no interaction between sender and recipient is needed. The interaction is between sender and the Bitcoin blockchain. Receiving bitcoin on the Bitcoin blockchain is a _passive_ and _asynchronous_ activity that does not require any interaction by the recipient, or for the recipient to be online at any time. Bitcoin addresses can even be generated offline and are never "registered" with the Bitcoin network. Only spending bitcoin requires interaction.
 
@@ -747,25 +748,25 @@ The synchronous and always-online nature of the Lightning network is probably th
 
 ==== Satoshis vs. milli-satoshis
 
-On Bitcoin the smallest amount is a _satoshi_ which cannot be divided any further. Lightning is a bit more flexible, and Lightning nodes work with _milli-satoshis_ (thousandths of a satoshi). This allows tiny payments to be sent via Lightning. A single milli-satoshi payment can be sent across a payment channel, an amount so small it should properly be characterized as a _nanopayment_.
+On the Bitcoin network, the smallest amount is a _satoshi_ which cannot be divided any further. Lightning is a bit more flexible, and Lightning nodes work with _milli-satoshis_ (thousandths of a satoshi). This allows tiny payments to be sent via Lightning. A single milli-satoshi payment can be sent across a payment channel, an amount so small it should properly be characterized as a _nanopayment_.
 
-The milli-satoshi unit cannot, of course, be settled on the Bitcoin blockchain at that granularity. Upon channel closure, balances are rounded to the nearest satoshi. But over the lifetime of a channel, millions of nanopayments are possible at milli-satoshi levels. The Lightning network breaks through the micropayment barrier.
+The milli-satoshi unit cannot, of course, be settled on the Bitcoin blockchain at that granularity. Upon channel closure, balances are rounded to the nearest satoshi. But over the lifetime of a channel, millions of nanopayments are possible at milli-satoshi levels. The Lightning Network breaks through the micropayment barrier.
 
 === Commonality of Bitcoin and Lightning
 
 While the Lightning Network differs from Bitcoin in a number of ways, including in architecture and user experience, it is built from Bitcoin and retains many of Bitcoin’s core features.
 
-==== Monetary Unit
+==== Monetary unit
 
 Both the Bitcoin network and the Lightning network use the same monetary units: bitcoin. Lightning payments use the very same bitcoin as Bitcoin transactions. As an implication, because the monetary unit is the same, the monetary limit is the same: less than 21 million bitcoin. Of Bitcoin's 21 million total bitcoin, some are already allocated to 2-of-2 multi-signature addresses as part of payment channels on the Lightning Network.
 
 ==== Irreversibility and finality of payments
 
-Both Bitcoin transactions and Lightning payments are irreversible and immutable. There is no "undo" operation or "chargeback" for either system. As a sender of either one you have to act responsibly, but also, as a recipient you are guaranteed finality of your transactions.
+Both Bitcoin transactions and Lightning payments are irreversible and immutable. There is no "undo" operation or "chargeback" for either system. As a sender of either one, you have to act responsibly, but also, as a recipient you are guaranteed finality of your transactions.
 
 ==== Trust and counterparty risk
 
-Just as Bitcoin, Lightning requires the user only to trust mathematics, encryption, and that the software does not have any critical bugs. Neither Bitcoin nor Lightning requires the user to trust a person, a company, an institution, or a government.
+As with Bitcoin, Lightning requires the user only to trust mathematics, encryption, and that the software does not have any critical bugs. Neither Bitcoin nor Lightning requires the user to trust a person, a company, an institution, or a government.
 Since Lightning sits on top of Bitcoin and relies on Bitcoin as its underlying base layer, it is clear that the security model of Lightning reduces to the security of Bitcoin. This means that Lightning offers broadly the same security as Bitcoin under most circumstances, with only a slight reduction in security under some narrow circumstances.
 
 ==== Permissionless operation
@@ -779,6 +780,6 @@ Both, Bitcoin and Lightning are open-source software systems built by a decentra
 
 === Conclusion
 
-In this chapter we looked at how the Lightning network actually works and all of the constituent components. We examined each step in constructing, operating and closing a channel. We looked at how payments are routed and finally, we compared Lightning with Bitcoin and analyzed their differences and commonalities.
+In this chapter we looked at how the Lightning Network actually works and all of the constituent components. We examined each step in constructing, operating and closing a channel. We looked at how payments are routed and finally, we compared Lightning with Bitcoin and analyzed their differences and commonalities.
 
 In the next several chapters we will revisit all these topics, but in much more detail.
