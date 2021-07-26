@@ -500,11 +500,14 @@ image::images/chan_onion_wrapping.png[]
 
 Alice starts with the 1300 onion payload created for Dina. The first 65 (or less) bytes of this are Dina's payload obfuscated and the rest is filler. Alice must be careful not to overwrite Dina's payload.
 
-Alice adds an HMAC checksum to Chan's payload and inserts it at the "front" (left side) of the onion payload, shifting the existing payload to the right by an equal amount.
+Alice adds an inner HMAC checksum to Chan's payload and inserts it at the "front" (left side) of the onion payload, shifting the existing payload to the right by an equal amount.
+Remember that there are effectively _two_ HMACs used in the scheme: the outer and the inner HMAC.
+In this case, Chan's _inner_ HMAC is actually Dina's _outer_ HMAC.
 
 Now Chan's payload is in the front of the onion. When Chan sees this he has no idea how many payloads came before or after. It looks like the 1st of 20 hops always!
 
-Finally, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan +rho+ key. Only Alice and Chan have this +rho+ key and only they can produce the byte stream to obfuscate and de-obfuscate the onion.
+Next, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan +rho+ key. Only Alice and Chan have this +rho+ key and only they can produce the byte stream to obfuscate and de-obfuscate the onion.
+Finally, as we did in the earlier step, we compute Chan's outer HMAC, which is what she'll use to verify the integrity of the encrypted onion packet.
 
 ==== Wrapping Bob's hop payload
 
@@ -518,9 +521,13 @@ image::images/bob_onion_wrapping.png[]
 
 Start with the onion payload (obfuscated) containing Chan's and Dina's hop payloads.
 
-Calculate an HMAC and stick it on the end of Bob's hop payload. Insert Bob's hop payload at the beginning and shift everything else over to the right, dropping a Bob-hop-payload-size chunk from the end (it was filler anyway).
+Include the prior hop's outer HMAC as this hop's inner HMAC. 
+Insert Bob's hop payload at the beginning and shift everything else over to the right, dropping a Bob-hop-payload-size chunk from the end (it was filler anyway).
 
 Obfuscate the whole thing XOR with the _rho_ key from the Alice-Bob-shared-secret so that only Bob can unwrap this.
+
+Calculate the outer HMAC and stick it on the end of Bob's hop payload. 
+
 
 ==== The final onion packet
 
