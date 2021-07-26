@@ -1,0 +1,209 @@
+= Lightning Payment Requests
+
+== Intro
+
+As we've learned in prior chapters, minimally two prides of data are required
+to complete a Lightning payment: a payment hash, and a destination. As
+`SHA-256` is used in the Lightning Network to implement HTLCs, this information
+requires 32-bytes in order to communicate. Destinations on the other hand are
+simply the `secp256k1` public key of the node that wishes to receive a payment.
+The purpose of a payment request in the context of the Lightning Network is to
+communicate these two pieces of information from sender to receiver. BOLT 11 is
+the name of the document in the set of Lightning Network specifications that
+describes a QR-code friendly format for communicating the information required
+to complete a payment from receiver to sender. In practice, more than just the
+payment hash and destination are communicated in a payment request in order to
+make the encoding more fully feature.
+
+== Lightning Payment Requests vs Bitcoin Addresses
+
+A commonly asked question when people first encounter a Lightning Payment
+request is: why can't a normal static address format be used instead? 
+
+In order to answer this question, one must first internalize how Lightning
+differs from base layer Bitcoin as a payment method. Compared to a Bitcoin
+address which may be used to make a potentially unbounded number of payments
+(though re-using a Bitcoin address may degrade one's privacy), a Lightning
+payment request should only ever be used *once*.  This is due to the fact that
+sending a payment to a Bitcoin address essentially uses a public key
+cryptosystem to "encode" the payment in a manner that only the true "owner" of
+that Bitcoin address can redeem it. 
+
+In contrast, in order to complete a Lightning payment, the recipient must
+reveal a "secret" to the entire payment route including the sender. This can be
+interpreted as usage of a kind of domain specific symmetric cryptography, as
+the payment pre-image is for practical purposes a nonce (number only used
+once). If the sender attempts to make another payment using that identical
+payment hash, then they risk losing funds, as the payment may not actually be
+delivered to the destination. It's safe to assume that after a pre-image has
+been reveled, all nodes in the path will keep it around _forever_, then rather
+than forward the HTLC in order to collect a routing fee if the payment is
+completed, they can simply _settle_ the payment at that instance and gain the
+entire payment amount in return. As a result, it's unsafe to ever use a payment
+request more than once. 
+
+As we'll see later in the book, there exist new variants of the original
+Lightning Payment request that allow the sender to -reuse them as many times as
+they want. These variants flip the normal payment flow as the sender transmits
+a pre-image within the encrypted onion payload to the receiver, who is the only
+one that is able to decrypt it and settle the payment. Alternatively, assuming
+a mechanism that allows a sender to typically request a new payment request
+from the receiver, then an interactive protocol can be used in order to allow a
+degree of payment request re-use.
+
+== BOLT 11: Lightning Payment Request Serialization & Interpretation
+
+In this section, we'll describe the mechanism used to encode the set of
+information required to complete a payment on the Lightning Network. As
+mentioned earlier, the payment hash and destination is the minimum amount of
+information required to complete a payment. However in practice, more
+information such as time-lock information, payment request expiration, and
+possibly an on-chain fallback address are also communicated.
+
+=== Payment Request Encoding in Practice
+
+First, let's examine what a real payment request looks like in practice. The
+following is a valid payment request that could have been used to complete a
+payment on the mainnet Lightning Network at time it was created: 
+```
+lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpuaztrnwngzn3kdzw5hydlzf03qdgm2hdq27cqv3agm2awhz5se903vruatfhq77w3ls4evs3ch9zw97j25emudupq63nyw24cg27h2rspfj9srp
+```
+
+=== The Human Readable Prefix
+
+Looking at the string, we can tease out a portion that we can parse with our
+eyes, while the rest of it just looks like a random set of strings. The part
+that is somewhat parse able by a human is referred to as the "human readable
+prefix". It allows a human to quickly extract some relevant information from a
+payment request at a glance. In this case, we can see that this payment is for
+the mainnet instance of the Lightning network (`lnbc`), and is requesting 2500
+uBTC (micro-bitcoin), or `25,0000,000` satoshis. The latter potion is referred
+to as the "data" portion and uses an extensible format to encode the
+information required to complete a payment.
+
+Each version of instance of the Lightning Network (mainnet, testnet, etc) has
+its own human readable prefix. This allows client software and also humans to
+quickly determine if a payment request can be satisfied by their node or not.
+
+
+.BOLT 11 Network Prefixes
+[options="header"]
+|=============================
+|Network       |BOLT 11 Prefix
+|mainnet       |`lnbc`
+|testnet       |`lntb`
+|simnet/regtest|`lnbcrt`
+|=============================
+
+
+The first portion of the human readable prefix is a "compact" expression of the
+amount of the payment request. The compact amount is encoded in two parts:
+first, an integer is used as the "base" amt. This is then followed by a
+`multiplier` that allows us to specify distinct order of magnitude increases
+offset by the base amount. If we return to our initial example, then we can
+take the `2500u` portion and decrease it by a factor of 1000 to instead use
+`2500m` or (2500 `mBTC`).  As a rule of thumb in order to ascertain the amount
+of an invoice at a glance, take the base factor and multiply it by the
+`multiplier`.
+
+A full list of the currently defined multipliers is a follows:
+
+.BOLT 11 Amount Multipliers
+[options="header"]
+|==============================================
+|Multiplier|Bitcoin Unit|Multiplication Factor
+|`m`|milli|0.001
+|`u`|micro|0.000001
+|`n`|nano|0.000000001
+|`p`|pico|0.000000000001
+|==============================================
+
+
+
+=== Bech32 & the Data Segment
+
+If the "unreadable" portion of looks familiar, then that's because it uses the
+very same encoding scheme as segwit compatible Bitcoin addresses use today,
+namely `bech32`. Describing the `bech32` encoding scheme is outside the scope
+of this chapter. In brief, it's a sophisticated way to encode short strings
+that has very good error correction as well as detection properties.
+
+The data portion can be separated into 3 sections: 
+
+  * The timestamp.
+  * Zero or more tagged key-value pairs.
+  * The signature of the entire invoice.
+
+The timestamp is expressed in seconds since the 1970, or the Unix Epoch. This
+timestamp allows the sender to gauge how old the invoice is, and as we'll see
+later, allows the receiver to force an invoice to only be valid for a period of
+time if they wish.
+
+Similar to the TLV format we learned about in Chapter XXX, the BOLT 11 invoice
+format uses a series of extensible key-value pairs to encode information
+needed to satisfy a payment. As key-value pairs are used, it's easy for add
+new values in the future if a new payment type or additional
+requirement/functionality is introduced. 
+
+Finally a signature is included ed that covers the entire invoice signed by the
+destination of the payment. This signature allows the sender to verify that the
+payment request was indeed created by the destination of the payment. Unlike
+Bitcoin payment request's which aren't signed, this allows us to ensure that a
+particular entity signed the payment request. The signature itself is encoded
+using a recovery ID, which allows a more compact signature to be used that
+allows public key extraction. When verifying the signature, the verifies
+extracts the public key, then verifies that against the public key included in
+the invoice.
+
+==== Tagged Invoice Fields
+
+The tagged invoice fields are encoded in the main "body" of the invoice. These
+fields represent different key=value pairs that express either additional
+information that may help complete the payment, or information which is
+_required_ to complete the payment. As a slight variant of `bech32` is
+utilized, each of these fields are actually in the "base 5" domain.
+
+A given tag field is comprised of 3 components: 
+
+  * The `type` of the field (5 bits).
+  * The `length` of the data of the field (10 bits)
+  * The `data` itself, which is `length* 5 bytes` in size.
+
+A full list of all the currently defined tagged fields is as follows:
+
+.BOLT 11 Tagged Invoice Fields
+[options="header"]
+|==================================================================================================================================================
+|Field Tag|Data Length|Usage
+|`p`|`52`|The `SHA-256` payment hash.
+|`s`|`52`|A `256-bit` secret that increase the end to end privacy of a payment by mitigating probing by intermediate nodes.
+|`d`|Variable|The description, a short UTF-8 string of the purpose of the payment.
+|`n`|`53`|The public key of the destination node.
+|`h`|`52`|A hash that represents a description of the payment itself. This can be used to commit to a description that's over 639 bytes in length.
+|`x`|Variable|The expiry time in seconds of the payment. The default is 1 hour (3600) if not specified.
+|`c`|Variable|The `min_cltv_expiry` to use for the final hop in the route. The default is 9 if not specified.
+|`f`|Variable|A fall back on-chain address to be used to complete the payment if the payment cannot be completed over LN.
+|`r`|Variable|One or more entries that allow a receiver to give the sender additional ephemeral edges to complete the payment.
+`9`|Variable|A set of 5-bit values that contain the feature bits that are required in order to complete the payment.
+|==================================================================================================================================================
+
+The elements contained in the field `r` are commonly referred to as "routing
+hints". They allow the receiver to communicate an extra set of edges that may
+help the sender complete their payment. The "hints" are usually used when the
+receiver has some/all private channels, and they wish to guide the sender into
+this "unmapped" portion of the channel graph. A routing hints encodes
+effectively the same information that a normal `channel_update` message does.
+The update is itself packed into a single value with the following fields:
+
+ * The `pubkey` of the outgoing node in the edge (264 bits).
+ * The `short_channel_id` of the "virtual" edge (64 bits).
+ * The base fee (`fee_base_msat`) of the edge (32 bits).
+ * The proportional fee (`fee_proportional_millionths`) (32 bits).
+ * The CLTV expiry delta (`cltv_expiry_delta`) (16 bits).
+
+The final portion of the data segment is the set of feature bits that
+communicate to eh sender the functionality needed in order to complete a
+payment. As an example, if a new payment type is added in the future that isn't
+backwards compatible with the original payment type, then the receiver can set
+a _required_ feature bit in order to communicate that the payer needs to
+underhand that feature in order to complete the payment.
