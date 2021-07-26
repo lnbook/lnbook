@@ -621,9 +621,10 @@ At the same time, applying the +rho+ byte stream to the 1300 zeroes that were ad
 .Bob de-obfuscates the onion, obfuscates the filler
 image::images/bob_deobfuscates.png[Bob de-obfuscates the onion, obfuscates the filler]
 
-==== Bob verifies the hop payload
+==== Bob extracts the outer HAMC for the next hop
 
-Now Bob can confirm that his hop payload is correct. It contains an HMAC field. Bob repeats the HMAC verification with the +mu+ key and the hop payload data, finding the same HMAC. Now Bob knows the data is correct, unmodified and sent by Alice, because only the two of them know the shared secret and the +mu+ key derived from it.
+Remember that an inner HMAC is included for each hop, then will then become the outer HMAC for the _next_ hop.
+In this case, Bob extracts the inner HMAC (he's already verified the integrity of the encrypted packet w/ the outer HMAC), and puts it aside as he'll append it to the deobfuscated packet to allow Chan to verify the HMAC of her encrypted packet.
 
 ==== Bob removes his payload and left shifts the onion
 
