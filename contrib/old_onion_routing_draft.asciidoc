@@ -1,27 +1,5 @@
-=== HTLC Packet Forwarding: Source Based Onion Routing
 
-So far you have learnt that payment channels can be connected to a network which can be utilized to send payment from one participant to another one through a path of payment channels.
-You have seen that with the use of HTLCs the intermediary nodes along the path are not able to steal any funds that they are supposed to forward and also how a node can set up and settle an HTLC.
-With this bare foundation laid, the following questions may have come across you mind:
 
-- Who chooses the path for a candidate route?
-- How is a path selected as a candidate to attempt to route the HTLC for a payment?
-- How much information do nodes know about the total path?
-- How exactly does a payment flow through the network at each node?
-
-In the network today, the sender is the one that selects the route and decides nearly all the details of the resulting route.
-
-As for how path finding is done, there is no single approach that all nodes in the network use.
-Instead, answer to the second question has a very large solution space, meaning there are several algorithms and neuritics used in the network today.
-Most commonly, a variation of Dijkstra's algorithm is used which takes into account additional Lightning Network details such as fees and time-locks.
-Remember from earlier that a path turns into a route which is used to trigger a payment attempt.
-As several conditions need to be satisfied for the HTLC to be completely extended, the sender may need to try several routes until one succeeds.
-However, the user of the wallet typically will not be aware of these failed path finding attempts, just as when we load a web-page on the Internet, we don't learn of any TCP packet retransmissions.
-
-In the early days of the network, a payment could only utilize a single channel in its final route.
-With the rise of Multi-Path Payments, the sender is able to split the amount into smaller pieces, and use distinct strategies to route all the payment chunks.
-This splitting behavior is similar to IP packet fragmentation on the IP layer: each node expresses its Maximum Payment Unit, with the sender using this as a guide to adequately split all payments.
-In later chapters, we'll discuss further details of payment splitting and combination once we get to advanced path finding.
 
 At a high level, each node in the route is only _explicitly_ told: how to validate the incoming HTLC packet (remember all details need to be correct for a payment to flow!), who the next hop in the route is, and how to modify the incoming HTLC packet into a valid outgoing HTLC packet to forward to the next node.
 Combined with the fact that intermediate forwarding nodes aren't explicitly given the sender and receiver of a payment, nodes are given the _least_ amount of information they need to successfully forward a payment.
@@ -29,16 +7,7 @@ In addition to these privacy enhancing attributes, intermediate nodes aren't abl
 Readers familiar with onion routing may have realized that we'll be using some clever cryptographic technique application to achieve all thees traits.
 We call this series of clever application of cryptographic techniques: sourced based onion routing!
 
-Source based routing (the non-cryptographic portion of onion routing), is distinct from how packets are typically transmitted on the IP layer.
-On the Internet today, packet switching is widely used to transmit data across the Internet.
-Packet switching typically explicitly indicates the sender and receiver of a given packet.
-Intermediate routing nodes then attempt to deliver the packet on a best effort basis, with great freedom with to exactly _how_ they select the next node in the route.
-However, the lack of encryption, end-to-end integrity checks, and arbitrary choice of routes may this a poor system to use in a _payment network_.
 
-Source routing instead has the sender select the route entirely (which all we'll learn later is important due to fees and timelocks).
-The onion routing layers then gives the sender nearly completely control of the route, and allows the sender to only tell the intermediate nodes what they need to successfully forward a payment.
-Onion routing is used in several popular protocols on the Internet, with the most notable of them being Tor.
-In the Lightning Network, we use a specific onion routing _packet_ format called Sphinx, with some special modifications made in order to make it more suited to the unique constraints of the Lightning Network.
 
 [NOTE]
 ====
