@@ -460,9 +460,36 @@ Finally, Alice calculates a Hash-based Message Authentication Code (HMAC) for Di
 [[dina_hop_payload_hmac]]
 .Adding an HMAC integrity checksum to Dina's hop payload
 image::images/dina_hop_payload_hmac.png[]
+
+===== Onion Routing Replay Protection & Detection
+
 The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
 Note that we compute the HMAC over the _encrypted_ data rather then over the plaintext data. 
 This is known as "encrypt-then-mac" and is the recommended way to use a MAC, as it provides both plaintext _and_ cihpertext integrity.
+
+Modern authenticated encryption also allows for the use of an optional set of plaintext bytes to also be authenticated known as "associated data".
+In practice, this is usually something like a plaintext packet header or other auxiliary information.
+By including this associated data in the payload to be authenticated (MAC'd), the verifier of the MAC ensures that this associated data hasn't been tampered with (eg: swapping out the plaintext header on an encrypted packet).
+
+In the context of the Lightning Network, this associated data is used to _strengthen_ the replay protection of this scheme.
+As we'll learn more below, replay protection ensures that an attacker can't _retransmit_ (replay) a packet into the network and observe its the resulting path.
+Instead, intermediate nodes are able to use the defined replay protection measures to detect, and reject a replayed packet.
+The base Sphinx packet format uses a log of all the ephemeral secret keys used to detect replays.
+If a secret key is ever used again, then the node can detect it, and reject the packet.
+
+The nature of HTLCs in the Lightning Network allows us to further strengthen the replay protection by adding an additional _economic_ incentive.
+Remember that the payment hash of an HTLC can only ever safely be used (for a complete payment) once.
+If a payment hash is used again, and traverses a node that has already seen the payment secret fo that hash, then they can simply pull the funds, and collect the entire payment amount without forwarding!
+We can use this fact to strengthen the replay protection by requiring that the _payment hash_ is included in our HMAC computation as the associated data.
+With this added step, attempting to replay an onion packet also requires the sender to commit to using the _same_ payment hash.
+As a result, on top of the normal replay protection, an attacker also stands to lose the entire amount of the HTLC replayed as well.
+
+One consideration with the ever-increasing set of session keys stored for replay protection is: are nodes able to reclaim this space?
+In the context of the Lightning Network, the answer is: yes!
+Once again, due to the uniquer attributes of the HTLC construct, we can make a further improvement over the base Sphinx protocol.
+Given that HTLCs are _time locked_ contracts based on the absolute block height, once an HTLC has expired, then the contract is effectively permanently closed.
+As a result, nodes can use this CLTV expiration height as an indicator to know when it's safe to garbage collect an entry in the anti-replay log.
+
 ==== Wrapping Chan's hop payload
 
 In <<chan_onion_wrapping>> we see the steps used to wrap Chan's hop payload in the onion. These are the same steps Alice used to wrap Dina's hop payload.
