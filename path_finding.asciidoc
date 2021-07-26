@@ -58,6 +58,15 @@ If we knew the exact channel balances of every channel, we could compute one or 
 
 Balances are not announced in channel updates for two reasons: privacy and scalability. First, announcing balances would reduce the privacy of the Lightning Network as it would allow surveillance of payment by statistical analysis of the changes in balances. Second, if nodes announced balances (globally) with every payment, the Lightning Network's scaling would be as bad as that of on-chain Bitcoin transactions which are broadcast to all participants. Therefore, balances are not announced. To solve the path finding problem in the face of uncertainty of balances, we need innovative path finding strategies. These strategies must relate closely to the routing algorithm that is used, which is source-based onion-routing where it is the responsibility of the sender to find a path through the network.
 
+The uncertainty problem can be described mathematically as a _range of liquidity_, indicating the lower and upper bounds of liquidity based on the information that is known. Since we know the capacity of the channel and we know the channel reserve balance (the minimum allowed balance on each end), the liquidity can be defined as:
+
+----
+min(liquidity) = channel_reserve
+max(liquidity) = capacity - channel_reserve
+----
+
+Our channel liquidity uncertainty range is the range between the minimum and maximum possible liquidity. This is unknown to the network, except the two channel partners. However, as we will see we can use failed HTLCs returned from our payment attempts to update our liquidity estimate and reduce uncertainty. If for example we get an HTLC failure code that tells us that a channel cannot fulfill an HTLC that is smaller than our estimate for maximum liquidity, that means the maximum liquidity can be updated to the amount of the failed HTLC. In simpler terms, if we think the liquidity can handle an HTLC of N satoshis and we find out it fails to deliver M satoshis (where M is smaller), then we can update our estimate to M-1 as the upper bound. We tried to find the ceiling and bumped against it, so it's lower than we thought!
+
 ==== Path finding complexity
 
 Finding a path through a graph is a problem modern computers can solve rather efficiently.
@@ -87,3 +96,29 @@ However, the user might suspect that probing is taking place if the payment is n
 While "blind probing" is not optimal and leaves ample room for improvement, it should be noted that even this simplistic strategy works surprisingly well for smaller payments and well-connected nodes.
 
 Most Lightning node and wallet implementation improve on this approach, by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees), or some combination of cost/capacity.
+
+Let's break down each of the steps (assuming a single-path-payment):
+
+* Create a _channel graph_ from announcements and updates, containing the capacity of each channel.
+
+* Filter the graph ignoring any channels with insufficient capacity for the amount we want to send.
+
+* Find paths connecting the sender to the recipient.
+
+* Order the paths by some weight (this may be part of the previous step's algorithm).
+
+* Try each path in order until payment succeeds. (the trial-and-error loop)
+
+* Optionally use the HTLC failure returns to update our graph, reducing uncertainty
+
+We can group these steps into three primary activities:
+
+1. Channel graph construction
+2. Path finding (filtered and ordered by some heuristics)
+3. Payment attempt(s)
+
+These three activities can be repeated in a _payment round_ if we use the failure returns to update the graph, or if we are doing multi-path payments (see <<mpp>>).
+
+In the next sections we will look at each of these steps in more detail, as well as more advanced payment strategies.
+
+=== Channel graph construction
