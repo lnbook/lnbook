@@ -403,6 +403,9 @@ For each hop the sender (Alice) repeats the same process:
 
 Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front and the whole onion payload encrypted with the rho byte-stream for the next hop.
 
+For the final hop, the HMAC included in step #3 over the plaintext instructions is actually _all zero_. 
+The final hop uses this signal to determine that it is indeed the final hop in the route.
+Alternatively, the fact that the `short_chan_id` included in the payload to denote the "next hop" is all zero can be used as well.
 ==== Wrapping Dina's hop payload
 
 As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
