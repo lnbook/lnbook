@@ -368,6 +368,11 @@ image::images/onion_packet.png[]
 * 1300 bytes: The actual _onion payload_ containing the instructions for each hop
 * 32 bytes: An HMAC integrity checksum
 
+A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, instead a clever _blinding_ scheme is used deterministically randomize the session key at each hop. 
+
+In practice, this little trick allows us to keep the onion packet as compact as possible while still retaining the desired security properties.
+
+
 ==== Wrapping the onion (outlined)
 
 Here is the process of wrapping the onion, outlined below. Come back to this list, as we explore each step with our real-world example.
