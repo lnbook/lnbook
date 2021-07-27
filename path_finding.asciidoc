@@ -3,6 +3,22 @@
 
 Payment delivery on the Lightning Network depends on finding a path from the sender to the recipient, a process called _path finding_.
 
+=== Path finding in the Lightning protocol suite
+
+Path finding, path selection, multi-path payments (MPP) and the payment attempt trial & error loop occupy the majority of the "Payment Layer" at the top of the protocol suite.
+
+These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_pathfinding_highlight>>:
+
+[[LN_protocol_routing_highlight]]
+.The Lightning Network Protocol Suite
+image::images/LN_protocol_routing_highlight.png["The Lightning Network Protocol Suite"]
+
+==== Where is the BOLT?
+
+So far we've looked at several technologies that are part of the Lightning Network and we have seen their exact specification as part of a BOLT standard. You may be surprised to find that path finding is not part of the BOLTs!
+
+That's because path finding isn't an activity that requires any form of coordination or interoperability between different implementations. As we've seen, the path is selected by the sender. Even though the routing details are specified in detail in the BOLTs, the path discovery and selection are left entirely up to the sender. So each node implementation can choose a different strategy/algorithm to find paths. In fact, the different node/client and wallet implementations can even compete and use their path finding algorithm as a point of differentiation.
+
 === Path finding: what problem are we solving?
 
 The term path finding may be somewhat misleading, because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
@@ -102,7 +118,9 @@ While "blind probing" is not optimal and leaves ample room for improvement, it s
 
 Most Lightning node and wallet implementation improve on this approach, by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees), or some combination of cost/capacity.
 
-Let's break down each of the steps (assuming a single-path-payment):
+=== Path finding and payment delivery process
+
+Path finding and payment delivery involves several steps, which we list below. Different implementations may use different algorithms and strategies, but the basic steps are likely to be very similar:
 
 * Create a _channel graph_ from announcements and updates, containing the capacity of each channel.
 
@@ -126,7 +144,7 @@ These three activities can be repeated in a _payment round_ if we use the failur
 
 In the next sections we will look at each of these steps in more detail, as well as more advanced payment strategies.
 
-=== Channel graph construction
+==== Channel graph construction
 
 In <<gossip>> we explain the three main messages that nodes "gossip": +node_announcement+, +channel_announcement+, and +channel_update+. These three messages allow any node to gradually construct a "map" of the Lightning Network in the form of a _channel graph_. Each of these messages provides a critical piece of information for the channel graph:
 
@@ -171,7 +189,7 @@ Selena also receives seven channel_announcement messages with the corresponding 
 image::images/channel_graph_1.png[]
 
 
-==== Uncertainty in the channel graph
+===== Uncertainty in the channel graph
 
 As you can see from <<channel_graph_1>>, Selena does not know any of the balances of the channels. Her initial channel graph contains the highest level of uncertainty.
 
@@ -180,3 +198,15 @@ But wait: Selena does know *some* channel balances! She knows the balances of th
 [[channel_graph_2]]
 .Channel graph with known and unknown balances
 image::images/channel_graph_2.png[]
+
+==== Fees and other channel metrics
+
+==== Finding candidate paths
+
+==== Selecting a path, ordering of paths
+
+==== Payment delivery (Trial-and-error loop)
+
+==== Updating the channel graph
+
+=== Multi-Path Payments (MPP)
