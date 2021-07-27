@@ -7,10 +7,15 @@ Payment delivery on the Lightning Network depends on finding a path from the sen
 
 The term path finding may be somewhat misleading, because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
 
-But, as the Lightning Network has grown explosively, the path finding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2000 channels _each_. A visualizationfootnote:[Produced by explorer.acinq.co from published channel updates] of just a small subset of the Lightning Network channel graph (as of July 2021) is shown in <<lngraph>>:
+But, as the Lightning Network has grown explosively, the path finding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2000 channels _each_. A visualization of just a small subset of the Lightning Network channel graph (as of July 2021) is shown in <<lngraph>>:
 
 [[lngraph]]
 image::images/LNGraphJuly2021.png[]
+
+[NOTE]
+====
+The network visualization above was produced with a simple python script you can find in code/lngraph in the book's repository
+====
 
 If the sender and recipient are connected to other well-connected nodes and have at least one channel with adequate capacity - there will be thousands of paths. The problem becomes: selecting the _best_ path that will succeed in payment delivery, out of a list of thousands of possible paths.
 
@@ -122,3 +127,21 @@ These three activities can be repeated in a _payment round_ if we use the failur
 In the next sections we will look at each of these steps in more detail, as well as more advanced payment strategies.
 
 === Channel graph construction
+
+In <<gossip>> we explain the three main messages that nodes "gossip": +node_announcement+, +channel_announcement+, and +channel_update+. These three messages allow any node to gradually construct a "map" of the Lightning Network in the form of a _channel graph_. Each of these messages provides a critical piece of information for the channel graph:
+
+node_announcement:: This contains the information about a node on the Lightning Network, such as its node ID (public key), network address (e.g. IPv4/6 or Tor), capabilities/features etc.
+
+channel_announcement:: This contains the capacity and channel ID of a public (announced) channel between two nodes and proof of the channel's existence and ownership.
+
+channel_update:: This contains a node's fee and timelock (CLTV) expectations for routing an outgoing (from that node's perspective) payment over a specified channel.
+
+In terms of a mathematical graph, the node_announcement is the information needed to create the nodes or _vertices_ of the graph. The channel_announcement allows us to create the _edges_ of the graph representing the payment channels. Since each direction of the payment channel has its own balance, we create a directed graph. The channel_update allows us to incorporate fees and timelocks to set the _cost_ or _weight_ of the graph edges.
+
+Depending on the algorithm we will use for path finding, we may establish a number of different cost functions for the edges of the graph.
+
+For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the node_announcement and channel_announcement messages. In this section we will use a network of six nodes connected by seven channels. One node (S) is our sender, one node (R) is our recipient. Nodes A, B, X, and Y are nodes that announced themselves with a node_announcements. We've also received seven channel_announcement messages with channel capacities, allowing us to construct a basic "map" of the network, shown in <<channel_graph_1>>, below:
+
+[[channel_graph_1]]
+.The channel graph
+image::images/channel_graph_1.png[]
