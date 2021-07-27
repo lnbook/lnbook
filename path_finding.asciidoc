@@ -140,8 +140,43 @@ In terms of a mathematical graph, the node_announcement is the information neede
 
 Depending on the algorithm we will use for path finding, we may establish a number of different cost functions for the edges of the graph.
 
-For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the node_announcement and channel_announcement messages. In this section we will use a network of six nodes connected by seven channels. One node (S) is our sender, one node (R) is our recipient. Nodes A, B, X, and Y are nodes that announced themselves with a node_announcements. We've also received seven channel_announcement messages with channel capacities, allowing us to construct a basic "map" of the network, shown in <<channel_graph_1>>, below:
+For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the node_announcement and channel_announcement messages.
+
+In this example, Selena is constructing a channel graph. Selena will use her channel graph to find a path to send a payment to Rashid. This is _Selena's channel graph_. There is no such thing as *the* channel graph, there is only ever *a channel graph* and it is always from the perspective of the node that has constructed it (see <<map_territory_relation>>).
+
+[[map_territory_relation]]
+.The map-territory relation
+****
+From Wikipedia's https://en.wikipedia.org/wiki/Map%E2%80%93territory_relation[_Map Territory Relation_], "The map–territory relation describes the relationship between an object and a representation of that object, as in the relation between a geographical territory and a map of it."
+
+The map territory relation is best illustrated in "Sylvie and Bruno Concluded", a short story by Lewis Carroll which describes a fictional map that is 1:1 scale of the territory it maps, therefore having perfect accuracy but becoming completely useless as it would cover the entire territory if unfolded.
+
+What does this mean for the Lightning Network? LN is the territory, and a channel graph is a map of that territory:
+
+While we could imagine a theoretical (Platonic ideal) channel graph that represents the complete, up-to-date map of the Lightning Network, such a map is simply the Lightning Nwtwork itself. Each node has its own channel graph which is constructed from announcements and is necessarily incomplete, incorrect, and out-of-date!
+
+The map can never completely and accurately describe the territory.
+****
+
+Selena listens to node_announcement messages and discovers 4 other nodes (in addition to Rashid, the intended recipient). The resulting graph represents a network of six nodes: (S)elena and (R)ashid are the (S)ender and (R)ecipient respectively; (A)lice, (B)ob, (X)avier and (Y)an are intermediary nodes. Selena's initial graph is just a list of nodes, shown in <<channel_graph_nodes>>:
+
+[[channel_graph_nodes]]
+.Node announcements
+image::images/channel_graph_nodes.png[]
+
+Selena also receives seven channel_announcement messages with the corresponding channel capacities, allowing her to construct a basic "map" of the network, shown in <<channel_graph_1>>, below:
 
 [[channel_graph_1]]
 .The channel graph
 image::images/channel_graph_1.png[]
+
+
+==== Uncertainty in the channel graph
+
+As you can see from <<channel_graph_1>>, Selena does not know any of the balances of the channels. Her initial channel graph contains the highest level of uncertainty.
+
+But wait: Selena does know *some* channel balances! She knows the balances of the channels that her own node has connected with other nodes. While this does not seem like much, it in fact very important information for constructing a path - Selena knows the actual liquidity of her own channels. Let's update the channel graph to show this information. We will use a "?" symbol to represent the unknown balances, as shown in <<channel_graph_2>>:
+
+[[channel_graph_2]]
+.Channel graph with known and unknown balances
+image::images/channel_graph_2.png[]
