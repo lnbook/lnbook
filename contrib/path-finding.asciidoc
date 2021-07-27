@@ -1,5 +1,61 @@
 .Chapter overview:
-  * How path finding works in the network
+
+# newly suggested structure
+
+## Many paths lead to Rome. Which one to choose?
+* some with enough liquidity
+* some that are cheap
+* some that don't lock liquidity for too long
+--> optimization problem (tend to be hard in general)
+
+## What are good features
+* fees should be chep
+* success probabilities
+** Why is liquidity a problem? Why do channel balances have to be private and what ist the problem with that? 
+*** if balance was not private nodes would have to tell everyone else about every channel update (that happens with payments) --> Scales as poorly as bitcoin
+*** it is also nice for privacy
+** How to obtain them? 
+** without quantifying the uncertainty this is like being blind without help and trying to walk around.
+* other features
+** CLTV to minimize locked capital in bad cases
+** provenance scores
+
+## Generating candidate pahts by solving / estimating the optimizaion problem
+* Dijkstra for single paths
+* Backward computation because of fees
+
+## Trial and Error Loop
+* the loop
+** Generate candidate paths
+** try to send
+** update konwledge of the `uncertainty network`
+* question: how long to remember the knowledge
+* predict expected number of attempts
+* issues: success rates drop with larger amounts --> Expected number of attempts rises
+
+## Can we do better than single paths
+* Pros and cons 
+++ smaller payments
+-- more channels involved
+* math says it is still an optimization problem or a min cost flow problem. 
+* depending on the goal algorithms do exist. 
+* Well known analogy from logistcs: How do you transport x goods from A to B with least cost of transport
+
+## Perspective of Routing nodes
+* provide a service to earn a fee
+* how to improve the service? 
+** increase liquidity / provide more liquidity
+*** more channels --> better liquidity
+*** larger channels ---> higher reliability
+*** abvoe goals (more channels, larger channels) are in conflict for fixed amount of liquidity, how to solve? ---> Depends on goals.
+** increase updatime
+** increase reliability via rebalancing
+*** pro actively
+*** lazy (JIT - Routing)
+** offer outsourcing of routing for light clients via trampoline payments
+
+
+# old stuff
 
 Relevant questions to answer:
 
