@@ -565,18 +565,30 @@ We're still in the early stages of the Lightning Network.
 Many of the concerns listed in this chapter are likely to be addressed as it matures and grows.
 In the meantime, there are some measures that you can take to guard your node against malicious users; something as simple as updating the default parameters that your node runs with can go a long way in hardening your node.
 
-== Private channels
-If you intend to use the Lightning Network to send and receive funds between nodes and wallets you control, there is little need to open public channels to the rest of the network.
-Instead you can open a private channel between, say, your desktop PC running a full node and a Lightning Wallet on your mobile phone.
-Since you are not exposing your channel to the network, you eliminate the risk of a denial-of-service attack on your node.
-You can more easily manage the capacity of this channel, since it will only be used to receive or send directly to one's node.
+== Unannounced channels
 
-You could also open a private channel with a known party that you transact with frequently
-For example, if Alice and Bob frequently send money back and forth to each other, they could open a private channel.
-This channel will not be able to be used to route payments from other users and collect fees.
-The advantage is that the existence of this channel will not be known to the rest of the network, and any payments between Alice and Bob cannot be inferred by tracking changes in the channel's routing capacity.
-However, final balance of the channel will be made public once the channel is closed and the balance is committed to the Bitcoin blockchain.
-But as this commitment transaction is pseudonymous, it will not be a simple matter to connect it back to Alice or Bob.
+If you intend to use the Lightning Network to send and receive funds between nodes and wallets you control, and have no interest in routing other users' payments, there is little need to announce your channels to the rest of the network.
+You could open a channel between, say, your desktop PC running a full node and your mobile phone running a Lightning Wallet and simply forgo the channel announcement discussed in Chapter 3.
+These are sometimes called "private" channels, however it is more correct to refer to them as "unannounced" channels as they are not strictly private.
+
+Unannounced channels will not be known to the rest of the network and won't normally be used to route other users' payments.
+They can still be used to route payments if other nodes are made aware of them, for example an invoice could contain routing hints which suggests a path with an unannounced channel.
+However, assuming that you've only opened an unannounced channel with yourself, you do gain some measure of privacy.
+Since you are not exposing your channel to the network, you lower the risk of a denial-of-service attack on your node.
+You can also more easily manage the capacity of this channel, since it will only be used to receive or send directly to your node.
+
+There are also advantages to opening an unannounced channel with a known party that you transact with frequently.
+For example, if Alice and Bob frequently play poker for bitcoin, they could open a channel to send their winnings back and forth.
+Under normal conditions, this channel will not be used to route payments from other users or collect fees.
+And since the channel will not be known to the rest of the network, any payments between Alice and Bob cannot be inferred by tracking changes in the channel's routing capacity.
+This confers some privacy to Alice and Bob, however if one of them decides to make other users aware of the channel, such as by including it in the routing hints of an invoice, then this privacy is lost.
+
+It should also be noted that to open an unannounced channel, a public transaction must be made on the Bitcoin blockchain. 
+Hence it is possible to infer the existence and size of the channel if a malicious party is monitoring the blockchain for channel opening transactions and attempting to match them to channels on the network.
+Furthermore, when the channel is closed, the final balance of the channel will be made public once it's committed to the Bitcoin blockchain.
+However, since the opening and commitment transactions are pseudonymous it will not be a simple matter to connect it back to Alice or Bob.
+In addition, the Taproot update of 2021 makes it difficult to distinguish between channel opening and closing transactions and other specific kinds of Bitcoin transactions.
+Hence, while unannouned channels are not completely private, they do provide some privacy benefits when used carefully.
 
 == Routing considerations
 
