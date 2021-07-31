@@ -86,6 +86,12 @@ min(liquidity) = channel_reserve
 max(liquidity) = capacity - channel_reserve
 ----
 
+or as a range:
+
+----
+channel_reserve <= liquidity <= (capacity - channel_reserve)
+----
+
 Our channel liquidity uncertainty range is the range between the minimum and maximum possible liquidity. This is unknown to the network, except the two channel partners. However, as we will see we can use failed HTLCs returned from our payment attempts to update our liquidity estimate and reduce uncertainty. If for example we get an HTLC failure code that tells us that a channel cannot fulfill an HTLC that is smaller than our estimate for maximum liquidity, that means the maximum liquidity can be updated to the amount of the failed HTLC. In simpler terms, if we think the liquidity can handle an HTLC of N satoshis and we find out it fails to deliver M satoshis (where M is smaller), then we can update our estimate to M-1 as the upper bound. We tried to find the ceiling and bumped against it, so it's lower than we thought!
 
 ==== Path finding complexity
@@ -162,6 +168,11 @@ For now, let's ignore the cost function and simply establish a channel graph sho
 
 In this example, Selena is constructing a channel graph. Selena will use her channel graph to find a path to send a payment to Rashid. This is _Selena's channel graph_. There is no such thing as *the* channel graph, there is only ever *a channel graph* and it is always from the perspective of the node that has constructed it (see <<map_territory_relation>>).
 
+[TIP]
+====
+Selena does not contruct a channel graph only when sending a payment. Rather, Selena's node is _continuously_ building and updating a channel graph. From the moment Selena's node starts and connects to any peer on the network it will participate in the "gossip" and use every message to learn as much as possible about the network.
+====
+
 [[map_territory_relation]]
 .The map-territory relation
 ****
@@ -199,19 +210,65 @@ But wait: Selena does know *some* channel balances! She knows the balances of th
 .Channel graph with known and unknown balances
 image::images/channel_graph_2.png[]
 
+While the "?" symbol seems ominous, a lack of certainty is not the same as complete ignorance. We can _quantify_ the uncertainty and _reduce_ it by updating the graph with the successful/failed HTLCs we attempt.
+
+Uncertainty can be quantified, because we know the maximum and minimum possible liquidity and can calculate probabilities for smaller (more precise) ranges.
+
+Once we attempt to send an HTLC we can learn more about channel balances: if we succeed, then the balance was *at least* sufficient to transport the specific amount. Meanwhile if we get a "temporary channel failure" error, the most likely reason is a lack of liquidity for the specific amount.
+
+[TIP]
+====
+You may be thinking "What's the point of learning from a successful HTLC?" After all, if it succeeded we're "done". But consider that we may be sending one part of a multi-part payment. We also may be sending other single-part payments within a short time. Anything we learn about liquidity is useful for the next attempt!
+====
+
 ==== Fees and other channel metrics
+
+Next, our sender will add information to the graph from +channel_update+ messages received from the intermediary nodes. As a reminder, the +channel_update+ contains a wealth of information about a channel and the expectations of one of the channel partners. The message contains the following:
+
+----
+[signature:signature]
+[chain_hash:chain_hash]
+[short_channel_id:short_channel_id]
+[u32:timestamp]
+[byte:message_flags]
+[byte:channel_flags] (includes channel direction)
+[u16:cltv_expiry_delta]
+[u64:htlc_minimum_msat]
+[u32:fee_base_msat]
+[u32:fee_proportional_millionths]
+[u64:htlc_maximum_msat] (option_channel_htlc_max)
+----
+
+In <<channel_graph_3>> below we see how Selena can update the channel graph based on +channel_update+ messages from A, B, X and Y. Note that the channel ID and channel direction (included in +channel_flags+) tells Selena which channel and which direction this update refers to. Each channel partner gossips one or more +channel_update+ messages to announce their fee expectations and other information about the channel. For example, in the top left we see the +channel_update+ sent by (A)lice for the channel A--B and the direction A-to-B. With this update, Alice tells the network how much she will charge in fees to route an HTLC to Bob over that specific channel. Bob may announce a channel update (not shown in this diagram) for the opposite direction with completely different fee expectations. Any node may send a new +channel_update+ to change the fees or timelock expectations at any time.
 
 [[channel_graph_3]]
 .Channel graph fees and other channel metrics
 image::images/channel_graph_3.png[]
 
+The fee and timelock information are very important not just as path selection metrics. As we saw in <<onion_routing>>, the sender needs to add up fees and timelocks (cltv_expiry_delta) at each hop to make the onion. The process of calculating fees happens from the recipient to the sender *backwards* along the path, because each intermediary hop expects an incoming HTLC with higher amount and expiry timelock than the outgoing HTLC they will send to the next hop. So, for example, if Bob wants 1000 satoshis in fees and 30 blocks of expiry timelock delta, to send a payment to Rashid, then that amount and expiry delta must be added to the HTLC _from Alice_.
+
+It is also important to note that a channel must have liquidity that is sufficient not only for the payment amount but also for the cumulative fees of all the subsequent hops. That means that if we are paying 100,000 satoshis to Rashid and a total of 5000 satoshis in fees for the intermediary hops, the liquidity of the first channel must exceed 105,000 satoshis. We need to know fees because only paths that have sufficient liquidity for *both payment and all fees* will be considered.
 
 ==== Finding candidate paths
 
-==== Selecting a path, ordering of paths
+Finding a suitable path through a directed graph like this is a well-studied computer science problem (known broadly as the "Shortest Path problem"), which can be solved by a variety of algorithms depending on the desired optimization and resource constraints.
+
+The most famous algorithm solving this problem was invented by Dutch mathematician E. W. Dijkstra in 1956, known simply as https://en.wikipedia.org/wiki/Dijkstra's_algorithm[_Dijkstra's Algorithm_]. In addition to the original Dijkstra algorithm, there are many variations and optimizations, such as https://en.wikipedia.org/wiki/A*_search_algorithm[A* ("A-star")], which is a heuristic-based algorithm.
+
+As mentioned previously, the "search" must be applied _backwards_ to account for fees that are accumulated from recipient to sender. Thus, Dijkstra, A* or some other algorithm would search for a path from the recipient to the sender, using fees, estimated liquidity, timelock delta (or some combination) as a cost function for each hop.
 
 ==== Payment delivery (Trial-and-error loop)
 
-==== Updating the channel graph
+Once Selena has a selected path, her node starts the trial-and-error loop, by constructing the HTLCs, building the onion and attempting delivery of the payment. For each attempt, there are three possible outcomes:
+
+- A successful result (+update_fulfill_htlc+)
+- An error (+update_fail_htlc+)
+- A "stuck" payment with no response (neither success, nor failure)
+
+If the payment fails, then it can be re-tried via a different path by updating the graph (changing a channel's metrics) and recalculating an alternative path.
+
+We'll look at what happens if the payment is "stuck" in <<stuck_payments>>. The important detail is that a stuck payment is the worst outcome because we cannot retry with another HTLC as both (the stuck one and the retry one) might go through eventually and cause a double payment.
+
+=== Stuck payments
 
 === Multi-Path Payments (MPP)
