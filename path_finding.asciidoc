@@ -299,6 +299,17 @@ image::images/path_1_fail.png[]
 
 From this failure code, Selena will deduce that Bob doesn't have enough liquidity to deliver the payment to Rashid on that channel. Importantly, this failure narrows the uncertainty of the liquidity of that channel! Previously, Selena's node assumed that the liquidity on Bob's side of the channel was somewhere in the range (0, 4m). Now, she can assume that the liquidity is in the range (0, 999999). Similarly, Selena can now assume that the liquidity of that channel on Rashid's side is in the range (1m, 4m), instead of (0, 4m). Selena has learned a lot from this failure.
 
+[Note]
+====
+There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels. 
+We will just mention them briefly here for completness and refere you to research work conducted by one of the authors of the book if you want take a deep dive. 
+So with the tools from probability theory one can properly express the uncertainty about the liquidity in a channel.
+Assume we have a probability function `P` that encodes the uncertainty by assigning a likelihood to each liquidity value `x` via `P(X =x)` we can express the Entropy (or uncertainty) we have about a channel as: H(P) = \sum_{x = 0}^c P(X = x) · log(P(X = x)) which is measured in bits.
+When making a successful or unsuccessfull attempt we update the probability for the event `A` accordingly by going to the conditional probability `P(X|A)`. 
+This updated probability can be used to compute the information gain as the Kullback Leibler divergence between the prior probability `P(X)` and the posteriori probability `P(X|A)` which in many cases is will just be the difference of entropy values between the two distributions.
+As mentioned before fundamental work work about modeling the uncertainty intervals of the channel liquidity can be found in the Paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by Pickhardt et. al.
+====
+
 ===== Second attempt (path #4)
 
 Now Selena attempts the fourth candidate path (S->A->B->X->Y->R). This is a longer path and will incur more fees, but it's now the best option for delivery of the payment.
