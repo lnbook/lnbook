@@ -301,11 +301,11 @@ From this failure code, Selena will deduce that Bob doesn't have enough liquidit
 
 [Note]
 ====
-There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels. 
-We will just mention them briefly here for completness and refere you to research work conducted by one of the authors of the book if you want take a deep dive. 
+There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels.
+We will just mention them briefly here for completness and refere you to research work conducted by one of the authors of the book if you want take a deep dive.
 So with the tools from probability theory one can properly express the uncertainty about the liquidity in a channel.
 Assume we have a probability function `P` that encodes the uncertainty by assigning a likelihood to each liquidity value `x` via `P(X =x)` we can express the Entropy (or uncertainty) we have about a channel as: H(P) = \sum_{x = 0}^c P(X = x) · log(P(X = x)) which is measured in bits.
-When making a successful or unsuccessfull attempt we update the probability for the event `A` accordingly by going to the conditional probability `P(X|A)`. 
+When making a successful or unsuccessfull attempt we update the probability for the event `A` accordingly by going to the conditional probability `P(X|A)`.
 This updated probability can be used to compute the information gain as the Kullback Leibler divergence between the prior probability `P(X)` and the posteriori probability `P(X|A)` which in many cases is will just be the difference of entropy values between the two distributions.
 As mentioned before fundamental work work about modeling the uncertainty intervals of the channel liquidity can be found in the Paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by Pickhardt et. al.
 ====
@@ -332,20 +332,23 @@ However, this knowledge becomes somewhat "stale" as the other nodes send or rout
 
 Therefore, Selena's node must consider how long to keep this knowledge before assuming that it is stale and no longer useful.
 
-
 [[stuck_payments]]
-==== Stuck payments
-
-[[rebalancing]]
-==== Rebalancing channels
-
-
-////
-Discuss JIT routing here?
-[[jit]]
-==== Just-in-time routing
-////
-
+===== Stuck payments
 
 [[mpp]]
 === Multi-Path Payments (MPP)
+
+_Multi-Path Payments (MPP)_ are a feature that was introduced in the Lightning Network in 2020 and is already very widely available. Multi-Path Payments allow a payment to be split into multiple _parts_ which are sent as HTLCs over several different paths to the intended recipient, preserving the _atomicity_ of the overall payment. In this context, atomicity means that either all the HTLC parts of a payment are eventually fulfilled or the  entire payment fails and all the HTLC parts fail. There is no possibility of a partially successful payment.
+
+Multi-Path Payments are a significant improvement in the Lightning Network as they make it possible to send amounts that won't "fit" in any single channel by splitting them into smaller amounts for which there is sufficient liquidity. Furthermore, Multi-Path Payments have been shown to increase the probability of a successful payment, as compared to a single-path payment.
+
+[TIP]
+====
+Now that MPP is available it is best to think of a single-path payment as a subcategory of a MPP. Essentially, a single-path is just a multi-path of size one. All payments can be considered as Multi-Path Payments unless the size of the payment and liquidity available make it possible to deliver with a single part.
+====
+
+==== Using MPP
+
+MPP is not something that a user will select, but rather it is a node path-finding and payment delivery strategy. The same basic steps are implemented: create a graph, select paths and the trial-and-error loop. The difference is that during path selection we must also consider how to split the payment in order to optimize delivery.
+
+====
