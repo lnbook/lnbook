@@ -166,7 +166,9 @@ Depending on the algorithm we will use for path finding, we may establish a numb
 
 For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the node_announcement and channel_announcement messages.
 
-In this example, Selena is constructing a channel graph. Selena will use her channel graph to find a path to send a payment to Rashid. This is _Selena's channel graph_. There is no such thing as *the* channel graph, there is only ever *a channel graph* and it is always from the perspective of the node that has constructed it (see <<map_territory_relation>>).
+In this chapter we will see how Selena attempts to find a path to pay Rashid 1,000,000 (1m) satoshis. To start, Selena is constructing a channel graph using the information from the Lightning Network gossip to discover nodes and channels. Selena will then explore her channel graph to find a path to send a payment to Rashid.
+
+This is _Selena's_ channel graph. There is no such thing as *the* channel graph, there is only ever *a channel graph* and it is always from the perspective of the node that has constructed it (see <<map_territory_relation>>).
 
 [TIP]
 ====
@@ -247,7 +249,7 @@ image::images/channel_graph_3.png[]
 
 The fee and timelock information are very important not just as path selection metrics. As we saw in <<onion_routing>>, the sender needs to add up fees and timelocks (cltv_expiry_delta) at each hop to make the onion. The process of calculating fees happens from the recipient to the sender *backwards* along the path, because each intermediary hop expects an incoming HTLC with higher amount and expiry timelock than the outgoing HTLC they will send to the next hop. So, for example, if Bob wants 1000 satoshis in fees and 30 blocks of expiry timelock delta, to send a payment to Rashid, then that amount and expiry delta must be added to the HTLC _from Alice_.
 
-It is also important to note that a channel must have liquidity that is sufficient not only for the payment amount but also for the cumulative fees of all the subsequent hops. That means that if we are paying 100,000 satoshis to Rashid and a total of 5000 satoshis in fees for the intermediary hops, the liquidity of the first channel must exceed 105,000 satoshis. We need to know fees because only paths that have sufficient liquidity for *both payment and all fees* will be considered.
+It is also important to note that a channel must have liquidity that is sufficient not only for the payment amount but also for the cumulative fees of all the subsequent hops. Even though Selena's channel to Xavier (S-->X) has enough liquidity for a 1m satoshi payment, it *does not* have enough liquidity once we consider fees. We need to know fees because only paths that have sufficient liquidity for *both payment and all fees* will be considered.
 
 ==== Finding candidate paths
 
@@ -257,9 +259,24 @@ The most famous algorithm solving this problem was invented by Dutch mathematici
 
 As mentioned previously, the "search" must be applied _backwards_ to account for fees that are accumulated from recipient to sender. Thus, Dijkstra, A* or some other algorithm would search for a path from the recipient to the sender, using fees, estimated liquidity, timelock delta (or some combination) as a cost function for each hop.
 
+Using one such algorithm, Selena calculates several possible paths to Rashid, sorted by shortest path:
+
+1. S->A->B->R
+
+2. S->X->Y->R
+
+3. S->X->B->R
+
+4. S->A->B->X->Y->R
+
+
+But, as we saw previously, the channel +S->X+ does not have enough liquidity for a 1m satoshi payment once fees are considered. So paths 2 and 3 are not viable. That leaves paths 1 and 4 as possible paths for the payment.
+
+With two possible paths, Selena is ready to attempt delivery!
+
 ==== Payment delivery (Trial-and-error loop)
 
-Once Selena has a selected path, her node starts the trial-and-error loop, by constructing the HTLCs, building the onion and attempting delivery of the payment. For each attempt, there are three possible outcomes:
+Selena's node starts the trial-and-error loop, by constructing the HTLCs, building the onion and attempting delivery of the payment. For each attempt, there are three possible outcomes:
 
 - A successful result (+update_fulfill_htlc+)
 - An error (+update_fail_htlc+)
@@ -269,6 +286,55 @@ If the payment fails, then it can be re-tried via a different path by updating t
 
 We'll look at what happens if the payment is "stuck" in <<stuck_payments>>. The important detail is that a stuck payment is the worst outcome because we cannot retry with another HTLC as both (the stuck one and the retry one) might go through eventually and cause a double payment.
 
-=== Stuck payments
 
+===== First attempt (path #1)
+
+Selena attempts the first path (S->A->B->R). She constructs the onion and sends it, but receives a failure code from Bob's node. Bob reports back a +temporary channel failure+ with a +channel_update+ identifying the channel B->R as the one that can't deliver. This attempt is shown in <<path_1_fail>>:
+
+[[path_1_fail]]
+.Path 1 attempt fails
+image::images/path_1_fail.png[]
+
+===== Learning from failure
+
+From this failure code, Selena will deduce that Bob doesn't have enough liquidity to deliver the payment to Rashid on that channel. Importantly, this failure narrows the uncertainty of the liquidity of that channel! Previously, Selena's node assumed that the liquidity on Bob's side of the channel was somewhere in the range (0, 4m). Now, she can assume that the liquidity is in the range (0, 999999). Similarly, Selena can now assume that the liquidity of that channel on Rashid's side is in the range (1m, 4m), instead of (0, 4m). Selena has learned a lot from this failure.
+
+===== Second attempt (path #4)
+
+Now Selena attempts the fourth candidate path (S->A->B->X->Y->R). This is a longer path and will incur more fees, but it's now the best option for delivery of the payment.
+
+Fortunately, Selena receives an +update_fulfill_htlc+ message from Alice, indicating that the payment was successful, as shown in <<path_4_success>>:
+
+[[path_4_success]]
+.Path 4 attempt succeeds
+image::images/path_4_success.png[]
+
+===== Learning from success
+
+Selena has also learnt a lot from this successful payment. She now knows that all the channels on the path S->A->B->X->Y->R  had enough liquidity to deliver the payment. Furthermore, she now knows that each of these channels has moved the HTLC amount (1m + fees) to the other end of the channel. This allows Selena to recalculate the range of liquidity on the receiving side of all the channels in that path, replacing the minimum liquidity with 1m+fees.
+
+===== Stale knowledge?
+
+Selena now has a much better "map" of the Lightning Network (at least as far as these 7 channels go). This knowledge will be useful for any subsequent payments that Selena attempts to make.
+
+However, this knowledge becomes somewhat "stale" as the other nodes send or route payments. Selena will never see any of these payments (unless she is the sender). Even if she is involved in routing payments, the onion routing mechanism means she can only see the changes for one hop (her own channels).
+
+Therefore, Selena's node must consider how long to keep this knowledge before assuming that it is stale and no longer useful.
+
+
+[[stuck_payments]]
+==== Stuck payments
+
+[[rebalancing]]
+==== Rebalancing channels
+
+
+////
+Discuss JIT routing here?
+[[jit]]
+==== Just-in-time routing
+////
+
+
+[[mpp]]
 === Multi-Path Payments (MPP)
