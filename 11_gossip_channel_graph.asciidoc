@@ -1,12 +1,19 @@
 [[gossip]]
-== Channel Graph Discovery, Authentication & Maintenance
+== Gossip and the channel graph
 
-=== Intro
+In this chapter we will describe the Lightning Network's _Gossip Protocol_ and how it is used by nodes to construct and maintain a _Channel Graph_.
+
+The gossip protocol and routing information section is highlighted by a double outline spanning the "Routing Layer" and "Peer 2 Peer Layer" of <<LN_protocol_gossip_highlight>>:
+
+[[LN_protocol_gossip_highlight]]
+.The Lightning Network Protocol Suite
+image::images/LN_protocol_gossip_highlight.png["The Lightning Network Protocol Suite"]
 
 As we've learned already, the Lightning Network uses a source-based onion routing protocol to deliver a payment from a sender to the recipient.
-For this the sending node has to be able to construct a path of payment channels that connects it with the recipient.
-Thus the sender has to be able to map the Lightning Network, by constructing a _channel graph_.
+To do this, the sending node must be able to construct a path of payment channels that connects it with the recipient, as we will see in <<path_finding>>.
+Thus, the sender has to be able to map the Lightning Network, by constructing a _Channel Graph_.
 The channel graph is the interconnected set of publicly advertised channels, and the nodes that these channels interlink.
+
 As channels are backed by a funding transaction that is happening on-chain, one might falsely believe that Lightning Nodes could just extract the existing channels from the Bitcoin Blockchain.
 However this only possible to a certain extent.
 The funding transactions are Pay-to-Witness-Script-Hash (P2WSH) addresses and the nature of the script (a 2-of-2 multisig) will only be revealed once the funding transaction output is spent.
@@ -40,12 +47,13 @@ Let's revisit some of the terminology that we have used throughout the book, spe
 .Terminology of the different networks
 [options="header"]
 |===
-|  | Channel graph  |Peer-to-peer network
-| Name     | Channel | Connection
-| initiate | open | (re)connect
-| finalize | close| terminate
-| technology | Bitcoin Blockchain | encrypted TCP/IP connection
-| lifetime | until funding spent | while peers are online
+| Channel graph  |Peer-to-peer network
+|  channel | connection
+| open | connect
+| close | disconnect
+|  funding transaction | encrypted TCP/IP connection
+| send	|	transmit
+| payment |  message
 |===
 
 As the Lightning Network is a peer-to-peer network, some initial bootstrapping is required in order for peers to discover each other.  Within this chapter we'll follow the story of a new peer connecting to the network for the first time, and examine each step in the bootstrapping process from initial peer discovery, to channel graph syncing and validation.
@@ -95,7 +103,7 @@ discovery using the Domain Name System (DNS). Lightning's flavor of DNS based bo
 Those somewhat familiar with the DNS protocol may already be familiar with the +A+ and +AAA+ record types, but not the +SRV+ type. The +SRV+ record type is used by protocols built on top of DNS, to determine the
 _location_ for a specified service. In our context, the service in question is a given Lightning node, and the location its IP address. We need to use this additional record type as unlike nodes within the Bitcoin protocol, we need both a public key _and_ an IP address in order to connect to a node. As we see in <<wire_protocol>> the transport encryption protocol used in LN requires knowledge of the public key of a node before connecting, so as to implement identity hiding for nodes in the network.
 
-====== A new peer's bootstrapping workflow
+===== A new peer's bootstrapping workflow
 
 Before diving into the specifics of BOLT 10, we'll first outline the high level flow of a new node that wishes to use BOLT 10 to join the network.
 
@@ -203,12 +211,7 @@ peer and established its first connection! Now we can begin the second phase of 
 
 First, we'll explore more of the intricacies of BOLT 10 itself to take a deeper look into how things work under the hood.
 
-==== A Deep Dive Into BOLT 10
-
-As we learned earlier in the chapter, BOLT 10 describes the standardized
-protocol for boostrapping new peer suing the DNS protocol. In this section, we'll dive into the details of BOLT 10 itself in order to explore exactly how bootstrapping queries are made, and also the additional set of options available for querying.
-
-====== SRV Query Options
+==== SRV Query Options
 
 The BOLT 10 standard is highly extensible due to its usage of nested
 sub-domains as a communication layer for additional query options. The
@@ -244,11 +247,11 @@ Try some combinations of the various flags using the +dig+ DNS command-line tool
 dig @8.8.8.8 r0.a6.nodes.lightning.directory SRV
 ----
 
-=== Channel graph: structure and attributes
+=== The channel graph
 
 Now that our new node is able to use the DNS boostrapping protocol to connect to their very first peer, it can start to sync the channel graph! However, before we sync the channel graph, we'll need to learn exactly _what_ we mean by the channel graph. In this section we'll explore the precise _structure_ of the channel graph and examine the unique aspects of the channel graph compared to the typical abstract "graph" data structure which is well known/used in the field of computer science.
 
-==== The Channel Graph as a Directed Overlay Data Structure
+==== A directed graph
 
 A graph in computer science is a special data structure composed of vertices (typically referred to as nodes) and edges (also known as links). Two nodes may be connected by one or more edges. The channel graph is also _directed_ given that a payment is able to flow in either direction over a given edge (a channel). As we're concerned with _routing payments_, in our model a node with no edges (no payment channels) isn't considered to be a part of the graph as it isn't useful.
 
@@ -256,6 +259,8 @@ In the context of the Lightning Network, our vertices are the Lightning nodes th
 
 As channels themselves are UTXOs (funded 2-of-2 multisig addresses), we can view the channel graph as a special subset of the Bitcoin UTXO set, on top of which we can add some additional information (the nodes, etc) to arrive at the final overlay structure which is the channel graph. This anchoring of fundamental components of the channel graph in the
 base Bitcoin blockchain means that it's impossible to _fake_ a valid channel graph, which has useful properties when it comes to spam prevention as we'll see later.
+
+=== Gossip protocol messages
 
 The channel graph information is propagated across the Lightning P2P Network as three messages, which are described in BOLT 7:
 
@@ -270,7 +275,7 @@ themselves _authenticated_ allowing a 3rd party to ensure that the owner of a ch
 
 With the high level structure of the channel graph laid out, we'll now dive down into the precise structure of each of the three messages used to gossip the channel graph. We'll also explain how one can also _verify_ each message and component of the channel graph.
 
-===== The node_announcement message
+==== The node_announcement message
 
 First, we have the +node_announcement+ message, which serves two primary
 purposes:
@@ -283,7 +288,7 @@ Unlike channel announcements, node announcements are not anchored in
 the base blockchain. Therefore, node announcements are
 only considered "valid" if they have propagated with a corresponding channel announcement. In other words, we always reject nodes without payment channels in order to ensure a malicious peer can't flood the network with bogus nodes that are not part of the channel graph.
 
-====== The node_announcement message structure
+===== The node_announcement message structure
 
 The node_announcement is comprised of
 the following fields:
@@ -302,7 +307,7 @@ the following fields:
 
   * +addresses+: A set of public internet reachable addresses that are to be associated with a given node. In the current version of the protocol four address types are supported: IPv4 (1), IPv6 (2), Tor v2 (3), Tor v3 (4). On the wire, each of these address types are denoted by an integer type which is included in parenthesis after the address type.
 
-====== Validation
+===== Validating node announcements
 
 Validating an incoming +node_announcement+ is straight forward. The following assertions should be upheld when examining a node announcement:
 
@@ -318,19 +323,19 @@ Validating an incoming +node_announcement+ is straight forward. The following as
 
   * The included +alias+ bytes MUST be a valid UTF-8 string.
 
-===== The channel_announcement message
+==== The channel_announcement message
 
 Next, we have the +channel_announcement+ message, which is used to _announce_ a new _public_ channel to the wider network. Note that announcing a channel is _optional_. A channel only needs to be announced if it is intended to be used for routing by the Lightning network. Active routing nodes may wish to announce all their channels. However, certain nodes like mobile nodes likely don't have the
 uptime or desire to be an active routing node. As a result, these
 mobile nodes (which typically use light clients to connect to the Bitcoin p2p network), instead may have purely _unannounced_ (also known as "private") channels.
 
-====== Unannounced "private" channels
+===== Unannounced "private" channels
 
 An unannounced channel isn't part of the known public channel graph, but can still be used to send/receive payments. An astute reader may now be wondering how a channel which isn't part of the public channel graph is able to receive payments. The solution to this problem is a set of "path finding helpers" that we call "routing hints. As we'll see in <<invoices>>, invoices created by nodes with unadvertised channels will include information to help the sender route to them assuming the node has at least a single channel with an existing public routing node.
 
 Due to the existence of unadvertised channels, the _true_ size of the channel graph (both the public and private components) is unknown.
 
-====== Locating a channel on the Bitcoin blockchain
+===== Locating a channel on the Bitcoin blockchain
 
 As mentioned earlier, the channel graph is authenticated due to its usage of public key cryptography, as well as the Bitcoin blockchain as a spam prevention system. In order to have a node accept a new +channel_announcement+, the advertisement must _prove_ that the channel actually exists in the Bitcoin blockchain. This proof system adds an upfront cost to adding a new entry to the channel graph (the on-chain fees on must pay to create the UTXO of the channel). As a result, we mitigate spam and ensure that a dishonest node on the network can't fill up the memory of an honest node at no cost with bogus channels.
 
@@ -341,7 +346,7 @@ to ensure we can support mobile nodes in the Lightning Network, we're forced to 
 What if rather than referencing a channel by its UTXO, we reference it based onits "location" in the chain? In order to do this, we'll need a scheme that allows us to "index" into a given block, then a transaction within that block, and finally a specific output created by that transaction. Such an identifier is described in BOLT 7 and is referred to as a _short channel ID_, or +scid+.
 The +scid+ is used both in +channel_announcement+ (and +channel_update+) as well as within the onion encrypted routing packet included within HTLCs as we learned <<onion_routing>>.
 
-====== The Short Channel ID
+===== The Short Channel ID
 
 Based on the information above, we have three pieces of information we need to encode in order to uniquely reference a given channel. As we want a compact representation, we'll attempt to encode the information into a _single_ integer. Our integer format of choice is an unsigned 64-bit integer, comprised of 8 bytes.
 
@@ -360,7 +365,7 @@ A short channel ID can be represented as a single integer
 
 Now that we're able to succinctly point to a given channel funding output in the chain, we can now examine the full structure of the +channel_announcement+ message, as well as how to verify the proof-of-existence included within the message.
 
-====== The channel_announcement message structure
+===== The channel_announcement message structure
 
 A channel_announcement primarily communicates two things:
 
@@ -397,73 +402,67 @@ With that said, a +channel_announcement+ message has the following fields:
 
  * +bitcoin_key_2+: The raw multi-sig key for the channel funding output for the second node in the network.
 
-====== Channel announcement validation
+===== Channel announcement validation
 
 Now that we know what a +channel_announcement+ contains, we can look at how to verify the channel's existence on-chain.
 
-====== Channel Update: Structure & Validation
+Armed with the information in the +channel_announcement+, any Lightning node (even one without a full copy of the Bitcoin blockchain) can verify the existence and authenticity of the payment channel.
+
+First, the verifier will use the short channel ID to find which Bitcoin block contains the channel funding output. With the block height information, the verifier can request only that specific block from a Bitcoin node. The block can then be linked back to the genesis block by following the block header chain backwards (verifying the proof-of-work), confirming that this is in fact a block belonging to the Bitcoin blockchain.
+
+Next, the verifier uses the transaction index number to identify the transaction ID of the transaction containing the payment channel. The block retrieved previously will contain an indexed list of transaction IDs.
+
+Next, the verifier requests the raw transaction from a Bitcoin node, by reference to the transaction ID. The verifier will validate the transaction (checking that it is properly signed and produces the same transaction ID when hashed).
+
+Next, the verifier will extract the Pay-to-Witness-Script-Hash output referenced by the output index number of the short channel ID. This is the address of the channel funding output.
+
+Finally, the verifier will reconstruct the multisig script from +bitcoin_key_1+ and +bitcoin_key_2+ and confirm that it produces the same address as in the output.
+
+The verifier has now independently verified that the payment channel in the announcement is funded and confirmed on the Bitcoin blockchain!
+
+==== The channel_update message
+
+The third and final message used in the gossip protocol is the +channel_update+ message. Two of these are generated for each payment channel, one by each channel partner, announcing their routing fees, timelock expectations and capabilities.
+
+The +channel_update+ message also contains a timestamp, allowing a node to update its routing fees and other expectations and capabilities by sending a new +channel_update+ message with a higher (later) timestamp that supersedes any older updates.
+
+The +channel_update+ message contains the following fields:
 
 
-// TODO(roasbeef): rename to "the structure of the channel graph"?
+* signature: A digital signature matching the node's public key, to authenticate the source and integrity of the channel update
 
-=== Syncing the Channel Graph
+* chain_hash: The hash of the genesis block of the chain contianing the channel
 
+* short_channel_id: The short channel ID to identify the channel
 
+* timestamp: The timestamp of this update, to allow recipients to sequence updates and replace older updates.
 
-* introduce the NodeAnnouncement (purpose structure validation)
-  * go thru fields, ref ability to use Tor, etc
-  * ref feature bits at high level, say will be covered in later chapter
-  * node announcement validation
-  * acceptance critera
+* message_flags: A bit field indicating the presence of additional fields in the channel_update message
 
+* channel_flags: A bit field showing the direction of the channel and other channel options
 
-==== Channel Announcement
+* cltv_expiry_delta: The timelock delta expectations of this node for routing (see <<onion_routing>>)
+
+* htlc_minimum_msat: The minimum HTLC amount that will be routed
+
+* fee_base_msat: The base fee that will be charged for routing
+
+* fee_proportional_millionths: The proportional fee rate that will be charged for routing
+
+* htlc_maximum_msat (option_channel_htlc_max): The maximum amount that will be routed
+
+A node that receives the +channel_update+ message can attach this metadata to the channel graph edge to enable path finding,  as we will see in <<path_finding>>.
 
 === Ongoing Channel Graph Maintenance
 
-==== Gossip Protocols in the Abstract
+The construction of a channel graph is not a one-time event, but rather an ongoing activity. As a node bootstraps into the network it will start receiving "gossip", in the form of the three update messages. It will use these messages to immediately start building a validated channel graph.
 
-* what is a gossip protocol?
-* why are they used?
-* what other famous uses of gossip protocols are out there?
-* when does it make sense to use a gossip protocol?
-* what are some use a gossip protocol?
-* why does LN uise
-* questions to ask for gossip rptocol
-  * what is being gossiped
-  * what is the expected delay bound?
-  * how is DoS prevented
+The more information a node receives, the better its "map" of the Lightning Network becomes and the more effective it can be at path finding and payment delivery.
 
-=== Gossip in LN
+A node won't only add information to the channel graph. It will also keep track of the last time a channel was updated and will delete "stale" channels that have not been updated in more than two weeks. Finally, if it sees that some node no longer has any channels, it will also remove that node.
 
-==== Channel Announcements
+The information collected from the gossip protocol is not the only information that can stored in the channel graph. Different Lightning node implementations may attach other metadata to nodes and channels. For example, some node implementations calculate a "score" that evaluates a node's "quality" as a routing peer. This score is used as part of path finding to prioritize or de-prioritize paths.
 
-==== Purpose
-==== Structure
-==== Validation
-
-==== Channel Updates
-
-==== Purpose
-==== Structure
-==== Validation
-
-==== Node Announcements
-
-==== Purpose
-==== Structure
-==== Validation
-
-* anser the three quesitons above
-
-* what: node info, chan info, channel updates
-
-* delay: 2 week liveness assumption, otherwise pruned, keep alive updates
-
-* DoS: real channel, proper validation of sigs, etc
-
-
-
-==== Conclusion
+=== Conclusion
 In this chapter, we've learned how Lightning nodes discover each
 other, discover and update their node status, and communicate with one another. We've learned how channel graphs are created and maintained and we've explored a few ways that the Lightning Network discourages bad actors or dishonest nodes from spamming the network.
