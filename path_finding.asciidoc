@@ -152,7 +152,7 @@ In the next sections we will look at each of these steps in more detail, as well
 
 ==== Channel graph construction
 
-In <<gossip>> we explain the three main messages that nodes "gossip": +node_announcement+, +channel_announcement+, and +channel_update+. These three messages allow any node to gradually construct a "map" of the Lightning Network in the form of a _channel graph_. Each of these messages provides a critical piece of information for the channel graph:
+In <<gossip>> we covered the three main messages that nodes "gossip": +node_announcement+, +channel_announcement+, and +channel_update+. These three messages allow any node to gradually construct a "map" of the Lightning Network in the form of a _channel graph_. Each of these messages provides a critical piece of information for the channel graph:
 
 node_announcement:: This contains the information about a node on the Lightning Network, such as its node ID (public key), network address (e.g. IPv4/6 or Tor), capabilities/features etc.
 
@@ -225,21 +225,7 @@ You may be thinking "What's the point of learning from a successful HTLC?" After
 
 ==== Fees and other channel metrics
 
-Next, our sender will add information to the graph from +channel_update+ messages received from the intermediary nodes. As a reminder, the +channel_update+ contains a wealth of information about a channel and the expectations of one of the channel partners. The message contains the following:
-
-----
-[signature:signature]
-[chain_hash:chain_hash]
-[short_channel_id:short_channel_id]
-[u32:timestamp]
-[byte:message_flags]
-[byte:channel_flags] (includes channel direction)
-[u16:cltv_expiry_delta]
-[u64:htlc_minimum_msat]
-[u32:fee_base_msat]
-[u32:fee_proportional_millionths]
-[u64:htlc_maximum_msat] (option_channel_htlc_max)
-----
+Next, our sender will add information to the graph from +channel_update+ messages received from the intermediary nodes. As a reminder, the +channel_update+ contains a wealth of information about a channel and the expectations of one of the channel partners.
 
 In <<channel_graph_3>> below we see how Selena can update the channel graph based on +channel_update+ messages from A, B, X and Y. Note that the channel ID and channel direction (included in +channel_flags+) tells Selena which channel and which direction this update refers to. Each channel partner gossips one or more +channel_update+ messages to announce their fee expectations and other information about the channel. For example, in the top left we see the +channel_update+ sent by (A)lice for the channel A--B and the direction A-to-B. With this update, Alice tells the network how much she will charge in fees to route an HTLC to Bob over that specific channel. Bob may announce a channel update (not shown in this diagram) for the opposite direction with completely different fee expectations. Any node may send a new +channel_update+ to change the fees or timelock expectations at any time.
 
