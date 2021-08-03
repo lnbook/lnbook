@@ -201,7 +201,6 @@ Selena also receives seven channel_announcement messages with the corresponding 
 .The channel graph
 image::images/channel_graph_1.png[]
 
-
 ===== Uncertainty in the channel graph
 
 As you can see from <<channel_graph_1>>, Selena does not know any of the balances of the channels. Her initial channel graph contains the highest level of uncertainty.
@@ -221,6 +220,49 @@ Once we attempt to send an HTLC we can learn more about channel balances: if we 
 [TIP]
 ====
 You may be thinking "What's the point of learning from a successful HTLC?" After all, if it succeeded we're "done". But consider that we may be sending one part of a multi-part payment. We also may be sending other single-part payments within a short time. Anything we learn about liquidity is useful for the next attempt!
+====
+
+==== Liquidity uncertainty and probability
+
+To quantify the uncertainty of a channel's liquidity, we can apply probability theory. A basic model of the probability of payment delivery will lead to some rather obvious, but important, conclusions:
+
+* Smaller payments have a better chance of successful delivery across a path.
+
+* Larger capacity channels will give us a better chance of payment delivery for a specific amount.
+
+* The more channels (hops), the lower the chance of success.
+
+While these may be obvious, they have important implications, especially for the use of Multi-Path Payments (see <<mpp>>). The math is not difficult to follow.
+
+Let's use probability theory to see how we arrived at these conclusions.
+
+First, let's posit that a channel with capacity +c+ has liquidity on one side with an unknown value in the range of +(0, c)+ or "range between 0 and c". For example, if the capacity is +5+, then the liquidity will be in the range +(0, 5)+. Now, from this we see that if we want to send 5 satoshis, our chance of success is only 1 in 6 (16.66%), because we will only succeed if the liquidity is exactly 5.
+
+More simply, if the possible values for the liquidity are 0,1,2,3,4,5 only one of those six possible values will be sufficient to send our payment. To continue this example, if our payment amount was 3, then we would succeed if the liquidity was 3, 4, or 5. So our chances of success are 3 in 6 (50%). Expressed in math, the success probability function for a single channel is:
+
+latexmath:[P_c(a) = (c + 1 - a) / (c + 1)]
+
+where +a+ is the amount and +c+ is the capacity
+
+From the equation we see that if the amount is close to 0, the probability is close to 1 whereas if the amount exceeds the capacity, the probability is zero.
+
+In other words: "Smaller payments have a better chance of successful delivery" or "Larger capacity channels give us better chances of delivery for a specific amount" and "You can't send a payment on a channel with insufficient capacity".
+
+Now let's think about the probability of success across a path made of several channels. Let's say our first channel has 50% chance of success (P = 0.5). Then if our second channel has 50% chance of success (P = 0.5), it is intuitive that our overall chance is 25% (P = 0.25).
+
+We can express this as an equation that calculates the probability of a payment's success as the product of probabilities for each channel in the path(s):
+
+latexmath:[P_{payment} = \prod_{i=1}^n P_i]
+
+Where P_i_ is the probability of success over one path or channel, and P_payment_ is the overall probability of a successful payment over all the paths/channels.
+
+From the equation we see that since the probability of success over a single channel is always less than or equal to 1, the  probability across many channels will _drop exponentially_.
+
+In other words, "The more channels (hops) you use, the lower the chance of success".
+
+[NOTE]
+====
+There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels. Fundamental work about modeling the uncertainty intervals of the channel liquidity can be found in the paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by Pickhardt et. al.
 ====
 
 ==== Fees and other channel metrics
@@ -272,7 +314,6 @@ If the payment fails, then it can be re-tried via a different path by updating t
 
 We'll look at what happens if the payment is "stuck" in <<stuck_payments>>. The important detail is that a stuck payment is the worst outcome because we cannot retry with another HTLC as both (the stuck one and the retry one) might go through eventually and cause a double payment.
 
-
 ===== First attempt (path #1)
 
 Selena attempts the first path (S->A->B->R). She constructs the onion and sends it, but receives a failure code from Bob's node. Bob reports back a +temporary channel failure+ with a +channel_update+ identifying the channel B->R as the one that can't deliver. This attempt is shown in <<path_1_fail>>:
@@ -284,17 +325,6 @@ image::images/path_1_fail.png[]
 ===== Learning from failure
 
 From this failure code, Selena will deduce that Bob doesn't have enough liquidity to deliver the payment to Rashid on that channel. Importantly, this failure narrows the uncertainty of the liquidity of that channel! Previously, Selena's node assumed that the liquidity on Bob's side of the channel was somewhere in the range (0, 4m). Now, she can assume that the liquidity is in the range (0, 999999). Similarly, Selena can now assume that the liquidity of that channel on Rashid's side is in the range (1m, 4m), instead of (0, 4m). Selena has learned a lot from this failure.
-
-[Note]
-====
-There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels.
-We will just mention them briefly here for completness and refere you to research work conducted by one of the authors of the book if you want take a deep dive.
-So with the tools from probability theory one can properly express the uncertainty about the liquidity in a channel.
-Assume we have a probability function `P` that encodes the uncertainty by assigning a likelihood to each liquidity value `x` via `P(X =x)` we can express the Entropy (or uncertainty) we have about a channel as: H(P) = \sum_{x = 0}^c P(X = x) · log(P(X = x)) which is measured in bits.
-When making a successful or unsuccessfull attempt we update the probability for the event `A` accordingly by going to the conditional probability `P(X|A)`.
-This updated probability can be used to compute the information gain as the Kullback Leibler divergence between the prior probability `P(X)` and the posteriori probability `P(X|A)` which in many cases is will just be the difference of entropy values between the two distributions.
-As mentioned before fundamental work work about modeling the uncertainty intervals of the channel liquidity can be found in the Paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by Pickhardt et. al.
-====
 
 ===== Second attempt (path #4)
 
@@ -321,6 +351,10 @@ Therefore, Selena's node must consider how long to keep this knowledge before as
 [[stuck_payments]]
 ===== Stuck payments
 
+In the current implementation of the Lightning Network there is a possibility that a payment attempt becomes "stuck", neither fulfilled nor cancelled by an error. This can happen due to a bug on an intermediary node, a node going offline while handling HTLCs, or a malicious node holding HTLCs without reporting an error. In all of these cases, the HTLC cannot be resolved until it expires. The timelock (CLTV) that is set on every HTLC helps resolve this condition (among other possible HTLC routing and channel failures). However, this means that the sender of the HTLC has to wait until expiry, and the funds committed to that HTLC remain unavailable until the HTLC expires. Furthermore, the sender *cannot retry* that same payment, because if they do they run the risk of *both* the original and the retried payment succeeding - the recipient gets paid twice. This is because once sent an HTLC cannot be "cancelled" by the sender - it either has to fail or expire. Stuck payments, while rare, create an unwanted user experience, where the user's wallet cannot pay or cancel a payment.
+
+One proposed solution to this problem is called "stuckless payments", and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e. point addition on the elliptic curve instead of a hash and secret pre-image).
+
 [[mpp]]
 === Multi-Path Payments (MPP)
 
@@ -337,4 +371,4 @@ Now that MPP is available it is best to think of a single-path payment as a subc
 
 MPP is not something that a user will select, but rather it is a node path-finding and payment delivery strategy. The same basic steps are implemented: create a graph, select paths and the trial-and-error loop. The difference is that during path selection we must also consider how to split the payment in order to optimize delivery.
 
-====
+In our example we can see some immediate improvements to our path finding problem that become possible with MPP. First, we can utilize the S->X channel that has known insufficient liquidity to transport 1m satoshis plus fees. By sending a smaller part along that channel, we can use paths that were previously unavailable. Second, we have the unknown liquidity of the B->R channel, which is insufficient to transport the 1m amount, but might be sufficient to transport a smaller amount.
