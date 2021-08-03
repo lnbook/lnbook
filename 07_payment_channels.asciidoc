@@ -271,13 +271,13 @@ bc1q89ju02heg32yrqdrnqghe6132wek25p6sv6e564znvrvez7tq5zqt4dn02
 ----
 ==== Constructing the funding transaction
 
-Alice's node can now construct a funding transaction, sending the amount agreed with Bob (funding_satoshis) to the 2-of-2 multisig address. Let's assume that funding_satoshis was 140,000 and Alice is spending a 200,000 satoshi output and creating 60,000 satoshi change. The transaction will look something like this:
+Alice's node can now construct a funding transaction, sending the amount agreed with Bob (funding_satoshis) to the 2-of-2 multisig address. Let's assume that funding_satoshis was 140,000 and Alice is spending a 200,000 satoshi output and creating 60,000 satoshis in change. The transaction will look something like this:
 
 [[A_B_funding_Tx]]
 .Alice constructs the funding transaction
 image::images/A_B_funding_Tx.png["Alice constructs the funding transaction"]
 
-Alice *does not broadcast* this transaction because doing so would put her 140,000 satoshi at risk. Once spent to the 2-of-2 multisig, there is no way for Alice to recover her money without Bob's signature.
+Alice *does not broadcast* this transaction because doing so would put her 140,000 satoshis at risk. Once spent to the 2-of-2 multisig, there is no way for Alice to recover her money without Bob's signature.
 
 .Dual-funded payment channels
 ****
@@ -407,11 +407,11 @@ The channel has been set up, but in its initial state, all the capacity (140,000
 
 In the next few sections we will show how payments are made across the payment channel and how the _channel state_ is updated.
 
-Let's assume that Alice wants to send 70,000 satoshi to Bob to pay her bill at Bob's coffee shop.
+Let's assume that Alice wants to send 70,000 satoshis to Bob to pay her bill at Bob's coffee shop.
 
 ==== Splitting the balance
 
-In principle, sending a payment from Alice to Bob is simply a matter of redistributing the balance of the channel. Before the payment is sent, Alice has 140,000 satoshi and Bob has none. After the 70,000 satoshi payment is sent, Alice has 70,000 satoshi and Bob has 70,000 satoshi.
+In principle, sending a payment from Alice to Bob is simply a matter of redistributing the balance of the channel. Before the payment is sent, Alice has 140,000 satoshis and Bob has none. After the 70,000 satoshi payment is sent, Alice has 70,000 satoshis and Bob has 70,000 satoshis.
 
 Therefore, all Alice and Bob have to do is create and sign a transaction that spends the 2-of-2 multisig to two outputs paying Alice and Bob their corresponding balance. We call this updated transaction a _commitment transaction_.
 
@@ -423,7 +423,7 @@ In <<competing_commitments_1>> we see several commitment transactions:
 .Multiple commitment transactions
 image::images/competing_commitments_1.png[Multiple commitment transactions]
 
-The first commitment transaction shown in <<competing_commitments_1>> is the "refund transaction" that Alice constructed before funding the channel. In the diagram, this is "Commitment #0". After Alice pays Bob 70,000 satoshi, the new commitment transaction ("Commitment #1") has two outputs paying Alice and Bob their respective balance. We have included two subsequent commitment transactions (Commitment #2 and Commitment #3) which represent Alice paying Bob an additional 10,000 satoshi and then 20,000 satoshi respectively.
+The first commitment transaction shown in <<competing_commitments_1>> is the "refund transaction" that Alice constructed before funding the channel. In the diagram, this is "Commitment #0". After Alice pays Bob 70,000 satoshis, the new commitment transaction ("Commitment #1") has two outputs paying Alice and Bob their respective balance. We have included two subsequent commitment transactions (Commitment #2 and Commitment #3) which represent Alice paying Bob an additional 10,000 satoshis and then a further 20,000 satoshis.
 
 Each signed and valid commitment transaction can be used by either channel partner at any time to close the channel by broadcasting it to the Bitcoin network. Since they both have the most recent commitment transaction and can use it at any time, they can also just hold it and not broadcast it. It's their guarantee of a fair exit from the channel.
 
@@ -439,7 +439,7 @@ If more than one commitment transaction are broadcast, there are many factors th
 
 ==== Cheating with old commitment transactions
 
-Let's look more carefully at the commitment transactions in <<competing_commitments_1>>. All four commitment transactions are signed and valid. But only the last one accurately reflects the most recent channel balance. In this particular scenario, Alice has an opportunity to cheat by broadcasting an older commitment and getting it confirmed on the Bitcoin blockchain. Let's say Alice transmits Commitment #0 and gets it confirmed. She will effectively close the channel and take all 140,000 satoshi for herself. In fact, in this particular example, any commitment but #3 improves Alice's position and allows her to "cancel" at least part of the payments reflected in the channel.
+Let's look more carefully at the commitment transactions in <<competing_commitments_1>>. All four commitment transactions are signed and valid. But only the last one accurately reflects the most recent channel balance. In this particular scenario, Alice has an opportunity to cheat by broadcasting an older commitment and getting it confirmed on the Bitcoin blockchain. Let's say Alice transmits Commitment #0 and gets it confirmed. She will effectively close the channel and take all 140,000 satoshis for herself. In fact, in this particular example, any commitment but #3 improves Alice's position and allows her to "cancel" at least part of the payments reflected in the channel.
 
 In the next section we will see how the Lightning Network resolves this problem - preventing older commitment transactions from being used by the channel partners by a mechanism of revocation and penalties. There are other ways to prevent the transmission of older commitment transactions but they require an upgrade to Bitcoin called _input rebinding_. We discuss this in more detail in <<eltoo>>.
 
@@ -481,9 +481,9 @@ image::images/asymmetric_1.png[Asymmetric commitment transactions]
 
 By convention, within the Lightning protocol, we refer to the two channel partners as _self_ (also known as _local_) and _remote_, depending on which side we're looking at. The outputs that pay each channel partner are called _to_local_ and _to_remote_, respectively.
 
-In <<asymmetric_1>> we see that Alice holds a transaction that pays 60,000 satoshi _to_self_ (can be spent by Alice's keys), and 80,000 satoshi _to_remote_ (can be spent by Bob's keys).
+In <<asymmetric_1>> we see that Alice holds a transaction that pays 60,000 satoshis _to_self_ (can be spent by Alice's keys), and 80,000 satoshis _to_remote_ (can be spent by Bob's keys).
 
-Bob holds the mirror-image of that transaction, where the first output is 80,000 satoshi _to_self_ (can be spent by Bob's keys), and 60,000 satoshi _to_remote_ (can be spent by Alice's keys).
+Bob holds the mirror-image of that transaction, where the first output is 80,000 satoshis _to_self_ (can be spent by Bob's keys), and 60,000 satoshis _to_remote_ (can be spent by Alice's keys).
 
 ==== Delayed (timelocked) spending to_self
 
@@ -623,9 +623,9 @@ Rather than encode the state hint in plain sight, an _obfuscated_ state hint is 
 
 Let's review our channel between Alice and Bob and show a specific example of a penalty transaction. In <<competing_commitments_2>> we see the four commitments on Alice and Bob's channel. Alice has made three payments to Bob:
 
-* 70,000 satoshi paid and committed to Bob with Commitment #1
-* 10,000 satoshi paid and committed to Bob with Commitment #2
-* 20,000 satoshi paid and committed to Bob with Commitment #3
+* 70,000 satoshis paid and committed to Bob with Commitment #1
+* 10,000 satoshis paid and committed to Bob with Commitment #2
+* 20,000 satoshis paid and committed to Bob with Commitment #3
 
 [[competing_commitments_2]]
 .Revoked and current commitments
@@ -633,9 +633,9 @@ image::images/competing_commitments_2.png[Revoked and current commitments]
 
 With each commitment, Alice has revoked the previous (older) commitment. The current state of the channel and the correct balance is represented by Commitment #3. All previous commitments have been revoked and Bob has the keys necessary to issue a penalty transactions against them, in case Alice tries to broadcast one of them.
 
-Alice might have an incentive to cheat, because all the previous commitment transactions would give her a higher proportion of the channel balance than she is entitled to. Let's say for example that Alice tried to broadcast Commitment #1. That commitment transaction would pay Alice 70,000 satoshi and Bob 70,000 satoshi. If Alice was able to broadcast and spend her to_local output she would effectively be stealing 30,000 satoshi from Bob by rolling back her last two payments to Bob.
+Alice might have an incentive to cheat, because all the previous commitment transactions would give her a higher proportion of the channel balance than she is entitled to. Let's say for example that Alice tried to broadcast Commitment #1. That commitment transaction would pay Alice 70,000 satoshis and Bob 70,000 satoshis. If Alice was able to broadcast and spend her to_local output she would effectively be stealing 30,000 satoshis from Bob by rolling back her last two payments to Bob.
 
-Alice decides to take a huge risk and broadcast the revoked Commitment #1, to steal 30,000 satoshi from Bob. In <<cheating_commitment>> we see Alice's old commitment that she broadcasts to the Bitcoin blockchain:
+Alice decides to take a huge risk and broadcast the revoked Commitment #1, to steal 30,000 satoshis from Bob. In <<cheating_commitment>> we see Alice's old commitment that she broadcasts to the Bitcoin blockchain:
 
 [[cheating_commitment]]
 .Alice cheating
