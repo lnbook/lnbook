@@ -79,7 +79,7 @@ In this section, we'll begin to follow a new Lightning node that wishes to join 
 
 Before doing any thing else, our new node first needs to discover a set of peers who are already part of the network. We call this process initial peer bootstrapping, and it's something that every peer to peer network needs to implement properly in order to ensure a robust, healthy network.
 
-Bootstrapping new peers to existing peer to peer networks is a very well studied problem with several known solutions, each with their own distinct trade offs. The simplest solution to this problem is simply to package a set of _hard coded_ bootstrap peers into the packaged p2p node software. This is simple in that each new node has a list of bootstrap peersin the software they're running, but rather fragile given that if the set of bootstrap peers goes offline, then no new nodes will be able to join the network. Due to this fragility, this
+Bootstrapping new peers to existing peer to peer networks is a very well studied problem with several known solutions, each with their own distinct trade offs. The simplest solution to this problem is simply to package a set of _hard coded_ bootstrap peers into the packaged p2p node software. This is simple in that each new node has a list of bootstrap peers in the software they're running, but rather fragile given that if the set of bootstrap peers goes offline, then no new nodes will be able to join the network. Due to this fragility, this
 option is usually used as a fallback in case none of the other p2p bootstrapping mechanisms work properly.
 
 Rather than hard coding the set of bootstrap peers within the software/binary itself, we can instead allow peers to dynamically obtain a fresh/new set of bootstrap peers they can use to join the network. We'll call this process _initial peer discovery_. Typically we'll leverage
@@ -249,7 +249,7 @@ dig @8.8.8.8 r0.a6.nodes.lightning.directory SRV
 
 === The channel graph
 
-Now that our new node is able to use the DNS boostrapping protocol to connect to their very first peer, it can start to sync the channel graph! However, before we sync the channel graph, we'll need to learn exactly _what_ we mean by the channel graph. In this section we'll explore the precise _structure_ of the channel graph and examine the unique aspects of the channel graph compared to the typical abstract "graph" data structure which is well known/used in the field of computer science.
+Now that our new node is able to use the DNS bootstrapping protocol to connect to their very first peer, it can start to sync the channel graph! However, before we sync the channel graph, we'll need to learn exactly _what_ we mean by the channel graph. In this section we'll explore the precise _structure_ of the channel graph and examine the unique aspects of the channel graph compared to the typical abstract "graph" data structure which is well known/used in the field of computer science.
 
 ==== A directed graph
 
@@ -315,7 +315,7 @@ Validating an incoming +node_announcement+ is straight forward. The following as
 
     * With this constraint, we enforce a forced level of "freshness".
 
-  * If no +node_announcement+ exists for the given node, then an existing +channel_announcement+ that refernces the given node (more on that later) MUST already exist in one's local channel graph.
+  * If no +node_announcement+ exists for the given node, then an existing +channel_announcement+ that references the given node (more on that later) MUST already exist in one's local channel graph.
 
   * The included +signature+ MUST be a valid ECDSA signature verified using the included +node_id+ public key and the double-sha256 digest of the raw message encoding (minus the signature and frame header) as the message.
 
@@ -343,7 +343,7 @@ Given that we need to construct a proof of the existence of a channel, a
 natural question that arises is: how do we "point to" or reference a given channel for the verifier? Given that a payment channel is anchored in a UTXO, an initial thought might be to first attempt to just advertise the full outpoint (+txid:index+) of the channel. Given the outpoint is globally unique and confirmed in the chain, this sounds like a good idea, however it has a drawback: the verifier must maintain a full copy of the UTXO set in order to verify channels. This works fine for Bitcoin full-nodes, but clients which rely on lightweight verification don't typically maintain a full UTXO set. As we want
 to ensure we can support mobile nodes in the Lightning Network, we're forced to find another solution.
 
-What if rather than referencing a channel by its UTXO, we reference it based onits "location" in the chain? In order to do this, we'll need a scheme that allows us to "index" into a given block, then a transaction within that block, and finally a specific output created by that transaction. Such an identifier is described in BOLT 7 and is referred to as a _short channel ID_, or +scid+.
+What if rather than referencing a channel by its UTXO, we reference it based on its "location" in the chain? In order to do this, we'll need a scheme that allows us to "index" into a given block, then a transaction within that block, and finally a specific output created by that transaction. Such an identifier is described in BOLT 7 and is referred to as a _short channel ID_, or +scid+.
 The +scid+ is used both in +channel_announcement+ (and +channel_update+) as well as within the onion encrypted routing packet included within HTLCs as we learned <<onion_routing>>.
 
 ===== The Short Channel ID
