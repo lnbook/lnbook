@@ -262,7 +262,7 @@ In other words, "The more channels (hops) you use, the lower the chance of succe
 
 [NOTE]
 ====
-There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels. Fundamental work about modeling the uncertainty intervals of the channel liquidity can be found in the paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by Pickhardt et. al.
+There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels. Fundamental work about modeling the uncertainty intervals of the channel liquidity can be found in the paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by (co-author of this book) Pickhardt et. al.
 ====
 
 ==== Fees and other channel metrics
@@ -372,3 +372,70 @@ Now that MPP is available it is best to think of a single-path payment as a subc
 MPP is not something that a user will select, but rather it is a node path-finding and payment delivery strategy. The same basic steps are implemented: create a graph, select paths and the trial-and-error loop. The difference is that during path selection we must also consider how to split the payment in order to optimize delivery.
 
 In our example we can see some immediate improvements to our path finding problem that become possible with MPP. First, we can utilize the S->X channel that has known insufficient liquidity to transport 1m satoshis plus fees. By sending a smaller part along that channel, we can use paths that were previously unavailable. Second, we have the unknown liquidity of the B->R channel, which is insufficient to transport the 1m amount, but might be sufficient to transport a smaller amount.
+
+===== Splitting payments
+
+The fundamental question is how to split the payments. More specifically, what is the optimal number of splits and the optimal amounts for each split?
+
+This is an area of ongoing research, where novel strategies are emerging. Multi-path payments lead to a different algorithmic approach than single path payments, even though single-path solutions can emerge from a multi-path optimization (i.e. a single-path may be the optimal solution suggested by a multi-path path finding algorithm).
+
+If you recall, we found that the uncertainty of liquidity/balances leads to some (somewhat obvious) conclusions that we can apply in MPP path finding, namely:
+
+* Smaller payments have a higher chance of succeeding
+
+* The more channels you use, the chance of success becomes (exponentially) lower.
+
+From the first of these insights, we might conclude that splitting a large payment (e.g. 1 million satoshis) into tiny payments increases the chance that each of those smaller payments will succeed. The number of possible paths with sufficient liquidity will be greater if we send smaller amounts.
+
+To take this idea to an extreme, why not split the 1m satoshi payment into one million separate 1-satoshi parts? Well, the answer lies in our second insight: since we would be using more channels/paths to send our million single-satoshi HTLCs, our chance of success would drop exponentially.
+
+If it's not obvious, the two insights above create a "sweet spot" where we can maximize our chances of success: splitting into smaller payments but not too many splits!
+
+Quantifying this optimal balance of size/number-of-splits for a given channel graph is out of the scope of this book but it is an active area of research. Some current implementations use a very simple strategy of splitting the payment in two halves, four quarters etc.
+
+[NOTE]
+====
+To read more about the optimization problem known as Minimum-Cost Flows involved when splitting payments into different sizes and allocating them to paths see the paper: https://arxiv.org/abs/2107.05322[Optimally Reliable & Cheap Payment Flows on the Lightning Network] by (co-author of this book) Rene Pickhardt & Stefan Richter.
+====
+
+In our example, Selena's node will attempt to split the 1m satoshi payment into two 500k satoshi parts and send them on two different paths. This is shown in <<mpp_paths>>:
+
+[[mpp_paths]]
+.Sending 2 x 500k parts of a multi-path payment
+image::images/mpp_paths.png[]
+
+Because the S->X channel can now be utilized, and (luckily for Selena), the B->R channel has sufficient liquidity for 500k satoshis, the two parts are successful along paths that were previously not possible.
+
+==== Trial-and-error over multiple "rounds"
+
+Multi-Path Payments lead to a somewhat modified "trial-and-error" loop for payment delivery. Because we are attempting multiple paths in each attempt, we have four possible outcomes:
+
+* All parts succeed, the payment is successful
+* Some parts succeed, some fail with errors returned
+* All parts fail with errors returned
+* Some parts are "stuck", no errors are returned
+
+In the second case, where some parts fail with errors returned and some parts succeed, we can now _repeat_ the trial-and-error loop, but *only for the residual amount*.
+
+Let's assume for example that Selena split her payment into 26 parts of varying sizes and of those 3 parts failed with errors. If those 3 parts consisted of, say 155k satoshis, then Selena would restart the path finding effort, only for 155k satoshis. The next "round" could find completely different paths (optimized for the residual amount of 155k), and split the 155k amount into complete different splits!
+
+[TIP]
+====
+While it seems like 26 split parts are a lot, tests on the Lightning Network have successfully delivered a payment of 0.3679 BTC by splitting it into 345 parts.
+====
+
+Furthermore, Selena's node would update the channel graph using the information gleaned from the successes and errors of the first round, to find the most optimal paths and splits for the second round.
+
+Let's say that Selena's node calculates that the best way to send the 155k residual is 6 parts split as 80k, 42k, 15k, 11k, 6.5k and 500 satoshis. In the next round, Selena gets only one error, indicating that the 11k satoshi part failed. Again, Selena updates the channel graph based on the information gleaned and runs the path finding again, to send the 11k residual. This time, she succeeds with 2 parts of 6k and 5k satoshis respectively.
+
+This multi-round example of sending a payment using MPP is shown in <<mpp_rounds>>:
+
+[[mpp_rounds]]
+.Sending a payment in multiple rounds with MPP
+image::images/mpp_rounds.pngp[]
+
+In the end, Selena's node used three rounds of path finding to send the 1m satoshis in 30 parts.
+
+=== Conclusion
+
+In this chapter we looked at path finding and payment delivery. We saw how to use the channel graph to find paths from a sender to a recipient. We also saw how the sender will attempt to deliver payments on a candidate path and repeat in a trial-and-error loop. Finally, we saw how the newly deployed Multi-Path Payments feature allows us to split payments into parts, increasing the probability of success even for larger payments.
