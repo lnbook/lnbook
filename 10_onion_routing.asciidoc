@@ -368,7 +368,7 @@ image::images/onion_packet.png[]
 * 1300 bytes: The actual _onion payload_ containing the instructions for each hop
 * 32 bytes: An HMAC integrity checksum
 
-A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, instead a clever _blinding_ scheme is used deterministically randomize the session key at each hop. 
+A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, instead a clever _blinding_ scheme is used deterministically randomize the session key at each hop.
 
 In practice, this little trick allows us to keep the onion packet as compact as possible while still retaining the desired security properties.
 
@@ -383,7 +383,7 @@ For each hop the sender (Alice) repeats the same process:
 
 1. Alice generates 1300 bytes of filler and fills the 1300-byte onion payload field with this filler.
 
-1. Alice calculates the HMAC for the hop payload (zeros for the final hop). 
+1. Alice calculates the HMAC for the hop payload (zeros for the final hop).
 
 1. Alice calculates the length of the hop payload + HMAC + space to store the length itself
 
@@ -403,7 +403,7 @@ For each hop the sender (Alice) repeats the same process:
 
 Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front and the whole onion payload encrypted with the rho byte-stream for the next hop.
 
-For the final hop, the HMAC included in step #3 over the plaintext instructions is actually _all zero_. 
+For the final hop, the HMAC included in step #3 over the plaintext instructions is actually _all zero_.
 The final hop uses this signal to determine that it is indeed the final hop in the route.
 Alternatively, the fact that the `short_chan_id` included in the payload to denote the "next hop" is all zero can be used as well.
 
@@ -464,7 +464,7 @@ image::images/dina_hop_payload_hmac.png[]
 ===== Onion Routing Replay Protection & Detection
 
 The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
-Note that we compute the HMAC over the _encrypted_ data rather then over the plaintext data. 
+Note that we compute the HMAC over the _encrypted_ data rather then over the plaintext data.
 This is known as "encrypt-then-mac" and is the recommended way to use a MAC, as it provides both plaintext _and_ cihpertext integrity.
 
 Modern authenticated encryption also allows for the use of an optional set of plaintext bytes to also be authenticated known as "associated data".
@@ -521,12 +521,12 @@ image::images/bob_onion_wrapping.png[]
 
 Start with the onion payload (obfuscated) containing Chan's and Dina's hop payloads.
 
-Include the prior hop's outer HMAC as this hop's inner HMAC. 
+Include the prior hop's outer HMAC as this hop's inner HMAC.
 Insert Bob's hop payload at the beginning and shift everything else over to the right, dropping a Bob-hop-payload-size chunk from the end (it was filler anyway).
 
 Obfuscate the whole thing XOR with the _rho_ key from the Alice-Bob-shared-secret so that only Bob can unwrap this.
 
-Calculate the outer HMAC and stick it on the end of Bob's hop payload. 
+Calculate the outer HMAC and stick it on the end of Bob's hop payload.
 
 
 ==== The final onion packet
@@ -769,6 +769,15 @@ The top byte of the +failure_code+ is a set of binary flags that can be combined
 The following failure types are currently defined:
 
 include::failure_types_table.asciidoc[]
+
+[[stuck_payments]]
+===== Stuck payments
+
+In the current implementation of the Lightning Network there is a possibility that a payment attempt becomes "stuck", neither fulfilled nor cancelled by an error. This can happen due to a bug on an intermediary node, a node going offline while handling HTLCs, or a malicious node holding HTLCs without reporting an error. In all of these cases, the HTLC cannot be resolved until it expires. The timelock (CLTV) that is set on every HTLC helps resolve this condition (among other possible HTLC routing and channel failures).
+
+However, this means that the sender of the HTLC has to wait until expiry, and the funds committed to that HTLC remain unavailable until the HTLC expires. Furthermore, the sender *cannot retry* that same payment, because if they do they run the risk of *both* the original and the retried payment succeeding - the recipient gets paid twice. This is because once sent an HTLC cannot be "cancelled" by the sender - it either has to fail or expire. Stuck payments, while rare, create an unwanted user experience, where the user's wallet cannot pay or cancel a payment.
+
+One proposed solution to this problem is called "stuckless payments", and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e. point addition on the elliptic curve instead of a hash and secret pre-image). PTLCs are cumbersome using ECDSA but much easier with Bitcoin's Taproot and Schnorr Signature features which were recently locked in for activation in November 2021. It is expected that PTLCs will be implemented in the Lightning Network after these Bitcoin features become activated.
 
 === Conclusion
 
