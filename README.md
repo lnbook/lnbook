@@ -13,7 +13,9 @@ The book is suitable for technical readers with an understanding of the fundamen
 
 ## Status
 
-The current status of the book is "RELEASE PREP". See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
+The current status of the book is "IN PRODUCTION": ONLY COPY-EDIT CONTRIBUTIONS ARE ACCEPTED.
+
+See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
 
 ### Legend
 
@@ -45,10 +47,13 @@ The current status of the book is "RELEASE PREP". See below for status of specif
 | [LN Security and Privacy](13_security_privacy_ln.asciidoc) | ################ | :heavy_check_mark: |
 | APPENDICES | APPENDICES | APPENDICES |
 | [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ########### | :heavy_check_mark: |
-| [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
+| [A2 - Payment Requests (Invoices)](appendix_payment_requests.asciidoc) | #### | :heavy_check_mark: |
+| [A3 - Wire Protocol](appendix_wire_protocol.asciidoc) | ################# | :heavy_check_mark: |
+| [A4 - Encrypted Message Transport (Brontide)](appendix_encrypted_transport.asciidoc) | ########## | :heavy_check_mark: |
+| [A5 - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 110718
+Total Word Count: 125288
 
 Target Word Count: 100,000-120,000
 
