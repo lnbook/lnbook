@@ -398,13 +398,13 @@ Quantifying this optimal balance of size/number-of-splits for a given channel gr
 To read more about the optimization problem known as Minimum-Cost Flows involved when splitting payments into different sizes and allocating them to paths see the paper: https://arxiv.org/abs/2107.05322[Optimally Reliable & Cheap Payment Flows on the Lightning Network] by (co-author of this book) Rene Pickhardt & Stefan Richter.
 ====
 
-In our example, Selena's node will attempt to split the 1m satoshi payment into two 500k satoshi parts and send them on two different paths. This is shown in <<mpp_paths>>:
+In our example, Selena's node will attempt to split the 1m satoshi payment into two parts with 600k and 400k satoshi respectively and send them on two different paths. This is shown in <<mpp_paths>>:
 
 [[mpp_paths]]
-.Sending 2 x 500k parts of a multi-path payment
+.Sending two parts of a multi-path payment
 image::images/mpp_paths.png[]
 
-Because the S->X channel can now be utilized, and (luckily for Selena), the B->R channel has sufficient liquidity for 500k satoshis, the two parts are successful along paths that were previously not possible.
+Because the S->X channel can now be utilized, and (luckily for Selena), the B->R channel has sufficient liquidity for 600k satoshis, the two parts are successful along paths that were previously not possible.
 
 ==== Trial-and-error over multiple "rounds"
 
@@ -417,7 +417,9 @@ Multi-Path Payments lead to a somewhat modified "trial-and-error" loop for payme
 
 In the second case, where some parts fail with errors returned and some parts succeed, we can now _repeat_ the trial-and-error loop, but *only for the residual amount*.
 
-Let's assume for example that Selena split her payment into 26 parts of varying sizes and of those 3 parts failed with errors. If those 3 parts consisted of, say 155k satoshis, then Selena would restart the path finding effort, only for 155k satoshis. The next "round" could find completely different paths (optimized for the residual amount of 155k), and split the 155k amount into complete different splits!
+Let's assume for example that Selena had a much larger channel graph with hundreds of possible paths to reach Rashid. Her path finding algorithm might find an optimal payment split consisting of 26 parts of varying sizes. After attempting to send all 26 parts in the first round, 3 of those parts failed with errors.
+
+If those 3 parts consisted of, say 155k satoshis, then Selena would restart the path finding effort, only for 155k satoshis. The next round could find completely different paths (optimized for the residual amount of 155k), and split the 155k amount into completely different splits!
 
 [TIP]
 ====
@@ -432,7 +434,7 @@ This multi-round example of sending a payment using MPP is shown in <<mpp_rounds
 
 [[mpp_rounds]]
 .Sending a payment in multiple rounds with MPP
-image::images/mpp_rounds.pngp[]
+image::images/mpp_rounds.png[]
 
 In the end, Selena's node used three rounds of path finding to send the 1m satoshis in 30 parts.
 
