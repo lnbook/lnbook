@@ -348,13 +348,6 @@ However, this knowledge becomes somewhat "stale" as the other nodes send or rout
 
 Therefore, Selena's node must consider how long to keep this knowledge before assuming that it is stale and no longer useful.
 
-[[stuck_payments]]
-===== Stuck payments
-
-In the current implementation of the Lightning Network there is a possibility that a payment attempt becomes "stuck", neither fulfilled nor cancelled by an error. This can happen due to a bug on an intermediary node, a node going offline while handling HTLCs, or a malicious node holding HTLCs without reporting an error. In all of these cases, the HTLC cannot be resolved until it expires. The timelock (CLTV) that is set on every HTLC helps resolve this condition (among other possible HTLC routing and channel failures). However, this means that the sender of the HTLC has to wait until expiry, and the funds committed to that HTLC remain unavailable until the HTLC expires. Furthermore, the sender *cannot retry* that same payment, because if they do they run the risk of *both* the original and the retried payment succeeding - the recipient gets paid twice. This is because once sent an HTLC cannot be "cancelled" by the sender - it either has to fail or expire. Stuck payments, while rare, create an unwanted user experience, where the user's wallet cannot pay or cancel a payment.
-
-One proposed solution to this problem is called "stuckless payments", and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e. point addition on the elliptic curve instead of a hash and secret pre-image).
-
 [[mpp]]
 === Multi-Path Payments (MPP)
 
@@ -442,6 +435,6 @@ In the end, Selena's node used three rounds of path finding to send the 1m satos
 
 In this chapter we looked at path finding and payment delivery. We saw how to use the channel graph to find paths from a sender to a recipient. We also saw how the sender will attempt to deliver payments on a candidate path and repeat in a trial-and-error loop.
 
-We also examined the uncertainty of channel liquidity (from the perspective of the sender) and the implications that has for path finding. We saw how we can quantify the uncertainty and use probability theory to draw some useful conclusions. We also saw how we can reduce uncertainty by learning from both successful and failed payments. 
+We also examined the uncertainty of channel liquidity (from the perspective of the sender) and the implications that has for path finding. We saw how we can quantify the uncertainty and use probability theory to draw some useful conclusions. We also saw how we can reduce uncertainty by learning from both successful and failed payments.
 
 Finally, we saw how the newly deployed Multi-Path Payments feature allows us to split payments into parts, increasing the probability of success even for larger payments.
