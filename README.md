@@ -27,7 +27,7 @@ The current status of the book is "RELEASE PREP". See below for status of specif
 | Section | Length (Word Count) |  Status |
 |-------|------|:------:|
 | PART 1 | PART 1 | PART 1 |
-| [Preface and Acknowledgments](preface.asciidoc) | ### | :heavy_check_mark: |
+| [Preface and Acknowledgments](preface.asciidoc) | #### | :heavy_check_mark: |
 | [Glossary](glossary.asciidoc) | ############## | :arrows_clockwise: |
 | [Introduction](01_introduction.asciidoc) | ########## | :heavy_check_mark: |
 | [Getting Started](02_getting_started.asciidoc) | ############# | :heavy_check_mark: |
@@ -39,16 +39,16 @@ The current status of the book is "RELEASE PREP". See below for status of specif
 | [Payment Channels in Detail](07_payment_channels.asciidoc) | ################### | :heavy_check_mark: |
 | [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :heavy_check_mark: |
 | [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :heavy_check_mark: |
-| [Onion Construction and Routing](10_onion_routing.asciidoc) | ############### | :heavy_check_mark: |
+| [Onion Construction and Routing](10_onion_routing.asciidoc) | ################ | :heavy_check_mark: |
 | [Channel Graph and Gossip Layer](11_gossip_channel_graph.asciidoc) | ############ | :heavy_check_mark: |
-| [Payment Path Finding](12_path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
-| [LN Security and Privacy](13_security_privacy_ln.asciidoc) | ################ | :lock_with_ink_pen: |
+| [Payment Path Finding](12_path_finding.asciidoc) | ############ | :heavy_check_mark: |
+| [LN Security and Privacy](13_security_privacy_ln.asciidoc) | ################ | :heavy_check_mark: |
 | APPENDICES | APPENDICES | APPENDICES |
 | [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ########### | :heavy_check_mark: |
 | [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 96388
+Total Word Count: 110718
 
 Target Word Count: 100,000-120,000
 
