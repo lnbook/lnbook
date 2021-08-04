@@ -48,7 +48,7 @@ The current status of the book is "RELEASE PREP". See below for status of specif
 | [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 102733
+Total Word Count: 110718
 
 Target Word Count: 100,000-120,000
 
