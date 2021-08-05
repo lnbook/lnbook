@@ -1,7 +1,7 @@
 [[routing_on_a_network_of_payment_channels]]
-== Routing on a Network of Payment channels
+== Routing on a network of payment channels
 
-In this chapter we will finally unpack how payment channels can be connected to form a _network of payment channels_ via a process called _routing_. Specifically, we will look at the first part of the routing layer, the Atomic & Trustless Multihop Payment protocol. This is highlighted by a double outline in the protocol suite, shown in <<LN_protocol_routing_highlight>>:
+In this chapter we will finally unpack how payment channels can be connected to form a _network of payment channels_ via a process called _routing_. Specifically, we will look at the first part of the routing layer, the atomic and trustless multihop payment protocol. This is highlighted by a double outline in the protocol suite, shown in <<LN_protocol_routing_highlight>>:
 
 [[LN_protocol_routing_highlight]]
 .The Lightning Network Protocol Suite
@@ -14,21 +14,21 @@ In this section we will examine routing from the perspective of Dina, a gamer wh
 The innovation of routed payment channels allows Dina to receive tips without maintaining a separate channel with every one of her fans who want to tip her.
 As long as there exists a path of well-funded channels from that viewer to Dina, she will be able to receive payment from that fan.
 
-In <<dina_routing_diagram>> we see a possible network layout created by various payment channels between Lightning nodes. Everyone in this diagram can send Dina a payment by constructing a path. Imagine "Fan 4" wants to send Dina a payment, do you see the path that could allow that to happen? Fan 4 could route a payment to Dina via Fan 3, Bob, and Chan. Similarly, Alice could route a payment to Dina via Bob and Chan.
+In <<dina_routing_diagram>> we see a possible network layout created by various payment channels between Lightning nodes. Everyone in this diagram can send Dina a payment by constructing a path. Imagine Fan 4 wants to send Dina a payment. Do you see the path that could allow that to happen? Fan 4 could route a payment to Dina via Fan 3, Bob, and Chan. Similarly, Alice could route a payment to Dina via Chan and Bob.
 
 [[dina_routing_diagram]]
 .Fans connected indirectly to Dina on the Lightning Network
 image::images/dina-routing-diagram.png["Fans connected indirectly to Dina on the Lightning Network"]
 
-The nodes along the path from the fan to Dina are intermediaries and called "routing nodes" in the context of routing a payment. There is no functional difference between the "routing nodes" and the nodes operated by Dina's fans. Any Lightning node is capable of routing payments across its payment channels.
+The nodes along the path from Fan 4 to Dina are intermediaries and called "routing nodes" in the context of routing a payment. There is no functional difference between the routing nodes and the nodes operated by Dina's fans. Any Lightning node is capable of routing payments across its payment channels.
 
 Importantly, the routing nodes are unable to steal the funds while routing a payment from a fan to Dina.
 Furthermore, routing nodes cannot lose money while participating in the routing process.
 Routing nodes can charge a routing fee for acting as an intermediary, although they don't have to and may choose to route payments for free.
 
 Another important detail is that due to the use of onion routing, intermediary nodes are only explicitly aware of the one node preceding them and the one node following them in the route.
-They will not necessarily know who is the sender and recipient of the payment.
-This enables fans to use intermediary nodes to pay Dina, without leaking private information and without risking theft.
+They will not know who is the sender and recipient of the payment.
+This enables fans to use intermediary nodes to pay Dina without leaking private information and without risking theft.
 
 This process of connecting a series of payment channels with end-to-end security, and the incentive structure for nodes to _forward_ payments, is one of the key innovations of the Lightning Network.
 
@@ -38,9 +38,9 @@ In this chapter, we'll dive into the mechanism of routing in the Lightning Netwo
 
 It's important to note that we separate the concept of _routing_ from the concept of _path finding_. These two concepts are often confused and the term "routing" is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
 
-Path Finding, which is covered in <<path_finding>> is the process of finding and choosing a contiguous path made of payment channels which connects the sender A to the recipient B. The sender of a payment does the path finding, by examining the _channel graph_ which they have assembled from channel announcements gossiped by other nodes.
+Path Finding, which is covered in <<path_finding>> is the process of finding and choosing a contiguous path made of payment channels which connects sender A (Alice) to recipient B (Bob). The sender of a payment does the path finding, by examining the _channel graph_ which they have assembled from channel announcements gossiped by other nodes.
 
-Routing refers to the series of interactions across the network that attempt to forward a payment from some point A to another point B, across the path previously selected by path finding. Routing is the active process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
+Routing refers to the series of interactions across the network that attempt to forward a payment from Alice to Bob across the path previously selected by path finding. Routing is the active process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
 
 An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob (perhaps even more than one), yet there may not be an active _route_ on which to send the payment. One example is the scenario where all the nodes connecting Alice and Bob are currently off-line. In this example, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
 
@@ -68,7 +68,7 @@ The main challenge is to do this in a way that prevents Bob and Chan from steali
 
 To understand how the Lightning Network protects the payment while being routed, we can compare it to an example of routing physical payments with gold coins in the real world.
 
-Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina. However, Alice knows Bob, who knows Chan, who knows Dina and so she decides to ask Bob and Chan for help. This is shown in <<alice_dina_routing_1>>.
+Assume Alice wants to give 10 gold coins to Dina, but does not have direct access to Dina. However, Alice knows Bob, who knows Chan, who knows Dina, and so she decides to ask Bob and Chan for help. This is shown in <<alice_dina_routing_1>>.
 
 [[alice_dina_routing_1]]
 .Alice wants to pay Dina 10 gold coins
@@ -81,7 +81,7 @@ Alice could negotiate a contract with Bob which reads:
 
 [[alice_bob_contract_1]]
 ====
-_I Alice will give you Bob 10 gold coins if you pass them on to Chan_
+_I, Alice, will give you, Bob, 10 gold coins if you pass them on to Chan._
 ====
 
 While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might breach the contract and hope not to get caught.
@@ -92,7 +92,7 @@ Let's improve our contract, to incorporate these considerations, as follows:
 
 [[alice_bob_contract_2]]
 ====
-_I Alice will reimburse you Bob with 10 gold coins if you can prove to me (for example via a receipt) that you have delivered 10 gold coins to Chan_
+_I, Alice, will reimburse you, Bob, with 10 gold coins if you can prove to me (for example via a receipt) that you have delivered 10 gold coins to Chan._
 ====
 
 You might ask yourself why should Bob sign such a contract.
@@ -100,7 +100,7 @@ He has to pay Chan but ultimately gets nothing out of the exchange, and he runs 
 
 Even putting aside the risk, Bob and Chan must _already_ have 10 gold coins to send, otherwise they wouldn't be able to participate in the contract.
 
-Thus Bob and Chan face both risk and opportunity cost for agreeing to this contract, and they would need to be compensated to accept it.
+Thus Bob and Chan face both risk and opportunity costs for agreeing to this contract, and they would need to be compensated for accepting it.
 
 Alice can then make this attractive to both Bob and Chan, by offering them fees of 1 gold coin each, if they transmit her payment to Dina.
 
@@ -108,11 +108,11 @@ The contract would then read:
 
 [[alice_bob_contract_3]]
 ====
-_I Alice will reimburse you Bob with 12 gold coins if you can prove to me (for example via a receipt) that you have delivered 11 gold coins to Chan_
+_I, Alice, will reimburse you, Bob, with 12 gold coins if you can prove to me (for example via a receipt) that you have delivered 11 gold coins to Chan._
 ====
 
-Alice now promises Bob 12 gold coins. There are 10 to be delivered to Dina and 2 for the fees. She promises 12 to Bob if he can prove that he has forwarded 11 to Chan.
-The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment. In <<alice_dina_routing_2>> we see how this arrangement would get 10 gold coins to Dina via Bob and Chan.
+Alice now promises Bob 12 gold coins if he can prove that he has forwarded 11 to Chan.
+The difference of 1 gold coin is the fee that Bob will earn for helping out with this particular payment. (In turn, Chan will receive 11 coins if he can prove that he has forwarded 10 coins to Dina.) In <<alice_dina_routing_2>> we see how this arrangement would get 10 gold coins to Dina via Bob and Chan.
 
 [[alice_dina_routing_2]]
 .Alice pays Bob, Bob pays Chan, Chan pays Dina
@@ -123,19 +123,17 @@ At the start of the exchange, Alice could "lock up" these 12 gold coins in escro
 
 This escrow service is an idealized one, which does not introduce other risks (e.g. counterparty risk). Later we will see how we can replace the escrow with a Bitcoin smart contract. Let's assume for now that everyone trusts this escrow service.
 
-In the Lightning Network, the receipt (proof of payment) could take the form of a secret that only Dina knows.
-In practice, this secret would be a large random number that is large enough to prevent others from guessing it (typically _very, very_ large number, encoded using 256 bits!).
+In the Lightning Network, the receipt (proof of payment) takes the form of a secret that only Dina knows.
+In practice, this secret is a large random number that is large enough to prevent others from guessing it (typically _very, very_ large number, encoded using 256 bits!).
 
-Dina generates this secret value +R+ from a random number generator.
+Dina generates this secret value +R+ from a random number generator. This secret which "unlocks" the payment is called the _payment secret_ or _payment pre-image_. 
 
-The secret could then be committed to the contract by including the SHA256 hash of the secret in the contract itself, as follows:
+The secret is then committed to the contract by including the SHA256 hash of the secret in the contract itself, as follows:
 
 latexmath:[\(H = SHA256(R)\)]
 
 We call this hash of the payment's secret the payment hash.
-The secret which "unlocks" the payment is called the payment secret.
-
-For now, we keep things simple and assume that Dina's secret is simply the text line: `+Dinas secret+`. This secret message is called the _payment secret_ or _payment pre-image_.
+For now, we'll keep things simple and assume that Dina's secret is simply the text line: `+Dinas secret+`.
 
 In order to "commit" to this secret, Dina computes the SHA256 hash which when encoded in hex, can be displayed as: `+0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3+`.
 
@@ -149,9 +147,9 @@ Alice doesn't know the secret but she can rewrite her contract to use the hash o
 
 [[alice_bob_contract_4]]
 ====
-_I Alice will reimburse you Bob with 12 gold coins if you can show me a valid message that hashes to:`+057596...+`.
+_I, Alice, will reimburse you, Bob, with 12 gold coins if you can show me a valid message that hashes to:`+057596...+`.
 You can acquire this message by setting up a similar contract with Chan who has to set up a similar contract with Dina.
-In order to assure you that you will be reimbursed I will provide the 12 gold coins to a trusted escrow before you set up your next contract._
+In order to assure you that you will be reimbursed, I will provide the 12 gold coins to a trusted escrow before you set up your next contract._
 ====
 
 This new contract now protects Alice from Bob not forwarding to Chan, protects Bob from not being reimbursed by Alice, and ensures that there will be proof that Dina was ultimately paid via the hash of Dina's secret.
@@ -165,17 +163,17 @@ Bob's contract with Chan will read:
 
 [[alice_bob_contract_5]]
 ====
-_I Bob will reimburse you Chan with 11 gold coins if you can show me a valid message that hashes to:`+057596...+`.
+_I, Bob, will reimburse you, Chan, with 11 gold coins if you can show me a valid message that hashes to:`+057596...+`.
 You can acquire this message by setting up a similar contract with Dina.
-In order to assure you that you will be reimbursed I will provide the 11 gold coins to an trusted escrow before you set up your next contract._
+In order to assure you that you will be reimbursed, I will provide the 11 gold coins to a trusted escrow before you set up your next contract._
 ====
 
 Once Chan gets the message from the escrow that Bob has deposited the 11 gold coins, Chan sets up a similar contract with Dina:
 
 [[alice_bob_contract_6]]
 ====
-_I Chan will reimburse you Dina with 10 gold coins if you can show me a valid message that hashes to:`+057596...+`.
-In order to assure you that you will be reimbursed after revealing the secret I will provide the 10 gold coins to an trusted escrow._
+_I, Chan, will reimburse you, Dina, with 10 gold coins if you can show me a valid message that hashes to:`+057596...+`.
+In order to assure you that you will be reimbursed after revealing the secret, I will provide the 10 gold coins to a trusted escrow._
 ====
 
 Everything is now in place.
@@ -198,9 +196,9 @@ Alice has paid a total of 12 gold coins, 1 of which was received by Bob, 1 of wh
 With a chain of contracts like this in place, Bob and Chan could not run away with the money because they deposited it in escrow first.
 
 However, one issue still remains.
-If Dina refused to release her secret pre-image, then Chan, Bob, and Alice would all have their coins stuck in escrow but wouldn't be reimbursed.
+If Dina refused to release her secret pre-image, then Chan, Bob, and Alice would all have their coins stuck in escrow, but wouldn't be reimbursed.
 And similarly if anyone else along the chain failed to pass on the secret, the same thing would happen.
-So while no one can steal money from Alice everyone still have their money stuck in escrow permanently.
+So while no one can steal money from Alice, everyone still has their money stuck in escrow permanently.
 
 Luckily, this can be resolved by adding a deadline to the contract.
 
@@ -253,7 +251,7 @@ Thus users forwarding payments face an opportunity cost for locking the money, w
 
 Now that we've seen a physical payment routing example, we will see how this can be implemented on the Bitcoin blockchain, without any need for third-party escrow. To do this we will be setting up the contracts between the participants using Bitcoin Script. We replace the third-party escrow with _smart contracts_ that implement a fairness protocol. Let's break that concept down and implement it!
 
-=== Fairness Protocol
+=== Fairness protocol
 
 As we saw in the first chapter of this book, the innovation of Bitcoin is the ability to use cryptographic primitives to implement a fairness protocol that substitutes trust in third parties (intermediaries), with a trusted protocol.
 
@@ -261,7 +259,7 @@ In our gold coin example, we needed an "escrow" service in order to prevent any 
 
 The properties of the fairness protocol we want to create are:
 
-Trustless Operation:: The participants in a routed payment do not need to trust each other, or any intermediary or third party. Instead, they trust the protocol to protect them from cheating.
+Trustless operation:: The participants in a routed payment do not need to trust each other, or any intermediary or third party. Instead, they trust the protocol to protect them from cheating.
 
 Atomicity:: The payment is fully executed, or it fails and everyone is refunded. There is no possibility of an intermediary collecting a routed payment and not forwarding it to the next hop. Thus, the intermediaries can't cheat or steal.
 
@@ -269,13 +267,13 @@ Multihop:: The security of the system extends end-to-end for payments routed thr
 
 An optional, additional property, is the ability to split payments into multiple parts while maintaining atomicity for the entire payment. These are called _Multi-Part Payments (MPP)_ and are explored further in <<multipart_payments>>.
 
-==== Implementing Atomic Trustless Multihop Payments
+==== Implementing atomic trustless multihop payments
 
 Bitcoin Script is flexible enough that there are dozens of ways to implement a fairness protocol that has the properties of atomicity, trustless operation and multihop security. Choosing a specific implementation is dependent on certain tradeoffs between privacy, efficiency and complexity.
 
 The fairness protocol for routing used in the Lightning Network today is called a Hash Time-Locked Contract (HTLC). HTLCs use a hash pre-image as the secret that unlocks a payment, as we saw in the gold coin example in this chapter. The recipient of a payment generates a random secret number and calculates its hash. The hash becomes the condition of payment and once the secret is revealed, all the participants can redeem their incoming payments. HTLCs offer atomicity, trustless operation and multihop security. While HTLCs are efficient and very simple, they involve a small compromise of privacy (see <<htlc_privacy_compromise>>).
 
-Another proposed mechanism for implementing routing is a _Point Time-Locked Contract (PTLC)_. PTLCs also achieve atomicity, trustless operation and multihop security, but do so with increased efficiency and better privacy.  Efficient implementation of PTLCs depends on a new digital signature algorithm called _Schnorr signatures_, which is expected to active in Bitcoin in 2021.
+Another proposed mechanism for implementing routing is a _Point Time-Locked Contract (PTLC)_. PTLCs also achieve atomicity, trustless operation and multihop security, but do so with increased efficiency and better privacy.  Efficient implementation of PTLCs depends on a new digital signature algorithm called _Schnorr signatures_, which were activated in the Taproot upgrade to Bitcoin in 2021.
 
 === Revisiting our example
 
@@ -288,7 +286,7 @@ For Alice to pay Dina, Alice will need Dina's node to generate a Lightning invoi
 Lightning payments can be sent without an invoice, using a feature called _keysend_, which we will discuss in more detail in <<keysend>>. For now, we will explain the simpler payment flow using an invoice.
 ====
 
-Alice visits Dina's site, enters the amount of 50,000 satoshis in a form and in response Dina's Lightning node generates a payment request for 50,000 satoshis in the form of a Lightning invoice. This interaction takes place over the web and outside the Lightning network, as shown in <<alice_dina_invoice_1>>:
+Alice visits Dina's site, enters the amount of 50,000 satoshis as a tip and in response Dina's Lightning node generates a payment request for 50,000 satoshis in the form of a Lightning invoice. This interaction takes place over the web and outside the Lightning network, as shown in <<alice_dina_invoice_1>>:
 
 [[alice_dina_invoice_1]]
 .Alice requests an invoice from Dina's website
@@ -301,12 +299,12 @@ As we saw in previous examples, we assume that Alice does not have a direct paym
 Remember how Bob and Chan might expect a small compensation for routing the payment through their nodes? Alice wants to pay Dina 50,000 satoshis, but as you will see in the following sections she will send Bob 50,200 satoshis. The extra 200 satoshis will pay Bob and Chan 100 satohis each, as a routing fee.
 ====
 
-Now, Alice's node can construct a Lightning payment. In the next few sections we will see how Alice's node constructs a Hash Time-Locked Contract (HTLCs) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
+Now, Alice's node can construct a Lightning payment. In the next few sections we will see how Alice's node constructs a Hash Time-Locked Contract (HTLC) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
 
 
-==== On-chain vs Off-chain settlement of HTLCs
+==== On-chain vs off-chain settlement of HTLCs
 
-The purpose of the Lightning Network is to enable _off-chain_ transactions that are trusted just the same as on-chain transactions, because no one can cheat. The reason no one can cheat is because at any time, any of the participants can take their off-chain transactions on-chain. Each off-chain transaction is ready to be submitted to the Bitcoin blockchain at any time. Thus, the Bitcoin blockchain acts as a dispute-resolution and final settlement mechanism if necessary.
+The purpose of the Lightning Network is to enable _off-chain_ transactions that are trusted just the same as on-chain transactions so that no one can cheat. The reason no one can cheat is because at any time, any of the participants can take their off-chain transactions on-chain. Each off-chain transaction is ready to be submitted to the Bitcoin blockchain at any time. Thus, the Bitcoin blockchain acts as a dispute-resolution and final settlement mechanism if necessary.
 
 The mere fact that any transaction can be taken on-chain at any time is precisely the reason that all those transactions can be kept off-chain. If you know you have recourse, you can continue to cooperate with the other participants and avoid the need for on-chain settlement and extra fees.
 
@@ -316,7 +314,7 @@ In all the examples that follow, we will assume that any of these transactions c
 
 In this section we explain how Hash Time Locked Contracts (HTLCs) work.
 
-The first part of a Hash Time-Locked Contract is the "Hash". This refers to the use of a cryptographic hash algorithm to commit to a randomly generated secret. Knowledge of the secret allows redemption of the payment. The cryptographic hash function, guarantees that while it's infeasible for anyone to guess the secret pre-image, it's easy for anyone to verify the hash, and there's only one possible pre-image that resolves the payment condition.
+The first part of a Hash Time-Locked Contract is the "hash". This refers to the use of a cryptographic hash algorithm to commit to a randomly generated secret. Knowledge of the secret allows redemption of the payment. The cryptographic hash function, guarantees that while it's infeasible for anyone to guess the secret pre-image, it's easy for anyone to verify the hash, and there's only one possible pre-image that resolves the payment condition.
 
 In <<alice_dina_invoice_2>> we see Alice getting a Lightning invoice from Dina. Inside that invoice Dina has encoded a _payment hash_, which is the cryptographic hash of a secret that Dina's node produced. Dina's secret is called the _payment pre-image_. The payment hash acts as an identifier that can be used to route the payment to Dina. The payment pre-image acts as a receipt and proof of payment once the payment is complete.
 
@@ -344,7 +342,7 @@ In our gold coin example, Alice had a contract enforced by escrow like this:
 
 [[alice_bob_contract_10]]
 ====
-_Alice will reimburse Bob with 12 gold coins if you can show a valid message that hashes to:_ +0575...f6b3+. _Bob has 24 hours to show the secret after the contract was signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
+_Alice will reimburse Bob with 12 gold coins if he can show a valid message that hashes to:_ +0575...f6b3+. _Bob has 24 hours to show the secret after the contract was signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
 ====
 
 Let's see how we would implement this as an HTLC in Bitcoin Script. In <<received_htlc>> we see an HTLC Bitcoin Script as currently used in the Lightning Network. You can find this definition in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT3 - Transactions]:
@@ -381,7 +379,7 @@ The main part of the HTLC is in line 10 of <<received_htlc>>. Let's build it up 
 
 ==== Payment pre-image and hash verification
 
-The core of an HTLC is the "hash", where payment can be made if the recipient knows the payment pre-image. Alice locks the payment to a specific payment hash and Bob has to present a payment pre-image to claim the funds. The Bitcoin system can verify that Bob's payment pre-image is correct by hashing it and comparing the result to the payment hash that Alice used to lock the funds.
+The core of an HTLC is the "Hash", where payment can be made if the recipient knows the payment pre-image. Alice locks the payment to a specific payment hash and Bob has to present a payment pre-image to claim the funds. The Bitcoin system can verify that Bob's payment pre-image is correct by hashing it and comparing the result to the payment hash that Alice used to lock the funds.
 
 This part of an HTLC can be implemented in Bitcoin Script as follows:
 
@@ -421,7 +419,7 @@ Alice will now extend the HTLC across the network so that it reaches Dina.
 .Propagating the HTLC across the network
 image::images/alice-dina-htlc-1.png["Propagating the HTLC across the network"]
 
-In <<alice_dina_htlc_1>> we see the HTLC propagated across the network from Alice to Dina. Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
+In <<alice_dina_htlc_1>> we see the HTLC propagated across the network from Alice to Dina. Alice has given Bob an HTLC for 50,200 satoshis. Bob can now create an HTLC for 50,100 satoshis and give it to Chan.
 
 Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC. This is a really important point, because it ensures end-to-end _atomicity_ of the HTLC. To spend the HTLC, one needs to reveal the secret, which then makes it possible for others to spend their HTLC also. Either all the HTLCs are spendable, or none of the HTLCs are spendable: atomicity!
 
@@ -429,25 +427,25 @@ Since Alice's HTLC is 100 satoshi more that the HTLC Bob gave to Chan, Bob will 
 
 Bob isn't taking a risk and isn't trusting Alice or Chan. Instead, Bob is trusting that a signed transaction together with the secret will be redeemable on the Bitcoin blockchain.
 
-Similarly, Chan can extend a 50,000 HTLC to Dina. He isn't risking anything or trusting Bob or Dina. To redeem the HTLC, Dina would have to broadcast the secret, which Chan could use to redeem Bob's HTLC. Chan would also earn 100 satoshis as a routing fee.
+Similarly, Chan can extend a 50,000 satoshi HTLC to Dina. He isn't risking anything or trusting Bob or Dina. To redeem the HTLC, Dina would have to broadcast the secret, which Chan could use to redeem Bob's HTLC. Chan would also earn 100 satoshis as a routing fee.
 
 ==== Back-propagating the secret
 
-Once Dina receives a 50,000 HTLC from Chan, she can now get paid. Dina could simply commit this HTLC on-chain and spend it by revealing the secret in the spending transaction. Or, instead, Dina can update the channel balance with Chan by giving him the secret. There's no reason to incur a transaction fee and go on-chain. So, instead, Dina sends the secret to Chan and they agree to update their channel balances to reflect a 50,000 satoshi Lightning payment to Dina. In <<alice_dina_htlc_redeem_1>> we see Dina giving the secret to Chan, thereby fulfilling the HTLC.
+Once Dina receives a 50,000 satoshi HTLC from Chan, she can now get paid. Dina could simply commit this HTLC on-chain and spend it by revealing the secret in the spending transaction. Or, instead, Dina can update the channel balance with Chan by giving him the secret. There's no reason to incur a transaction fee and go on-chain. So, instead, Dina sends the secret to Chan and they agree to update their channel balances to reflect a 50,000 satoshi Lightning payment to Dina. In <<alice_dina_htlc_redeem_1>> we see Dina giving the secret to Chan, thereby fulfilling the HTLC.
 
 [[alice_dina_htlc_redeem_1]]
 .Dina settles Chan's HTLC off-chain
 image::images/alice-dina-htlc-redeem-1.png["Dina settles Chan's HTLC off-chain"]
 
-Notice Dina's channel balance goes from 50,000 satoshi to 100,000 satoshi. Chan's channel balance is reduced from 200,000 satoshi to 150,000 satoshi. The channel capacity hasn't changed, but 50,000 has moved from Chan's side of the channel to Dina's side of the channel.
+Notice Dina's channel balance goes from 50,000 satoshis to 100,000 satoshis. Chan's channel balance is reduced from 200,000 satoshis to 150,000 satoshis. The channel capacity hasn't changed, but 50,000 has moved from Chan's side of the channel to Dina's side of the channel.
 
-Chan now has the secret and has paid Dina 50,000 satoshi. He can do this without any risk, because the secret allows Chan to redeem the 50,100 HTLC from Bob. Chan has the option to commit that HTLC on chain and spend it by revealing the secret on the Bitcoin blockchain. But, like Dina, he'd rather avoid transaction fees. So instead, he sends the secret to Bob so they can update their channel balances to reflect a 50,100 satoshi Lightning payment from Bob to Chan. In <<alice_dina_htlc_redeem_2>> we see Chan sending the secret to Bob and receiving a payment in return.
+Chan now has the secret and has paid Dina 50,000 satoshis. He can do this without any risk, because the secret allows Chan to redeem the 50,100 satoshi HTLC from Bob. Chan has the option to commit that HTLC on chain and spend it by revealing the secret on the Bitcoin blockchain. But, like Dina, he'd rather avoid transaction fees. So instead, he sends the secret to Bob so they can update their channel balances to reflect a 50,100 satoshi Lightning payment from Bob to Chan. In <<alice_dina_htlc_redeem_2>> we see Chan sending the secret to Bob and receiving a payment in return.
 
 [[alice_dina_htlc_redeem_2]]
 .Chan settles Bob's HTLC off-chain
 image::images/alice-dina-htlc-redeem-2.png["Chan settles Bob's HTLC off-chain"]
 
-Chan has paid Dina 50,000 satoshi, and received 50,100 satoshi from Bob. So Chan has 100 satoshi more in his channel balances, which he earned as a routing fee.
+Chan has paid Dina 50,000 satoshis, and received 50,100 satoshis from Bob. So Chan has 100 satoshis more in his channel balance, which he earned as a routing fee.
 
 Bob now has the secret too. He can use it to spend Alice's HTLC on-chain. Or, he can avoid transaction fees by settling the HTLC in the channel with Alice. In <<alice_dina_htlc_redeem_3>> we see that Bob sends the secret to Alice and they update the channel balance to reflect a 50,200 satoshi Lightning payment from Alice to Bob.
 
@@ -455,9 +453,9 @@ Bob now has the secret too. He can use it to spend Alice's HTLC on-chain. Or, he
 .Bob settles Alice's HTLC off-chain
 image::images/alice-dina-htlc-redeem-3.png["Bob settles Alice's HTLC off-chain"]
 
-Bob has recieved 50,200 satoshi from Alice and paid 50,100 satoshi to Chan, so he has an extra 100 satoshi in his channel balances from routing fees.
+Bob has recieved 50,200 satoshis from Alice and paid 50,100 satoshis to Chan, so he has an extra 100 satoshis in his channel balances from routing fees.
 
-Alice receives the secret and has settled the 50,200  satoshi HTLC. The secret can be used as a _receipt_ to prove that Dina got paid for that specific payment hash.
+Alice receives the secret and has settled the 50,200 satoshi HTLC. The secret can be used as a _receipt_ to prove that Dina got paid for that specific payment hash.
 
 The final channel balances reflect Alice's payment to Dina and the routing fees paid at each hop, as shown in <<alice_dina_htlc_redeem_4>>
 
@@ -470,7 +468,7 @@ image::images/alice-dina-htlc-redeem-4.png["Channel balances after the payment"]
 
 There's a catch. Did you notice it?
 
-If Alice, Bob and Chan create the HTLCs as shown above, they face a small but not insignificant risk of loss. Any of those HTLCs can be redeemed (spent) by anyone who knows the secret. At first only Dina knows the secret. Dina is supposed to only spend the HTLC from Chan. But Dina could spend all three HTLCs at the same time, or even in a single spending transaction! After all Dina knows the secret before anyone else. Similarly, once Chan knows the secret he is only supposed to spend the HTLC offered by Bob. But what if Chan also spends Alice's offered HTLC too?
+If Alice, Bob and Chan create the HTLCs as shown above, they face a small but not insignificant risk of loss. Any of those HTLCs can be redeemed (spent) by anyone who knows the secret. At first only Dina knows the secret. Dina is supposed to only spend the HTLC from Chan. But Dina could spend all three HTLCs at the same time, or even in a single spending transaction! After all, Dina knows the secret before anyone else. Similarly, once Chan knows the secret he is only supposed to spend the HTLC offered by Bob. But what if Chan also spends Alice's offered HTLC too?
 
 This is not _trustless_! It fails the most important security feature. We need to fix this.
 
@@ -511,7 +509,7 @@ The unlocking and locking script are combined and evaluated by the scripting eng
 
 As you can see, this is slightly more complicated, but now we have fixed the HTLC and made sure only the intended recipient can spend it.
 
-==== Hash Optimization
+==== Hash optimization
 
 Let's look at the first part of the HTLC script so far:
 
@@ -529,7 +527,7 @@ a8 0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3 88
 
 In hexadecimal encoding, +OP_SHA256+ is +a8+ and +OP_EQUALVERIFY+ is +88+. The total length of this script is 34 bytes, of which 32 bytes are the hash.
 
-As we've mentioned previously, any participant in the Lightning network should be able to take an off-chain transaction they hold and put it on-chain if they need to enforce their claim to funds. To take a transaction on-chain, they'd have to pay transaction fees to the miners and these fees are proportional to the *size in bytes* of the transaction.
+As we've mentioned previously, any participant in the Lightning Network should be able to take an off-chain transaction they hold and put it on-chain if they need to enforce their claim to funds. To take a transaction on-chain, they'd have to pay transaction fees to the miners and these fees are proportional to the *size in bytes* of the transaction.
 
 Therefore, we want to find ways to minimize the on-chain "weight" of transactions by optimizing the script as much as possible. One way to do that is to add another hash function on top of the SHA256 algorithm, one that produces smaller hashes. The Bitcoin Script language provides the +OP_HASH160+ operator that "double hashes" a pre-image: first the pre-image is hashed with SHA256 and then the resulting hash is hashed again with the RIPEMD160 hash algorithm. The hash resulting from RIPEMD160 is 160 bits or 20 bytes, much more compact. In Bitcoin Script this is a very common optimization that is used in many of the common address formats.
 
@@ -577,11 +575,11 @@ We need to ensure a way to "fail gracefully", because occasional routing failure
 
 Cooperative failure is relatively simple: the HTLC is unwound by every participant in the route removing the HTLC output from their commitment transactions without changing the balance. We'll look at how that works in detail in <<channel_operation>>.
 
-Let's look at how we can reverse an HTLC without the cooperation of one or more participants. We need to make sure that if one of the participants does not cooperate, the funds are not simply locked in the HTLC _forever_. This would give someone the opportunity to ransom the funds of another participant: "I'll leave your funds tied up forever if you don't pay me ransom."
+Let's look at how we can reverse an HTLC without the cooperation of one or more participants. We need to make sure that if one of the participants does not cooperate, the funds are not simply locked in the HTLC _forever_. This would give someone the opportunity to ransom the funds of another participant: "I'll leave your funds tied up forever if you don't pay me a ransom."
 
-To prevent this, every HTLC script includes a refund clause that is connected to a time-lock. Remember our original escrow contract? "Bob has 24 hours to show the secret after the contract is signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded"
+To prevent this, every HTLC script includes a refund clause that is connected to a time-lock. Remember our original escrow contract? "Bob has 24 hours to show the secret after the contract is signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded."
 
-The time-locked refund is an important part of the script that ensures _atomicity_, so that the entire end-to-end payment either succeeds or fails gracefully. There is not "half paid" state to worry about. If there is a failure, every participant can either unwind the HTLC cooperatively with their channel partner, or put the time-locked refund transaction on-chain unilaterally to get their money back.
+The time-locked refund is an important part of the script that ensures _atomicity_, so that the entire end-to-end payment either succeeds or fails gracefully. There is no "half paid" state to worry about. If there is a failure, every participant can either unwind the HTLC cooperatively with their channel partner, or put the time-locked refund transaction on-chain unilaterally to get their money back.
 
 To implement this refund in Bitcoin Script, we use a special operator +OP_CHECKLOCKTIMEVERIFY+ also known +OP_CLTV+ for short. Here's the script, as seen previously in line 13 of <<received_htlc>>:
 
@@ -598,7 +596,7 @@ Essentially, the +OP_CLTV+ acts as a "gatekeeper" preventing the script from pro
 
 The +OP_DROP+ operator simply drops the topmost item on the script stack. This is necessary in the beginning, because there is a "leftover" item from the previous script lines. It is necessary *after* +OP_CLTV+ in order to remove the +<cltv_expiry>+ item from the top of the stack as it is no longer necessary.
 
-Finally, once the stack has been cleaned up, there should be a public key and signature left behind, that +OP_CHECKSIG+ can verify. As we saw in <<preventing_theft>>, this is necessary to ensure that only the rightful owner of the funds can claim them, by binding this output to their public key and requiring a signature.
+Finally, once the stack has been cleaned up, there should be a public key and signature left behind that +OP_CHECKSIG+ can verify. As we saw in <<preventing_theft>>, this is necessary to ensure that only the rightful owner of the funds can claim them by binding this output to their public key and requiring a signature.
 
 ==== Decrementing time-locks
 
@@ -614,4 +612,4 @@ To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, A
 
 Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment pre-image. Once an HTLC reaches Dina, she reveals the pre-image which flows backwards resolving all the HTLCs offered.
 
-Finally, we saw how a time-locked refund clause completes the HTLC, ensuring that every participant can get a refund if the payment fails but for whatever reason one of the participants doesn't cooperate in unwinding the HTLCs. By always having the option to go on-chain for a refund, the HTLC achieves the fairness goal of atomicity and trustless operation.
+Finally, we saw how a time-locked refund clause completes the HTLC, ensuring that every participant can get a refund if the payment fails if for whatever reason one of the participants doesn't cooperate in unwinding the HTLCs. By always having the option to go on-chain for a refund, the HTLC achieves the fairness goal of atomicity and trustless operation.
