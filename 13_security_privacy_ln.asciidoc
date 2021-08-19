@@ -6,7 +6,7 @@ In this chapter, we look at some of the most important issues related to the sec
 
 The key value proposition of cryptocurrency is censorship resistant money. Bitcoin offers participants the possibility of storing and transferring their wealth without interference by governments, banks, or corporations.The Lightning Network continues this mission.
 
-Unlike trivial scaling solutions like custodial Bitcoin banks, LN aims to scale Bitcoin without compromising on self-custody, which should lead to greater censorship resistance in the Bitcoin ecosystem. However, the LN operates under a different security model, which introduces novel security and privacy challenges.
+Unlike trivial scaling solutions like custodial Bitcoin banks, LN aims to scale Bitcoin without compromising on self-custody, which should lead to greater censorship resistance in the Bitcoin ecosystem. However, LN operates under a different security model, which introduces novel security and privacy challenges.
 
 === Definitions of privacy
 
@@ -21,7 +21,7 @@ A security model is based on a set of underlying _security assumptions_.
 In cryptographic systems, these assumptions are often centered around the mathematical properties of the cryptographic primitives such as ciphers, signatures, and hash functions.
 The security assumptions of the Lightning Network are that the ECDSA signatures, SHA-256 hash function, and other cryptographic functions used in the protocol behave within their security definitions.
 For example, we assume that it is practically impossible to find a preimage of a hash function.
-This allows the LN to rely on the HTLC mechanism (which uses the preimage of a hash function) for the atomicity of multi-hop payments: nobody except the final recipient can reveal the payment secret and resolve the HTLC.
+This allows LN to rely on the HTLC mechanism (which uses the preimage of a hash function) for the atomicity of multi-hop payments: nobody except the final recipient can reveal the payment secret and resolve the HTLC.
 We also assume a degree of connectivity in the network, namely, that Lightning channels form a connected graph. Therefore, it is possible to find a path from any sender to any receiver. Finally, we assume network messages are propagated within certain timeouts.
 
 Now that we've identified some of our underlying assumptions, let's consider some possible adversaries.
@@ -57,7 +57,7 @@ This probability depends on various factors, such as the size and the structure 
 Other things being equal, it is generally easier to successfully attack a small network rather than a large one.
 Similarly, the more centralized the network is, the more capable an attacker can be if "central" nodes are under their control.
 Of course, the term centralization must be defined precisely to build security models around it, and there are many possible definitions of how centralized a network is.
-Finally, as a payment network, the LN depends on economic stimuli.
+Finally, as a payment network, LN depends on economic stimuli.
 The size and structure of fees affect the routing algorithm and, therefore, can either aid the attacker by forwarding most payments through their nodes or prevent this from happening.
 
 
@@ -139,7 +139,7 @@ Forwarding payments requires capital - a scarce resource! - to be temporarily bl
 An attacker may send many payments but fail to finalize them, occupying honest user's capital for long periods.
 This attack vector is not present (or at least not as obvious) in Bitcoin.
 
-In summary, while some aspects of the Lightning Network's architecture suggest that it is a step forward in terms of privacy compared to Bitcoin, other properties of the protocol may make attacks on privacy easier. Thorough research is needed to evaluate what privacy guarantees the LN provides and improve the state of affairs.
+In summary, while some aspects of the Lightning Network's architecture suggest that it is a step forward in terms of privacy compared to Bitcoin, other properties of the protocol may make attacks on privacy easier. Thorough research is needed to evaluate what privacy guarantees LN provides and improve the state of affairs.
 
 The issues discussed in this part of the chapter summarize research available in mid 2021. However, this area of research and development is growing quickly. We are happy to report that the authors are aware of multiple research teams currently working on Lightning privacy.
 
@@ -148,7 +148,7 @@ Now let's review some of the attacks on the Lightning Network privacy that have 
 
 === Attacks on Lightning
 
-Recent research describes various ways in which the security and privacy of the LN may be compromised.
+Recent research describes various ways in which the security and privacy of LN may be compromised.
 
 ==== Observing payment amounts
 
@@ -354,7 +354,7 @@ In reality, though, implementations are not ideal, and the details _leak_ into t
 This is the problem of leaky abstractions.
 
 In the context of Lightning, the LN protocol relies on the Bitcoin protocol and the Lightning P2P network.
-Up to this point, we only considered the privacy guarantees offered by the LN in isolation.
+Up to this point, we only considered the privacy guarantees offered by LN in isolation.
 However, creating and closing payment channels are inherently performed on the Bitcoin blockchain.
 Consequently, for a complete analysis of LN's privacy provisions, one needs to consider every layer of the technological stack users might interact with.
 Specifically, a deanonymizing adversary can and will use off-chain and on-chain data to cluster or link LN nodes to corresponding Bitcoin addresses.
@@ -407,7 +407,7 @@ If the same IP or Tor addresses correspond to different LN nodes, these nodes ar
 
 ===== Countermeasures
 For more privacy, aliases should be sufficiently different from one another.
-While the public announcement of IP addresses may be unavoidable for those nodes that wish to have incoming channels in the LN, linkability across nodes of the same user can be mitigated if the clients for each node are hosted with different service providers and thus IP addresses.
+While the public announcement of IP addresses may be unavoidable for those nodes that wish to have incoming channels in LN, linkability across nodes of the same user can be mitigated if the clients for each node are hosted with different service providers and thus IP addresses.
 
 ==== Cross-Layer Linking: Lightning Nodes and Bitcoin Entities
 Associating LN nodes to Bitcoin entities is a serious breach of privacy that is exacerbated by the fact that most LN nodes publicly expose their IP addresses.
@@ -419,7 +419,7 @@ Those coins can effectively be linked to a common LN node.
 
   * Entity reuse: typically, users fund their payment channels from Bitcoin addresses corresponding to the same Bitcoin entity.
 
-These cross-layer linking algorithms could be foiled if users possess multiple unclustered addresses or use multiple wallets to interact with the LN.
+These cross-layer linking algorithms could be foiled if users possess multiple unclustered addresses or use multiple wallets to interact with LN.
 
 The possible deanonymization of Bitcoin entities illustrates how important it is to consider the privacy of both layers simultaneously instead of one of them at a time.
 
@@ -430,20 +430,20 @@ The possible deanonymization of Bitcoin entities illustrates how important it is
 The Lightning Network, as the name suggests, is a peer-to-peer network of payment channels.
 Therefore, many of its properties (privacy, robustness, connectivity, routing efficiency) are influenced and characterized by its network nature.
 
-In this section, we discuss and analyze the LN from the point of view of network science.
+In this section, we discuss and analyze LN from the point of view of network science.
 We are particularly interested in understanding the LN channel graph, its robustness, connectivity, and other important characteristics.
 
 ==== What is a graph anyway?
 A graph is a mathematical model that consists of nodes and edges (connections between nodes).
-In the LN, nodes represent LN nodes, and edges represent payment channels between them.
-In many cases, just like in the LN, edges can have attributes, for instance, numerical values.
+In LN, nodes represent LN nodes, and edges represent payment channels between them.
+In many cases, just like in LN, edges can have attributes, for instance, numerical values.
 In the case of LN, these attributes can represent a channel's capacity.
 We call the degree of a node the number of edges (payment channels) it has.
 
 
 ==== How does the Lightning graph look like in reality?
-One could have expected that the LN is a random graph, where edges are randomly formed between nodes.
-If this was the case, then the LN's degree distribution would follow a Gaussian normal distribution.
+One could have expected that the Lightning Network is a random graph, where edges are randomly formed between nodes.
+If this was the case, then the degree distribution would follow a Gaussian normal distribution.
 In particular, most of the nodes would have approximately the same degree, and we would not expect nodes with extraordinarily large degrees.
 This is because the normal distribution exponentially decreases for values outside of the interval around the average value of the distribution.
 The depiction of a random graph looks like a mesh network topology.
@@ -456,10 +456,10 @@ However, in stark contrast, the LN graph is completely different.
 ===== Lightning graph today
 Lightning is a financial network.
 Thus, the growth and formation of the network are also influenced by economic incentives.
-Whenever a node joins the LN, it may want to maximize its connectivity to other nodes in order to increase its routing efficiency. This phenomenon is called preferential attachment.
+Whenever a node joins the network, it may want to maximize its connectivity to other nodes in order to increase its routing efficiency. This phenomenon is called preferential attachment.
 These economic incentives result in a fundamentally different network than a random graph.
 
-Based on snapshots of publicly announced channels, the degree distribution of the LN follows a power-law function.
+Based on snapshots of publicly announced channels, the degree distribution of the network follows a power-law function.
 In such a graph, the vast majority of nodes have very few connections to other nodes, while only a handful of nodes have numerous connections.
 At a high-level, this graph topology resembles a star: the network has a well-connected core and a loosely connected periphery.
 Networks with power-law degree distribution are also called scale-free networks.
@@ -471,12 +471,12 @@ An adversary might want to disrupt the Lightning Network and may decide its goal
 A less ambitious, but still malicious and severe goal might be to only take down certain network nodes.
 Such a disruption might occur on the node-level or on the edge-level.
 
-Let's suppose an adversary can take down any node in the LN.
+Let's suppose an adversary can take down any node in the Lightning Network.
 For instance, it can DDoS them or make them non-operational by any means.
-It turns out that if the adversary chooses nodes randomly, then scale-free networks like the LN are robust against node-removal attacks.
+It turns out that if the adversary chooses nodes randomly, then scale-free networks like LN are robust against node-removal attacks.
 This is because a random node lies on the periphery with a small number of connections, therefore playing a negligible role in the network's connectivity.
 However, if the adversary is more prudent, it can target the most well-connected nodes.
-Not surprisingly, the LN and other scale-free networks are _not_ robust against targeted node-removal attacks.
+Not surprisingly, LN and other scale-free networks are _not_ robust against targeted node-removal attacks.
 
 On the other hand, the adversary could be more stealthy.
 Several topology-based attacks target a single node or a single payment channel.
@@ -489,44 +489,44 @@ To conclude, even by design, it is possible to remove edges and nodes from the r
 However, depending on the utilized attack vector, the adversary may have to provide more or fewer resources to carry out the attack.
 
 
-===== Temporality of the LN
+===== Temporality of LN
 
-The LN is a dynamically changing, permissionless network.
+LN is a dynamically changing, permissionless network.
 Nodes can freely join or leave the network, they can open and create payment channels anytime they want.
 Therefore, a single static snapshot of the LN graph is misleading. We need to consider the temporality and ever-changing nature of the network. For now, the LN graph is growing in terms of the number of nodes and payment channels.
 Its effective diameter is also shrinking; that is, nodes become closer to each other, as we can see in <<temporal_ln>>.
 
 temporal_ln]]
-.The steady growth of the LN in terms of nodes, channels and locked capacity.
+.The steady growth of LN in terms of nodes, channels and locked capacity.
 image:images/ln-over-time.png[]
 
 In social networks, triangle closing behavior is common.
 Specifically, in a graph where nodes represent people and friendships are represented as edges, it is somewhat expected that triangles will emerge in the graph.
 A triangle, in this case, represents pairwise friendships between three people.
 For instance, if Alice knows Bob and Bob knows Charlie, then it is likely that at some point, Bob will introduce Alice to Charlie.
-However, this behavior would be strange in the LN.
+However, this behavior would be strange in LN.
 Nodes are simply not incentivized to close triangles as they could have just routed payments instead of opening a new payment channel.
-Surprisingly, triangle closing is a common practice in the LN.
+Surprisingly, triangle closing is a common practice in LN.
 The number of triangles was steadily growing before the implementation of multi-part payments.
 This is counterintuitive and surprising given that nodes could have just routed payments through the two sides of the triangle instead of opening the third channel.
 This may mean that routing inefficiencies incentivized users to close triangles and not fall back on routing.
 Hopefully, multi-part payments will help increase the effectiveness of payment routing.
 
-=== Centralization in the LN
+=== Centralization in LN
 
 A common metric to assess the centrality of a node in a graph is its _betweenness centrality_. Central point dominance is a metric derived from betweenness centrality, used to assess the centrality of a network.
 For a precise definition of central point dominance, the reader is referred to https://doi.org/10.2307/3033543[Freeman's work].
 
 The larger the central point dominance of a network is, the more centralized the network is.
-We can observe that the LN has a greater central point dominance, ie. it is more centralized, than a random graph (Erdős-Rényi graph) or a scale-free graph (Barabási-Albert graph) of equal size.
-However, we also note, that over time the central point dominance of the LN gradually decreases as the network grows and densifies, as shown in <<central_point_dominance_ln>>.
+We can observe that LN has a greater central point dominance, ie. it is more centralized, than a random graph (Erdős-Rényi graph) or a scale-free graph (Barabási-Albert graph) of equal size.
+However, we also note, that over time the central point dominance of LN gradually decreases as the network grows and densifies, as shown in <<central_point_dominance_ln>>.
 
 [[central_point_dominance_ln]]
-.Central point dominance of the LN, a random graph (ER) and a scale-free graph (BA) of equal size.
+.Central point dominance of LN, a random graph (ER) and a scale-free graph (BA) of equal size.
 image:images/central-point-dominance.png[]
 
 In general, our understanding of the dynamic nature of the LN channel graph is rather limited.
-It is fruitful to analyze how protocol changes like multi-part payments can affect the dynamics of the LN.
+It is fruitful to analyze how protocol changes like multi-part payments can affect the dynamics of LN.
 It would be beneficial to explore the temporal nature of the LN graph in more depth.
 
 === Economic incentives and graph structure
