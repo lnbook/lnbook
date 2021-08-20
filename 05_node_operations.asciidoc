@@ -172,7 +172,7 @@ In addition to a Bitcoin and Lightning node, myNode can optionally install a var
 
 * Ride The Lightning (Lightning node management GUI)
 * OpenVPN (VPN Support for remote management or wallet)
-* LNDmanage (command-line interface for advanced channel management)
+* LNDmanage (command line interface for advanced channel management)
 * BTC RPC Explorer (A Bitcoin blockchain explorer)
 
 ==== Umbrel
@@ -235,7 +235,7 @@ The bottom line for this decision is: If you can afford a disk larger than 500GB
 
 ==== Operating system choice
 
-The next step is to select an operating system for your node. The vast majority of Internet servers run on some variant of Linux. Linux is the platform of choice for the Internet because it is a powerful, open-source operating system. Linux, however, has a steep learning curve and requires familiarity with a command-line environment. It is often intimidating for new users.
+The next step is to select an operating system for your node. The vast majority of Internet servers run on some variant of Linux. Linux is the platform of choice for the Internet because it is a powerful, open-source operating system. Linux, however, has a steep learning curve and requires familiarity with a command line environment. It is often intimidating for new users.
 
 Ultimately, most of the services can be run on any modern POSIX operating system, which includes Mac OS, Windows, and of course Linux. Your choice should be driven more by your familiarity and comfort with an operating system and your learning objectives. If you want to expand your knowledge and learn how to operate a Linux system, this is a great opportunity to do so with a specific project and a clear goal. If you just want to get a node up and running, go with what you know.
 
@@ -255,14 +255,14 @@ The programming language doesn't just influence the choice of build system, but 
 
 * format and syntax of configuration files
 * file locations (in the filesystem)
-* command-line arguments and their syntax
+* command line arguments and their syntax
 * error message formatting
 * prerequisite libraries
 * Remote Procedure Call interfaces
 
 When you choose your Lightning node, you are also choosing all of the above characteristics. So your familiarity with these tools and design philosophies will make it easier to run a node. Or harder, if you land in an unfamiliar domain.
 
-On the other hand, if this is your first foray into the command-line and server/service environment, you will find yourself unfamiliar with any implementation and have the opportunity to learn something completely new. In that case you might want to decide based on a number of other factors, such as:
+On the other hand, if this is your first foray into the command line and server/service environment, you will find yourself unfamiliar with any implementation and have the opportunity to learn something completely new. In that case you might want to decide based on a number of other factors, such as:
 
 * quality of support forums and chat rooms
 * quality of documentation
@@ -272,11 +272,11 @@ As a final consideration, you may want to examine the performance and reliabilit
 
 === Installing a Bitcoin or Lightning node
 
-You decided not to use an installation "helper" and instead to dive into the command-line of a Linux operating system? That is a brave decision and we'll try to help you make it work. If you'd rather not try to do this manually, consider using an application that helps you install the node software or a container-based solution, as described in <<helpers>>.
+You decided not to use an installation "helper" and instead to dive into the command line of a Linux operating system? That is a brave decision and we'll try to help you make it work. If you'd rather not try to do this manually, consider using an application that helps you install the node software or a container-based solution, as described in <<helpers>>.
 
 [WARNING]
 ====
-This section will delve into the advanced topic of system administration from the command-line. Linux administration is its own skill set that is outside the scope of this book. It is a complicated topic and there are many pitfalls. Proceed with caution!
+This section will delve into the advanced topic of system administration from the command line. Linux administration is its own skill set that is outside the scope of this book. It is a complicated topic and there are many pitfalls. Proceed with caution!
 ====
 
 In the next few sections we will briefly describe how to install and configure a Bitcoin and Lightning node on a Linux operating system. You will need to review the installation instructions for the specific Bitcoin and Lightning node applications you decided to use. You can usually find these in a file called +INSTALL+ or in the +docs+ sub-directory of each project. We will only describe some of the common steps that apply to all such services, and the instructions we offer will be necessarily incomplete.
@@ -289,9 +289,9 @@ This can create some confusion for users who are not used to running background 
 
 ==== Process isolation
 
-Background services usually run under a specific user account in order to isolate them from the operating system and each other. For example, Bitcoin Core is configured to run as user +bitcoin+. You will need to use the command-line to create a user for each of the services you run.
+Background services usually run under a specific user account in order to isolate them from the operating system and each other. For example, Bitcoin Core is configured to run as user +bitcoin+. You will need to use the command line to create a user for each of the services you run.
 
-In addition, if you have connected an external drive, you will need to tell the operating system to relocate the user's home directory to that drive. That's because a service like Bitcoin Core will create files under the user's home directory. If you are setting it up to download the full Bitcoin blockchain, these files will take up several hundred Gigabytes. Here, we assume you have connected the external drive and it is located on the +/external_drive/+ path of the operating system.
+In addition, if you have connected an external drive, you will need to tell the operating system to relocate the user's home directory to that drive. That's because a service like Bitcoin Core will create files under the user's home directory. If you are setting it up to download the full Bitcoin blockchain, these files will take up several hundred gigabytes. Here, we assume you have connected the external drive and it is located on the +/external_drive/+ path of the operating system.
 
 On most Linux systems you can create a new user with the +useradd+ command, like this:
 
@@ -382,7 +382,7 @@ To configure your node, you need to create and reference a configuration file. B
 +/etc/bitcoin/bitcoin.conf+
 +/etc/lnd/lnd.conf+
 
-These configuration files are text files with each line expressing one configuration option and its value. Default values are assumed for anything not defined in the configuration file. You can see what options can be set in the configuration in two ways. First, running the node application with a +help+ argument will show the options that can be defined on the command-line. These same options can be defined in the configuration file. Second, you can usually find an example configuration file, with all the default options, in the code repository of the software.
+These configuration files are text files with each line expressing one configuration option and its value. Default values are assumed for anything not defined in the configuration file. You can see what options can be set in the configuration in two ways. First, running the node application with a +help+ argument will show the options that can be defined on the command line. These same options can be defined in the configuration file. Second, you can usually find an example configuration file, with all the default options, in the code repository of the software.
 
 You can find one example of a configuration file in each of the Docker images we used in <<set_up_a_lightning_node>>. For example, the file +code/docker/bitcoind/bitcoind/bitcoin.conf+:
 
@@ -425,7 +425,7 @@ If you want to run a Bitcoin or Lightning node, you need to make it possible for
 
 By default, your home Internet router does not expect incoming connections from the outside, and in fact incoming connections are blocked. Your Internet router IP address is the only externally accessible IP address, and all the computers you run inside your home network share that single IP address. This is achieved by a mechanism called _Network Address Translation (NAT)_ which allows your Internet router to act as an intermediary for all outbound connections. If you want to allow an inbound connection you have to set up _Port Forwarding_, which tells your Internet router that incoming connections on specific ports should be forwarded to specific computers inside the network. You can do this manually by changing your Internet router configuration or,  if your router supports it, through an automatic port forwarding mechanism called _Universal Plug and Play (UPNP)_.
 
-An alternative mechanism to port forwarding is to enable The Onion Router (TOR), which provides a kind of virtual private network overlay that allows incoming connections to an _onion address_. If you run TOR, you don't need to do port forwarding nor enable incoming connections to Bitcoin or Lightning ports. If you run your nodes using TOR, all traffic goes through TOR and no other ports are used.
+An alternative mechanism to port forwarding is to enable The Onion Router (Tor), which provides a kind of virtual private network overlay that allows incoming connections to an _onion address_. If you run Tor, you don't need to do port forwarding nor enable incoming connections to Bitcoin or Lightning ports. If you run your nodes using Tor, all traffic goes through Tor and no other ports are used.
 
 Let's look at different ways you can make it possible for others to connect to your node. We'll look at these alternatives in order, from easiest to most difficult.
 
@@ -466,19 +466,19 @@ Sometimes, even if your Internet router supports UPNP, it may be turned off by d
 
 Restart your Bitcoin and/or Lighting node and repeat the open port test with one of the websites we used in the previous section.
 
-===== Using TOR for incoming connections
+===== Using Tor for incoming connections
 
-_The Onion Router (TOR)_ is a virtual private network with the special property that it encrypts communications between hops, such that any intermediary node cannot determine the origin or destination of a packet. Both Bitcoin and Lightning nodes support operation over TOR, which enables you to operate a node without revealing your IP address or location. Hence, it provides a high level of privacy to your network traffic. An added benefit of running TOR is that because it operates as a VPN, it resolves the problem of port forwarding from your Internet router. Incoming connections are received over the TOR tunnel, and your node can be found through an ad-hoc generated _onion address_ instead of an IP address.
+_The Onion Router (Tor)_ is a virtual private network with the special property that it encrypts communications between hops, such that any intermediary node cannot determine the origin or destination of a packet. Both Bitcoin and Lightning nodes support operation over Tor, which enables you to operate a node without revealing your IP address or location. Hence, it provides a high level of privacy to your network traffic. An added benefit of running Tor is that because it operates as a VPN, it resolves the problem of port forwarding from your Internet router. Incoming connections are received over the Tor tunnel, and your node can be found through an ad-hoc generated _onion address_ instead of an IP address.
 
-Enabling TOR requires two steps: First you must install the TOR router and proxy on your computer. Second, you must enable the use of the TOR proxy in your Bitcoin or Lightning configuration.
+Enabling Tor requires two steps: First you must install the Tor router and proxy on your computer. Second, you must enable the use of the Tor proxy in your Bitcoin or Lightning configuration.
 
-To install TOR on a Ubuntu Linux system that uses the +apt+ package manager, run:
+To install Tor on a Ubuntu Linux system that uses the +apt+ package manager, run:
 
 ----
 sudo apt install tor
 ----
 
-Next, we configure our Lightning node to use TOR for its external connectivity. Here is an example configuration for LND:
+Next, we configure our Lightning node to use Tor for its external connectivity. Here is an example configuration for LND:
 
 ----
 [Tor]
@@ -488,9 +488,9 @@ tor.streamisolation=true
 listen=localhost
 ----
 
-This will enable TOR (+tor.active+), establish a v3 onion service (+tor.v3=true+), use a different onion stream for each connection (+tor.streamisolation+), and restrict listening for connections to the local host only, to avoid leaking your IP address (+listen=localhost+).
+This will enable Tor (+tor.active+), establish a v3 onion service (+tor.v3=true+), use a different onion stream for each connection (+tor.streamisolation+), and restrict listening for connections to the local host only, to avoid leaking your IP address (+listen=localhost+).
 
-You can check if TOR is correctly installed and working by running a simple one-line command. This command should work on most flavors of Linux:
+You can check if Tor is correctly installed and working by running a simple one-line command. This command should work on most flavors of Linux:
 
 ----
 curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs
@@ -498,15 +498,15 @@ curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.t
 
 If everything is working properly, the response of this command should be +"Congratulations. This browser is configured to use Tor."+.
 
-Due to the nature of TOR, you can't easily use an external service to check if your node is reachable via an onion address. Nonetheless, you should see your TOR onion address in the logs of your Lightning node. It is a long string of letters and numbers followed by the suffix +.onion+. Your node should now be reachable from the Internet, with the added bonus of privacy!
+Due to the nature of Tor, you can't easily use an external service to check if your node is reachable via an onion address. Nonetheless, you should see your Tor onion address in the logs of your Lightning node. It is a long string of letters and numbers followed by the suffix +.onion+. Your node should now be reachable from the Internet, with the added bonus of privacy!
 
 ===== Manual port forwarding
 
-This is the most complex process and requires quite a bit of technical skill. The details depend on the type of Internet router you have, your service provider settings and policies, and a lot of other context. Try UPNP or TOR first, before you try this much more difficult mechanism.
+This is the most complex process and requires quite a bit of technical skill. The details depend on the type of Internet router you have, your service provider settings and policies, and a lot of other context. Try UPNP or Tor first, before you try this much more difficult mechanism.
 
 The basic steps are as follows:
 
-. Find the IP address of the computer your node is on. This is usually dynamically allocated by the Dynamic Host Configuration Protocol (DHCP) and is often somewhere in the 192.168.0.X or 10.0.0.X range.
+. Find the IP address of the computer your node is on. This is usually dynamically allocated by the Dynamic Host Configuration Protocol (DHCP) and is often somewhere in the 192.168.x.x or 10.x.x.x range.
 
 . Find the Media Access Control (MAC) address of your node's network interface. This can be found in the Internet settings of that computer.
 
@@ -519,7 +519,7 @@ Once done re-configuring, repeat the port check using one of the websites from t
 
 === Security of your node
 
-A Lightning node is, by definition, a hot-wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory or stored on the node's hard disk. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access.
+A Lightning node is, by definition, a hot wallet. That means that the funds (both on-chain and off-chain) controlled by a Lightning node are directly controlled by keys that are loaded in the node's memory or stored on the node's hard disk. If a Lightning node is compromised, it is trivial to create on-chain or off-chain transactions to drain its funds. It is therefore critically important that you protect it from unauthorized access.
 
 Security is a holistic effort, meaning that you have to secure every layer of a system. As the saying goes: the chain is only as strong as the weakest link. This is an important concept in information security and we will apply it to our node.
 
@@ -580,7 +580,7 @@ At the time of writing this book, only LND offers a built-in mechanism for stati
 
 File-based backups of the Lightning node databases are at best a partial solution because you run the risk of backing up an inconsistent database state. In addition, you may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, thereby ensuring data consistency.
 
-To set up static channel backups in LND, set the +backupfilepath+ parameter either on the command-line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to setup a mechanism that monitors this file for changes. Each time the file changes the backup mechanism must copy this file to another, preferably "off-site" disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this scenario. Recall, the backup files should be encrypted too.
+To set up static channel backups in LND, set the +backupfilepath+ parameter either on the command line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to setup a mechanism that monitors this file for changes. Each time the file changes the backup mechanism must copy this file to another, preferably "off-site" disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this scenario. Recall, the backup files should be encrypted too.
 
 ==== Hot wallet risk
 
@@ -606,7 +606,7 @@ Another technique you can use involves running a second Lightning node that is n
 
 The advantage of this technique lies in the fact that the Lightning node that receives payments for your shop will be publicly known. This makes it a target for hackers, as any Lightning node associated with a shop would be assumed to have a large balance. A second node that is not associated with your shop will not easily be identified as a valuable target.
 
-As an additional measure of security, you can make your second node a hidden TOR service so that its IP address is not known. That further reduces the opportunity for attacks and increases your privacy.
+As an additional measure of security, you can make your second node a hidden Tor service so that its IP address is not known. That further reduces the opportunity for attacks and increases your privacy.
 
 You will need to set up a script that runs at regular intervals. The purpose of this script is to create an invoice on your hidden node and to pay that invoice from your shop's node, thereby shifting funds over to your hidden node.
 
@@ -633,7 +633,7 @@ One example of a submarine swap service is _Loop_ by Lightning Labs, the same co
 To use the _Loop_ service you must be running an LND Lightning node.
 ====
 
-For the purpose of reducing the balance of your Lightning hot wallet, you would use the Loop Out service. To use the Loop service, you need to install some additional software on your node. The Loop software runs alongside your LND node and provides some command-line tools to execute submarine swaps. You can find the Loop software and installation instructions here:
+For the purpose of reducing the balance of your Lightning hot wallet, you would use the Loop Out service. To use the Loop service, you need to install some additional software on your node. The Loop software runs alongside your LND node and provides some command line tools to execute submarine swaps. You can find the Loop software and installation instructions here:
 
 https://github.com/lightninglabs/loop
 
@@ -709,14 +709,14 @@ watchtower.active=1
 watchtower.towerdir=/path_to_watchtower_data_directory
 ----
 
-You can use LND's watchtower client by activating it in the configuration and then using the command-line to connect it to a watchtower server. The configuration is:
+You can use LND's watchtower client by activating it in the configuration and then using the command line to connect it to a watchtower server. The configuration is:
 
 ----
 [wtclient]
 wtclient.active=1
 ----
 
-LND's command-line client +lncli+ shows the following options for managing the watchtower client:
+LND's command line client +lncli+ shows the following options for managing the watchtower client:
 
 ----
 $ lncli wtclient
@@ -897,7 +897,7 @@ A third way to re-balance channels is to purposefully create a _circular route_ 
 .Circular route re-balancing
 image::images/circular-rebalancing.png[]
 
-Circular re-balancing is supported by most Lightning node implementations and can be done on the command-line or via one of the web management interfaces such as _Ride the Lightning (RTL)_ (see <<rtl>>).
+Circular re-balancing is supported by most Lightning node implementations and can be done on the command line or via one of the web management interfaces such as _Ride the Lightning (RTL)_ (see <<rtl>>).
 
 Channel rebalancing is a complex issue that is the subject of active research and covered in more detail in <<rebalancing_channels>>.
 
@@ -937,7 +937,7 @@ You can also use the routing fee settings to re-balance channels. If most of you
 
 === Node management
 
-Managing your Lightning node on the command-line is obviously not easy. It gives you the full flexibility of the node's API and the ability to write your own custom scripts to satisfy your personal requirements. But if you don't want to deal with the complexity of the command line and only need some basic node management capabilities, you should consider installing a web-based user interface that makes node management easier.
+Managing your Lightning node on the command line is obviously not easy. It gives you the full flexibility of the node's API and the ability to write your own custom scripts to satisfy your personal requirements. But if you don't want to deal with the complexity of the command line and only need some basic node management capabilities, you should consider installing a web-based user interface that makes node management easier.
 
 There are a number of competing projects that offer web-based Lightning node management. Some of the most popular ones are described below.
 
