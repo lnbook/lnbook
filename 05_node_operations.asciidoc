@@ -538,7 +538,7 @@ To secure your operating system, here are some of the top items to consider:
 . Process isolation: Use the operating system features to isolate processes from each other.
 . File system permissions: Configure the file system carefully, on the least-privilege principle. Do not make files readable or writable by everyone.
 . Strong authentication: Use strong randomly generated passwords or, whenever possible, public-key authentication. E.g. it is safer to use Secure Shell (SSH) with a cryptographic key pair instead of a password.
-. Two-factor authentication (2FA): Use two-factor authentication wherever possible, including Universal 2-Factor (U2F) with hardware security keys. This applies to all external services you might be using such as your cloud service provider. You can apply this also to your own set-up such as your own SSH configuration. Use 2FA also for indirect services. For exmaple, say you are using a cloud service. You gave your cloud service provider an email address, so you should also protect your email address with 2FA.
+. Two-factor authentication (2FA): Use two-factor authentication wherever possible, including Universal 2-Factor (U2F) with hardware security keys. This applies to all external services you might be using such as your cloud service provider. You can apply this also to your own set-up such as your own SSH configuration. Use 2FA also for indirect services. For example, say you are using a cloud service. You gave your cloud service provider an email address, so you should also protect your email address with 2FA.
 . Backup: Make backups of your system, and make sure you protect the backups with encryption too. Perform these backups periodically. At least once test if you can restore your backup and that your backup is complete and accessible. If possible, keep one copy of your backups on a different disk to avoid that a single hard disk failure destroys _both_ your active node as well as your backup copies.
 . Vulnerability and exposure management: Use remote scanning to ensure you have minimized the attack surface of your system. Close any unnecessary services or ports.
 - Minimize: Install only software and packages that you really need and use. Uninstall packages that you no longer use. It is recommended that you do _not_ use your node computer for non-node activities that you can perform on another of your computers. Especially, if you can, do _not_ use your node computer for browsing, surfing the Internet, or reading your email.
@@ -675,7 +675,7 @@ If you have the time and skills you should test some basic fault scenarios on th
 
 - Automatic node restart: What happens when your node or one of your nodes crashes? Simulate this fault by killing the corresponding node processes. If a node crashes, it should automatically restart itself. Test it to make sure the node or nodes really restart automatically on failure without human intervention. If this is not the case, most likely your node is not set up correctly as an operating system service.
 
-- Automatic network reconnection: What happens if your network goes down? What happens when your ISP goes temporarily down? What happens when your ISP assigns a new IP address to your router or your computer? When the network comes back, do the nodes your are running automatically reconnect to the network? Simulate this fault by unplugging and later re-plugging the Ethernet cable from the device hosting your nodes. The nodes should automatically reconnect and continue operation without human intervention.
+- Automatic network reconnection: What happens if your network goes down? What happens when your ISP goes temporarily down? What happens when your ISP assigns a new IP address to your router or your computer? When the network comes back, do the nodes you are running automatically reconnect to the network? Simulate this fault by unplugging and later re-plugging the Ethernet cable from the device hosting your nodes. The nodes should automatically reconnect and continue operation without human intervention.
 
 - Configure your log files: All of the above failures should leave textual entries behind in the corresponding log files. Turn up the verbosity of logging if needed. Find these error entries in the log files and use them for monitoring.
 
@@ -810,7 +810,19 @@ With the wider adoption of multipath payments, smaller channels are less of a bu
 The +c-lightning+ plugin works very differently in comparison to the +lnd+ autopilot.
 First, it differs in the algorithms used to make the recommendations. We will not cover this here. Secondly, it differs in its user interface.
 You will need to download the _autopilot plugin_ from the +c-lightning+ plugin repository at https://github.com/lightningd/plugins/tree/master/autopilot and activate it.
-We have already explained how to activate plugins in +c-lightning+.
+
+[NOTE]
+====
+In order to activate a plugin in +c-lightning+, place it into the +~/.lightning/plugins+ directory, ensure that it's executable (e.g. +chmod +x ~/.lightning/plugins/autopilot.py+), then restart +lightningd+.
+
+Alternatively, if you don't want a plugin to automatically activate when you start +lightningd+ you can place it in a different directory and manually activate it with the +plugin+ argument to +lightningd+:
+
+----
+   lightningd --plugin=~/lightning-plugins/autopilot.py
+----
+
+====
+
 The autopilot in +c-lightning+ is controlled via 3 configuration values which can be set in the config file or as command line arguments when you start +lightningd+.
 
 ----
