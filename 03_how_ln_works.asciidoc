@@ -162,10 +162,9 @@ Initially, Alice owns 100k satoshi, the entirety of the funds in the channel. He
 . Alice creates a new private/public key pair and informs Bob that she wishes to open a channel via the `open_channel` message (a message in the Lightning Network protocol).
 . Bob also creates a new private/public key pair and agrees to accept a channel from Alice, sending his public key to Alice via the `accept_channel` message.
 . Alice now creates a funding transaction from her wallet that sends 100k satoshi to the multisignature address with a locking script +2 <PubKey Alice> <PubKey Bob> 2 CHECKMULTISIG+.
-. Alice does not yet broadcast this funding transaction but sends Bob the transaction ID in a `funding_created` message.
+. Alice does not yet broadcast this funding transaction but sends Bob the transaction ID in a `funding_created` message along with her signature for Bob's commitment transaction.
 . Both Alice and Bob create their version of a commitment transaction. This transaction will spend from the funding transaction and send all the bitcoin back to an address controlled by Alice.
-. Alice and Bob don't need to exchange these commitment transactions, since they each know how they are constructed and can build both independently. They only need to exchange signatures.
-. Alice provides a signature for Bob's commitment transaction. This signature was already included in the `funding_created` message.
+. Alice and Bob don't need to exchange these commitment transactions, since they each know how they are constructed and can build both independently (as they've agreed on a canonical ordering of the inputs+outputs). They only need to exchange signatures.
 . Bob provides a signature for Alice's commitment transaction and sends this back to Alice via the `funding_signed` message.
 . Now that signatures have been exchanged, Alice will broadcast the funding transaction to the Bitcoin network.
 
