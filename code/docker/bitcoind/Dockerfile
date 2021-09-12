@@ -1,34 +1,47 @@
-FROM ubuntu:20.04 AS bitcoind-base
+ARG OS=ubuntu
+ARG OS_VER=focal
+FROM ${OS}:${OS_VER} as os-base
 
-RUN apt update && apt install -yqq \
-	curl gosu jq bash-completion
+# Install dependencies
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get update -qq && apt-get install -yqq \
+		curl unzip jq bash-completion
 
-ENV BITCOIND_VERSION 0.21.0
-# Install binaries for Bitcoin Core
-ADD https://bitcoincore.org/bin/bitcoin-core-${BITCOIND_VERSION}/bitcoin-${BITCOIND_VERSION}-x86_64-linux-gnu.tar.gz /usr/local
-RUN cd /usr/local/ \
-	&& tar -zxf bitcoin-${BITCOIND_VERSION}-x86_64-linux-gnu.tar.gz \
-	&& cd bitcoin-${BITCOIND_VERSION} \
-	&& install bin/* /usr/local/bin \
-	&& install include/* /usr/local/include \
-	&& install -v lib/* /usr/local/lib
+FROM os-base as bitcoind-install
 
+ARG BITCOIND_VER=0.21.0
+# Install Bitcoin Core binaries and libraries
+RUN cd /tmp && \
+	curl -# -sLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIND_VER}/bitcoin-${BITCOIND_VER}-x86_64-linux-gnu.tar.gz && \
+	tar -zxf bitcoin-${BITCOIND_VER}-x86_64-linux-gnu.tar.gz && \
+	cd bitcoin-${BITCOIND_VER} && \
+	install -vD bin/* /usr/bin && \
+	install -vD lib/* /usr/lib && \
+	cd /tmp && \
+	rm bitcoin-${BITCOIND_VER}-x86_64-linux-gnu.tar.gz && \
+	rm -rf bitcoin-${BITCOIND_VER}
+
+# Install runtime scripts, bash-completion and configuration files
+
+# bash completion for bitcoind and bitcoin-cli
 ENV GH_URL https://raw.githubusercontent.com/bitcoin/bitcoin/master/
 ENV BC /usr/share/bash-completion/completions/
 ADD $GH_URL/contrib/bitcoin-cli.bash-completion $BC/bitcoin-cli
 ADD $GH_URL/contrib/bitcoind.bash-completion $BC/bitcoind
 ADD $GH_URL/contrib/bitcoin-tx.bash-completion $BC/bitcoin-tx
 
-FROM bitcoind-base AS bitcoind
-
-ADD bitcoind /bitcoind
+# Copy bitcoind configuration directory
+COPY bitcoind /bitcoind
 RUN ln -s /bitcoind /root/.
 
-ADD bashrc /root/.bashrc
-ADD bitcoind-entrypoint.sh /usr/local/bin
+# Copy support scripts
+COPY bashrc /root/.bashrc
+COPY bitcoind-entrypoint.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/bitcoind-entrypoint.sh
-ADD mine.sh /usr/local/bin
+COPY mine.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/mine.sh
+COPY cli /usr/local/bin
+RUN chmod +x /usr/local/bin/cli
 
 # bitcoind P2P
 EXPOSE 18444/tcp

@@ -15,5 +15,4 @@ sleep 2
 echo "Funding c-lightning wallet"
 source /usr/local/bin/fund-c-lightning.sh
 
-echo "$@"
 exec "$@"
