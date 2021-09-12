@@ -1,40 +1,59 @@
-FROM golang:1.13 as lnd-base
+ARG OS=ubuntu
+ARG OS_VER=focal
+ARG GO_VER=1.13
+# Define base images with ARG versions
+FROM ${OS}:${OS_VER} as os
+FROM golang:${GO_VER} as go
 
-ENV GOPATH /go
-WORKDIR $GOPATH/src
+# OS image with command-line utilities
+FROM os AS os-base
 
-# LND
-ENV LND_VER v0.11.1-beta
-RUN go get -d github.com/lightningnetwork/lnd
-WORKDIR $GOPATH/src/github.com/lightningnetwork/lnd
-RUN git checkout tags/${LND_VER}
-RUN make && make install
+# Install dependencies
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get update -qq && apt-get install -yqq \
+		curl unzip jq bash-completion
 
-FROM ubuntu:20.04 AS lnd-run
+# Go image for building LND
+FROM go as lnd-build
 
-RUN apt update && apt install -yqq \
-	curl gosu jq bash-completion
+ENV GO_VER=${GO_VER}
+ENV GOPATH=/go
 
-COPY --from=lnd-base /go /go
-COPY --from=lnbook/bitcoind /usr/local/ /usr/local/
+# Build LND
+ARG LND_VER=v0.13.1-beta
+ENV LND_VER=${LND_VER}
+RUN	mkdir -p ${GOPATH}/src && \
+	cd ${GOPATH}/src && \
+	go get -v -d github.com/lightningnetwork/lnd && \
+	cd ${GOPATH}/src/github.com/lightningnetwork/lnd && \
+	git checkout tags/${LND_VER} && \
+	make clean && make && make install
 
-RUN cp /go/src/github.com/lightningnetwork/lnd/contrib/lncli.bash-completion \
+# Runtime image for running LND
+FROM os-base as lnd-run
+
+# Copy only the executables
+COPY --from=lnd-build /go/bin /go/bin
+
+ADD https://raw.githubusercontent.com/lightningnetwork/lnd/master/contrib/lncli.bash-completion \
 	   /usr/share/bash-completion/completions/lncli
 
 ENV GOPATH /go
 ENV PATH $PATH:$GOPATH/bin
 
-ADD lnd /lnd
+COPY lnd /lnd
 RUN ln -s /lnd /root/.lnd
-ADD fund-lnd.sh /usr/local/bin
+COPY fund-lnd.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/fund-lnd.sh
-ADD bashrc /root/.bashrc
-ADD lnd-entrypoint.sh /usr/local/bin
+COPY bashrc /root/.bashrc
+COPY lnd-entrypoint.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/lnd-entrypoint.sh
-ADD logtail.sh /usr/local/bin
+COPY logtail.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/logtail.sh
-ADD wait-for-bitcoind.sh /usr/local/bin
+COPY wait-for-bitcoind.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/wait-for-bitcoind.sh
+COPY cli /usr/local/bin
+RUN chmod +x /usr/local/bin/cli
 
 # LND RPC
 EXPOSE 10009/tcp

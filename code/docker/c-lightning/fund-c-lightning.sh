@@ -5,9 +5,13 @@ set -Eeuo pipefail
 address=$(lightning-cli --lightning-dir=/lightningd --network regtest newaddr | jq '.bech32' -r)
 
 # Ask Bitcoin Core to send 10 BTC to the address, using JSON-RPC call
-bitcoin-cli \
+until bitcoin-cli \
     --rpcuser=regtest \
     --rpcpassword=regtest \
-    --rpcconnect=bitcoind \
+    --rpcconnect=bitcoind:18443 \
     --regtest \
     sendtoaddress ${address} 10 "funding c-lightning"
+do
+	sleep 1;
+	echo Retrying funding...
+done
