@@ -410,7 +410,7 @@ Armed with the information in the +channel_announcement+, any Lightning node (ev
 
 First, the verifier will use the short channel ID to find which Bitcoin block contains the channel funding output. With the block height information, the verifier can request only that specific block from a Bitcoin node. The block can then be linked back to the genesis block by following the block header chain backwards (verifying the proof-of-work), confirming that this is in fact a block belonging to the Bitcoin blockchain.
 
-Next, the verifier uses the transaction index number to identify the transaction ID of the transaction containing the payment channel. The block retrieved previously will contain an indexed list of transaction IDs.
+Next, the verifier uses the transaction index number to identify the transaction ID of the transaction containing the payment channel. Most modern Bitcoin libraries will allow indexing into the transaction of a block based on the index of the transaction within the greater block. 
 
 Next, the verifier requests the raw transaction from a Bitcoin node, by reference to the transaction ID. The verifier will validate the transaction (checking that it is properly signed and produces the same transaction ID when hashed).
 
