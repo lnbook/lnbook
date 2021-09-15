@@ -192,24 +192,24 @@ integer can be defined using a piece-wise function that branches based on the
 size of the integer to be encoded.
 
   * If the value is _less than_ `0xfd` (`253`):
-    * Then the discriminant isn't really used, and the encoding is simply the
+    ** Then the discriminant isn't really used, and the encoding is simply the
       integer itself.
 
-    * This value allows us to encode very small integers with no additional
+    ** This value allows us to encode very small integers with no additional
       overhead
 
   * If the value is _less than or equal to_ `0xffff` (`65535`):
-    * Then the discriminant is encoded as `0xfd`, which indicates that the body is
+    ** Then the discriminant is encoded as `0xfd`, which indicates that the body is
       that follows is larger than `0xfd`, but smaller than `0xffff`).
 
-    * The body is then encoded as a _16-bit_ integer. Including the
+    ** The body is then encoded as a _16-bit_ integer. Including the
       discriminant, then we can encode a value that is greater than 253, but
       less than 65535 using `3 bytes`.
 
   * If the value is less than `0xffffffff` (`4294967295`):
-    * Then the discriminant is encoded as `0xfe`.
+    ** Then the discriminant is encoded as `0xfe`.
 
-    * The body is encoded using _32-bit_ integer, Including the discriminant,
+    ** The body is encoded using _32-bit_ integer, Including the discriminant,
      then we can encode a value that's less than `4,294,967,295` using _5
       bytes_.
 
