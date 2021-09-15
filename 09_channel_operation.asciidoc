@@ -151,7 +151,7 @@ The fields +num_htlcs+ and +htlc_signature+ now make more sense:
 
 Alice can send these signatures without hesitation: she can always get a refund if the HTLC expires without being routed to Dina.
 
-Now, Bob has a new signed commitment transaction, as show in <<signed_commitment_3b>> below:
+Now, Bob has a new signed commitment transaction, as shown in <<signed_commitment_3b>> below:
 
 [[signed_commitment_3b]]
 .Bob has a new signed commitment
@@ -215,11 +215,11 @@ image::images/revoked_commitment_2a.png[Alice has revoked the old commitment]
 
 === Multiple HTLCs
 
-At any point in time, Alice and Bob may have dozens or even hundreds of HTLCs across a single channel. Each HTLC would be a offered and added to the commitment transaction as an additional output. A commitment transaction would therefore always have 2 outputs for the channel partner balances and any number of HTLC outputs, one per HTLC.
+At any point in time, Alice and Bob may have dozens or even hundreds of HTLCs across a single channel. Each HTLC is offered and added to the commitment transaction as an additional output. A commitment transaction therefore always has 2 outputs for the channel partner balances and any number of HTLC outputs, one per HTLC.
 
-As we saw in the +commitment_signed+ message, there is an array for HTLC signatures, meaning that multiple HTLCs can be committed to at the same time.
+As we saw in the +commitment_signed+ message, there is an array for HTLC signatures so that multiple HTLC commitments can be transmitted at the same time.
 
-The current maximum number of HTLCs allowed on a channel is 483 HTLCs, to account for the maximum Bitcoin transaction size and ensure that the commitment transactions would continue to be valid Bitcoin transaction.
+The current maximum number of HTLCs allowed on a channel is 483 HTLCs to account for the maximum Bitcoin transaction size and ensure that the commitment transactions continue to be valid Bitcoin transactions.
 
 As we will see in the next section, the maximum is only for _pending_ HTLCs, since once an HTLC is fulfilled (or fails due to timeout/error), it is removed from the commitment transaction.
 
@@ -227,7 +227,7 @@ As we will see in the next section, the maximum is only for _pending_ HTLCs, sin
 
 Now Bob and Alice both have a new commitment transaction with an additional HTLC output and we have achieved a major step towards updating a payment channel.
 
-The new Balance of Alice and Bob does not reflect yet that Alice has successfully send 50,200 satoshis to Bob.
+The new balance of Alice and Bob does not reflect yet that Alice has successfully sent 50,200 satoshis to Bob.
 
 However the HTLCs are now set up in a way that secure settlement in exchange for the proof of payment will be possible.
 
@@ -265,7 +265,7 @@ H = RIPEMD160( SHA256 (R) )
 
 If the result +H+ matches the payment hash in the HTLC, Chan can do a little dance of celebration. This long-awaited secret can be used to redeem the HTLC, and will be passed back along the chain of payment channels all the way to Alice, resolving every HTLC that was part of this payment to Dina.
 
-Let's go back to Alice and Bob's channel and watch them unwind the HTLC. To get there, let's assume Dina sent the +update_fulfill_htlc+ to Chan, Chan sent +update_fulfill_htlc+ to Bob and Bob sent ++update_fulfill_htlc+. The payment pre-image has propagated all the way back to Alice.
+Let's go back to Alice and Bob's channel and watch them unwind the HTLC. To get there, let's assume Dina sent the +update_fulfill_htlc+ to Chan, Chan sent +update_fulfill_htlc+ to Bob and Bob sent +update_fulfill_htlc+ to Alice. The payment pre-image has propagated all the way back to Alice.
 
 ==== Bob settles the HTLC with Alice
 

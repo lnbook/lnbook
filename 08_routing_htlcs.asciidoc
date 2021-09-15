@@ -275,7 +275,7 @@ Bitcoin Script is flexible enough that there are dozens of ways to implement a f
 
 The fairness protocol for routing used in the Lightning Network today is called a Hash Time-Locked Contract (HTLC). HTLCs use a hash pre-image as the secret that unlocks a payment, as we saw in the gold coin example in this chapter. The recipient of a payment generates a random secret number and calculates its hash. The hash becomes the condition of payment and once the secret is revealed, all the participants can redeem their incoming payments. HTLCs offer atomicity, trustless operation and multihop security. While HTLCs are efficient and very simple, they involve a small compromise of privacy (see <<htlc_privacy_compromise>>).
 
-Another proposed mechanism for implementing routing is a _Point Time-Locked Contract (PTLC)_. PTLCs also achieve atomicity, trustless operation and multihop security, but do so with increased efficiency and better privacy.  Efficient implementation of PTLCs depends on a new digital signature algorithm called _Schnorr signatures_, which is expected to active in Bitcoin in 2021.
+Another proposed mechanism for implementing routing is a _Point Time-Locked Contract (PTLC)_. PTLCs also achieve atomicity, trustless operation and multihop security, but do so with increased efficiency and better privacy.  Efficient implementation of PTLCs depends on a new digital signature algorithm called _Schnorr signatures_, which is expected to be activated in Bitcoin in 2021.
 
 === Revisiting our example
 
@@ -400,7 +400,7 @@ Bob can't spend this HTLC until he knows Dina's secret, so spending the HTLC is 
 
 Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secret pre-image value +R+
 
-The unlocking script and locking script would combined to produce:
+The unlocking script combined with the locking script would produce:
 
 ----
 <R> OP_SHA256 <H> OP_EQUAL
@@ -506,7 +506,7 @@ The unlocking and locking script are combined and evaluated by the scripting eng
 1. OP_SHA256 pops and hashes +R+ from the top of the stack and pushes H~R~ on to the stack
 1. +H+ is pushed on to the stack
 1. OP_EQUALVERIFY pops H and H~R~ and compares them. If they are not the same, execution halts. Otherwise, we continue without output to the stack
-1. +<Bob's Pub> key is pushed to the stack
+1. +<Bob's Pub>+ key is pushed to the stack
 1. OP_CHECKSIG pops +<Bob's Sig>+ and +<Bob's Pub>+ and verifies the signature. The result (TRUE/FALSE) is pushed to the stack.
 
 As you can see, this is slightly more complicated, but now we have fixed the HTLC and made sure only the intended recipient can spend it.
@@ -592,7 +592,7 @@ To implement this refund in Bitcoin Script, we use a special operator +OP_CHECKL
 ...
 ----
 
-The +OP_CLTV+ operator takes an expiry time defined as the block height after which this transaction is valid. If the transaction timelock is not set the same as +<cltv_expiry>+, the evaluation of the script fails and the transaction is invalid. Otherwise, the script continues without any output to the stack. Remember, the +VERIFY+ suffix means this operator does not output +TRUE+ or +FALSE+, but instead either halts/fails, or continus without stack output.
+The +OP_CLTV+ operator takes an expiry time defined as the block height after which this transaction is valid. If the transaction timelock is not set the same as +<cltv_expiry>+, the evaluation of the script fails and the transaction is invalid. Otherwise, the script continues without any output to the stack. Remember, the +VERIFY+ suffix means this operator does not output +TRUE+ or +FALSE+, but instead either halts/fails, or continues without stack output.
 
 Essentially, the +OP_CLTV+ acts as a "gatekeeper" preventing the script from proceeding any further if the <cltv_expiry> block height has not been reached on the Bitcoin blockchain.
 

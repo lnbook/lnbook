@@ -106,7 +106,7 @@ So the full identifier for Rene's node would be:
 
 [TIP]
 ====
-The alias of Rene's node is +ln.rene-pickhardt.de+ however this name exists just for better readability every node operator can announce an alias at free will and actually there is no mechanism that prevents node operators to select an alias that is already being used. Thus in order to refer to a node one must use the +NodeID@Address:Port+ schema.
+The alias of Rene's node is +ln.rene-pickhardt.de+ however this name exists just for better readability. Every node operator can announce whatever alias they want, and there is no mechanism that prevents node operators from selecting an alias that is already being used. Thus in order to refer to a node one must use the +NodeID@Address:Port+ schema.
 ====
 
 The identifier above is often encoded in a QR code, making it easier for users to scan, if they want to connect their own node to the specific node identified by that address.
@@ -157,7 +157,7 @@ Second, Alice constructs the funding and refund transactions (as we will see lat
 The name of the +funding_signed+ message can be a bit confusing. This message does not contain a signature for the funding transaction but it rather contains Bob's signature for the refund transaction that allows Alice to claim her bitcoin back from the multisig.
 ====
 
-Once the transaction has sufficient confirmations (as defined by the `minimum_depth` field in the `accept_channel` message), Alice and Bob exchange a +funding_locked+ messages and the channel enters normal operating mode.
+Once the transaction has sufficient confirmations (as defined by the `minimum_depth` field in the `accept_channel` message), Alice and Bob exchange +funding_locked+ messages and the channel enters normal operating mode.
 
 ===== The open_channel message
 
@@ -261,7 +261,7 @@ Alice's node constructs a multisignature script as shown in <<A_B_multisig>> bel
 2 <Alice_funding_pubkey> <Bob_funding_pubkey> 2 CHECKMULTISIG
 ----
 
-Note that in practice, the funding keys are deterministically _sorted_ (using lexicographical order of the serialized compressed form of the public keys) before being placed in the witness script (. By agreeing to this sorted order ahead of time, we ensure both parties will construct an identical funding transaction output, which is signed by the commitment transaction signature exchanged.
+Note that in practice, the funding keys are deterministically _sorted_ (using lexicographical order of the serialized compressed form of the public keys) before being placed in the witness script. By agreeing to this sorted order ahead of time, we ensure both parties will construct an identical funding transaction output, which is signed by the commitment transaction signature exchanged.
 
 
 This script is encoded as a Pay-to-Witness-Script-Hash Bitcoin address, that looks something like this:
@@ -281,7 +281,7 @@ Alice *does not broadcast* this transaction, because doing so would put her 140,
 
 .Dual-funded payment channels
 ****
-In the current implementation of Lightning, channels are funded only by the node initiating the channel (Alice in our example). Dual-funded channels have been proposed, but not yet implemented. In a dual-funded channel, both Alice and Bob would contribute inputs to the funding transaction. Dual-funded channels require a slightly more complicated message flow and cryptographic protocol, so they have not been implemented yet but are planned for a future update to the Lightning BOLTS.
+In the current implementation of Lightning, channels are funded only by the node initiating the channel (Alice in our example). Dual-funded channels have been proposed, but not yet implemented. In a dual-funded channel, both Alice and Bob would contribute inputs to the funding transaction. Dual-funded channels require a slightly more complicated message flow and cryptographic protocol, so they have not been implemented yet but are planned for a future update to the Lightning BOLTs.
 ****
 
 ==== Holding signed transactions without broadcasting
@@ -535,7 +535,7 @@ OP_ENDIF
 OP_CHECKSIG
 ----
 
-This is a conditional script (see <<conditional_scripts>>), which means the output can be spent if _either_ of the two conditions is met. The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. The second clause is timelocked by +<to_self_delay>+ blocks and can only be spent after that many blocks by anyone who can sign for +<local_delayedpubkey>+. In our example, we had set the +<to_self_delay>+ timelock to 432 blocks, but this is a configurable delay that is negotiated by the two channel partners. The +to_self_delay+ timelock duration is usually chose in proportion to the channel capacity, meaning that larger capacity channels (more funds), have longer +to_self_delay+ timelocks to protect the parties.
+This is a conditional script (see <<conditional_scripts>>), which means the output can be spent if _either_ of the two conditions is met. The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. The second clause is timelocked by +<to_self_delay>+ blocks and can only be spent after that many blocks by anyone who can sign for +<local_delayedpubkey>+. In our example, we had set the +<to_self_delay>+ timelock to 432 blocks, but this is a configurable delay that is negotiated by the two channel partners. The +to_self_delay+ timelock duration is usually chosen in proportion to the channel capacity, meaning that larger capacity channels (more funds), have longer +to_self_delay+ timelocks to protect the parties.
 
 [TIP]
 ====
@@ -617,7 +617,7 @@ Once Alice has received the +revoke_and_ack+ from Bob she can be sure that Bob c
 
 In practice, both Alice and Bob have to monitor for "cheating". They are monitoring the Bitcoin blockchain for any commitment transactions related to any of the channels they are operating. If they see a commitment transaction confirmed on-chain they will check to see if it is the most recent commitment. If it is an "old" commitment, they must immediately construct and broadcast a penalty transaction. The penalty transaction spends *both* the +to_local+ and +to_remote+ outputs, closing the channel and sending both balances to the "cheated" channel partner.
 
-In order to more easily allow both sides to keep track of the commitment numbers of the passed revoke commitments, each commitment actually _encodes_ the number of the commitment within the lock time and sequence fields in a transition. Within the protocol, this special encoding are referred to as "state hints". Assuming a party knows the current commitment number, they're able to use the state hints to easily recognize if a broadcasted commitment was a revoked one, and if so, which commitment number was breached, as that number is used to easily look up which revocation secret should be used in the revocation secret tree (shachain).
+In order to more easily allow both sides to keep track of the commitment numbers of the passed revoke commitments, each commitment actually _encodes_ the number of the commitment within the lock time and sequence fields in a transition. Within the protocol, this special encoding is referred to as "state hints". Assuming a party knows the current commitment number, they're able to use the state hints to easily recognize if a broadcasted commitment was a revoked one, and if so, which commitment number was breached, as that number is used to easily look up which revocation secret should be used in the revocation secret tree (shachain).
 
 Rather than encode the state hint in plain sight, an _obfuscated_ state hint is used in its place. This obfuscation is achieved by first XOR'ing the current commitment number with a set of random bytes generated deterministically using the funding public keys of both sides of the channel. A total of 6 bytes across the lock time and sequence (24 bits of the locktime and 24 bits of the sequence) are used to encode the state hint within the commitment transaction, so 6 random bytes are needed to use for XOR'ing. To obtain these 6 bytes, both sides obtain the SHA-256 hash of the initiator's funding key concatenated to the responder's funding key. Before encoding the current commitment height, the integer is XOR'd with this state hint obfuscater, and then encoded in the lower 24 bits of the locktime, and the upper 64 bits of the sequence.
 

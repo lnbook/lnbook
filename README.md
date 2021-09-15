@@ -13,7 +13,9 @@ The book is suitable for technical readers with an understanding of the fundamen
 
 ## Status
 
-The current status of the book is "RELEASE PREP". See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
+The current status of the book is "IN PRODUCTION": ONLY COPY-EDIT CONTRIBUTIONS ARE ACCEPTED.
+
+See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
 
 ### Legend
 
@@ -33,26 +35,25 @@ The current status of the book is "RELEASE PREP". See below for status of specif
 | [Getting Started](02_getting_started.asciidoc) | ############# | :heavy_check_mark: |
 | [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################### | :heavy_check_mark: |
 | [Nodes (LN Clients)](04_node_client.asciidoc) | #################### | :heavy_check_mark: |
-| [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
+| [Operating a Node](05_node_operations.asciidoc) | ############################ | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
 | [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :heavy_check_mark: |
 | [Payment Channels in Detail](07_payment_channels.asciidoc) | ################### | :heavy_check_mark: |
 | [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :heavy_check_mark: |
-| [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :mag: |
-| [Onion Construction and Routing](10_onion_routing.asciidoc) | ############### | :lock_with_ink_pen: |
-| [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
-| [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
-| [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
-| [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
-| [Lightning Applications (LApps)]() | # | :thought_balloon: |
-| [LN Security and Privacy](security_privacy_ln.asciidoc) | ################ | :lock_with_ink_pen: |
-| [LN's Future]() | # | :thought_balloon: |
+| [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :heavy_check_mark: |
+| [Onion Construction and Routing](10_onion_routing.asciidoc) | ################ | :heavy_check_mark: |
+| [Channel Graph and Gossip Layer](11_gossip_channel_graph.asciidoc) | ############ | :heavy_check_mark: |
+| [Payment Path Finding](12_path_finding.asciidoc) | ############ | :heavy_check_mark: |
+| [LN Security and Privacy](13_security_privacy_ln.asciidoc) | ################ | :heavy_check_mark: |
 | APPENDICES | APPENDICES | APPENDICES |
 | [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ########### | :heavy_check_mark: |
-| [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
+| [A2 - Payment Requests (Invoices)](appendix_payment_requests.asciidoc) | #### | :heavy_check_mark: |
+| [A3 - Wire Protocol](appendix_wire_protocol.asciidoc) | ################# | :heavy_check_mark: |
+| [A4 - Encrypted Message Transport (Brontide)](appendix_encrypted_transport.asciidoc) | ########## | :heavy_check_mark: |
+| [A5 - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 90487
+Total Word Count: 125288
 
 Target Word Count: 100,000-120,000
 
