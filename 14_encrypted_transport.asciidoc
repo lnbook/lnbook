@@ -1,9 +1,11 @@
-[appendix]
 [[brontide]]
 [[encrypted_message_transport]]
 == Lightning's Encrypted Message Transport (Brontide)
 
-In this chapter we will review the Lightning Network's _Encrypted Message Transport_, also known as the _Brontide Protocol_, which allows peers to establish end-to-end encrypted communication, authentication and integrity checking.
+In this chapter we will review the Lightning Network's _Encrypted Message
+Transport_, also known as the _Brontide Protocol_, which allows peers to
+establish end-to-end encrypted communication, authentication and integrity
+checking.
 
 === Introduction
 
@@ -238,33 +240,33 @@ handshake as:
 
   * `ECDH(k, rk)`: performs an Elliptic-Curve Diffie-Hellman operation using
     `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key
-      * The returned value is the SHA256 of the compressed format of the
+      ** The returned value is the SHA256 of the compressed format of the
 	    generated point.
 
   * `HKDF(salt,ikm)`: a function defined in `RFC 5869`<sup>[3](#reference-3)</sup>,
     evaluated with a zero-length `info` field
-     * All invocations of `HKDF` implicitly return 64 bytes of
+     ** All invocations of `HKDF` implicitly return 64 bytes of
        cryptographic randomness using the extract-and-expand component of the
        `HKDF`.
 
   * `encryptWithAD(k, n, ad, plaintext)`: outputs `encrypt(k, n, ad, plaintext)`
-     * Where `encrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant)
+     ** Where `encrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant)
        with the passed arguments, with nonce `n` encoded as 32 zero bits,
        followed by a *little-endian* 64-bit value. Note: this follows the Noise
        Protocol convention, rather than our normal endian.
 
   * `decryptWithAD(k, n, ad, ciphertext)`: outputs `decrypt(k, n, ad, ciphertext)`
-     * Where `decrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant)
+     ** Where `decrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant)
        with the passed arguments, with nonce `n` encoded as 32 zero bits,
        followed by a *little-endian* 64-bit value.
 
   * `generateKey()`: generates and returns a fresh `secp256k1` keypair
-     * Where the object returned by `generateKey` has two attributes:
-         * `.pub`, which returns an abstract object representing the public key
-         * `.priv`, which represents the private key used to generate the
+     ** Where the object returned by `generateKey` has two attributes:
+         *** `.pub`, which returns an abstract object representing the public key
+         *** `.priv`, which represents the private key used to generate the
            public key
-     * Where the object also has a single method:
-         * `.serializeCompressed()`
+     ** Where the object also has a single method:
+         *** `.serializeCompressed()`
 
   * `a || b` denotes the concatenation of two byte strings `a` and `b`
 

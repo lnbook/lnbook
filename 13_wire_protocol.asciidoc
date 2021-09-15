@@ -1,0 +1,446 @@
+[[wire_protocol]]
+== Wire Protocol: Framing & Extensibility
+
+=== Introduction
+
+In this chapter, we'll dive into the wire protocol of the Lightning network,
+and also cover all the various extensibility levers that have been built into
+the protocol. By the end of this chapter, and aspiring reader should be able to
+write their very own wire protocol parser for the Lighting Network. In addition
+to being able to write a custom wire protocol parser, a reader of this chapter
+will gain a deep understanding with respect of the various upgrade mechanisms
+that have been built into the protocol.
+
+=== Wire Framing
+
+First, we being by describing the high level structure of the wire _framing_
+within the protocol. When we say framing, we mean the way that the bytes are
+packed on the wire to _encode_ a particular protocol message. Without knowledge
+of the framing system used in the protocol, a stirn go byters on the wirte would
+resemble a series of random bytes as no structure has been imposed. By applying
+proper framing to decode these bytes on the wire, we'll be able to extract
+structure and finally parse this structure into protocol messages within our
+higher-level language.
+
+It's important to note that as the Lightning Network is an _end to end
+encrypted_ protocol, the wire framing is itself encapsulated within an
+_encrypted_ message transport layer. As we learned in chapter XXX, the Lighting
+Network uses Brontide, a custom variant of the Noise protocol to handle
+transport encryption. Within this chapter, whenever we give an example of wire
+framing, we assume the encryption layer has already been stripped away (when
+decoding), or that we haven't yet encrypted the set of bytes before we send
+them on the wire (encoding).
+
+==== High-Level Wire Framing
+
+With that said, we're ready to being describe the high-level schema used to
+encode messages on the wire:
+
+  * Messages on the wire begin with a _2 byte_ type field, followed by a
+    message payload.
+  * The message payload itself, can be up to 65 KB in size.
+  * All integers are encoded in big-endian (network order).
+  * Any bytes that follow after a defined message can be safely ignored.
+
+Yep, that's it. As the protocol relies on an _encapsulating_ transport protocol
+encryption layer, we don't need an explicit length for each message type. This
+is due to the fact that transport encryption works at the _message_ level, so
+by the time we're ready to decode the next message, we already know the total
+number of bytes of the message itself. Using 2 bytes for the message type
+(encoded in big-endian) means that the protocol can have up to `2^16 - 1` or
+`65535` distinct messages. Continuing, as we know all messages _MUST_ be below
+65KB, this simplifies our parsing as we can use a _fixed_ sized buffer, and
+maintain strong bounds on the total amount of memory required to parse an
+incoming wire message.
+
+The final bullet point allows for a degree of _backwards_ compatibility, as new
+nodes are able to provide information in the wire messages that older nodes
+(which may not understand them can safely ignore). As we'll see below, this
+feature combined with a very flexible wire message extensibility format also
+allows the protocol to achieve _forwards_ compatibility as well.
+
+==== Type Encoding
+
+With this high level background provided, we'll now start at the most primitive
+layer: parsing primitive types. In addition to encoding integers, the Lightning
+Protocol also allows for encoding of a vast array of types including: variable
+length byte slices, elliptic curve public keys, Bitcoin addresses, and
+signatures. When we describe the _structure_ of wire messages later in this
+chapter, we'll refer to the high-level type (the abstract type) rather than the
+lower level representation of said type. In this section, we'll peel back this
+abstraction layer to ensure our future wire parser is able to properly
+encoding/decode any of the higher level types.
+
+In the following table, we'll map the higher-level name of a given type to the
+high-level routine used to encode/decode the type.
+
+.High-level message types
+[options="header"]
+|================================================================================
+| High Level Type | Framing | Comment
+| `node_alias` | A 32-byte fixed-length byte slice.      | When decoding, reject if contents are not a valid UTF-8 string.
+| `channel_id` | A 32-byte fixed-length byte slice that maps an outpoint to a 32 byte value.      | Given an outpoint, one can convert it to a `channel_id` by taking the txid of the outpoint and XOR'ing it with the index (interpreted as the lower 2 bytes).
+| `short_chan_id` | An unsigned 64-bit integer (`uint64`) | Composed of the block height (24 bits), transaction index (24 bits), and output index (16 bits) packed into 8 bytes.
+| `milli_satoshi` | An unsigned 64-bit integer (`uint64`) | Represents 1000th of a satoshi.
+| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin.
+| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin.
+| `pubkey`  | An secp256k1 public key encoded in _compressed_ format, occupying 33 bytes. | Occupies a fixed 33-byte length on the wire.
+| `sig`     | An ECDSA signature of the secp256k1 Elliptic Curve. | Encoded as a _fixed_ 64-byte byte slice, packed as `R \|\| S`
+| `uint8`   | An 8-bit integer.  |
+| `uint16`  | A 16-bit integer.  |
+| `uint64`  | A 64-bit integer.  |
+| `[]byte`  | A variable length byte slice. | Prefixed with a 16-bit integer denoting the length of the bytes.
+| `color_rgb` | RGB color encoding. | Encoded as a series if 8-bit integers.
+| `net_addr` | The encoding of a network address. | Encoded with a 1 byte prefix that denotes the type of address, followed by the address body.
+|================================================================================
+
+In the next section, we'll describe the structure of each of the wire messages
+including the prefix type of the message along with the contents of its message
+body.
+
+==== Type Length Value (TLV) Message Extensions
+
+Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
+and if while parsing a messages, extra bytes are left over, then those bytes
+are to be _ignored_. At an initial glance, this requirement may appear to be
+somewhat arbitrary, however upon close inspection it's actually the case that
+this requirement allows for de-coupled de-synchronized evolution of the Lighting
+Protocol itself. We'll opine further upon this notion towards the end of the
+chapter. First, we'll turn our attention to exactly what those "extra bytes" at
+the end of a message can be used for.
+
+===== The Protcol Buffer Message Format
+
+The Protocol Buffer (protobuf) message serialization format started out as an
+internal format used at Google, and has blossomed into one of the most popular
+message serialization formats used by developers globally. The protobuf format
+describes how a message (usually some sort of data structure related to an API)
+is to be encoded on the wire and decoded on the other end. Several "protobuf
+compilers" exists in dozens of languages which act as a bridge that allows any
+language to encode a protobuf that will be able to decode by a compliant decode
+in another language. Such cross language data structure compatibility allows
+for a wide range of innovation it's possible to transmit structure and even
+typed data structures across language and abstraction boundaries.
+
+Protobufs are also known for their _flexibility_ with respect to how they
+handle changes in the underlying messages structure. As long as the field
+numbering schema is adhered to, then it's possible for a _newer_ write of
+protobufs to include information within a protobuf that may be unknown to any
+older readers. When the old reader encounters the new serialized format, if
+there're types/fields that it doesn't understand, then it simply _ignores_
+them. This allows old clients and new clients to _co-exist_, as all clients can
+parse _some_ portion of the newer message format.
+
+===== Forwards & Backwards Compatibility
+
+Protobufs are extremely popular amongst developers as they have built in
+support for both _forwards_ and _backwards_ compatibility. Most developers are
+likely familiar with the concept of backwards computability. In simple terms,
+the principles states that any changes to a message format or API should be
+done in a manner that doesn't _break_ support for older clients. Within our
+protobuf extensibility examples above, backwards computability is achieved by
+ensuring that new additions to the proto format don't break the known portions
+of older readers. Forwards computability on the other hand is just as important
+for de-synchronized updates however it's less commonly known. For a change to
+be forwards compatible, then clients are to simply _ignore_ any information
+they don't understand. The soft for mechanism of upgrading the Bitcoin
+consensus system can be said to be both forwards and backwards compatible: any
+clients that don't update can still use Bitcoin, and if they encounters any
+transactions they don't understand, then they simply ignore them as their funds
+aren't using those new features.
+
+===== Lighting's Protobuf Inspired Message Extension Format: `TLV`
+
+In order to be able to upgrade messages in both a forwards and backwards
+compatible manner, in addition to feature bits (more on that later), the LN
+utilizes a _Custom_ message serialization format plainly called: Type Length
+Value, or TLV for short. The format was inspired by the widely used protobuf
+format and borrows many concepts by significantly simplifying the
+implementation as well as the software that interacts with message parsing. A
+curious reader might ask "why not just use protobufs"? In response, the
+Lighting developers would respond that we're able to have the best of the
+extensibility of protobufs while also having the benefit of a smaller
+implementation and thus attacks surface in the context of Lightning. As of
+version v3.15.6, the protobuf compiler weighs in at over 656,671 lines of code.
+In comparison lnd's implementation of the TLV message format weighs in at only
+2.3k lines of code (including tests).
+
+With the necessary background presented, we're now ready to describe the TLV
+format in detail. A TLV message extension is said to be a _stream_ of
+individual TLV records. A single TLV record has three components: the type of
+the record, the length of the record, and finally the opaque value of the
+record:
+
+  * `type`: An integer representing the name of the record being encoded.
+  * `length`: The length of the record.
+  * `value`: The opaque value of the record.
+
+Both the `type` and `length` are encoded using a variable sized integer that's
+inspired by the variable sized integer (varint) used in Bitcoin's p2p protocol,
+this variant is called `BigSize` for short. In its fullest form, a `BigSize`
+integer can represent value up to 64-bits. In contrast to Bitcoin's varint
+format, the `BigSize format instead encodes integers using a _big endian_ byte
+ordering.
+
+The `BigSize` varint has the components: the discriminant and the body. In the
+context of the `BigSize` integer, the discriminant communicates to the decoder
+the _size_ of the variable size integer. Remember that the uniquer thign about
+variable sized integers is that they allow a parser to use less bytes to encode
+smaller integers than larger ones. This allows message formats to safe space, as
+they're able to minimally encode numbers from 8 to 6-bits. Encoding a `BigSize`
+integer can be defined using a piece-wise function that branches based on the
+size of the integer to be encoded.
+
+  * If the value is _less than_ `0xfd` (`253`):
+    ** Then the discriminant isn't really used, and the encoding is simply the
+      integer itself.
+
+    ** This value allows us to encode very small integers with no additional
+      overhead
+
+  * If the value is _less than or equal to_ `0xffff` (`65535`):
+    ** Then the discriminant is encoded as `0xfd`, which indicates that the body is
+      that follows is larger than `0xfd`, but smaller than `0xffff`).
+
+    ** The body is then encoded as a _16-bit_ integer. Including the
+      discriminant, then we can encode a value that is greater than 253, but
+      less than 65535 using `3 bytes`.
+
+  * If the value is less than `0xffffffff` (`4294967295`):
+    ** Then the discriminant is encoded as `0xfe`.
+
+    ** The body is encoded using _32-bit_ integer, Including the discriminant,
+     then we can encode a value that's less than `4,294,967,295` using _5
+      bytes_.
+
+  * Otherwise, we'll just encode the value as a fully _64-bit_ integer.
+
+
+Within the context of a TLV message,
+values below `2^16` are said to be _reserved_ for future use. Values beyond this
+range are to be used for "custom" message extensions used by higher-level
+application protocols. The `value` is defined in terms of the `type`. In other
+words, it can take any forma s parzers will attempt to coalsces it into a
+higher-level types (such as a signatture) depending on the context of the type
+itself.
+
+One issue with the protobuf format is the encodes of the same message may
+output an entirely different set of bytes when encoded by two different
+versions of the compiler. Such instances of a non-cannonical encoding are not
+acceptable within teh context of Lighting, was many messages contain a
+signature of the message digest. If it's possible for a message to be encoded
+in two different ways, then it would be possible to break the authentication of
+a signature inadvertently by re-encoding a message using a slightly different
+set of bytes on the wire.
+
+In order to ensure that all encoded messages are canonical, the following
+constraints are defined when encoding:
+
+  * All records within a TLV stream MUST be encoded in order of strictly
+    increasing type.
+
+  * All records must _minimally encode_ the `type` and `length` fields. In
+    orther woards, the smallest BigSIze representation for an integer MUST be
+    used at all times.
+
+  * Each `type` may only appear _once_ within a given TLV stream.
+
+In addition to these writing requirements a series of higher-level
+interpretation requirements are also defined based on the _arity_ of a given
+`type` integer. We'll dive further into these details towards the end of the
+chapter once we dsecribe how the Lighting Protocol is upgraded in practice and
+in theory.
+
+=== Feature Bits & Protocol Extensibility
+
+As the Lighting Network is a decentralized system, no one entity can enforce a
+protocol change or modification upon all the users of the system. This
+characteristic is also seen in other decentralized networks such as Bitcoin.
+However, unlike Bitcoin overwhelming consensus *is not* require to change a
+subset of the Lightning Network. Lighting is able to evolve at will without a
+strong requirement of coordination, as unlike Bitcoin, there is no *global&
+consensus required in the Lightning Network. Due to this fact and the several
+upgrade mechanisms embedded in the Lighting Network, at most, only the
+participants that wish to use these new Lighting Network feature need to
+upgrade, and then they are able to interact w/ each other.
+
+In this section, we'll explore the various ways that developers and users are
+able to design, roll out, deploy new features to the Lightning Network. The
+designers of the origin Lightning Network knew at the time of drafting the
+initial specification, that there were many possible future directions the
+network could evolves towards. As a results, they made sure to emplace several
+extensibility mechanisms within the network which can be used to upgrade the
+network partially or fully in a decoupled, desynchronized, decentralized
+manner.
+
+==== Feature Bits as an Upgrade Discoverability Mechanism
+
+An astute reader may have noticed the various locations that "feature bits" are
+included within the Lightning Protocol. A "feature bit" is a bitfield that can
+be used to advertise understanding or adherence to a possible network protocol
+update. Feature bits are commonly assigned in *pairs*, meaning that each
+potential new feature/upgrade always defines *two* bits within the bitfield.
+One bit signals that the advertised feature is _optional_, meaning that the
+node knows a about the feature, and can use it if compelled, but doesn't
+consider it required for normal operation. The other bit signals that the
+feature is instead *required*, meaning that the node will not continue
+operation if a prospective peer doesn't understand that feature.
+
+Using these two bits optional and required, we can construct a simple
+compatibility matrix that nodes/users can consult in order to determine if a
+peer is compatible with a desired feature:
+
+.Feature Bit Compatability Matrix
+[options="header"]
+|========================================================
+|Bit Type|Remote Optional|Remote Required|Remote Unknown
+|Local Optional|✅|✅|✅
+|Local Required|✅|✅|❌
+|Local Unknown|✅|❌|❌
+|========================================================
+
+From this simplified compatibility matrix, we can see that as long as the other
+party *knows* about our feature bit, then can interact with them using the
+protocol. If the party doesn't even know about what bit we're referring to
+*and* they require the feature, then we are incompatible with them. Within the
+network, optional features are signalled using an _odd bit number_ while
+required feature are signalled using an _even bit number_. As an example, if a
+peer signals that they known of a feature that uses bit _15_, then we know that
+this is an _optional_ feature, and we can interact with them or respond to
+their messages even if we don't know about the feature. On the other hand, if
+they instead signalled the feature using bit _16_, then we know this is a
+required feature, and we can't interact with them unless our node also
+understands that feature.
+
+The Lighting developers have come up with an easy to remember phrase that
+encodes this matrix: "it's OK to be odd". This simple rule set allows for a
+rich set of interactions within the protocol, as a simple bitmask operation
+between two feature bit vectors allows peers to determine if certain
+interactions are compatible with each other or not. In other words, feature
+bits are used as an upgrade discoverability mechanism: they easily allow to
+peers to understand if they are compatible or not based on the concepts of
+optional, required, and unknown feature bits.
+
+Feature bits are found in the: `node_announcement`, `channel_announcement`, and
+`init` messages within the protocol. As a result, these three messages can be
+used to *signal* the knowledge and/or understanding of in-flight protocol
+updates within the network. The feature bits found in the `node_announcement`
+message can allow a peer to determine if their _connections_ are compatible or
+not. The feature bits within the `channel_announcement` messages allows a peer
+to determine if a given payment ype or HTLC can transit through a given peer or
+not. The feature bits within the `init` message all peers to understand kif
+they can maintain a connection, and also which features are negotiated for the
+lifetime of a given connection.
+
+==== Utilizing TLV Records for Forwards+Backwards Compatibility
+
+As we learned earlier in the chapter, Type Length Value, or TLV records can be
+used to extend messages in a forwards and backwards compatible manner.
+Overtime, these records have been used to _extend_ existing messages without
+breaking the protocol by utilizing the "undefined" area within a message beyond
+that set of known bytes.
+
+As an example, the original Lighting Protocol didn't have a concept of the
+_largest_ HTLC that could traverse through a channel as dictated by a routing
+policy. Later on, the `max_htlc` field was added to the `channel_update`
+message to phase in such a concept over time. Peers that held a
+`channel_update` that set such a field but didn't even know the upgrade existed
+where unaffected by the change, but may see their HTLCs rejected if they are
+beyond the said limit. Newer peers on the other hand are able to parse, verify
+and utilize the new field at will.
+
+Those familiar with the concept of soft-forks in Bitcoin may now see some
+similarities between the two mechanism.  Unlike Bitcoin consensus-level
+soft-forks, upgrades to the Lighting Network don't require overwhelming
+consensus in order to adopt. Instead, at minimum, only two peers within the
+network need to understand new upgrade in order to start utilizing it without
+any permission. Commonly these tow peers may be the receiver and sender of a
+payment, or it may the initiator and responder of a new payment channel.
+
+==== A Taxonomy of Upgrade Mechanisms
+
+Rather than there being a single widely utilized upgrade mechanism within the
+network (such as soft forks for base layer Bitcoin), there exist a wide
+gradient of possible upgrade mechanisms within the Lighting Network. In this
+section, we'll enumerate the various upgrade mechanism within the network, and
+provide a real-world example of their usage in the past.
+
+===== Internal Network Upgrades
+
+We'll start with the upgrade type that requires the most extra protocol-level
+coordination: internal network upgrades. An internal network upgrade is
+characterized by one that requires *every single node* within a prospective
+payment path to understand the new feature. Such an upgrade is similar to any
+upgrade within the known internet that requires hardware level upgrades within
+the core relay portion of the upgrade. In the context of LN however, we deal
+with pure software, so such upgrades are easier to deploy, yet they still
+require much more coordination than any other upgrade type utilize within the
+network.
+
+One example of such an upgrade within the network was the move to using a TLV
+encoding for the routing information encoded within the onion encrypted routing
+packets utilized within the network. The prior format used a hand encoded
+format to communicate information such as the next hop to send the payment to.
+As this format was _fixed_ it meant that new protocol-level upgrades such as
+extensions that allowed feature such as packet switching weren't possible
+without. The move to encoding the information using the more flexible TLV
+format meant that after the single upgrade, then any sort of feature that
+modified the _type_ of information communicated at each hop could be rolled out
+at will.
+
+It's worth mentioning that the TLV onion upgrade was a sort of "soft" internal
+network upgrade, in that if a payment wasn't using any _new_ feature beyond
+that new routing information encoding, then a payment could be transmitted
+using a _mixed_ set of nodes, as no new information would be transmitted that
+are required to forward the payment. However, if a new upgrade type instead
+changed the _HTLC_ format, then the entire path would need to be upgraded,
+otherwise the payment wouldn't be able to be fulfilled.
+
+===== End to End Upgrades
+
+To contrast the internal network upgrade, in this section we'll describe the
+_end to end_ network upgrade. This upgrade type differs from the internal
+network upgrade in that it only requires the "ends" of the payment, the sender
+and receiver to upgrade in order to be utilized. This type of upgrade allows
+for a wide array of unrestricted innovation within the network, as due to the
+onion encrypted nature of payments within the network, those forwarding HTLCs
+within the center of the network may not even know that new feature are being
+utilized.
+
+One example of an end to end upgrade within the network was the roll out of
+MPP, or multi-path payments. MPP is a protocol-level feature that enables a
+single payment to be split into multiple parts or paths, to be assembled at the
+receiver for settlement. The roll out our MPP was coupled with a new
+`node_announcement` level feature bit that indicates that the receiver knows
+how to handle partial payments. Assuming a sender and receiver know about each
+other (possibly via a BOLT 11 invoice), then they're able to use the new
+feature without any further negotiation.
+
+Anothert example of an end to end upgrade are the various types of
+_spontaneous_ payments deployed within the network. One early type of
+spontaneous payments called "keysend" worked by simply placing the pre-image of
+a payment within the encrypted onion packet that is only decrypted by the
+destination o of the payment. Upon receipt, the destination would decrypt the
+pre-image, then use that to settle the payment. As the entire packet is end to
+end encrypted, this payment type was safe, since none of the intermediate nodes
+are able to fully unwrap the onion to uncover the payment pre-image that
+corresponded to that payment hash.
+
+===== Channel Construction Level Updates
+
+The final broad category of updates within the network are those that happen at
+the channel construction level, but which don't modify the structure of the
+HTLC used widely within the network. When we say channel construction, we mean
+_how_ the channel is funded or created. As an example, the eltoo channel type
+can be rolled out within the network using a new `node_announcement` level
+feature bit as well as a `channel_announcement` level feature bit. Only the two
+peers on the sides of the channels needs to understand and advertise these new
+features. This channel pair can then be used to forward any payment type
+granted the channel supports it.
+
+The "anchor outputs" channel format which allows the commitment fee to be
+bumped via CPFP, and second-level HTLCs aggregated amongst other transactions
+was rolled out in such a manner. Using the implicit feature bit negotiation, if
+both sides established a connection, and advertised knowledge of the new
+channel type, then it would be used for any future channel funding attempts in
+that channel.
