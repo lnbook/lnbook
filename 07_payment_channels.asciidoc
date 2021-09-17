@@ -537,6 +537,25 @@ OP_CHECKSIG
 
 This is a conditional script (see <<conditional_scripts>>), which means the output can be spent if _either_ of the two conditions is met. The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. The second clause is timelocked by +<to_self_delay>+ blocks and can only be spent after that many blocks by anyone who can sign for +<local_delayedpubkey>+. In our example, we had set the +<to_self_delay>+ timelock to 432 blocks, but this is a configurable delay that is negotiated by the two channel partners. The +to_self_delay+ timelock duration is usually chosen in proportion to the channel capacity, meaning that larger capacity channels (more funds), have longer +to_self_delay+ timelocks to protect the parties.
 
+The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. A critical requirement to the security of this script is that the remote party *cannot* unilaterally sign with the `revocationpubkey`. To see why this is important, consider the scenario where the remote party breaches a previously revoked commitment, if they can sign with this key, then they can simply take the revocation clause _themselves_ and steal all the funds in the channel. Instead, we derive the `revocationpubkey` for _each_ state based on information from _both_ the self (local) and remote party. A clever use of symmetric and asymmetric cryptography is used to allow both sides to compute the `revocationpubkey` public key, but only the honest self party to compute the private key given their secret information.
+[TIP]
+====
+As shown above, each side sends a `revocation_basepoint` during the initial channel negotiation messages as well as a `first_per_commitment_point`. The `revocation_basepoint` is static for the lifetime of the channel, while each new channel state will be based off a new `first_per_commitment_point`. 
+
+Given this information, the `revocationpubkey` for each channel state is derived via the following series of Elliptic Curve and hashing operations: `revocationpubkey = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)`. 
+
+Due to the commutative property of the Abelian groups that Elliptic Curves are defined over, once the `per_commitment_secret` (the private key for the `per_commitment_point`) is revealed by the remote party, self can derive the private key for the `revocationpubkey` with the following operation: `per_commitment_secret = (revocationbase_priv * sha256(revocationpubkey || per_commitment_point)) + (per_commitment_secret * sha256(per_commitment_point || revocation_basepoint)) mod N`.
+
+To see why this works in practice, notice that we can _re order_ (commute) and expand the public key computation of the original formula for `revocation_basepoint`:
+```
+revocation_priv = G*(revocationbase_priv * sha256(revocation_basepoint || per_commitment_point) + G*(per_commitment_secret * sha256(per_commitment_point || revocation_basepoint))
+                 = G*(revocationbase_priv + sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint))
+```
+
+In other words, the `revocationbase_priv` can only be derived (and used to sign for the `revocationpubkey` by the party that knows _both_ the `revocationbase_priv` _and_ the `per_commitment_secret`. This little trick is what makes the public-key based revocation system used in the Lightning Network secure.
+====
+
+
 [TIP]
 ====
 The timelock used in the commitment transaction with +CHECKSEQUENCEVERIFY+ is a _relative timelock_. It counts elapsed blocks from the confirmation of this output. That means it will not be spendable until +to_self_delay+ blocks _after_ this commitment transaction is broadcast and confirmed.
