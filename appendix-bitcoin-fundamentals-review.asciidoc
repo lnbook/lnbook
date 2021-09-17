@@ -195,7 +195,7 @@ Since transactions are chained, if you pick a transaction at random, you can fol
 
 ==== TxID: Transaction identifiers
 
-Every transaction in the Bitcoin system is identified by a unique identifier, called the _transaction ID_ or _TxID_ for short. To produce a unique identifier, we use the SHA-256 cryptographic hash function to produce a hash of the transaction's data. This "fingerprint" serves as a universal identifier. A transaction can be referenced by its transaction ID and once a transaction is recorded on the Bitcoin blockchain, every node in the Bitcoin network knows that this transaction is valid.
+Every transaction in the Bitcoin system is identified by a unique identifier (assuming the existence of BIP-0030), called the _transaction ID_ or _TxID_ for short. To produce a unique identifier, we use the SHA-256 cryptographic hash function to produce a hash of the transaction's data. This "fingerprint" serves as a universal identifier. A transaction can be referenced by its transaction ID and once a transaction is recorded on the Bitcoin blockchain, every node in the Bitcoin network knows that this transaction is valid.
 
 For example, a transaction ID might look like this:
 
@@ -267,7 +267,7 @@ _Locking scripts_ are embedded in transaction outputs, setting the conditions th
 
 _Unlocking scripts_ are embedded in transaction inputs, fulfilling the conditions set by the referenced output's locking script. For example, Bob can unlock the output above by providing an unlocking script containing a digital signature.
 
-For validation, the unlocking script and locking script are concatenated and executed. For example, if someone locked a transaction output with the locking script +"3 ADD 5 EQUAL"+, we could spend it with the unlocking script "+2+" in a transaction input. Anyone validating that transaction would concatenate our unlocking script (+2+) and the locking script (+3 ADD 5 EQUAL+) and run the result through the Bitcoin Script execution engine. They would get +TRUE+ and we would be able to spend the output.
+Using a simplified model, for validation, the unlocking script and locking script are concatenated and executed (P2SH and Segwit are exceptions). For example, if someone locked a transaction output with the locking script +"3 ADD 5 EQUAL"+, we could spend it with the unlocking script "+2+" in a transaction input. Anyone validating that transaction would concatenate our unlocking script (+2+) and the locking script (+3 ADD 5 EQUAL+) and run the result through the Bitcoin Script execution engine. They would get +TRUE+ and we would be able to spend the output.
 
 Obviously, this simplified example would make a very poor choice for locking an actual Bitcoin output because there is no secret, just basic arithmetic. Anyone could spend the output by providing the answer "2". Most locking scripts therefore require demonstrating knowledge of a secret.
 
@@ -391,7 +391,7 @@ Another important building block that exists in Bitcoin and is used extensively 
 
 Bitcoin has two levels of timelocks: transaction-level timelocks and output-level timelocks.
 
-A transaction-level timelock is recorded in the transaction header and prevents the entire transaction from being accepted before the timelock has passed. Transaction-level timelocks are most often used in conjunction with output-level timelocks.
+A transaction-level timelock is recorded in the transaction `nLockTime` field of the transaction and prevents the entire transaction from being accepted before the timelock has passed. Transaction-level locktimes are the most commonly used lock time mechanism in Bitcion today.
 
 An output-level timelock is created by a script operator. There are two types of output timelocks: _absolute timelocks_ and _relative timelocks_.
 
@@ -399,6 +399,7 @@ Output-level absolute timelocks are implemented by the operator +CHECKLOCKTIMEVE
 
 Output-level relative timelocks are implemented by the operator +CHECKSEQUENCEVERIFY+, often shortened in conversation as _CSV_. Relative timelocks implement a spending constraint that is relative to the confirmation of the transaction, expressing the equivalent of "can't be spent until 1024 blocks after confirmation".
 
+[[conditional_scripts]]
 ==== Scripts with multiple conditions
 
 One of the more powerful features of Bitcoin Script is flow control, also known as conditional clauses. You are probably familiar with flow control in various programming languages that use the construct +IF...THEN...ELSE+. Bitcoin conditional clauses look a bit different, but are essentially the same construct.

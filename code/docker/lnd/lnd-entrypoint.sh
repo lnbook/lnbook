@@ -14,5 +14,4 @@ echo "Startup complete"
 echo "Funding lnd wallet"
 source /usr/local/bin/fund-lnd.sh
 
-echo "$@"
 exec "$@"

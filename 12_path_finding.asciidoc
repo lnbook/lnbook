@@ -1,0 +1,440 @@
+[[path_finding]]
+== Path Finding and Payment Delivery
+
+Payment delivery on the Lightning Network depends on finding a path from the sender to the recipient, a process called _path finding_.
+
+=== Path finding in the Lightning protocol suite
+
+Path finding, path selection, multi-path payments (MPP) and the payment attempt trial & error loop occupy the majority of the "Payment Layer" at the top of the protocol suite.
+
+These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_pathfinding_highlight>>:
+
+[[LN_protocol_routing_highlight]]
+.The Lightning Network Protocol Suite
+image::images/LN_protocol_routing_highlight.png["The Lightning Network Protocol Suite"]
+
+==== Where is the BOLT?
+
+So far we've looked at several technologies that are part of the Lightning Network and we have seen their exact specification as part of a BOLT standard. You may be surprised to find that path finding is not part of the BOLTs!
+
+That's because path finding isn't an activity that requires any form of coordination or interoperability between different implementations. As we've seen, the path is selected by the sender. Even though the routing details are specified in detail in the BOLTs, the path discovery and selection are left entirely up to the sender. So each node implementation can choose a different strategy/algorithm to find paths. In fact, the different node/client and wallet implementations can even compete and use their path finding algorithm as a point of differentiation.
+
+=== Path finding: what problem are we solving?
+
+The term path finding may be somewhat misleading, because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
+
+But, as the Lightning Network has grown explosively, the path finding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2000 channels _each_. A visualization of just a small subset of the Lightning Network channel graph (as of July 2021) is shown in <<lngraph>>:
+
+[[lngraph]]
+image::images/LNGraphJuly2021.png[]
+
+[NOTE]
+====
+The network visualization above was produced with a simple python script you can find in code/lngraph in the book's repository
+====
+
+If the sender and recipient are connected to other well-connected nodes and have at least one channel with adequate capacity - there will be thousands of paths. The problem becomes: selecting the _best_ path that will succeed in payment delivery, out of a list of thousands of possible paths.
+
+==== Selecting the best path
+
+To select the "best" path, we have to first define what we mean by "best". There may be many different criteria such as:
+
+* Paths with enough liquidity. Obviously if a path doesn't have enough liquidity to route our payment, then it is not a suitable path.
+
+* Paths with low fees. If we have several candidates, we may want to select ones with lower fees.
+
+* Paths with short timelocks. We may want to avoid locking our funds for too long and therefore select paths with shorter timelocks.
+
+All of these criteria may be desirable to some extent and selecting paths that are favorable across many dimensions is not an easy task. Optimization problems like this may be too complex to solve for the "best" solution, but often can be solved for some approximation of the optimal. Which is good news, because otherwise path finding would be an intractable problem.
+
+
+==== Path finding in math and computer science
+
+Path finding in the Lightning Network falls under a general category of _graph theory_ in mathematics and the more specific category of _graph traversal_ in computer science.
+
+A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel balance is split between the two channel partners and the payment liquidity is different in each direction. A directed graph with numerical capacity constrains on its edges is called a _flow network_, a mathematical construct used to optimize transportation and other similar networks. Flow networks can be used as a framework when solutions need to achieve a specific flow while minimizing cost, known as the Minimum Cost Flow Problem (MCFP).
+
+==== Capacity, balance, liquidity
+
+In order to better understand the problem of transporting satoshis from point A to point B, we need to better define three important terms: capacity, balance, and liquidity. We use these terms to describe a payment channel's ability to route a payment.
+
+In a payment channel connecting A<-->B:
+
+Capacity:: This is the aggregate amount of satoshis that were funded into the 2-of-2 multisig with the funding transaction. It represents the maximum amount of value is held in the channel. The channel capacity is announced by the gossip protocol and is known to nodes.
+
+Balance:: This is the amount of satoshis held by each channel partner that can be sent to the other channel partner. A subset of the balance of A, can be sent in the direction (A--->B) towards node B. A subset of the balance of B can be sent in the opposite direction (A<---B).
+
+Liquidity:: The available (subset) balance that can actually be sent across the channel in one direction. Liquidity of A is equal to the balance of A minus the channel reserve and any pending HTLCs committed by A.
+
+The only value known to the network (via gossip announcements) is the aggregate capacity of the channel. Some unknown portion of that capacity is distributed as each partners balance. Some subset of that balance is available to send across the channel in one direction:
+
+----
+capacity = balance(A) + balance(B)
+liquidity(A) = balance(A) - channel_reserve(A) - pending_HTLCs(A)
+----
+
+==== Uncertainty of balances
+
+If we knew the exact channel balances of every channel, we could compute one or more payment paths using any of the standard path finding algorithms taught in good computer science programs. But we don't know the channel balances, we only know the aggregate channel capacity, which is advertised by nodes in channel announcements. In order for a payment to succeed, there must be adequate balance on the sending side of the channel. If we don't know how the capacity is distributed between the channel partners, we don't know if there is enough balance in the direction we are trying to send the payment.
+
+Balances are not announced in channel updates for two reasons: privacy and scalability. First, announcing balances would reduce the privacy of the Lightning Network as it would allow surveillance of payment by statistical analysis of the changes in balances. Second, if nodes announced balances (globally) with every payment, the Lightning Network's scaling would be as bad as that of on-chain Bitcoin transactions which are broadcast to all participants. Therefore, balances are not announced. To solve the path finding problem in the face of uncertainty of balances, we need innovative path finding strategies. These strategies must relate closely to the routing algorithm that is used, which is source-based onion-routing where it is the responsibility of the sender to find a path through the network.
+
+The uncertainty problem can be described mathematically as a _range of liquidity_, indicating the lower and upper bounds of liquidity based on the information that is known. Since we know the capacity of the channel and we know the channel reserve balance (the minimum allowed balance on each end), the liquidity can be defined as:
+
+----
+min(liquidity) = channel_reserve
+max(liquidity) = capacity - channel_reserve
+----
+
+or as a range:
+
+----
+channel_reserve <= liquidity <= (capacity - channel_reserve)
+----
+
+Our channel liquidity uncertainty range is the range between the minimum and maximum possible liquidity. This is unknown to the network, except the two channel partners. However, as we will see we can use failed HTLCs returned from our payment attempts to update our liquidity estimate and reduce uncertainty. If for example we get an HTLC failure code that tells us that a channel cannot fulfill an HTLC that is smaller than our estimate for maximum liquidity, that means the maximum liquidity can be updated to the amount of the failed HTLC. In simpler terms, if we think the liquidity can handle an HTLC of N satoshis and we find out it fails to deliver M satoshis (where M is smaller), then we can update our estimate to M-1 as the upper bound. We tried to find the ceiling and bumped against it, so it's lower than we thought!
+
+==== Path finding complexity
+
+Finding a path through a graph is a problem modern computers can solve rather efficiently.
+Developers mainly choose breadth-first search if the edges are all of equal weight.
+In cases where the edges are not of equal weight, an algorithm based on Dijkstra Algorithm is used, such as A* ("a-star") or
+In our case the weights of the edges can represent the routing fees.
+Only edges with a capacity larger than the amount to be sent will be included in the search.
+In this basic form, path finding in the Lightning network is very simple and straight forward.
+
+However, channel liquidity is unknown to the sender. This turns our easy theoretical computer science problem into a rather complex real-world problem.
+We now have to solve a path finding problem with only partial knowledge.
+For example, we suspect which edges might be able to forward a payment because their capacity seems big enough.
+But we can't be certain unless we try it out or ask the channel owners directly.
+Even if we were able to ask the channel owners directly, their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
+Not only do we have limited information but the information we have is highly dynamic and might change at any point in time without our knowledge.
+
+==== Keeping it simple
+
+The path finding mechanism implemented in Lightning nodes is to first create a list of candidate paths, filtered and sorted by some function. Then, the node or wallet will probe paths (by attempting to deliver a payment) in a trial-and-error loop until a path is found that successfully delivers the payment.
+
+[NOTE]
+====
+This probing is done by the Lightning node or wallet and is not directly observed by the user of the software.
+However, the user might suspect that probing is taking place if the payment is not completed instantly.
+====
+
+While "blind probing" is not optimal and leaves ample room for improvement, it should be noted that even this simplistic strategy works surprisingly well for smaller payments and well-connected nodes.
+
+Most Lightning node and wallet implementations improve on this approach, by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees), or some combination of cost/capacity.
+
+=== Path finding and payment delivery process
+
+Path finding and payment delivery involves several steps, which we list below. Different implementations may use different algorithms and strategies, but the basic steps are likely to be very similar:
+
+* Create a _channel graph_ from announcements and updates, containing the capacity of each channel.
+
+* Filter the graph ignoring any channels with insufficient capacity for the amount we want to send.
+
+* Find paths connecting the sender to the recipient.
+
+* Order the paths by some weight (this may be part of the previous step's algorithm).
+
+* Try each path in order until payment succeeds. (the trial-and-error loop)
+
+* Optionally use the HTLC failure returns to update our graph, reducing uncertainty
+
+We can group these steps into three primary activities:
+
+1. Channel graph construction
+2. Path finding (filtered and ordered by some heuristics)
+3. Payment attempt(s)
+
+These three activities can be repeated in a _payment round_ if we use the failure returns to update the graph, or if we are doing multi-path payments (see <<mpp>>).
+
+In the next sections we will look at each of these steps in more detail, as well as more advanced payment strategies.
+
+==== Channel graph construction
+
+In <<gossip>> we covered the three main messages that nodes "gossip": +node_announcement+, +channel_announcement+, and +channel_update+. These three messages allow any node to gradually construct a "map" of the Lightning Network in the form of a _channel graph_. Each of these messages provides a critical piece of information for the channel graph:
+
+node_announcement:: This contains the information about a node on the Lightning Network, such as its node ID (public key), network address (e.g. IPv4/6 or Tor), capabilities/features etc.
+
+channel_announcement:: This contains the capacity and channel ID of a public (announced) channel between two nodes and proof of the channel's existence and ownership.
+
+channel_update:: This contains a node's fee and timelock (CLTV) expectations for routing an outgoing (from that node's perspective) payment over a specified channel.
+
+In terms of a mathematical graph, the node_announcement is the information needed to create the nodes or _vertices_ of the graph. The channel_announcement allows us to create the _edges_ of the graph representing the payment channels. Since each direction of the payment channel has its own balance, we create a directed graph. The channel_update allows us to incorporate fees and timelocks to set the _cost_ or _weight_ of the graph edges.
+
+Depending on the algorithm we will use for path finding, we may establish a number of different cost functions for the edges of the graph.
+
+For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the node_announcement and channel_announcement messages.
+
+In this chapter we will see how Selena attempts to find a path to pay Rashid 1,000,000 (1m) satoshis. To start, Selena is constructing a channel graph using the information from the Lightning Network gossip to discover nodes and channels. Selena will then explore her channel graph to find a path to send a payment to Rashid.
+
+This is _Selena's_ channel graph. There is no such thing as *the* channel graph, there is only ever *a channel graph* and it is always from the perspective of the node that has constructed it (see <<map_territory_relation>>).
+
+[TIP]
+====
+Selena does not contruct a channel graph only when sending a payment. Rather, Selena's node is _continuously_ building and updating a channel graph. From the moment Selena's node starts and connects to any peer on the network it will participate in the "gossip" and use every message to learn as much as possible about the network.
+====
+
+[[map_territory_relation]]
+.The map-territory relation
+****
+From Wikipedia's https://en.wikipedia.org/wiki/Map%E2%80%93territory_relation[_Map Territory Relation_], "The map–territory relation describes the relationship between an object and a representation of that object, as in the relation between a geographical territory and a map of it."
+
+The map territory relation is best illustrated in "Sylvie and Bruno Concluded", a short story by Lewis Carroll which describes a fictional map that is 1:1 scale of the territory it maps, therefore having perfect accuracy but becoming completely useless as it would cover the entire territory if unfolded.
+
+What does this mean for the Lightning Network? LN is the territory, and a channel graph is a map of that territory:
+
+While we could imagine a theoretical (Platonic ideal) channel graph that represents the complete, up-to-date map of the Lightning Network, such a map is simply the Lightning Network itself. Each node has its own channel graph which is constructed from announcements and is necessarily incomplete, incorrect, and out-of-date!
+
+The map can never completely and accurately describe the territory.
+****
+
+Selena listens to node_announcement messages and discovers 4 other nodes (in addition to Rashid, the intended recipient). The resulting graph represents a network of six nodes: (S)elena and (R)ashid are the (S)ender and (R)ecipient respectively; (A)lice, (B)ob, (X)avier and (Y)an are intermediary nodes. Selena's initial graph is just a list of nodes, shown in <<channel_graph_nodes>>:
+
+[[channel_graph_nodes]]
+.Node announcements
+image::images/channel_graph_nodes.png[]
+
+Selena also receives seven channel_announcement messages with the corresponding channel capacities, allowing her to construct a basic "map" of the network, shown in <<channel_graph_1>>, below:
+
+[[channel_graph_1]]
+.The channel graph
+image::images/channel_graph_1.png[]
+
+===== Uncertainty in the channel graph
+
+As you can see from <<channel_graph_1>>, Selena does not know any of the balances of the channels. Her initial channel graph contains the highest level of uncertainty.
+
+But wait: Selena does know *some* channel balances! She knows the balances of the channels that her own node has connected with other nodes. While this does not seem like much, it in fact very important information for constructing a path - Selena knows the actual liquidity of her own channels. Let's update the channel graph to show this information. We will use a "?" symbol to represent the unknown balances, as shown in <<channel_graph_2>>:
+
+[[channel_graph_2]]
+.Channel graph with known and unknown balances
+image::images/channel_graph_2.png[]
+
+While the "?" symbol seems ominous, a lack of certainty is not the same as complete ignorance. We can _quantify_ the uncertainty and _reduce_ it by updating the graph with the successful/failed HTLCs we attempt.
+
+Uncertainty can be quantified, because we know the maximum and minimum possible liquidity and can calculate probabilities for smaller (more precise) ranges.
+
+Once we attempt to send an HTLC we can learn more about channel balances: if we succeed, then the balance was *at least* sufficient to transport the specific amount. Meanwhile if we get a "temporary channel failure" error, the most likely reason is a lack of liquidity for the specific amount.
+
+[TIP]
+====
+You may be thinking "What's the point of learning from a successful HTLC?" After all, if it succeeded we're "done". But consider that we may be sending one part of a multi-part payment. We also may be sending other single-part payments within a short time. Anything we learn about liquidity is useful for the next attempt!
+====
+
+==== Liquidity uncertainty and probability
+
+To quantify the uncertainty of a channel's liquidity, we can apply probability theory. A basic model of the probability of payment delivery will lead to some rather obvious, but important, conclusions:
+
+* Smaller payments have a better chance of successful delivery across a path.
+
+* Larger capacity channels will give us a better chance of payment delivery for a specific amount.
+
+* The more channels (hops), the lower the chance of success.
+
+While these may be obvious, they have important implications, especially for the use of Multi-Path Payments (see <<mpp>>). The math is not difficult to follow.
+
+Let's use probability theory to see how we arrived at these conclusions.
+
+First, let's posit that a channel with capacity +c+ has liquidity on one side with an unknown value in the range of +(0, c)+ or "range between 0 and c". For example, if the capacity is +5+, then the liquidity will be in the range +(0, 5)+. Now, from this we see that if we want to send 5 satoshis, our chance of success is only 1 in 6 (16.66%), because we will only succeed if the liquidity is exactly 5.
+
+More simply, if the possible values for the liquidity are 0,1,2,3,4,5 only one of those six possible values will be sufficient to send our payment. To continue this example, if our payment amount was 3, then we would succeed if the liquidity was 3, 4, or 5. So our chances of success are 3 in 6 (50%). Expressed in math, the success probability function for a single channel is:
+
+latexmath:[P_c(a) = (c + 1 - a) / (c + 1)]
+
+where +a+ is the amount and +c+ is the capacity
+
+From the equation we see that if the amount is close to 0, the probability is close to 1 whereas if the amount exceeds the capacity, the probability is zero.
+
+In other words: "Smaller payments have a better chance of successful delivery" or "Larger capacity channels give us better chances of delivery for a specific amount" and "You can't send a payment on a channel with insufficient capacity".
+
+Now let's think about the probability of success across a path made of several channels. Let's say our first channel has 50% chance of success (P = 0.5). Then if our second channel has 50% chance of success (P = 0.5), it is intuitive that our overall chance is 25% (P = 0.25).
+
+We can express this as an equation that calculates the probability of a payment's success as the product of probabilities for each channel in the path(s):
+
+latexmath:[P_{payment} = \prod_{i=1}^n P_i]
+
+Where P_i_ is the probability of success over one path or channel, and P_payment_ is the overall probability of a successful payment over all the paths/channels.
+
+From the equation we see that since the probability of success over a single channel is always less than or equal to 1, the  probability across many channels will _drop exponentially_.
+
+In other words, "The more channels (hops) you use, the lower the chance of success".
+
+[NOTE]
+====
+There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels. Fundamental work about modeling the uncertainty intervals of the channel liquidity can be found in the paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by (co-author of this book) Pickhardt et. al.
+====
+
+==== Fees and other channel metrics
+
+Next, our sender will add information to the graph from +channel_update+ messages received from the intermediary nodes. As a reminder, the +channel_update+ contains a wealth of information about a channel and the expectations of one of the channel partners.
+
+In <<channel_graph_3>> below we see how Selena can update the channel graph based on +channel_update+ messages from A, B, X and Y. Note that the channel ID and channel direction (included in +channel_flags+) tells Selena which channel and which direction this update refers to. Each channel partner gossips one or more +channel_update+ messages to announce their fee expectations and other information about the channel. For example, in the top left we see the +channel_update+ sent by (A)lice for the channel A--B and the direction A-to-B. With this update, Alice tells the network how much she will charge in fees to route an HTLC to Bob over that specific channel. Bob may announce a channel update (not shown in this diagram) for the opposite direction with completely different fee expectations. Any node may send a new +channel_update+ to change the fees or timelock expectations at any time.
+
+[[channel_graph_3]]
+.Channel graph fees and other channel metrics
+image::images/channel_graph_3.png[]
+
+The fee and timelock information are very important not just as path selection metrics. As we saw in <<onion_routing>>, the sender needs to add up fees and timelocks (cltv_expiry_delta) at each hop to make the onion. The process of calculating fees happens from the recipient to the sender *backwards* along the path, because each intermediary hop expects an incoming HTLC with higher amount and expiry timelock than the outgoing HTLC they will send to the next hop. So, for example, if Bob wants 1000 satoshis in fees and 30 blocks of expiry timelock delta, to send a payment to Rashid, then that amount and expiry delta must be added to the HTLC _from Alice_.
+
+It is also important to note that a channel must have liquidity that is sufficient not only for the payment amount but also for the cumulative fees of all the subsequent hops. Even though Selena's channel to Xavier (S-->X) has enough liquidity for a 1m satoshi payment, it *does not* have enough liquidity once we consider fees. We need to know fees because only paths that have sufficient liquidity for *both payment and all fees* will be considered.
+
+==== Finding candidate paths
+
+Finding a suitable path through a directed graph like this is a well-studied computer science problem (known broadly as the "Shortest Path problem"), which can be solved by a variety of algorithms depending on the desired optimization and resource constraints.
+
+The most famous algorithm solving this problem was invented by Dutch mathematician E. W. Dijkstra in 1956, known simply as https://en.wikipedia.org/wiki/Dijkstra's_algorithm[_Dijkstra's Algorithm_]. In addition to the original Dijkstra algorithm, there are many variations and optimizations, such as https://en.wikipedia.org/wiki/A*_search_algorithm[A* ("A-star")], which is a heuristic-based algorithm.
+
+As mentioned previously, the "search" must be applied _backwards_ to account for fees that are accumulated from recipient to sender. Thus, Dijkstra, A* or some other algorithm would search for a path from the recipient to the sender, using fees, estimated liquidity, timelock delta (or some combination) as a cost function for each hop.
+
+Using one such algorithm, Selena calculates several possible paths to Rashid, sorted by shortest path:
+
+1. S->A->B->R
+
+2. S->X->Y->R
+
+3. S->X->B->R
+
+4. S->A->B->X->Y->R
+
+
+But, as we saw previously, the channel +S->X+ does not have enough liquidity for a 1m satoshi payment once fees are considered. So paths 2 and 3 are not viable. That leaves paths 1 and 4 as possible paths for the payment.
+
+With two possible paths, Selena is ready to attempt delivery!
+
+==== Payment delivery (Trial-and-error loop)
+
+Selena's node starts the trial-and-error loop, by constructing the HTLCs, building the onion and attempting delivery of the payment. For each attempt, there are three possible outcomes:
+
+- A successful result (+update_fulfill_htlc+)
+- An error (+update_fail_htlc+)
+- A "stuck" payment with no response (neither success, nor failure)
+
+If the payment fails, then it can be re-tried via a different path by updating the graph (changing a channel's metrics) and recalculating an alternative path.
+
+We'll look at what happens if the payment is "stuck" in <<stuck_payments>>. The important detail is that a stuck payment is the worst outcome because we cannot retry with another HTLC as both (the stuck one and the retry one) might go through eventually and cause a double payment.
+
+===== First attempt (path #1)
+
+Selena attempts the first path (S->A->B->R). She constructs the onion and sends it, but receives a failure code from Bob's node. Bob reports back a +temporary channel failure+ with a +channel_update+ identifying the channel B->R as the one that can't deliver. This attempt is shown in <<path_1_fail>>:
+
+[[path_1_fail]]
+.Path 1 attempt fails
+image::images/path_1_fail.png[]
+
+===== Learning from failure
+
+From this failure code, Selena will deduce that Bob doesn't have enough liquidity to deliver the payment to Rashid on that channel. Importantly, this failure narrows the uncertainty of the liquidity of that channel! Previously, Selena's node assumed that the liquidity on Bob's side of the channel was somewhere in the range (0, 4m). Now, she can assume that the liquidity is in the range (0, 999999). Similarly, Selena can now assume that the liquidity of that channel on Rashid's side is in the range (1m, 4m), instead of (0, 4m). Selena has learned a lot from this failure.
+
+===== Second attempt (path #4)
+
+Now Selena attempts the fourth candidate path (S->A->B->X->Y->R). This is a longer path and will incur more fees, but it's now the best option for delivery of the payment.
+
+Fortunately, Selena receives an +update_fulfill_htlc+ message from Alice, indicating that the payment was successful, as shown in <<path_4_success>>:
+
+[[path_4_success]]
+.Path 4 attempt succeeds
+image::images/path_4_success.png[]
+
+===== Learning from success
+
+Selena has also learnt a lot from this successful payment. She now knows that all the channels on the path S->A->B->X->Y->R  had enough liquidity to deliver the payment. Furthermore, she now knows that each of these channels has moved the HTLC amount (1m + fees) to the other end of the channel. This allows Selena to recalculate the range of liquidity on the receiving side of all the channels in that path, replacing the minimum liquidity with 1m+fees.
+
+===== Stale knowledge?
+
+Selena now has a much better "map" of the Lightning Network (at least as far as these 7 channels go). This knowledge will be useful for any subsequent payments that Selena attempts to make.
+
+However, this knowledge becomes somewhat "stale" as the other nodes send or route payments. Selena will never see any of these payments (unless she is the sender). Even if she is involved in routing payments, the onion routing mechanism means she can only see the changes for one hop (her own channels).
+
+Therefore, Selena's node must consider how long to keep this knowledge before assuming that it is stale and no longer useful.
+
+[[mpp]]
+=== Multi-Path Payments (MPP)
+
+_Multi-Path Payments (MPP)_ are a feature that was introduced in the Lightning Network in 2020 and is already very widely available. Multi-Path Payments allow a payment to be split into multiple _parts_ which are sent as HTLCs over several different paths to the intended recipient, preserving the _atomicity_ of the overall payment. In this context, atomicity means that either all the HTLC parts of a payment are eventually fulfilled or the  entire payment fails and all the HTLC parts fail. There is no possibility of a partially successful payment.
+
+Multi-Path Payments are a significant improvement in the Lightning Network as they make it possible to send amounts that won't "fit" in any single channel by splitting them into smaller amounts for which there is sufficient liquidity. Furthermore, Multi-Path Payments have been shown to increase the probability of a successful payment, as compared to a single-path payment.
+
+[TIP]
+====
+Now that MPP is available it is best to think of a single-path payment as a subcategory of a MPP. Essentially, a single-path is just a multi-path of size one. All payments can be considered as Multi-Path Payments unless the size of the payment and liquidity available make it possible to deliver with a single part.
+====
+
+==== Using MPP
+
+MPP is not something that a user will select, but rather it is a node path-finding and payment delivery strategy. The same basic steps are implemented: create a graph, select paths and the trial-and-error loop. The difference is that during path selection we must also consider how to split the payment in order to optimize delivery.
+
+In our example we can see some immediate improvements to our path finding problem that become possible with MPP. First, we can utilize the S->X channel that has known insufficient liquidity to transport 1m satoshis plus fees. By sending a smaller part along that channel, we can use paths that were previously unavailable. Second, we have the unknown liquidity of the B->R channel, which is insufficient to transport the 1m amount, but might be sufficient to transport a smaller amount.
+
+===== Splitting payments
+
+The fundamental question is how to split the payments. More specifically, what is the optimal number of splits and the optimal amounts for each split?
+
+This is an area of ongoing research, where novel strategies are emerging. Multi-path payments lead to a different algorithmic approach than single path payments, even though single-path solutions can emerge from a multi-path optimization (i.e. a single-path may be the optimal solution suggested by a multi-path path finding algorithm).
+
+If you recall, we found that the uncertainty of liquidity/balances leads to some (somewhat obvious) conclusions that we can apply in MPP path finding, namely:
+
+* Smaller payments have a higher chance of succeeding
+
+* The more channels you use, the chance of success becomes (exponentially) lower.
+
+From the first of these insights, we might conclude that splitting a large payment (e.g. 1 million satoshis) into tiny payments increases the chance that each of those smaller payments will succeed. The number of possible paths with sufficient liquidity will be greater if we send smaller amounts.
+
+To take this idea to an extreme, why not split the 1m satoshi payment into one million separate 1-satoshi parts? Well, the answer lies in our second insight: since we would be using more channels/paths to send our million single-satoshi HTLCs, our chance of success would drop exponentially.
+
+If it's not obvious, the two insights above create a "sweet spot" where we can maximize our chances of success: splitting into smaller payments but not too many splits!
+
+Quantifying this optimal balance of size/number-of-splits for a given channel graph is out of the scope of this book but it is an active area of research. Some current implementations use a very simple strategy of splitting the payment in two halves, four quarters etc.
+
+[NOTE]
+====
+To read more about the optimization problem known as Minimum-Cost Flows involved when splitting payments into different sizes and allocating them to paths see the paper: https://arxiv.org/abs/2107.05322[Optimally Reliable & Cheap Payment Flows on the Lightning Network] by (co-author of this book) Rene Pickhardt & Stefan Richter.
+====
+
+In our example, Selena's node will attempt to split the 1m satoshi payment into two parts with 600k and 400k satoshi respectively and send them on two different paths. This is shown in <<mpp_paths>>:
+
+[[mpp_paths]]
+.Sending two parts of a multi-path payment
+image::images/mpp_paths.png[]
+
+Because the S->X channel can now be utilized, and (luckily for Selena), the B->R channel has sufficient liquidity for 600k satoshis, the two parts are successful along paths that were previously not possible.
+
+==== Trial-and-error over multiple "rounds"
+
+Multi-Path Payments lead to a somewhat modified "trial-and-error" loop for payment delivery. Because we are attempting multiple paths in each attempt, we have four possible outcomes:
+
+* All parts succeed, the payment is successful
+* Some parts succeed, some fail with errors returned
+* All parts fail with errors returned
+* Some parts are "stuck", no errors are returned
+
+In the second case, where some parts fail with errors returned and some parts succeed, we can now _repeat_ the trial-and-error loop, but *only for the residual amount*.
+
+Let's assume for example that Selena had a much larger channel graph with hundreds of possible paths to reach Rashid. Her path finding algorithm might find an optimal payment split consisting of 26 parts of varying sizes. After attempting to send all 26 parts in the first round, 3 of those parts failed with errors.
+
+If those 3 parts consisted of, say 155k satoshis, then Selena would restart the path finding effort, only for 155k satoshis. The next round could find completely different paths (optimized for the residual amount of 155k), and split the 155k amount into completely different splits!
+
+[TIP]
+====
+While it seems like 26 split parts are a lot, tests on the Lightning Network have successfully delivered a payment of 0.3679 BTC by splitting it into 345 parts.
+====
+
+Furthermore, Selena's node would update the channel graph using the information gleaned from the successes and errors of the first round, to find the most optimal paths and splits for the second round.
+
+Let's say that Selena's node calculates that the best way to send the 155k residual is 6 parts split as 80k, 42k, 15k, 11k, 6.5k and 500 satoshis. In the next round, Selena gets only one error, indicating that the 11k satoshi part failed. Again, Selena updates the channel graph based on the information gleaned and runs the path finding again, to send the 11k residual. This time, she succeeds with 2 parts of 6k and 5k satoshis respectively.
+
+This multi-round example of sending a payment using MPP is shown in <<mpp_rounds>>:
+
+[[mpp_rounds]]
+.Sending a payment in multiple rounds with MPP
+image::images/mpp_rounds.png[]
+
+In the end, Selena's node used three rounds of path finding to send the 1m satoshis in 30 parts.
+
+=== Conclusion
+
+In this chapter we looked at path finding and payment delivery. We saw how to use the channel graph to find paths from a sender to a recipient. We also saw how the sender will attempt to deliver payments on a candidate path and repeat in a trial-and-error loop.
+
+We also examined the uncertainty of channel liquidity (from the perspective of the sender) and the implications that has for path finding. We saw how we can quantify the uncertainty and use probability theory to draw some useful conclusions. We also saw how we can reduce uncertainty by learning from both successful and failed payments.
+
+Finally, we saw how the newly deployed Multi-Path Payments feature allows us to split payments into parts, increasing the probability of success even for larger payments.

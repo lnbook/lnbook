@@ -5,7 +5,7 @@
 <img src="images/cover_thumb.png" width=200 alt="Mastering Lightning Cover">
 
 ## About
-Mastering the Lightning Network is an O'Reilly Media book, due for publication in Q2'2021, and announced in August 2019  by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)).
+Mastering the Lightning Network is an O'Reilly Media book, due for publication in Q4'2021, and announced in August 2019  by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)).
 
 The book describes the Lightning Network (LN), a Peer-to-Peer protocol running on top of Bitcoin and other blockchains, which provides near-instant, secure, micro-payments.
 
@@ -13,7 +13,9 @@ The book is suitable for technical readers with an understanding of the fundamen
 
 ## Status
 
-The current status of the book is "IN PROGRESS". See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
+The current status of the book is "IN PRODUCTION": ONLY COPY-EDIT CONTRIBUTIONS ARE ACCEPTED.
+
+See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
 
 ### Legend
 
@@ -33,24 +35,25 @@ The current status of the book is "IN PROGRESS". See below for status of specifi
 | [Getting Started](02_getting_started.asciidoc) | ############# | :heavy_check_mark: |
 | [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################### | :heavy_check_mark: |
 | [Nodes (LN Clients)](04_node_client.asciidoc) | #################### | :heavy_check_mark: |
-| [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
+| [Operating a Node](05_node_operations.asciidoc) | ############################ | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
-| [Intro to LN Routing (HTLCs)](routing.asciidoc) | #################### | :lock_with_ink_pen: |
-| [Channel Construction in Detail](channel-construction.asciidoc) | ########### | :lock_with_ink_pen: |
-| [Channel operation with HTLCs and Statemachine](channel-operation.asciidoc) | ###### | :lock_with_ink_pen: |
-| [Payment Path Finding](path-finding.asciidoc) | ############### | :lock_with_ink_pen: |
-| [P2P Communication](p2p.asciidoc) | ### | :bookmark_tabs: |
-| [Channel Graph and Gossip Layer](channel-graph.asciidoc) | ### | :bookmark_tabs: |
-| [End-to-End Payment Presentation Layer](e2e-presentation-layer.asciidoc) | ### | :bookmark_tabs: |
-| [Lightning Applications (LApps)]() | # | :thought_balloon: |
-| [LN Security and Privacy]() | # | :lock_with_ink_pen: |
-| [LN's Future]() | # | :thought_balloon: |
+| [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :heavy_check_mark: |
+| [Payment Channels in Detail](07_payment_channels.asciidoc) | ################### | :heavy_check_mark: |
+| [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :heavy_check_mark: |
+| [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :heavy_check_mark: |
+| [Onion Construction and Routing](10_onion_routing.asciidoc) | ################ | :heavy_check_mark: |
+| [Channel Graph and Gossip Layer](11_gossip_channel_graph.asciidoc) | ############ | :heavy_check_mark: |
+| [Payment Path Finding](12_path_finding.asciidoc) | ############ | :heavy_check_mark: |
+| [LN Security and Privacy](13_security_privacy_ln.asciidoc) | ################ | :heavy_check_mark: |
 | APPENDICES | APPENDICES | APPENDICES |
 | [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ########### | :heavy_check_mark: |
-| [An - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
+| [A2 - Payment Requests (Invoices)](appendix_payment_requests.asciidoc) | #### | :heavy_check_mark: |
+| [A3 - Wire Protocol](appendix_wire_protocol.asciidoc) | ################# | :heavy_check_mark: |
+| [A4 - Encrypted Message Transport (Brontide)](appendix_encrypted_transport.asciidoc) | ########## | :heavy_check_mark: |
+| [A5 - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 97452
+Total Word Count: 125288
 
 Target Word Count: 100,000-120,000
 
