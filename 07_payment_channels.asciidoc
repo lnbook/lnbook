@@ -281,7 +281,7 @@ Alice *does not broadcast* this transaction, because doing so would put her 140,
 
 .Dual-funded payment channels
 ****
-In the current implementation of Lightning, channels are funded only by the node initiating the channel (Alice in our example). Dual-funded channels have been proposed, but not yet implemented. In a dual-funded channel, both Alice and Bob would contribute inputs to the funding transaction. Dual-funded channels require a slightly more complicated message flow and cryptographic protocol, so they have not been implemented yet but are planned for a future update to the Lightning BOLTs.
+In the current implementation of Lightning, channels are funded only by the node initiating the channel (Alice in our example). Dual-funded channels have been proposed, but not yet implemented. In a dual-funded channel, both Alice and Bob would contribute inputs to the funding transaction. Dual-funded channels require a slightly more complicated message flow and cryptographic protocol, so they have not been implemented yet but are planned for a future update to the Lightning BOLTs. The C-Lightning implementation includes an experimental version of a variant on dual funded channels.
 ****
 
 ==== Holding signed transactions without broadcasting
@@ -325,11 +325,11 @@ This means that Alice can create a chained transaction by referencing an output 
 
 ==== Solving malleability (Segregated Witness)
 
-Alice has to depend on the transaction ID of the funding transaction being known before confirmation. But before the introduction of  Segregated Witness (a.k.a SegWit) in August 2017, this was not sufficient to protect Alice. Because of the way transactions were constructed with the signatures (witnesses) included in the transaction ID, it was possible for a third party (e.g. Bob) to broadcast an alternative version of a transaction with a malleated (modified) transaction ID. This is known as _Transaction Malleability_ and made it impossible to implement payment channels securely.
+Alice has to depend on the transaction ID of the funding transaction being known before confirmation. But before the introduction of  Segregated Witness (a.k.a SegWit) in August 2017, this was not sufficient to protect Alice. Because of the way transactions were constructed with the signatures (witnesses) included in the transaction ID, it was possible for a third party (e.g. Bob) to broadcast an alternative version of a transaction with a malleated (modified) transaction ID. This is known as _Transaction Malleability_ and made it difficult to implement indefinite lifetime payment channels securely.
 
 If Bob could modify Alice's funding transaction before it was confirmed and produce a replica that had a different transaction ID, Bob could make Alice's refund transaction invalid and hijack her bitcoin. Alice would be at Bob's mercy to get a signature to release her funds and could easily be blackmailed. Bob couldn't steal the funds, but he could prevent Alice from getting them back.
 
-The introduction of SegWit made unconfirmed transaction IDs immutable, meaning that Alice could be sure that the transaction ID of the funding transaction would not change. As a result, Alice can be confident that if she gets Bob's signature on the refund transaction, she has a way to recover her money. She now has a way to implement the Bitcoin equivalent of a "prenup" before locking her funds into the multisig.
+The introduction of SegWit made unconfirmed transaction IDs immutable from the PoV of 3rd parties, meaning that Alice could be sure that the transaction ID of the funding transaction would not change. As a result, Alice can be confident that if she gets Bob's signature on the refund transaction, she has a way to recover her money. She now has a way to implement the Bitcoin equivalent of a "prenup" before locking her funds into the multisig.
 
 [TIP]
 ====

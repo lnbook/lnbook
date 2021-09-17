@@ -576,7 +576,7 @@ Channel backup mechanisms are still a work-in-progress and a weakness in most Li
 
 ==== Static Channel Backups (SCB)
 
-At the time of writing this book, only LND offers a built-in mechanism for static channel backups. Eclair has no backup on the server side, although Eclair mobile does offer optional backup to a Google Drive. C-lightning recently merged the necessary interfaces for a plugin to implement channel backups. Unfortunately, there is no consistent, agreed upon backup mechanism across different node implementations.
+At the time of writing this book, only LND offers a built-in mechanism for static channel backups. Eclair has a similar mechanism deployed for server-side deployments, although Eclair mobile does offer optional backup to a Google Drive. C-lightning recently merged the necessary interfaces for a plugin to implement channel backups. Unfortunately, there is no consistent, agreed upon backup mechanism across different node implementations.
 
 File-based backups of the Lightning node databases are at best a partial solution because you run the risk of backing up an inconsistent database state. In addition, you may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, thereby ensuring data consistency.
 
@@ -807,7 +807,7 @@ As is common, the amounts in the configuration file are enumerated in satoshi.
 Currently channels below 1 mBTC are not very useful and we do not recommend you open channels that are too small and below this amount.
 With the wider adoption of multipath payments, smaller channels are less of a burden. But for the time being, this is our recommendation.
 
-The +c-lightning+ plugin works very differently in comparison to the +lnd+ autopilot.
+The +c-lightning+ plugin which was orignally written by Rene Pickhardt works very differently in comparison to the +lnd+ autopilot.
 First, it differs in the algorithms used to make the recommendations. We will not cover this here. Secondly, it differs in its user interface.
 You will need to download the _autopilot plugin_ from the +c-lightning+ plugin repository at https://github.com/lightningd/plugins/tree/master/autopilot and activate it.
 

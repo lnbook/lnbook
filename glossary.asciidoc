@@ -31,10 +31,10 @@ Some additional definitions, to be cleaned up and moved into alphabetic order ar
 ////
 
 address::
-    A Bitcoin address looks like +1DSrfJdB2AnWaFNgSbv3MZC2m74996JafV+. It consists of a string of letters and numbers. It's really an encoded base58check version of a public key 160-bit hash. Just as you ask others to send an email to your email address, you would ask others to send you bitcoin to one of your Bitcoin addresses.
+    A Bitcoin address looks like +1DSrfJdB2AnWaFNgSbv3MZC2m74996JafV+. It consists of a string of letters and numbers. It's really an encoded base58check version of a public key 160-bit hash. After P2SH, the 160-bit hash of a script is encoded, and with segwit the 256-bit hash of a script (or 160-bit key hash) is encoded. Just as you ask others to send an email to your email address, you would ask others to send you bitcoin to one of your Bitcoin addresses.
 
 AMP::
-   Atomic Multipath Payments was an early suggestion for a multipart payment protocol which did not get implemented but introduced the idea of splitting a single payment into multiple parts and send them along potentially different paths.
+   Atomic Multipath Payments is an extension to the protocol that allows triggering a spontaneous payment (no invoice required) that splits up a payment into multiple parts and uses additive secret sharing to ensure that the payment can only be pulled once all parts arrive. Additionally, each path of a AMP payment uses a distinct payment hash.
 
 Asymmetric Cryptographic System::
     Asymmetric cryptography, or public-key cryptography, is a cryptographic system that uses pairs of keys: public keys which may be disseminated widely, and private keys which are known only to the owner.
@@ -79,7 +79,7 @@ blockchain::
     The blockchain is an irreversible distributed database storing all Bitcoin transactions.
     The irreversibility comes from the fact that each group of transactions, referred to as a block, is validated by solving a proof of work riddle and including the hash of the previous block.
     Thus, the data can only be changed by an entity providing more than 51% of the computational power of the Bitcoin network.
-    Blocks currently have a size limit of 1 MB.
+    Blocks currently have a size limit of 4 Million weight units.
     New blocks have a statistical probability of being produced every ten minutes.
 
 BOLT::
@@ -389,7 +389,7 @@ proof of work::
     See _bitcoin mining_
 
 Relative Timelock::
-    Relative Timelock is a type of timelock which allows an input to specify the earliest time the input can be added to a block. The time is relative and is based on when the output referenced by that input was included in a block. Such a feature is jointly achieved by nSequence field and CheckSequenceVerify opcode, which were introduced by BIP68/112/113.
+    Relative Timelock is a type of timelock which allows an input to specify the earliest time the input can be added to a block. The time is relative and is based on when the output referenced by that input was included in a block. Such a feature is jointly achieved by nSequence field and CheckSequenceVerify opcode, which was introduced by BIP68/112/113.
 
 Revocable Sequence Maturity Contract::
     This contract is used to construct a payment channel between two Bitcoin or Lightning Network users who do not need to trust each other.
@@ -444,7 +444,7 @@ secret key (aka private key)::
 ----
 
 Segregated Witness::
-    Segregated Witness is an upgrade to the Bitcoin protocol in which signature data is separated from Bitcoin transactions. Segregated Witness was deployed as a soft fork and is a change that technically makes Bitcoin’s protocol rules more restrictive.
+    Segregated Witness is an upgrade to the Bitcoin protocol that adds a new witness for signatures and other transaction authorization proofs. This new witness field is exempt from the calculation of a new transaction ID, which solves most classes of 3rd party transaction malleability. Segregated Witness was deployed as a soft fork and is a change that technically makes Bitcoin’s protocol rules more restrictive.
 
 SHA::
     The Secure Hash Algorithm or SHA is a family of cryptographic hash functions published by the National Institute of Standards and Technology (NIST). The Bitcoin protocol currently uses SHA256.
@@ -467,8 +467,7 @@ source-based routing::
     Source-based routing is fundamentally different to how routing works on the Internet Protocol.
 
 soft fork::
-    Soft fork, or Soft-Forking Change, is a temporary fork in the blockchain which commonly occurs when miners using non-upgraded nodes don't follow a new consensus rule their nodes don’t know about.
-    Not to be confused with fork, hard fork, software fork or Git fork.
+    Soft fork, or Soft-Forking Change, is a protocol upgrade that's forwards+backwards compatible so it allows old nodes and new nodes to both continue using the same chain.
 
 SPHINX Mix Format::
     A particular technique for Onion Routing used in the Lightning Network and invented by George Danezis and Ian Goldberg in 2009.
