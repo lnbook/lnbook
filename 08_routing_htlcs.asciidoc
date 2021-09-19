@@ -409,9 +409,9 @@ The unlocking script combined with the locking script would produce:
 The Bitcoin Script engine would evaluate this script as follows:
 
 1. +R+ is pushed to the stack
-1. The OP_SHA256 operator takes the value +R+ off the stack and hashes it, pushing the result H~R~ to the stack
-1. +H+ is pushed to the stack
-1. The OP_EQUAL operator compares +H+ and H~R~. If they are equal, the result is +TRUE+, the script is complete and the payment is verified.
+2. The OP_SHA256 operator takes the value +R+ off the stack and hashes it, pushing the result H~R~ to the stack
+3. +H+ is pushed to the stack
+4. The OP_EQUAL operator compares +H+ and H~R~. If they are equal, the result is +TRUE+, the script is complete and the payment is verified.
 
 ==== Extending HTLCs from Alice to Dina
 
@@ -502,12 +502,12 @@ The unlocking and locking script are combined and evaluated by the scripting eng
 ----
 
 1. +<Bob's Sig>+ is pushed on to the stack
-1. +R+ is pushed on to the stack
-1. OP_SHA256 pops and hashes +R+ from the top of the stack and pushes H~R~ on to the stack
-1. +H+ is pushed on to the stack
-1. OP_EQUALVERIFY pops H and H~R~ and compares them. If they are not the same, execution halts. Otherwise, we continue without output to the stack
-1. +<Bob's Pub>+ key is pushed to the stack
-1. OP_CHECKSIG pops +<Bob's Sig>+ and +<Bob's Pub>+ and verifies the signature. The result (TRUE/FALSE) is pushed to the stack.
+2. +R+ is pushed on to the stack
+3. OP_SHA256 pops and hashes +R+ from the top of the stack and pushes H~R~ on to the stack
+4. +H+ is pushed on to the stack
+5. OP_EQUALVERIFY pops H and H~R~ and compares them. If they are not the same, execution halts. Otherwise, we continue without output to the stack
+6. +<Bob's Pub>+ key is pushed to the stack
+7. OP_CHECKSIG pops +<Bob's Sig>+ and +<Bob's Pub>+ and verifies the signature. The result (TRUE/FALSE) is pushed to the stack.
 
 As you can see, this is slightly more complicated, but now we have fixed the HTLC and made sure only the intended recipient can spend it.
 
