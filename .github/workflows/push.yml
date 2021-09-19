@@ -1,0 +1,37 @@
+# This is a basic workflow to help you get started with Actions
+name: workflow-matrix
+
+# Controls when the action will run. 
+on: [push, pull_request]
+
+jobs:
+
+  ubuntu-site-matrix:
+    name: github-workspace
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-latest]
+    steps:
+      - uses: styfle/cancel-workflow-action@0.8.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - name: site-make-image
+        run: |
+          printenv
+          sudo apt install asciidoctor
+          pip3 install -U codespell
+          go get github.com/client9/misspell/cmd/misspell
+          git grep -n --color $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && exit 0 || true
+          git grep -n --color ' $' -- "*.asciidoc" "*.md" && echo "^ Trailing space detected at end of line. Please remove." && exit 0 || true
+          git grep  -n --color  $'\t' -- "*.asciidoc" "*.md" && echo "^ Use of tabs detected. Please use space for indentation." && exit 0 || true
+          git grep -iE  -n --color '(^| )(\w+) \2(\.|,|:|;| |$)' -- "*.asciidoc" "*.md" && echo "^ Detected lexical illusion in the form of a duplicated word. Please correct." && exit 0 || true
+          for FILE in $(git ls-files -- "*.asciidoc" "*.md"); do if [[ $(tail -c1 $FILE) != "" ]]; then echo "File ${FILE} does not end with a newline character (\n)."; exit 0; fi; done
+          git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' \ 
+          | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 0 || true
+          codespell --ignore-words-list=que --skip=github_contributors.asciidoc $(git ls-files -- "*.asciidoc" "*.md")
+          misspell $(git ls-files -- "*.asciidoc" "*.md")
+          asciidoctor -D html *.asciidoc
+          asciidoctor -D html/contrib ./contrib/*.asciidoc
+
