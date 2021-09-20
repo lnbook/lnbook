@@ -17,12 +17,16 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v2
-      - name: site-make-image
+      - name: printenv
         run: |
           printenv
+      - name: install-codespell-asciidoctor
+        run: |
           sudo apt install asciidoctor
           pip3 install -U codespell
           go get github.com/client9/misspell/cmd/misspell
+      - name: git-grep
+        run: |
           git grep -n --color $'\r' -- "*.asciidoc" "*.md" && echo "^ Possible Windows style line ending detected. Please use Unix style line endings (\n)." && exit 0 || true
           git grep -n --color ' $' -- "*.asciidoc" "*.md" && echo "^ Trailing space detected at end of line. Please remove." && exit 0 || true
           git grep  -n --color  $'\t' -- "*.asciidoc" "*.md" && echo "^ Use of tabs detected. Please use space for indentation." && exit 0 || true
@@ -30,8 +34,14 @@ jobs:
           for FILE in $(git ls-files -- "*.asciidoc" "*.md"); do if [[ $(tail -c1 $FILE) != "" ]]; then echo "File ${FILE} does not end with a newline character (\n)."; exit 0; fi; done
           git grep "" -- "*.asciidoc" "*.md" | uniq -c | grep -1 "^      [2-9] " | cut -b9- | sed 's/:$/:[more-than-one-blank-line-here-please-remove]/' \ 
           | grep ":" && echo "^ Multiple blank lines detected. Please use only one blank line between paragraphs." && exit 0 || true
-          codespell --ignore-words-list=que --skip=github_contributors.asciidoc $(git ls-files -- "*.asciidoc" "*.md")
-          misspell $(git ls-files -- "*.asciidoc" "*.md")
+      - name: codespell-asciidoc
+        run: |
+          codespell --config .codespellrc --ignore-words .codespell-ignore $(git ls-files -- "*.asciidoc" "*.md")
+      - name: run-asciidoctor
+        run: |
           asciidoctor -D html *.asciidoc
           asciidoctor -D html/contrib ./contrib/*.asciidoc
+      - name: codespell-html
+        run: |
+          codespell --config .codespellrc --ignore-words .codespell-ignore ./html/*.html
 
