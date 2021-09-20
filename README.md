@@ -55,8 +55,9 @@ See below for status of specific chapters and read the contribution guide to lea
 | [LN Security and Privacy](16_security_privacy_ln.asciidoc) | ################# | :heavy_check_mark: |
 | APPENDICES | APPENDICES | APPENDICES |
 | [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ############ | :heavy_check_mark: |
-| [A2 - Protocol Messages](appendix_protocol_messages.asciidoc) | ######## | :heavy_check_mark: |
-| [A3 - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
+| [A2 - Docker Basics](appendix_docker_basics.asciidoc) | ## | :heavy_check_mark: |
+| [A3 - Protocol Messages](appendix_protocol_messages.asciidoc) | ######## | :heavy_check_mark: |
+| [A4 - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
 Total Word Count: 126530
