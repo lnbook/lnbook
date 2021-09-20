@@ -1,5 +1,10 @@
 # Mastering the Lightning Network
 
+
+*STATUS: IN PRODUCTION*
+
+NO EDITS OR PULL REQUESTS ARE ACCEPTED AT THIS TIME. The book is currently (Sep 2021) in final production. No changes will be accepted.
+
 [![Build Status](https://travis-ci.com/lnbook/lnbook.svg?branch=develop)](https://travis-ci.com/lnbook/lnbook)
 
 <img src="images/cover_thumb.png" width=200 alt="Mastering Lightning Cover">
@@ -30,30 +35,31 @@ See below for status of specific chapters and read the contribution guide to lea
 |-------|------|:------:|
 | PART 1 | PART 1 | PART 1 |
 | [Preface and Acknowledgments](preface.asciidoc) | #### | :heavy_check_mark: |
-| [Glossary](glossary.asciidoc) | ############## | :arrows_clockwise: |
+| [Glossary](glossary.asciidoc) | ############## | :heavy_check_mark: |
 | [Introduction](01_introduction.asciidoc) | ########## | :heavy_check_mark: |
 | [Getting Started](02_getting_started.asciidoc) | ############# | :heavy_check_mark: |
 | [LN Basics (How LN Works)](03_how_ln_works.asciidoc) | ########################### | :heavy_check_mark: |
-| [Nodes (LN Clients)](04_node_client.asciidoc) | #################### | :heavy_check_mark: |
-| [Operating a Node](05_node_operations.asciidoc) | ############################ | :heavy_check_mark: |
+| [Nodes (LN Clients)](04_node_client.asciidoc) | ################## | :heavy_check_mark: |
+| [Operating a Node](05_node_operations.asciidoc) | ############################# | :heavy_check_mark: |
 | PART 2 | PART 2 | PART2 |
 | [Lightning Architecture](06_lightning_architecture.asciidoc) | # | :heavy_check_mark: |
-| [Payment Channels in Detail](07_payment_channels.asciidoc) | ################### | :heavy_check_mark: |
+| [Payment Channels in Detail](07_payment_channels.asciidoc) | #################### | :heavy_check_mark: |
 | [Routing (HTLCs)](08_routing_htlcs.asciidoc) | ################ | :heavy_check_mark: |
 | [Channel operation and HTLC settlement](09_channel_operation.asciidoc) | ####### | :heavy_check_mark: |
-| [Onion Construction and Routing](10_onion_routing.asciidoc) | ################ | :heavy_check_mark: |
+| [Onion Construction and Routing](10_onion_routing.asciidoc) | ################# | :heavy_check_mark: |
 | [Channel Graph and Gossip Layer](11_gossip_channel_graph.asciidoc) | ############ | :heavy_check_mark: |
 | [Payment Path Finding](12_path_finding.asciidoc) | ############ | :heavy_check_mark: |
-| [LN Security and Privacy](13_security_privacy_ln.asciidoc) | ################ | :heavy_check_mark: |
+| [Wire Protocol](13_wire_protocol.asciidoc) | ######### | :heavy_check_mark: |
+| [Encrypted Message Transport (Brontide)](14_encrypted_transport.asciidoc) | ########## | :heavy_check_mark: |
+| [Payment Requests (Invoices)](15_payment_requests.asciidoc) | #### | :heavy_check_mark: |
+| [LN Security and Privacy](16_security_privacy_ln.asciidoc) | ################# | :heavy_check_mark: |
 | APPENDICES | APPENDICES | APPENDICES |
-| [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ########### | :heavy_check_mark: |
-| [A2 - Payment Requests (Invoices)](appendix_payment_requests.asciidoc) | #### | :heavy_check_mark: |
-| [A3 - Wire Protocol](appendix_wire_protocol.asciidoc) | ################# | :heavy_check_mark: |
-| [A4 - Encrypted Message Transport (Brontide)](appendix_encrypted_transport.asciidoc) | ########## | :heavy_check_mark: |
-| [A5 - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
+| [A1 - Bitcoin Fundamentals Review](appendix-bitcoin-fundamentals-review.asciidoc) | ############ | :heavy_check_mark: |
+| [A2 - Protocol Messages](appendix_protocol_messages.asciidoc) | ######## | :heavy_check_mark: |
+| [A3 - License Notices](appendix_license_notices.asciidoc) | # | :heavy_check_mark: |
 
 
-Total Word Count: 125288
+Total Word Count: 126530
 
 Target Word Count: 100,000-120,000
 
