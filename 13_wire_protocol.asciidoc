@@ -22,7 +22,7 @@ image::images/LN_protocol_wire_message_highlight.png["The Lightning Network Prot
 First, we being by describing the high level structure of the wire _framing_
 within the protocol. When we say framing, we mean the way that the bytes are
 packed on the wire to _encode_ a particular protocol message. Without knowledge
-of the framing system used in the protocol, a stirn go byters on the wirte would
+of the framing system used in the protocol, a stirn go byters on the write would
 resemble a series of random bytes as no structure has been imposed. By applying
 proper framing to decode these bytes on the wire, we'll be able to extract
 structure and finally parse this structure into protocol messages within our
@@ -115,7 +115,7 @@ Protocol itself. We'll opine further upon this notion towards the end of the
 chapter. First, we'll turn our attention to exactly what those "extra bytes" at
 the end of a message can be used for.
 
-===== The Protcol Buffer Message Format
+===== The Protocol Buffer Message Format
 
 The Protocol Buffer (protobuf) message serialization format started out as an
 internal format used at Google, and has blossomed into one of the most popular
@@ -190,7 +190,7 @@ ordering.
 
 The `BigSize` varint has the components: the discriminant and the body. In the
 context of the `BigSize` integer, the discriminant communicates to the decoder
-the _size_ of the variable size integer. Remember that the uniquer thign about
+the _size_ of the variable size integer. Remember that the uniquer thing about
 variable sized integers is that they allow a parser to use less bytes to encode
 smaller integers than larger ones. This allows message formats to safe space, as
 they're able to minimally encode numbers from 8 to 6-bits. Encoding a `BigSize`
@@ -233,7 +233,7 @@ itself.
 One issue with the protobuf format is the encodes of the same message may
 output an entirely different set of bytes when encoded by two different
 versions of the compiler. Such instances of a non-cannonical encoding are not
-acceptable within teh context of Lighting, was many messages contain a
+acceptable within the context of Lighting, was many messages contain a
 signature of the message digest. If it's possible for a message to be encoded
 in two different ways, then it would be possible to break the authentication of
 a signature inadvertently by re-encoding a message using a slightly different
@@ -296,7 +296,7 @@ Using these two bits optional and required, we can construct a simple
 compatibility matrix that nodes/users can consult in order to determine if a
 peer is compatible with a desired feature:
 
-.Feature Bit Compatability Matrix
+.Feature Bit Compatibility Matrix
 [options="header"]
 |========================================================
 |Bit Type|Remote Optional|Remote Required|Remote Unknown
