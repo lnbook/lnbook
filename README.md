@@ -1,11 +1,11 @@
 # Mastering the Lightning Network
-
-
-*STATUS: IN PRODUCTION*
-
-NO EDITS OR PULL REQUESTS ARE ACCEPTED AT THIS TIME. The book is currently (Sep 2021) in final production. No changes will be accepted.
-
 [![Build Status](https://travis-ci.com/lnbook/lnbook.svg?branch=develop)](https://travis-ci.com/lnbook/lnbook)
+
+# STATUS: IN PRODUCTION
+
+NO EDITS OR PULL REQUESTS ARE ACCEPTED AT THIS TIME.
+
+The book is currently (Sep 2021) in final production. No changes will be accepted.
 
 <img src="images/cover_thumb.png" width=200 alt="Mastering Lightning Cover">
 
@@ -15,12 +15,6 @@ Mastering the Lightning Network is an O'Reilly Media book, due for publication i
 The book describes the Lightning Network (LN), a Peer-to-Peer protocol running on top of Bitcoin and other blockchains, which provides near-instant, secure, micro-payments.
 
 The book is suitable for technical readers with an understanding of the fundamentals of Bitcoin and other open blockchains.
-
-## Status
-
-The current status of the book is "IN PRODUCTION": ONLY COPY-EDIT CONTRIBUTIONS ARE ACCEPTED.
-
-See below for status of specific chapters and read the contribution guide to learn how and where to contribute.
 
 ### Legend
 
@@ -63,10 +57,6 @@ See below for status of specific chapters and read the contribution guide to lea
 Total Word Count: 126530
 
 Target Word Count: 100,000-120,000
-
-## Contributing
-
-The authors welcome contributions to this book! Read the [Guide to Contributing](CONTRIBUTING.md)
 
 ## Source and license
 
