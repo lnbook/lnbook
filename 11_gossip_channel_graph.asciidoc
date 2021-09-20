@@ -1,7 +1,7 @@
 [[gossip]]
 == Gossip and the channel graph
 
-In this chapter we will describe the Lightning Network's _Gossip Protocol_ and how it is used by nodes to construct and maintain a _Channel Graph_.
+In this chapter we will describe the Lightning Network's _Gossip Protocol_ and how it is used by nodes to construct and maintain a _Channel Graph_. We will also review the _DNS Bootstrap_ mechanism used to find peers to "gossip" with.
 
 The gossip protocol and routing information section is highlighted by a double outline spanning the "Routing Layer" and "Peer 2 Peer Layer" of <<LN_protocol_gossip_highlight>>:
 
@@ -410,7 +410,7 @@ Armed with the information in the +channel_announcement+, any Lightning node (ev
 
 First, the verifier will use the short channel ID to find which Bitcoin block contains the channel funding output. With the block height information, the verifier can request only that specific block from a Bitcoin node. The block can then be linked back to the genesis block by following the block header chain backwards (verifying the proof-of-work), confirming that this is in fact a block belonging to the Bitcoin blockchain.
 
-Next, the verifier uses the transaction index number to identify the transaction ID of the transaction containing the payment channel. Most modern Bitcoin libraries will allow indexing into the transaction of a block based on the index of the transaction within the greater block. 
+Next, the verifier uses the transaction index number to identify the transaction ID of the transaction containing the payment channel. Most modern Bitcoin libraries will allow indexing into the transaction of a block based on the index of the transaction within the greater block.
 
 Next, uses a Bitcoin library (in the verifier's language) to extract the relevant transaction according to its index within the block. The verifier will validate the transaction (checking that it is properly signed and produces the same transaction ID when hashed).
 
