@@ -274,14 +274,6 @@ First, it is hard for an attacker to target unannounced channels.
 Second, nodes that implement just-in-time or JIT routing may be less prone to the attack.
 Finally, as multi-part payments make the problem of insufficient capacity less severe, the protocol developers may consider hiding some of the error details without harming efficiency.
 
-References:
-
-* Jordi Herrera-Joancomartí et al. https://eprint.iacr.org/2019/328[On the Difficulty of Hiding the Balance of Lightning Network Channels]
-* Nisslmueller et al. https://arxiv.org/abs/2003.00003[Toward Active and Passive Confidentiality Attacks On Cryptocurrency Off-Chain Networks]
-* Tikhomirov et al. https://arxiv.org/abs/2004.00333[Probing Channel Balances in the Lightning Network]
-* Kappos et al. https://arxiv.org/abs/2003.12470[An Empirical Analysis of Privacy in the Lightning Network]
-* https://github.com/LN-Zap/zap-desktop/blob/v0.7.2-beta/services/grpc/router.methods.js[Zap source code with the probing function]
-
 ==== Denial of service
 
 When resources are made publicly available, there is a risk that attackers may attempt to make that resource unavailable by executing a denial-of-service attack.
@@ -338,11 +330,6 @@ While this limit _may_ be increased, transactions are still limited by the block
 A channel liquidity lockup attack is comparable to a channel jamming attack in that it routes payments through a channel and holds them so that the channel is unusable.
 Rather than locking up slots on the channel commitment, this attack routes large HTLCs through a target channel that consumes all the channel's available bandwidth.
 This attack's capital commitment is higher than the commitment jamming attack because the attacking node needs more funds to route failed payments through the target.
-
-References:
-
-* Mizrahi, A., Zohar, A. https://arxiv.org/abs/2002.06564[Congestion Attacks in Payment Channel Networks]
-
 
 === Cross-layer deanonymization
 
@@ -586,10 +573,6 @@ Some useful guidelines for a custom rate limiter are as follows:
 * Shadow channels: nodes that wish to open large channels to a single target can instead open a single public channel to the target and support it with further private channels called [shadow channels](joost on TFTC).
 These channels can still be used for routing but are not announced to potential attackers.
 
-References:
-
-* Jager, J. https://anchor.fm/tales-from-the-crypt/episodes/197-Joost-Jager-ekghn6[Tales from the Crypt Episode 197]
-
 ==== Accepting channels
 At present, Lightning nodes struggle with bootstrapping inbound liquidity. While there are some paid
 solutions to acquiring inbound liquidity, like swap services, channel markets, and paid channel opening services from known hubs, many nodes will gladly accept any legitimate looking channel opening request to increase their inbound liquidity.
@@ -617,3 +600,23 @@ Some potential strategies are:
 
 === Conclusion
 In summary, privacy and security are nuanced, complex topics and while many researchers and developers are looking for network-wide improvements, it's important for everyone participating in the network to understand what they can do to protect their own privacy and increase security on an individual node level.
+
+=== References and further reading
+
+In this chapter, we used many references from ongoing research on Lightning security. You may find these useful articles and papers listed by topic below:
+
+===== Privacy and probing attacks
+
+* Jordi Herrera-Joancomartí et al. https://eprint.iacr.org/2019/328[On the Difficulty of Hiding the Balance of Lightning Network Channels]
+* Nisslmueller et al. https://arxiv.org/abs/2003.00003[Toward Active and Passive Confidentiality Attacks On Cryptocurrency Off-Chain Networks]
+* Tikhomirov et al. https://arxiv.org/abs/2004.00333[Probing Channel Balances in the Lightning Network]
+* Kappos et al. https://arxiv.org/abs/2003.12470[An Empirical Analysis of Privacy in the Lightning Network]
+* https://github.com/LN-Zap/zap-desktop/blob/v0.7.2-beta/services/grpc/router.methods.js[Zap source code with the probing function]
+
+===== Congestion attacks
+
+* Mizrahi, A., Zohar, A. https://arxiv.org/abs/2002.06564[Congestion Attacks in Payment Channel Networks]
+
+===== Routing considerations
+
+* Jager, J. https://anchor.fm/tales-from-the-crypt/episodes/197-Joost-Jager-ekghn6[Tales from the Crypt Episode 197]
