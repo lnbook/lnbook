@@ -35,6 +35,7 @@ There may be many paths that make it possible for Alice to reach Dina. We will e
 As a reminder, the path selected by Alice is shown in <<alice_dina_path>>, below:
 
 [[alice_dina_path]]
+.Path: Alice to Bob to Chan to Dina
 image::images/alice_dina_path.png["Alice to Bob to Chan to Dina"]
 
 Let's see how Alice can use this path without revealing information to intermediaries Bob and Chan.
@@ -110,7 +111,7 @@ From <<routing>> we know that Alice will send a 50,000 satoshi payment to Dina v
 .Payment path with HTLCs from Alice to Dina
 image::images/alice-dina-htlc.png[Payment path with HTLCs from Alice to Dina]
 
-As we see in <<gossip>>, Alice is able to construct this path to Dina because Lightning nodes announce their channels to the entire Lightning Network using the _Lightning Gossip Protocol_. After the initial channel announcement, Bob and Chan each sent out an additional "channel update" message with their routing fee and timelock expectations for payment routing.
+As we will see in <<gossip>>, Alice is able to construct this path to Dina because Lightning nodes announce their channels to the entire Lightning Network using the _Lightning Gossip Protocol_. After the initial channel announcement, Bob and Chan each sent out an additional "channel update" message with their routing fee and timelock expectations for payment routing.
 
 From the announcements and updates, Alice knows the following information about the channels between Bob, Chan and Dina:
 
@@ -132,7 +133,12 @@ Alice already knows her own channel to Bob, and therefore doesn't need this info
 
 ==== Alice constructs the payloads
 
-There are two possible formats that Alice can use for the information communicated to each hop: A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will. Both formats are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-structure[BOLT #4 - Onion Routing - Packet Structure]
+There are two possible formats that Alice can use for the information communicated to each hop: A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will.
+
+[NOTE]
+====
+Both formats are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-structure[BOLT #4 - Onion Routing - Packet Structure.]
+====
 
 Alice will start building the hop data from the end of the path backwards: Dina, Chan, Bob.
 
@@ -222,7 +228,7 @@ image::images/onion_hop_payloads.png[Hop payloads for all the hops]
 
 Alice must now generate several keys that will be used to encrypt the various layers in the onion.
 
-Remember the goals of onion routing, that Alice can achieve with these keys:
+With these keys, Alice can achieve a high degree of privacy and integrity:
 
 * Alice can encrypt each layer of the onion so that only the intended recipient can read it.
 * Every intermediary can check that the message is not modified.
@@ -232,7 +238,7 @@ Remember the goals of onion routing, that Alice can achieve with these keys:
 
 [WARNING]
 ====
-Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read BOLT #4 if you want to learn more.
+Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4 - Onion Routing - Packet Construction], if you want to learn more.
 ====
 
 
@@ -278,56 +284,58 @@ One important detail that seems almost magical is the ability for Alice to creat
 // To editor: Maybe put this in an appendix instead of a sidebar?
 
 [[ecdh]]
+[[ecdh_explained]]
 .Elliptic Curve Diffie-Hellman (ECDH) explained
 ****
-Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, they multiply each private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
+Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, Alice and Bob each multiply their private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
 
  A = aG
 
  B = bG
 
-Now Alice and Bob can create a shared secret +ss+, a value that they can both calculate independently without exchanging any information, such that
+Now Alice and Bob can use _Elliptic Curve Diffie-Hellman Key Exchange_ to create a shared secret +ss+, a value that they can both calculate independently without exchanging any information
+
+The shared secret +ss+ is calculated by each by multiplying their own private key with the *other's* public key, such that:
 
  ss = aB = bA
 
+But why would these two multiplications result in the same value +ss+?
 Follow along, as we demonstrate the math that proves this is possible:
 
  ss
 
  = aB
 
-calculated by Alice who knows both +a+ and +B+
+calculated by Alice who knows both +a+ (her private key) and +B+ (Bob's public key)
 
  = a(bG)
 
-because we know
+because we know that B = bG, we substitute
 
  = (ab)G
 
-because of associativity
+because of associativity, we can move the parentheses
 
  = (ba)G
 
-because the curve is an abelian group
+because xy = yx (the curve is an abelian group)
 
  = b(aG)
 
-because of associativity
+because of associativity, we can move the parentheses
 
  = bA
 
-can be calculated by Bob who knows +b+ and +A+
+ because A = aG, we can substitute
 
+The result bA can be calculated independently by Bob who knows +b+ (his private key) and +A+ (Alice's public key).
 
 We have therefore shown that
 
- ss = aB = bA
+ ss = aB (Alice can calculate this)
+ ss = bA (Bob can calculate this)
 
-Alice can multiple her private key with Bob's public key to calculate +ss+
-
-Bob can multiply his private key with Alice's public key to calculate +ss+
-
-Thus, they will both get the same result which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
+Thus, they can each independently calculate +ss+ which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
 
 ****
 
@@ -612,7 +620,7 @@ onion_routing_packet:: The final onion packet Alice constructed with all the hop
 
 ==== Bob checks the onion
 
-As we saw in <<channel_operations>>, Bob will add the HTLC to the commitment transactions and update the state of the channel with Alice.
+As we saw in <<channel_operation>>, Bob will add the HTLC to the commitment transactions and update the state of the channel with Alice.
 
 Bob will unwrap the onion he received from Alice as follows:
 
@@ -823,3 +831,5 @@ One proposed solution to this problem is called "stuckless payments", and it dep
 === Conclusion
 
 The Lightning Network's onion routing protocol is adapted from the Sphinx Protocol to better serve the needs of a payment network. As such, it offers a huge improvement in privacy and counter-surveillance compared to the public and transparent Bitcoin blockchain.
+
+In <<path_finding>> we will see how the combination of source routing and onion routing is used by Alice to find a good path and route the payment to Dina. To find a path, Alice first needs to learn about the network topology, which is the topic of the next section <<gossip>>.
