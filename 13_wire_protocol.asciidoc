@@ -4,7 +4,7 @@
 In this chapter, we'll dive into the wire protocol of the Lightning network,
 and also cover all the various extensibility levers that have been built into
 the protocol. By the end of this chapter, and aspiring reader should be able to
-write their very own wire protocol parser for the Lighting Network. In addition
+write their very own wire protocol parser for the Lightning Network. In addition
 to being able to write a custom wire protocol parser, a reader of this chapter
 will gain a deep understanding with respect of the various upgrade mechanisms
 that have been built into the protocol.
@@ -30,7 +30,7 @@ higher-level language.
 
 It's important to note that as the Lightning Network is an _end to end
 encrypted_ protocol, the wire framing is itself encapsulated within an
-_encrypted_ message transport layer. As we learned in chapter XXX, the Lighting
+_encrypted_ message transport layer. As we learned in chapter XXX, the Lightning
 Network uses Brontide, a custom variant of the Noise protocol to handle
 transport encryption. Within this chapter, whenever we give an example of wire
 framing, we assume the encryption layer has already been stripped away (when
@@ -110,7 +110,7 @@ Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
 and if while parsing a messages, extra bytes are left over, then those bytes
 are to be _ignored_. At an initial glance, this requirement may appear to be
 somewhat arbitrary, however upon close inspection it's actually the case that
-this requirement allows for de-coupled de-synchronized evolution of the Lighting
+this requirement allows for de-coupled de-synchronized evolution of the Lightning
 Protocol itself. We'll opine further upon this notion towards the end of the
 chapter. First, we'll turn our attention to exactly what those "extra bytes" at
 the end of a message can be used for.
@@ -155,7 +155,7 @@ clients that don't update can still use Bitcoin, and if they encounters any
 transactions they don't understand, then they simply ignore them as their funds
 aren't using those new features.
 
-===== Lighting's Protobuf Inspired Message Extension Format: `TLV`
+===== Lightning's Protobuf Inspired Message Extension Format: `TLV`
 
 In order to be able to upgrade messages in both a forwards and backwards
 compatible manner, in addition to feature bits (more on that later), the LN
@@ -164,7 +164,7 @@ Value, or TLV for short. The format was inspired by the widely used protobuf
 format and borrows many concepts by significantly simplifying the
 implementation as well as the software that interacts with message parsing. A
 curious reader might ask "why not just use protobufs"? In response, the
-Lighting developers would respond that we're able to have the best of the
+Lightning developers would respond that we're able to have the best of the
 extensibility of protobufs while also having the benefit of a smaller
 implementation and thus smaller attack. As of version v3.15.6, the protobuf
 compiler weighs in at over 656,671 lines of code.  In comparison lnd's
@@ -233,7 +233,7 @@ itself.
 One issue with the protobuf format is the encodes of the same message may
 output an entirely different set of bytes when encoded by two different
 versions of the compiler. Such instances of a non-cannonical encoding are not
-acceptable within the context of Lighting, was many messages contain a
+acceptable within the context of Lightning, was many messages contain a
 signature of the message digest. If it's possible for a message to be encoded
 in two different ways, then it would be possible to break the authentication of
 a signature inadvertently by re-encoding a message using a slightly different
@@ -254,20 +254,20 @@ constraints are defined when encoding:
 In addition to these writing requirements a series of higher-level
 interpretation requirements are also defined based on the _arity_ of a given
 `type` integer. We'll dive further into these details towards the end of the
-chapter once we dsecribe how the Lighting Protocol is upgraded in practice and
+chapter once we dsecribe how the Lightning Protocol is upgraded in practice and
 in theory.
 
 === Feature Bits & Protocol Extensibility
 
-As the Lighting Network is a decentralized system, no one entity can enforce a
+As the Lightning Network is a decentralized system, no one entity can enforce a
 protocol change or modification upon all the users of the system. This
 characteristic is also seen in other decentralized networks such as Bitcoin.
 However, unlike Bitcoin overwhelming consensus *is not* require to change a
-subset of the Lightning Network. Lighting is able to evolve at will without a
+subset of the Lightning Network. Lightning is able to evolve at will without a
 strong requirement of coordination, as unlike Bitcoin, there is no *global&
 consensus required in the Lightning Network. Due to this fact and the several
-upgrade mechanisms embedded in the Lighting Network, at most, only the
-participants that wish to use these new Lighting Network feature need to
+upgrade mechanisms embedded in the Lightning Network, at most, only the
+participants that wish to use these new Lightning Network feature need to
 upgrade, and then they are able to interact w/ each other.
 
 In this section, we'll explore the various ways that developers and users are
@@ -318,7 +318,7 @@ they instead signalled the feature using bit _16_, then we know this is a
 required feature, and we can't interact with them unless our node also
 understands that feature.
 
-The Lighting developers have come up with an easy to remember phrase that
+The Lightning developers have come up with an easy to remember phrase that
 encodes this matrix: "it's OK to be odd". This simple rule set allows for a
 rich set of interactions within the protocol, as a simple bitmask operation
 between two feature bit vectors allows peers to determine if certain
@@ -346,7 +346,7 @@ Overtime, these records have been used to _extend_ existing messages without
 breaking the protocol by utilizing the "undefined" area within a message beyond
 that set of known bytes.
 
-As an example, the original Lighting Protocol didn't have a concept of the
+As an example, the original Lightning Protocol didn't have a concept of the
 _largest_ HTLC that could traverse through a channel as dictated by a routing
 policy. Later on, the `max_htlc` field was added to the `channel_update`
 message to phase in such a concept over time. Peers that held a
@@ -357,7 +357,7 @@ and utilize the new field at will.
 
 Those familiar with the concept of soft-forks in Bitcoin may now see some
 similarities between the two mechanism.  Unlike Bitcoin consensus-level
-soft-forks, upgrades to the Lighting Network don't require overwhelming
+soft-forks, upgrades to the Lightning Network don't require overwhelming
 consensus in order to adopt. Instead, at minimum, only two peers within the
 network need to understand new upgrade in order to start utilizing it without
 any permission. Commonly these tow peers may be the receiver and sender of a
@@ -367,7 +367,7 @@ payment, or it may the initiator and responder of a new payment channel.
 
 Rather than there being a single widely utilized upgrade mechanism within the
 network (such as soft forks for base layer Bitcoin), there exist a wide
-gradient of possible upgrade mechanisms within the Lighting Network. In this
+gradient of possible upgrade mechanisms within the Lightning Network. In this
 section, we'll enumerate the various upgrade mechanism within the network, and
 provide a real-world example of their usage in the past.
 
