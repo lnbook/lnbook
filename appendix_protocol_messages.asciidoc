@@ -2,19 +2,23 @@
 [[wire_protocol_enumeration]]
 [[protocol_messages]]
 [[messages]]
-==== Wire Protocol Messages
+== Wire Protocol Messages
 
-In this appendix, we outline the precise structure of each of the wire
-messages within the protocol. We do so in two parts: first we enumerate
-all the currently defined wire message types along with the message name
-corresponding to that type, we then define the structure of
-each of the wire messages (partitioned into logical groupings).
+This appendix lists all the currently defined message types used in the Lightning P2P protocol. Additionally, we show the structure of each message, grouping the messages into logical groupings based on the protocol flows.
 
-First, we lead with an enumeration of all the currently defined types:
+[NOTE]
+====
+Lightning Protocol messages are extensible and their structure may change during network-wide upgrades. For the authoritative information, consult the latest version of the BOLTs found in the https://github.com/lightningnetwork/lightning-rfc[Github - Lightning-RFC] repository.
+====
 
+=== Message Types
+
+Currently defined message types are:
+
+[[message_types]]
 .Message Types
 [options="header"]
-|==============================================================================
+|===
 | Type Integer | Message Name | Category
 | 16  | `init`             |  Connection Establishment
 | 17  | `error`             | Error Communication
@@ -44,14 +48,14 @@ First, we lead with an enumeration of all the currently defined types:
 | 263 | `query_channel_range`             |          Channel Graph Syncing
 | 264 | `reply_channel_range`             |          Channel Graph Syncing
 | 265 | `gossip_timestamp_range`             |          Channel Graph Syncing
-|==============================================================================
+|===
 
-In the above table, the `Category` field allows us to quickly categonize a
+In <<message_types>>, the `Category` field allows us to quickly categorize a
 message based on its functionality within the protocol itself. At a high level,
 we place a message into one of 8 (non exhaustive) buckets including:
 
  * *Connection Establishment*: Sent when a peer to peer connection is first
-   established. Also used in order to negotiate the set of _feature_ supported
+   established. Also used in order to negotiate the set of feature supported
    by a new connection.
 
  * *Error Communication*: Used by peer to communicate the occurrence of
@@ -63,25 +67,28 @@ we place a message into one of 8 (non exhaustive) buckets including:
  * *Channel Funding*: Used by peers to create a new payment channel. This
    process is also known as the channel funding process.
 
- * *Channel Operation*: The act of updating a given channel _off-chain_. This
+ * *Channel Operation*: The act of updating a given channel off-chain. This
    includes sending and receiving payments, as well as forwarding payments
    within the network.
 
  * *Channel Announcement*: The process of announcing a new public channel to
    the wider network so it can be used for routing purposes.
 
- * *Channel Graph Syncing*: The process of downloading+verifying the channel
+ * *Channel Graph Syncing*: The process of downloading & verifying the channel
   graph.
 
 
 Notice how messages that belong to the same category typically share an
 adjacent _message type_ as well. This is done on purpose in order to group
-semantically similar messages together within the specification itself. With
-this roadmap laid out, we now visit each message category in order to define
+semantically similar messages together within the specification itself.
+
+=== Message Structure
+
+We now detail each message category in order to define
 the precise structure and semantics of all defined messages within the LN
 protocol.
 
-===== Connection Establishment Messages
+==== Connection Establishment Messages
 
 Messages in this category are the very first message sent between peers once
 they establish a transport connection. At the time of writing of this chapter,
@@ -92,15 +99,16 @@ has been sent by both parties.
 
 The structure of the `init` message is defined as follows:
 
-`init` message:
+[[apdx_init_message]]
+===== The `init` message
 
- * type: `16`
+ * type:	*16*
  * fields:
-    * `uint16`: `global_features_len`
-    * `global_features_len*byte`: `global_features`
-    * `uint16`: `features_len`
-    * `features_len*byte`: `features`
-    * `tlv_stream_tlvs`
+    ** `uint16`: `global_features_len`
+    ** `global_features_len*byte`: `global_features`
+    ** `uint16`: `features_len`
+    ** `features_len*byte`: `features`
+    ** `tlv_stream_tlvs`
 
 Structurally, the `init` message is composed of two variable size bytes slices
 that each store a set of _feature bits_. As we'll see later, feature bits are a
@@ -132,7 +140,7 @@ such a feature would be a theoretical new channel type within the protocol: if
 your peer doesn't know of this feature, they you don't want to keep the
 connection as they're unable to open your new preferred channel type.
 
-===== Error Communication Messages
+==== Error Communication Messages
 
 Messages in this category are used to send connection level errors between two
 peers. As we'll see later, another type of error exists in the protocol: an
@@ -142,11 +150,14 @@ broadcast the latest signed commitment)
 
 The sole message in this category is the `error` message:
 
- * type:  `17`
+[[apdx_error_message]]
+===== The `error` message
+
+ * type:	*17*
  * fields:
-   * `channel_id`: `chan_id`
-   * `uint16`: `data_len`
-   * `data_len*byte`: `data`
+  ** `channel_id` : `chan_id`
+  ** `uint16` : `data_len`
+  ** `data_len*byte` : `data`
 
 An `error` message can be sent within the scope of a particular channel by
 setting the `channel_id`, to the `channel_id` of the channel under going this
@@ -159,27 +170,31 @@ have a channel with may indicate that the channel cannot continue without
 manual intervention, so the only option at that point is to force close the
 channel by broadcasting the latest commitment state of the channel.
 
-===== Connection Liveness
+==== Connection Liveness
 
 Messages in this section are used to probe to determine if a connection is
 still live or not. As the LN protocol somewhat abstracts over the underlying
 transport being used to transmit the messages, a set of protocol level `ping`
 and `pong` messages are defined.
 
-First, the `ping` message:
+[[apdx_ping_message]]
+===== The `ping` message
 
-  * type: `18`
-  * fields:
-    * `uint16`: `num_pong_bytes`
-    * `uint16`: `ping_body_len`
-    * `ping_body_len*bytes`: `ping_body`
+ * type:	*18*
+ * fields:
+  ** `uint16` : `num_pong_bytes`
+  ** `uint16` : `ping_body_len`
+  ** `ping_body_len*bytes` : `ping_body`
 
-Next it's companion, the `pong` message:
+Next it's companion, the `pong` message.
 
-  * type: `19`
-  * fields:
-    * `uint16`: `pong_body_len`
-    * `ping_body_len*bytes`: `pong_body`
+[[apdx_pong_message]]
+===== The `pong` message
+
+ * type:	*19*
+ * fields:
+  ** `uint16` : `pong_body_len`
+  ** `ping_body_len*bytes` : `pong_body`
 
 A `ping` message can be sent by either party at any time.
 
@@ -200,7 +215,7 @@ default the LN uses an _encrypted_ transport, so a passive network monitor
 cannot read the plaintext bytes, thus only has timing and packet sizes to go
 off of.
 
-===== Channel Funding
+==== Channel Funding
 
 As we go on, we enter into the territory of the core messages that govern the
 functionality and semantics of the Lightning Protocol. In this section, we'll
@@ -214,29 +229,30 @@ set of 5 messages: `open_channel`, `accept_channel`, `funding_created`,
 protocol flow involving these messages for a chapter XXX. In this section,
 we'll simply enumerate the set of fields and briefly describe each one.
 
-The `open_channel` message:
+[[apdx_open_channel_message]]
+===== The `open_channel` message
 
-  * type: `32`
-  * fields:
-    * `chain_hash`:chain_hash
-    * `32*byte`: `temp_chan_id`
-    * `uint64`: `funding_satoshis`
-    * `uint64`: `push_msat`
-    * `uint64`: `dust_limit_satoshis`
-    * `uint64`: `max_htlc_value_in_flight_msat`
-    * `uint64`: `channel_reserve_satoshis`
-    * `uint64`: `htlc_minimum_msat`
-    * `uint32`: `feerate_per_kw`
-    * `uint16`: `to_self_delay`
-    * `uint16`: `max_accepted_htlcs`
-    * `pubkey`: `funding_pubkey`
-    * `pubkey`: `revocation_basepoint`
-    * `pubkey`: `payment_basepoint`
-    * `pubkey`: `delayed_payment_basepoint`
-    * `pubkey`: `htlc_basepoint`
-    * `pubkey`: `first_per_commitment_point`
-    * `byte`: `channel_flags`
-    * `tlv_stream`: `tlvs`
+ * type:	*32*
+ * fields:
+  ** `chain_hash` : `chain_hash`
+  ** `32*byte` : `temp_chan_id`
+  ** `uint64` : `funding_satoshis`
+  ** `uint64` : `push_msat`
+  ** `uint64` : `dust_limit_satoshis`
+  ** `uint64` : `max_htlc_value_in_flight_msat`
+  ** `uint64` : `channel_reserve_satoshis`
+  ** `uint64` : `htlc_minimum_msat`
+  ** `uint32` : `feerate_per_kw`
+  ** `uint16` : `to_self_delay`
+  ** `uint16` : `max_accepted_htlcs`
+  ** `pubkey` : `funding_pubkey`
+  ** `pubkey` : `revocation_basepoint`
+  ** `pubkey` : `payment_basepoint`
+  ** `pubkey` : `delayed_payment_basepoint`
+  ** `pubkey` : `htlc_basepoint`
+  ** `pubkey` : `first_per_commitment_point`
+  ** `byte` : `channel_flags`
+  ** `tlv_stream` : `tlvs`
 
 This is the first message sent when a node wishes to execute a new funding flow
 with another node. This message contains all the necessary information required
@@ -247,8 +263,8 @@ At the time of writing of this chapter, a single TLV record is defined within
 the set of optional TLV records that may be appended to the end of a defined
 message:
 
-  * type: 0
-  * data: `upfront_shutdown_script`
+ * type:	*0*
+ * data:  `upfront_shutdown_script`
 
 The `upfront_shutdown_script` is a variable sized byte slice that MUST be a
 valid public key script as accepted by the Bitcoin networks' consensus
@@ -265,23 +281,26 @@ commonly referred to as a "private" channel.
 
 The `accept_channel` message is the response to the `open_channel` message:
 
-  * type: `33`
-  * fields:
-    * `32*byte`: `temp_chan_id`
-    * `uint64`: `dust_limit_satoshis`
-    * `uint64`: `max_htlc_value_in_flight_msat`
-    * `uint64`: `channel_reserve_satoshis`
-    * `uint64`: `htlc_minimum_msat`
-    * `uint32`: `minimum_depth`
-    * `uint16`: `to_self_delay`
-    * `uint16`: `max_accepted_htlcs`
-    * `pubkey`: `funding_pubkey`
-    * `pubkey`: `revocation_basepoint`
-    * `pubkey`: `payment_basepoint`
-    * `pubkey`: `delayed_payment_basepoint`
-    * `pubkey`: `htlc_basepoint`
-    * `pubkey`: `first_per_commitment_point`
-    * `tlv_stream`: `tlvs`
+[[apdx_accept_channel_message]]
+===== The `accept_channel` message
+
+ * type:	*33*
+ * fields:
+  ** `32*byte` : `temp_chan_id`
+  ** `uint64` : `dust_limit_satoshis`
+  ** `uint64` : `max_htlc_value_in_flight_msat`
+  ** `uint64` : `channel_reserve_satoshis`
+  ** `uint64` : `htlc_minimum_msat`
+  ** `uint32` : `minimum_depth`
+  ** `uint16` : `to_self_delay`
+  ** `uint16` : `max_accepted_htlcs`
+  ** `pubkey` : `funding_pubkey`
+  ** `pubkey` : `revocation_basepoint`
+  ** `pubkey` : `payment_basepoint`
+  ** `pubkey` : `delayed_payment_basepoint`
+  ** `pubkey` : `htlc_basepoint`
+  ** `pubkey` : `first_per_commitment_point`
+  ** `tlv_stream` : `tlvs`
 
 The `accept_channel` message is the second message sent during the funding flow
 process. It serves to acknowledge an intent to open a channel with a new remote
@@ -291,14 +310,17 @@ when we go into the funding process in details, we'll do a deep dive to explore
 the implications of the various par maters that can be set when opening a new
 channel.
 
-In response, the initiator will send the `funding_created` message:
+In response, the initiator will send the `funding_created` message.
 
-  * type: `34`
-  * fields:
-    * `32*byte`: `temp_chan_id`
-    * `32*byte`: `funding_txid`
-    * `uint16`: `funding_output_index`
-    * `sig`: `commit_sig`
+[[apdx_funding_created_message]]
+===== The `funding_created` message
+
+ * type:	*34*
+ * fields:
+  ** `32*byte` : `temp_chan_id`
+  ** `32*byte` : `funding_txid`
+  ** `uint16` : `funding_output_index`
+  ** `sig` : `commit_sig`
 
 Once the initiator of a channel receives the `accept_channel` message from the
 responder, they they have all the materials they need in order to construct the
@@ -308,12 +330,15 @@ needs to construct the funding transaction. As a result, in order to allow the
 responder to sign a version of a commitment transaction for the initiator, the
 initiator, only needs to send the funding outpoint of the channel.
 
-To conclude the responder sends the `funding_signed` message:
+To conclude the responder sends the `funding_signed` message.
 
-  * type: `34`
-  * fields:
-    * `channel_id`: `channel_id`
-    * `sig`: `signature`
+[[apdx_funding_signed_message]]
+===== The `funding_signed` message
+
+ * type:	*34*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `sig` : `signature`
 
 To conclude after the responder receivers the `funding_created` message, they
 now own a valid signature of the commitment transaction by the initiator. With
@@ -328,51 +353,65 @@ broadcast the funding transaction, as they're now able to exit the channel
 agreement unilaterally.
 
 Once the funding transaction has received enough confirmations, the
-`funding_locked` is sent:
+`funding_locked` is sent.
 
-  * type: `36
-  * fields:
-    * `channel_id`: `channel_id`
-    * `pubkey`: `next_per_commitment_point`
+[[apdx_funding_locked_message]]
+===== The `funding_locked` message
+
+ * type:	*36*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `pubkey` : `next_per_commitment_point`
 
 Once the funding transaction obtains a `minimum_depth` number of confirmations,
 then the `funding_locked` message is to be sent by both sides. Only after this
 message has been received, and sent can the channel being to be used.
 
-===== Channel Closing
+==== Channel Closing
 
-* type: `38`
-* fields:
-  [channel_id:channel_id]
-[u16:len]
-[len*byte:scriptpubkey]
+Channel closing is a multi-step process. One node initiates by sending the `shutdown` message. The two channel partners then exchange a series of `channel_closing` messages to negotiate mutually acceptable fees for the closing transaction. The channel funder sends the first `closing_signed` message and the other side can accept by sending a `closing_signed` message with the same fee values.
 
-* type: `39`
-* fields:
-  [channel_id:channel_id]
-[u64:fee_satoshis]
-[signature:signature]
+[[apdx_shutdown_message]]
+===== The `shutdown` message
 
-#### Channel Operation
+ * type:	*38*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `u16` : `len`
+  ** `len*byte` : `scriptpubkey`
+
+[[apdx_closing_signed_message]]
+===== The `closing_signed` message
+
+ * type:	*39*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `u64` : `fee_satoshis`
+  ** `signature` : `signature`
+
+==== Channel Operation
 
 In this section, we'll briefly describe the set of messages used to allow
-anodes to operate a channel. By operation, we mean being able to send receive,
+nodes to operate a channel. By operation, we mean being able to send receive,
 and forward payments for a given channel.
 
 In order to send, receive or forward a payment over a channel, an HTLC must
 first be added to both commitment transactions that comprise of a channel link.
 
-* The `update_add_htlc` message allows either side to add a new HTLC to the
-opposite commitment transaction:
+The `update_add_htlc` message allows either side to add a new HTLC to the
+opposite commitment transaction.
 
-  * type: `128`
-  * fields:
-    * `channel_id`: `channel_id`
-    * `uint64`: `id`
-    * `uint64`: `amount_msat`
-    * `sha256`: `payment_hash`
-    * `uint32`:`cltv_expiry`
-    * `1366*byte:`onion_routing_packet`
+[[apdx_update_add_htlc_message]]
+===== The `update_add_htlc` message
+
+ * type:	*128*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `uint64` : `id`
+  ** `uint64` : `amount_msat`
+  ** `sha256` : `payment_hash`
+  ** `uint32` : `cltv_expiry`
+  ** `1366*byte` : `onion_routing_packet`
 
 Sending this message allows one party to initiate either sending a new payment,
 or forwarding an existing payment that arrived via in incoming channel. The
@@ -383,29 +422,35 @@ multi-hop HTLC forwarding, we details the onion routing protocol used in the
 Lighting Network in detail.
 
 Note that each HTLC sent uses an auto incrementing ID which is used by any
-message which modifies na HTLC (settle or cancel) to reference the HTLC in a
+message which modifies an HTLC (settle or cancel) to reference the HTLC in a
 unique manner scoped to the channel.
 
-The `update_fulfill_hltc` allow redemption (receipt) of an active HTLC:
+The `update_fulfill_hltc` allow redemption (receipt) of an active HTLC.
 
-  * type: `130`
-  * fields:
-    * `channel_id`: `channel_id`
-    * `uint64`: `id`
-    * `32*byte`: `payment_preimage`
+[[apdx_update_fulfill_hltc_message]]
+===== The `update_fulfill_hltc` message
+
+ * type:	*130*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `uint64` : `id`
+  ** `32*byte` : `payment_preimage`
 
 This message is sent by the HTLC receiver to the proposer in order to redeem an
 active HTLC. The message references the `id` of the HTLC in question, and also
 provides the pre-image (which unlocks the HLTC) as well.
 
-The `update_fail_htlc` is sent to remove an HTLC from a commitment transaction:
+The `update_fail_htlc` is sent to remove an HTLC from a commitment transaction.
 
-  * type: `131`
-  * fields:
-    * `channel_id`:channel_id`
-    * `uint64`: `id`
-    * `uint16`: `len`
-    * `len*byte`: `reason`
+[[apdx_update_fail_htlc_message]]
+===== The `update_fail_htlc` message
+
+ * type:	*131*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `uint64` : `id`
+  ** `uint16` : `len`
+  ** `len*byte` : `reason`
 
 The `update_fail_htlc` is the opposite of the `update_fulfill_hltc` message as
 it allows the receiver of an HTLC to remove the very same HTLC. This message is
@@ -415,14 +460,17 @@ Chapter XX, the message contains an _encrypted_ failure reason (`reason`) which
 may allow the sender to either adjust their payment route, or terminate if the
 failure itself is a terminal one.
 
-The `commit_sig` is used to stamp the creation of a new commitment transaction:
+The `commitment_signed` message is used to stamp the creation of a new commitment transaction
 
-  * type: `132`
-  * fields:
-    * `channel_id`: `channel_id`
-    * `sig`: `signature`
-    * `uint16` `num_htlcs`
-    * `num_htlcs*sig: `htlc_signature`
+[[apdx_commitment_signed_message]]
+===== The `commitment_signed` message
+
+ * type:	*132*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `sig` : `signature`
+  ** `uint16` : `num_htlcs`
+  ** `num_htlcs*sig` : `htlc_signature`
 
 In addition to sending a signature for the next commitment transaction, the
 sender of this message also needs to send a signature for each HTLC that's
@@ -430,11 +478,15 @@ present on the commitment transaction. This is due to the existence of the
 
 
 The `revoke_and_ack` is sent to revoke a dated commitment:
-  * type: `133`
-  * fields:
-    * `channel_id`: `channel_id`
-    * `32*byte`: `per_commitment_secret`
-    * `pubkey`: `next_per_commitment_point`
+
+[[apdx_revoke_and_ack_message]]
+===== The `revoke_and_ack` message
+
+ * type:	*133*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `32*byte` : `per_commitment_secret`
+  ** `pubkey` : `next_per_commitment_point`
 
 As the Lightning Network uses a replace-by-revoke commitment transaction, after
 receiving a new commitment transaction via the `commit_sig` message, a party
@@ -444,24 +496,31 @@ next commitment point that's required to allow the other party to send them a
 new commitment state.
 
 The `update_fee` is sent to update the fee on the current commitment
-transactions:
+transactions.
 
-  * type: `134`
-  * fields
-    * `channel_id`: `channel_id`
-    * `uint32`: `feerate_per_kw`
+[[apdx_update_fee_message]]
+===== The `update_fee` message
+
+ * type:	*134*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `uint32` : `feerate_per_kw`
 
 This message can only be sent by the initiator of the channel they're the ones
 that will pay for the commitment fee of the channel as along as it's open.
 
 The `update_fail_malformed_htlc` is sent to remove a corrupted HTLC:
 
-  * type: `135`
-  * fields:
-    * `channel_id`: `channel_id`
-    * `uint64`: `id`
-    * `sha256`: `sha256_of_onion`
-    * `uint16`: `failure_code`
+
+[[apdx_update_fail_malformed_htlc_message]]
+===== The `update_fail_malformed_htlc` message
+
+ * type:	*135*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `uint64` : `id`
+  ** `sha256` : `sha256_of_onion`
+  ** `uint16` : `failure_code`
 
 This message is similar to the `update_fail_htlc` but it's rarely used in
 practice. As mentioned above, each HTLC carries an onion encrypted routing
@@ -471,7 +530,7 @@ then it won't be able to decrypt the packet. As a result it also can't properly
 forward the HTLC, therefore it'll send this message to signify that the HTLC
 has been corrupted somewhere along the route back to the sender.
 
-===== Channel Announcement
+==== Channel Announcement
 
 Messages in this category are used to announce components of the Channel Graph
 authenticated data structure to the wider network. The Channel Graph has a
@@ -482,22 +541,25 @@ on chain transaction fee. This serves as a natural spam de tenace for the
 Lightning Network.
 
 The `channel_announcement` is used to announce a new channel to the wider
-network:
+network.
 
-    * type: `256`
-    * fields:
-        * `sig`: `node_signature_1`
-        * `sig`: `node_signature_2`
-        * `sig`: `bitcoin_signature_1`
-        * `sig`: `bitcoin_signature_2`
-        * `uint16`: `len`
-        * `len*byte`: `features`
-        * `chain_hash`: `chain_hash`
-        * `short_channel_id`: `short_channel_id`
-        * `pubkey`: `node_id_1`
-        * `pubkey`: `node_id_2`
-        * `pubkey`: `bitcoin_key_1`
-        * `pubkey`: `bitcoin_key_2`
+[[apdx_channel_announcement_message]]
+===== The `channel_announcement` message
+
+ * type:	*256*
+ * fields:
+  ** `sig` : `node_signature_1`
+  ** `sig` : `node_signature_2`
+  ** `sig` : `bitcoin_signature_1`
+  ** `sig` : `bitcoin_signature_2`
+  ** `uint16` : `len`
+  ** `len*byte` : `features`
+  ** `chain_hash` : `chain_hash`
+  ** `short_channel_id` : `short_channel_id`
+  ** `pubkey` : `node_id_1`
+  ** `pubkey` : `node_id_2`
+  ** `pubkey` : `bitcoin_key_1`
+  ** `pubkey` : `bitcoin_key_2`
 
 The series of signatures and public keys in the message serves to create a
 _proof_ that the channel actually exists within the base Bitcoin blockchain. As
@@ -507,19 +569,22 @@ that encodes it's _location_ within the blockchain. This locator is called this
 
 
 The `node_announcement` allows a node to announce/update it's vertex within the
-greater Channel Graph:
+greater Channel Graph.
 
-  * type: `257`
-  * fields:
-    * `sig`:`signature`
-    * `uint64`: `flen`
-    * `flen*byte`: `features`
-    * `uint32`: `timestamp`
-    * `pubkey`: `node_id`
-    * `3*byte`: `rgb_color`
-    * `32*byte`: `alias`
-    * `uint16`: `addrlen`
-    * `addrlen*byte`: `addresses`
+[[apdx_node_announcement_message]]
+===== The `node_announcement` message
+
+ * type:	*257*
+ * fields:
+  ** `sig` : `signature`
+  ** `uint64` : `flen`
+  ** `flen*byte` : `features`
+  ** `uint32` : `timestamp`
+  ** `pubkey` : `node_id`
+  ** `3*byte` : `rgb_color`
+  ** `32*byte` : `alias`
+  ** `uint16` : `addrlen`
+  ** `addrlen*byte` : `addresses`
 
 Note that if a node doesn't have any advertised channel within the Channel
 Graph, then this message is ignored in order to ensure that adding an item to
@@ -529,22 +594,25 @@ the cost of creating the channel which this node is connected to.
 In addition to advertising its feature set, this message also allows a node to
 announce/update the set of network `addresses` that it can be reached at.
 
-The `channel_update` messages is sent to update the properties and policies of
-an active channel edge within the Channel graph:
+The `channel_update` message is sent to update the properties and policies of
+an active channel edge within the Channel graph.
 
-  * type: `258:
-  * fields:
-    * `signature`: `signature`
-    * `chain_hash`: `chain_hash`
-    * `short_channel_id`: `short_channel_id`
-    * `uint32`: `timestamp`
-    * `byte`: `message_flags`
-    * `byte`: `channel_flags`
-    * `uint16`: `cltv_expiry_delta`
-    * `uint64`: `htlc_minimum_msat`
-    * `uint32`: `fee_base_msat`
-    * `uint32`: `fee_proportional_millionths`
-    * `uint16`: `htlc_maximum_msat`
+[[apdx_channel_update_message]]
+===== The `channel_update` message
+
+ * type:	*258*
+ * fields:
+  ** `signature` : `signature`
+  ** `chain_hash` : `chain_hash`
+  ** `short_channel_id` : `short_channel_id`
+  ** `uint32` : `timestamp`
+  ** `byte` : `message_flags`
+  ** `byte` : `channel_flags`
+  ** `uint16` : `cltv_expiry_delta`
+  ** `uint64` : `htlc_minimum_msat`
+  ** `uint32` : `fee_base_msat`
+  ** `uint32` : `fee_proportional_millionths`
+  ** `uint16` : `htlc_maximum_msat`
 
 In addition to being able to enable/disable a channel this message allows a
 node to update it's routing fees as well as other fields that shape the type of
@@ -552,55 +620,68 @@ payment that is permitted to flow through this channel.
 
 The `announce_signatures` message is exchange by channel peers in order to
 assemble the set of signatures required to produce a `channel_announcement`
-message:
+message.
 
-  * type: `259`
-  * fields:
-    * `channel_id`: `channel_id`
-    * `short_channel_id`: `short_channel_id`
-    * `sig`: `node_signature`
-    * `sig`: `bitcoin_signature`
+[[apdx_announce_signatures_message]]
+===== The `announce_signatures` message
+
+ * type:	*259*
+ * fields:
+  ** `channel_id` : `channel_id`
+  ** `short_channel_id` : `short_channel_id`
+  ** `sig` : `node_signature`
+  ** `sig` : `bitcoin_signature`
 
 After the `funding_locked` message has been sent, if both sides wish to
 advertise their channel to the network, then they'll each send the
 `announce_signatures` message which allows both sides to emplace the 4
 signatures required to generate a `announce_signatures` message.
 
-===== Channel Graph Syncing
+==== Channel Graph Syncing
 
 The `query_short_chan_ids` allows a peer to obtain the channel information
-related to a series of short channel IDs:
+related to a series of short channel IDs.
 
-  * type: `261:
-  * fields:
-      * `chain_hash`: `chain_hash`
-      * `u16`: `len`
-      * `len*byte`: `encoded_short_ids`
-      * `query_short_channel_ids_tlvs`: `tlvs`
+[[apdx_query_short_chan_ids_message]]
+===== The `query_short_chan_ids` message
+
+ * type:	*261*
+ * fields:
+  ** `chain_hash` : `chain_hash`
+  ** `u16` : `len`
+  ** `len*byte` : `encoded_short_ids`
+  ** `query_short_channel_ids_tlvs` : `tlvs`
 
 As we'll learn in Chapter XXX, these channel IDs may be a series of channels
 that were new to the sender, or were out of date which allows the sender to
 obtain the latest set of information for a set of channels.
 
 The `reply_short_chan_ids_end` message is sent after a peer finishes responding
-to a prior `query_short_chan_ids` message:
+to a prior `query_short_chan_ids` message.
 
-  * type; `262`
-  * fields:
-      * `chain_hash`: `chain_hash`
-      * `byte`: `full_information`
+[[apdx_reply_short_chan_ids_end_message]]
+===== The `reply_short_chan_ids_end` message
+
+ * type:	*262*
+ * fields:
+  ** `chain_hash` : `chain_hash`
+  ** `byte` : `full_information`
 
 This message signals to the receiving party that if they wish to send another
 query message, they can now do so.
 
 The `query_channel_range` message allows a node to query for the set of channel
-opened within a block range:
-  * type: `263:
-  * fields:
-      * `chain_hash`: `chain_hash`
-      * `u32`: `first_blocknum`
-      * `u32`: `number_of_blocks`
-      * `query_channel_range_tlvs`: `tlvs`
+opened within a block range.
+
+[[apdx_query_channel_range_message]]
+===== The `query_channel_range` message
+
+ * type:	*263*
+ * fields:
+  ** `chain_hash` : `chain_hash`
+  ** `u32` : `first_blocknum`
+  ** `u32` : `number_of_blocks`
+  ** `query_channel_range_tlvs` : `tlvs`
 
 
 As channels are represented using a short channel ID that encodes the location
@@ -609,18 +690,21 @@ sort of _cursor_ to seek through the chain in order to discover a set of newly
 opened channels. In Chapter XXX, we'll go through the protocol peers use to
 sync the channel graph in more detail.
 
-
 The `reply_channel_range` message is the response to `query_channel_range` and
-includes the set of short channel IDs for known channels within that range:
-  * type: `264`
-  * fields:
-      * `chain_hash`: `chain_hash`
-      * `u32`: `first_blocknum`
-      * `u32`: `number_of_blocks`
-      * `byte`: `sync_complete`
-      * `u16`: `len`
-      * `len*byte`: `encoded_short_ids`
-      * `reply_channel_range_tlvs`: `tlvs`
+includes the set of short channel IDs for known channels within that range.
+
+[[apdx_reply_channel_range_message]]
+===== The `reply_channel_range` message
+
+ * type:	*264*
+ * fields:
+  ** `chain_hash` : `chain_hash`
+  ** `u32` : `first_blocknum`
+  ** `u32` : `number_of_blocks`
+  ** `byte` : `sync_complete`
+  ** `u16` : `len`
+  ** `len*byte` : `encoded_short_ids`
+  ** `reply_channel_range_tlvs` : `tlvs`
 
 As a response to `query_channel_range`, this message sends back the set of
 channels that were opened within that range. This process can be repeated with
@@ -628,12 +712,16 @@ the requester advancing their cursor further down the chain in order to
 continue syncing the Channel Graph.
 
 The `gossip_timestamp_range` message allows a peer to start receiving new
-incoming gossip messages on the network:
-  * type: `265:
-  * fields:
-      * `chain_hash`: `chain_hash`
-      * `u32`: `first_timestamp`
-      * `u32`: `timestamp_range`
+incoming gossip messages on the network.
+
+[[apdx_gossip_timestamp_range_message]]
+===== The `gossip_timestamp_range` message
+
+ * type:	*265*
+ * fields:
+  ** `chain_hash` : `chain_hash`
+  ** `u32` : `first_timestamp`
+  ** `u32` : `timestamp_range`
 
 Once a peer has synced the channel graph, they can send this message if they
 wish to receive real-time updates on changes in the Channel Graph. They can
