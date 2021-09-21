@@ -111,7 +111,7 @@ The structure of the `init` message is defined as follows:
     ** `tlv_stream_tlvs`
 
 Structurally, the `init` message is composed of two variable size bytes slices
-that each store a set of _feature bits_. As we'll see later, feature bits are a
+that each store a set of _feature bits_. As we see in <<feature_bits>>, feature bits are a
 primitive used within the protocol in order to advertise the set of protocol
 features a node either understands (optional features), or demands (required
 features).
@@ -143,7 +143,7 @@ connection as they're unable to open your new preferred channel type.
 ==== Error Communication Messages
 
 Messages in this category are used to send connection level errors between two
-peers. As we'll see later, another type of error exists in the protocol: an
+peers. Another type of error exists in the protocol: an
 HTLC forwarding level error. Connection level errors may signal things like
 feature bit incompatibility, or the intent to force close (unilaterally
 broadcast the latest signed commitment)
@@ -218,16 +218,16 @@ off of.
 ==== Channel Funding
 
 As we go on, we enter into the territory of the core messages that govern the
-functionality and semantics of the Lightning Protocol. In this section, we'll
+functionality and semantics of the Lightning Protocol. In this section, we
 explore the messages sent during the process of creating a new channel. We'll
-only describe the fields used as we'll leave a in in-depth analysis of the
-funding process to chapter XXX.
+only describe the fields used as we leave a in in-depth analysis of the
+funding process to <<payment_channels>>.
 
 Messages that are sent during the channel funding flow belong to the following
 set of 5 messages: `open_channel`, `accept_channel`, `funding_created`,
-`funding_signed`, `funding_locked`. We'll leave a description of the precise
-protocol flow involving these messages for a chapter XXX. In this section,
-we'll simply enumerate the set of fields and briefly describe each one.
+`funding_signed`, `funding_locked`.
+
+The detailed protocol flow using these messages is described in <<payment_channels>>.
 
 [[apdx_open_channel_message]]
 ===== The `open_channel` message
@@ -304,10 +304,10 @@ The `accept_channel` message is the response to the `open_channel` message:
 
 The `accept_channel` message is the second message sent during the funding flow
 process. It serves to acknowledge an intent to open a channel with a new remote
-peer. The message mostly echos the set of parameters that the responder wishes
-to apply to their version of the commitment transaction. Later in Chapter XXX,
-when we go into the funding process in details, we'll do a deep dive to explore
-the implications of the various par maters that can be set when opening a new
+peer. The message mostly echoes the set of parameters that the responder wishes
+to apply to their version of the commitment transaction. In <<payment_channels>>,
+when we go into the funding process in details, we do a deep dive to explore
+the implications of the various parameters that can be set when opening a new
 channel.
 
 In response, the initiator will send the `funding_created` message.
@@ -391,7 +391,7 @@ Channel closing is a multi-step process. One node initiates by sending the `shut
 
 ==== Channel Operation
 
-In this section, we'll briefly describe the set of messages used to allow
+In this section, we briefly describe the set of messages used to allow
 nodes to operate a channel. By operation, we mean being able to send receive,
 and forward payments for a given channel.
 
@@ -417,8 +417,8 @@ Sending this message allows one party to initiate either sending a new payment,
 or forwarding an existing payment that arrived via in incoming channel. The
 message specifies the amount (`amount_msat`) along with the payment hash that
 unlocks the payment itself. The set of forwarding instructions of the next hop
-are onion encrypted within the `onion_routing_packet` field. In Chapter XXX on
-multi-hop HTLC forwarding, we details the onion routing protocol used in the
+are onion encrypted within the `onion_routing_packet` field. In <<onion_routing>>, on
+multi-hop HTLC forwarding, we detail the onion routing protocol used in the
 Lighting Network in detail.
 
 Note that each HTLC sent uses an auto incrementing ID which is used by any
@@ -455,7 +455,7 @@ The `update_fail_htlc` is sent to remove an HTLC from a commitment transaction.
 The `update_fail_htlc` is the opposite of the `update_fulfill_hltc` message as
 it allows the receiver of an HTLC to remove the very same HTLC. This message is
 typically sent when an HTLC cannot be properly routed upstream, and needs to be
-sent back to the sender in order to unravel the HTLC chain. As we'll explore in
+sent back to the sender in order to unravel the HTLC chain. As we explore in
 Chapter XX, the message contains an _encrypted_ failure reason (`reason`) which
 may allow the sender to either adjust their payment route, or terminate if the
 failure itself is a terminal one.
@@ -563,10 +563,9 @@ network.
 
 The series of signatures and public keys in the message serves to create a
 _proof_ that the channel actually exists within the base Bitcoin blockchain. As
-we'll detail in Chapter XXX, each channel is uniquely identified by a locator
+we detail in <<sid>>, each channel is uniquely identified by a locator
 that encodes it's _location_ within the blockchain. This locator is called this
 `short_channel_id` and can fit into a 64-bit integer.
-
 
 The `node_announcement` allows a node to announce/update it's vertex within the
 greater Channel Graph.
@@ -652,7 +651,7 @@ related to a series of short channel IDs.
   ** `len*byte` : `encoded_short_ids`
   ** `query_short_channel_ids_tlvs` : `tlvs`
 
-As we'll learn in Chapter XXX, these channel IDs may be a series of channels
+As we learn in <<gosssip>>, these channel IDs may be a series of channels
 that were new to the sender, or were out of date which allows the sender to
 obtain the latest set of information for a set of channels.
 
@@ -687,8 +686,7 @@ opened within a block range.
 As channels are represented using a short channel ID that encodes the location
 of a channel in the chain, a node on the network can use a block height as a
 sort of _cursor_ to seek through the chain in order to discover a set of newly
-opened channels. In Chapter XXX, we'll go through the protocol peers use to
-sync the channel graph in more detail.
+opened channels.
 
 The `reply_channel_range` message is the response to `query_channel_range` and
 includes the set of short channel IDs for known channels within that range.
