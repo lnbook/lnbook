@@ -47,14 +47,13 @@ the payment pre-image is for practical purposes a nonce (number only used
 once). If the sender attempts to make another payment using that identical
 payment hash, then they risk losing funds, as the payment may not actually be
 delivered to the destination. It's safe to assume that after a pre-image has
-been reveled, all nodes in the path will keep it around _forever_, then rather
+been reveled, all nodes in the path will keep it around forever, then rather
 than forward the HTLC in order to collect a routing fee if the payment is
-completed, they can simply _settle_ the payment at that instance and gain the
+completed, they can simply settle the payment at that instance and gain the
 entire payment amount in return. As a result, it's unsafe to ever use a payment
 request more than once.
 
-New variants of the original
-Lightning Payment request exist that allow the sender to reuse them as many times as they want. These variants flip the normal payment flow as the sender transmits a pre-image within the encrypted onion payload to the receiver, who is the only
+New variants of the original Lightning Payment request exist that allow the sender to reuse them as many times as they want. These variants flip the normal payment flow as the sender transmits a pre-image within the encrypted onion payload to the receiver, who is the only
 one that is able to decrypt it and settle the payment. Alternatively, assuming
 a mechanism that allows a sender to typically request a new payment request
 from the receiver, then an interactive protocol can be used in order to allow a
