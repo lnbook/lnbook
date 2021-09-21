@@ -7,6 +7,11 @@ Transport_, also known as the _Brontide Protocol_, which allows peers to
 establish end-to-end encrypted communication, authentication, and integrity
 checking.
 
+[NOTE]
+====
+Part of this chapter includes some highly technical detail about the encryption protocol and encryption algorithms used in the Lightning Encrypted Transport. You may decide to skip that section, if you are not interested in those details.
+====
+
 === Encrypted Transport in the Lightning Protocol Suite
 
 The _Encrypted Transport_ component of the Lightning Network and its several components are shown in the left most part of the _Network Connection Layer_ in  <<LN_protocol_encrypted_transport_highlight>>:
@@ -129,7 +134,11 @@ Lightning Network, the flavor of Noise use will be referred to from here on as
 "Brontide". A brontide is a low billowing noise, similar to what one would hear
 during a thunderstorm when very far away.
 
-==== Noise Protocol Handshakes
+=== Lightning Encrypted Transport in detail
+
+In this section we will break down the Lightning Encrypted Transport protocol and delve into the details of the cryptographic algorithms and protocol used to establish encrypted, authenticated and integrity-assured communications between peers. Feel free to skip this section if you find this level of detail daunting.
+
+==== Noise XK: LN's Noise Handshake
 
 The Noise protocol is extremely flexible in that it advertises several
 handshakes, each with different security and privacy properties for a would be
@@ -162,9 +171,6 @@ Several ephemeral keys are generated throughout the handshake. We use `e` to
 refer to a new ephemeral key. ECDH operations between two keys are notated as
 the concatenation of two keys. As an example, `ee` represents an ECDH operation
 between two ephemeral keys.
-
-=== Brontide: Lightning's P2P Encryption
-
 ==== High-Level Overview
 
 Using the notation laid out earlier, we can succinctly describe the `Noise_XK`
@@ -179,7 +185,7 @@ as follows:
 ```
 
 The protocol begins with the "pre-transmission" of the responder's static key
-(`rs)` to the initiator. Before executing the handshake, the initiator is to
+(`rs`) to the initiator. Before executing the handshake, the initiator is to
 generate its own static key (`s`). During each step of the handshake, all
 material sent across the wire, as well as the keys sent/used are incrementally
 hashed into a "handshake digest", `h`. This digest is never sent across the
@@ -211,7 +217,7 @@ variant, the ASCII string is hashed into a digest, which is used to initialize
 the starting handshake state. In the context of Brontide, the ASCII string
 describing the protocol is: `Noise_XK_secp256k1_ChaChaPoly_SHA256`.
 
-==== Brontide: A Handshake in Three Acts
+==== Handshake in Three Acts
 
 The handshake portion of Brontide can be see prated into three distinct "acts".
 The entire handshake takes 1.5 round trips between the initiator and responder.
@@ -539,23 +545,9 @@ creating a decryption oracle.
 
 The structure of packets on the wire resembles the following:
 
-```
-+-------------------------------
-|2-byte encrypted message length|
-+-------------------------------
-|  16-byte MAC of the encrypted |
-|        message length         |
-+-------------------------------
-|                               |
-|                               |
-|     encrypted Lightning       |
-|            message            |
-|                               |
-+-------------------------------
-|     16-byte MAC of the        |
-|      Lightning message        |
-+-------------------------------
-```
+[[noise_encrypted_packet]]
+.Encrypted Packet Structure
+image::images/noise_encrypted_packet.png["Encrypted Packet Structure"]
 
 The prefixed message length is encoded as a 2-byte big-endian integer, for a
 total maximum packet length of `2 + 16 + 65535 + 16` = `65569` bytes.
@@ -616,3 +608,11 @@ Key rotation for a key `k` is performed according to the following steps:
 3. Reset the nonce for the key to `n = 0`.
 4. `k = k'`
 5. `ck = ck'`
+
+=== Conclusion
+
+Lightning's underlying transport encryption, known as _Brontide_, is based on the Noise protocol and offers strong security guarantees of privacy, authenticity and integrity for all communications between Lightning peers.
+
+Unlike Bitcoin where peers often communicate "in the clear" (without encryption), all Lightning communications are encrypted peer-to-peer. In addition to transport encryption (peer-to-peer), in the Lightning Network payments are *also* encrypted into onion packets (hop-to-hop) and payment details are sent out-of-band between the sender and recipient (end-to-end). The combination of all these security mechanisms is cumulative and provides layered defense against de-anonymization, man-in-the-middle attacks and network surveillance.
+
+Of course, no security is perfect and we will see in <<security_and_privacy>> that these properties can be degraded and attacked. However, the Lightning Network significantly improves upon the privacy of Bitcoin.
