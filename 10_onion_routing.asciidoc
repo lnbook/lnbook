@@ -25,7 +25,7 @@ Let's say Alice wants to send a secret letter to Dina, indirectly via some inter
 
 ==== Selecting a path
 
-The Lightning Network uses _source routing_, which means that the payment path is selected and specified by the sender, and only the sender. In this example, our Alice's secret letter to Dina will be the equivalent of a payment. To make sure the letter reaches Dina, Alice will create a path from her to Dina, using Bob and Chan as intermediaries.
+The Lightning Network uses _source routing_, which means that the payment path is selected and specified by the sender, and only the sender. In this example, Alice's secret letter to Dina will be the equivalent of a payment. To make sure the letter reaches Dina, Alice will create a path from her to Dina, using Bob and Chan as intermediaries.
 
 [TIP]
 ====
@@ -35,6 +35,7 @@ There may be many paths that make it possible for Alice to reach Dina. We will e
 As a reminder, the path selected by Alice is shown in <<alice_dina_path>>, below:
 
 [[alice_dina_path]]
+.Path: Alice to Bob to Chan to Dina
 image::images/alice_dina_path.png["Alice to Bob to Chan to Dina"]
 
 Let's see how Alice can use this path without revealing information to intermediaries Bob and Chan.
@@ -110,13 +111,13 @@ From <<routing>> we know that Alice will send a 50,000 satoshi payment to Dina v
 .Payment path with HTLCs from Alice to Dina
 image::images/alice-dina-htlc.png[Payment path with HTLCs from Alice to Dina]
 
-As we see in <<gossip>>, Alice is able to construct this path to Dina because Lightning nodes announce their channels to the entire Lightning Network using the _Lightning Gossip Protocol_. After the initial channel announcement, Bob and Chan each sent out an additional "channel update" message with their routing fee and timelock expectations for payment routing.
+As we will see in <<gossip>>, Alice is able to construct this path to Dina because Lightning nodes announce their channels to the entire Lightning Network using the _Lightning Gossip Protocol_. After the initial channel announcement, Bob and Chan each sent out an additional "channel update" message with their routing fee and timelock expectations for payment routing.
 
 From the announcements and updates, Alice knows the following information about the channels between Bob, Chan and Dina:
 
 * A +short_channel_id+ (short channel ID) for each channel, that Alice can use to reference the channel, when constructing the path
 
-* An +cltv_expiry_delta+ (timelock delta) which Alice can add to the expiry time for each HTLC
+* A +cltv_expiry_delta+ (timelock delta) which Alice can add to the expiry time for each HTLC
 
 * A +fee_base_msat+ and +fee_proportional_millionths+ which Alice can use to calculate the total routing fee expected by that node for relay on that channel.
 
@@ -132,21 +133,26 @@ Alice already knows her own channel to Bob, and therefore doesn't need this info
 
 ==== Alice constructs the payloads
 
-There are two possible formats that Alice can use for the information communicated to each hop: A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will. Both formats are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-structure[BOLT #4 - Onion Routing - Packet Structure]
+There are two possible formats that Alice can use for the information communicated to each hop: A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will.
+
+[NOTE]
+====
+Both formats are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-structure[BOLT #4 - Onion Routing - Packet Structure.]
+====
 
 Alice will start building the hop data from the end of the path backwards: Dina, Chan, Bob.
 
 ===== Final node payload for Dina
 
-Alice first builds the payload that will be delivered to Dina. Dina will not be constructing an "outgoing HTLC", because Dina is the final node and payment recipient. For this reason, the payload for Dina is different that all the others (uses all zeros for the `short_channel_id`), but only Dina will know this since it will be encrypted in the innermost layer of the onion. Essentially, this is the "secret letter to Dina" we saw in our physical envelope example.
+Alice first builds the payload that will be delivered to Dina. Dina will not be constructing an "outgoing HTLC", because Dina is the final node and payment recipient. For this reason, the payload for Dina is different than all the others (uses all zeros for the `short_channel_id`), but only Dina will know this since it will be encrypted in the innermost layer of the onion. Essentially, this is the "secret letter to Dina" we saw in our physical envelope example.
 
-The hop payload for Dina must match the information in the invoice generated by Dina for Alice and will contain (at least) the following fields in Type-Lenth-Value (TLV) format:
+The hop payload for Dina must match the information in the invoice generated by Dina for Alice and will contain (at least) the following fields in Type-Length-Value (TLV) format:
 
 amt_to_forward:: The amount of this payment in milli-satoshis. If this is only one part of a multi-part payment, the amount is less than the total. Otherwise, this is a single full payment and it is equal to the invoice amount and +total_msat+ value.
 
 outgoing_cltv_value:: The payment expiry timelock set to the value +min_final_cltv_expiry+ in the invoice.
 
-payment_secret:: A special 256-bit secret value from the invoice, allowing Dina to recognize this incoming payment, and also prevents a class of probing that previously made 0-value invoices insecure. Probing by intermediate nodes is mitigated, as this value is encrypted to _only_ the recipient, meaning they can't reconstruct a final packet that "looks" legitimate.
+payment_secret:: A special 256-bit secret value from the invoice, allowing Dina to recognize this incoming payment. This also prevents a class of probing that previously made 0-value invoices insecure. Probing by intermediate nodes is mitigated as this value is encrypted to _only_ the recipient, meaning they can't reconstruct a final packet that "looks" legitimate.
 
 total_msat:: The total amount matching the invoice. This may be omitted if there is only one part, in which case it is assumed to match +amt_to_forward+ and must equal the invoice amount.
 
@@ -222,7 +228,7 @@ image::images/onion_hop_payloads.png[Hop payloads for all the hops]
 
 Alice must now generate several keys that will be used to encrypt the various layers in the onion.
 
-Remember the goals of onion routing, that Alice can achieve with these keys:
+With these keys, Alice can achieve a high degree of privacy and integrity:
 
 * Alice can encrypt each layer of the onion so that only the intended recipient can read it.
 * Every intermediary can check that the message is not modified.
@@ -232,7 +238,7 @@ Remember the goals of onion routing, that Alice can achieve with these keys:
 
 [WARNING]
 ====
-Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read BOLT #4 if you want to learn more.
+Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4 - Onion Routing - Packet Construction], if you want to learn more.
 ====
 
 
@@ -278,58 +284,80 @@ One important detail that seems almost magical is the ability for Alice to creat
 // To editor: Maybe put this in an appendix instead of a sidebar?
 
 [[ecdh]]
+[[ecdh_explained]]
 .Elliptic Curve Diffie-Hellman (ECDH) explained
 ****
-Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, they multiply each private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
+Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, Alice and Bob each multiply their private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
 
  A = aG
 
  B = bG
 
-Now Alice and Bob can create a shared secret +ss+, a value that they can both calculate independently without exchanging any information, such that
+Now Alice and Bob can use _Elliptic Curve Diffie-Hellman Key Exchange_ to create a shared secret +ss+, a value that they can both calculate independently without exchanging any information
+
+The shared secret +ss+ is calculated by each by multiplying their own private key with the *other's* public key, such that:
 
  ss = aB = bA
 
+But why would these two multiplications result in the same value +ss+?
 Follow along, as we demonstrate the math that proves this is possible:
 
  ss
 
  = aB
 
-calculated by Alice who knows both +a+ and +B+
+calculated by Alice who knows both +a+ (her private key) and +B+ (Bob's public key)
 
  = a(bG)
 
-because we know
+because we know that B = bG, we substitute
 
  = (ab)G
 
-because of associativity
+because of associativity, we can move the parentheses
 
  = (ba)G
 
-because the curve is an abelian group
+because xy = yx (the curve is an abelian group)
 
  = b(aG)
 
-because of associativity
+because of associativity, we can move the parentheses
 
  = bA
 
-can be calculated by Bob who knows +b+ and +A+
+ because A = aG, we can substitute
 
+The result bA can be calculated independently by Bob who knows +b+ (his private key) and +A+ (Alice's public key).
 
 We have therefore shown that
 
- ss = aB = bA
+ ss = aB (Alice can calculate this)
+ ss = bA (Bob can calculate this)
 
-Alice can multiple her private key with Bob's public key to calculate +ss+
-
-Bob can multiply his private key with Alice's public key to calculate +ss+
-
-Thus, they will both get the same result which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
+Thus, they can each independently calculate +ss+ which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
 
 ****
+
+A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, clever _blinding_ scheme is used deterministically randomize the session key at each hop.
+
+In practice, this little trick allows us to keep the onion packet as compact as possible while still retaining the desired security properties.
+
+The session key for hop `i` is derived using the node public key, and derived shared secret of hop `i-1`:
+```
+session_key_i = session_key_{i-1} * SHA256(node_pubkey_{i-1} || shared_secret_{i-1})
+```
+
+In other words, we take the session key of the prior hop, and multiply it by a value derived from the public key and derived shared secret for that hop.
+
+As EC multiplication can be performed on a public key without knowledge of the private key, each hop is able to re-randomize the session key for the next hop in a deterministic fashion.
+
+The creator of the onion packet knows all the shared secrets (as they're encrypted the packet uniquely for each hop), and thus are able to derive all the blinding factors.
+
+This knowledge allows them to derive all the session keys used up front during packet generation.
+
+Note that the very first hop uses the original session key generated, as this key is used to kick off the session key blinding by each subsequent hop.
+
 
 [[wrapping_the_onion]]
 === Wrapping the onion layers
@@ -368,10 +396,9 @@ image::images/onion_packet.png[]
 * 1300 bytes: The actual _onion payload_ containing the instructions for each hop
 * 32 bytes: An HMAC integrity checksum
 
-A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, instead a clever _blinding_ scheme is used deterministically randomize the session key at each hop.
+A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, instead a clever _blinding_ scheme is used to deterministically randomize the session key at each hop.
 
 In practice, this little trick allows us to keep the onion packet as compact as possible while still retaining the desired security properties.
-
 
 ==== Wrapping the onion (outlined)
 
@@ -381,25 +408,27 @@ For each hop the sender (Alice) repeats the same process:
 
 1. Alice generates the per-hop shared secret and the rho, mu, and pad keys
 
-1. Alice generates 1300 bytes of filler and fills the 1300-byte onion payload field with this filler.
+2. Alice generates 1300 bytes of filler and fills the 1300-byte onion payload field with this filler.
 
-1. Alice calculates the HMAC for the hop payload (zeros for the final hop).
+3. Alice calculates the HMAC for the hop payload (zeros for the final hop).
 
-1. Alice calculates the length of the hop payload + HMAC + space to store the length itself
+4. Alice calculates the length of the hop payload + HMAC + space to store the length itself
 
-1. Alice _right shifts_ the onion payload by the calculated space needed to fit the hop payload. The rightmost "filler" data is discarded, making enough space on the left for the payload.
+5. Alice _right shifts_ the onion payload by the calculated space needed to fit the hop payload. The rightmost "filler" data is discarded, making enough space on the left for the payload.
 
-1. Alice inserts the length + hop payload + HMAC at the front of the payload field in the space made from shifting the filler.
+6. Alice inserts the length + hop payload + HMAC at the front of the payload field in the space made from shifting the filler.
 
-1. Alice uses the _rho_ key to generate a 1300 byte one-time-pad.
+7. Alice uses the _rho_ key to generate a 1300 byte one-time-pad.
 
-1. Alice obfuscates the entire onion payload by XOR-ing with the bytes generated from rho.
+8. Alice obfuscates the entire onion payload by XOR-ing with the bytes generated from rho.
 
-1. Alice calculates the HMAC of the onion payload, using the mu key.
+9. Alice calculates the HMAC of the onion payload, using the mu key.
 
-1. Alice adds the session public key (so that the hop can calculate the shared secret)
+10. Alice adds the session public key (so that the hop can calculate the shared secret)
 
-1. Alice adds the version number.
+11. Alice adds the version number.
+
+12. Deterministically re-blinds the session key using a value derived by hashing the shared secret and prior hop's public key.
 
 Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front and the whole onion payload encrypted with the rho byte-stream for the next hop.
 
@@ -479,14 +508,14 @@ If a secret key is ever used again, then the node can detect it, and reject the 
 
 The nature of HTLCs in the Lightning Network allows us to further strengthen the replay protection by adding an additional _economic_ incentive.
 Remember that the payment hash of an HTLC can only ever safely be used (for a complete payment) once.
-If a payment hash is used again, and traverses a node that has already seen the payment secret fo that hash, then they can simply pull the funds, and collect the entire payment amount without forwarding!
+If a payment hash is used again, and traverses a node that has already seen the payment secret for that hash, then they can simply pull the funds, and collect the entire payment amount without forwarding!
 We can use this fact to strengthen the replay protection by requiring that the _payment hash_ is included in our HMAC computation as the associated data.
 With this added step, attempting to replay an onion packet also requires the sender to commit to using the _same_ payment hash.
 As a result, on top of the normal replay protection, an attacker also stands to lose the entire amount of the HTLC replayed as well.
 
 One consideration with the ever-increasing set of session keys stored for replay protection is: are nodes able to reclaim this space?
 In the context of the Lightning Network, the answer is: yes!
-Once again, due to the uniquer attributes of the HTLC construct, we can make a further improvement over the base Sphinx protocol.
+Once again, due to the unique attributes of the HTLC construct, we can make a further improvement over the base Sphinx protocol.
 Given that HTLCs are _time locked_ contracts based on the absolute block height, once an HTLC has expired, then the contract is effectively permanently closed.
 As a result, nodes can use this CLTV expiration height as an indicator to know when it's safe to garbage collect an entry in the anti-replay log.
 
@@ -499,6 +528,12 @@ In <<chan_onion_wrapping>> we see the steps used to wrap Chan's hop payload in t
 image::images/chan_onion_wrapping.png[]
 
 Alice starts with the 1300 onion payload created for Dina. The first 65 (or less) bytes of this are Dina's payload obfuscated and the rest is filler. Alice must be careful not to overwrite Dina's payload.
+
+Next, Alice needs to locate the ephemeral public key (that was generated at the very start for each hop) that will be prepended to the routing packet at this hop.
+
+Remember that rather than include a unique ephemeral public key (that the sender and intermediate node use in an ECDH operation to arrive a shared secret), Sphinx uses a single ephemeral public key that is deterministically randomized at each hop.
+
+When processing the packet, Dina will use her shared secret and public key to derive the blinding value (`b_dina`) and use that to re-randomize the ephemeral public key, in an identical operation to what Alice performs during initial packet construction.
 
 Alice adds an inner HMAC checksum to Chan's payload and inserts it at the "front" (left side) of the onion payload, shifting the existing payload to the right by an equal amount.
 Remember that there are effectively _two_ HMACs used in the scheme: the outer and the inner HMAC.
@@ -521,6 +556,7 @@ image::images/bob_onion_wrapping.png[]
 
 Start with the onion payload (obfuscated) containing Chan's and Dina's hop payloads.
 
+Obtain the session key for this hop dervied from the blinding factor generated by the prior hop.
 Include the prior hop's outer HMAC as this hop's inner HMAC.
 Insert Bob's hop payload at the beginning and shift everything else over to the right, dropping a Bob-hop-payload-size chunk from the end (it was filler anyway).
 
@@ -531,9 +567,15 @@ Calculate the outer HMAC and stick it on the end of Bob's hop payload.
 
 ==== The final onion packet
 
-The final onion payload is read to send to Bob. Alice doesn't need to add any more hop payloads.
+The final onion payload is ready to be sent to Bob. Alice doesn't need to add any more hop payloads.
 
-Alice calculates an HMAC for the onion payload, to cryptographically secure it with a checksum that Bob can verify. Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the rho, mu, and pad keys. Finally Alice puts the onion version number (+0+ currently) in the front. This allows for future upgrades of the onion packet format.
+Alice calculates an HMAC for the onion payload, to cryptographically secure it with a checksum that Bob can verify.
+
+Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the rho, mu, and pad keys.
+
+Finally Alice puts the onion version number (+0+ currently) in the front.
+
+This allows for future upgrades of the onion packet format.
 
 The result can be seen in <<onion_packet_2>> below:
 
@@ -547,7 +589,7 @@ In this section we will look at how the onion packet is forwarded and how HTLCs 
 
 ==== The update_add_htlc message
 
-Onion packets are sent as part of the +update_add_htlc+ message. If you recall from <<update_add_htlc>>, in <<channel_operations>>, we saw the contents of the +update_add_htlc+ message were as follows:
+Onion packets are sent as part of the +update_add_htlc+ message. If you recall from <<update_add_htlc>>, in <<channel_operation>>, we saw the contents of the +update_add_htlc+ message were as follows:
 
 ----
 [channel_id:channel_id]
@@ -578,13 +620,13 @@ onion_routing_packet:: The final onion packet Alice constructed with all the hop
 
 ==== Bob checks the onion
 
-As we saw in <<channel_operations>>, Bob will add the HTLC to the commitment transactions and update the state of the channel with Alice.
+As we saw in <<channel_operation>>, Bob will add the HTLC to the commitment transactions and update the state of the channel with Alice.
 
 Bob will unwrap the onion he received from Alice as follows:
 
 1. Bob takes the session key from the onion packet and derives the Alice-Bob shared secret.
 
-1. Bob generates the +mu+ key from the shared secret and uses it to verify the onion packet HMAC checksum.
+2. Bob generates the +mu+ key from the shared secret and uses it to verify the onion packet HMAC checksum.
 
 Now that Bob has generated the shared key and verified the HMAC, he can start unwrapping the 1300 byte onion payload inside the onion packet. The goal is for Bob to retrieve his own hop payload and then forward the remaining onion to the next hop.
 
@@ -621,7 +663,7 @@ At the same time, applying the +rho+ byte stream to the 1300 zeroes that were ad
 .Bob de-obfuscates the onion, obfuscates the filler
 image::images/bob_deobfuscates.png[Bob de-obfuscates the onion, obfuscates the filler]
 
-==== Bob extracts the outer HAMC for the next hop
+==== Bob extracts the outer HMAC for the next hop
 
 Remember that an inner HMAC is included for each hop, then will then become the outer HMAC for the _next_ hop.
 In this case, Bob extracts the inner HMAC (he's already verified the integrity of the encrypted packet w/ the outer HMAC), and puts it aside as he'll append it to the deobfuscated packet to allow Chan to verify the HMAC of her encrypted packet.
@@ -638,18 +680,23 @@ Now Bob can keep the first half 1300 bytes, and discard the extended (filler) 13
 
 Bob now has a 1300 byte onion packet to send to the next hop. It is almost identical to the onion payload that Alice had created for Chan, except that the last 65 or so bytes of filler was put there by Bob and will be different.
 
-No one can tell the difference between filler put there by Alice and filler put there by Bob. Filler is filler! It's all random bytes anyway.
+No one can tell the difference between filler put there by Alice and filler put there by Bob. Filler is filler! It's all random bytes anyway. Note that if Bob (or one of Bob's other aliases) is present in the route in two disctinct locations, then they can tell the difference as the base protocol always uses the same payment hash across the entire route. Atomic Multipath Payments (AMP), and Point Time Locked Contrats (PTLCs) eliminate the correlation vector by randomizing the payment idenitifer across each route/hop.
 
 ==== Bob constructs the new onion packet
 
-Bob now copies the onion payload into the onion packet, appends the outer HMAC for chan, re-randomizes the session key with the Elliptic Curve multiplication operation, and appends a fresh version byte.
+Bob now copies the onion payload into the onion packet, appends the outer HMAC for chan, re-randomizes the session key (the same way Alice the sender does) with the Elliptic Curve multiplication operation, and appends a fresh version byte.
 
-////
-TODO
+In order to re-randomize the session key, bob first computes the blinding factor for his hop, using his node public key and the shared secret he derived:
+```
+b_bob = SHA256(P_bob || shared_secret_bob)
+```
 
-Clarify how the HMAC and session key are computed for this onion packet
+With this generated, Bob now re-randomizes the session key by performing an EC multiplication using his session key and the blinding factor:
+```
+session_key_chan = session_key_bob * b_bob
+```
 
-////
+The `session_key_chan` public key will then be appended to the front of the onion packet for processing by Chan.
 
 ==== Bob verifies the HTLC details
 
@@ -685,25 +732,27 @@ Chan repeats the exact same process as Bob:
 
 1. Chan receives the +update_add_htlc+ and processes the HTLC request, adding it to commitment transactions.
 
-1. Chan generates the Alice-Chan shared key and the +mu+ subkey
+2. Chan generates the Alice-Chan shared key and the +mu+ subkey
 
-1. Chan verifies the onion packet HMAC, then extracts the 1300 onion payload
+3. Chan verifies the onion packet HMAC, then extracts the 1300 onion payload
 
-1. Chan extends the onion payload by 1300 extra bytes, filling it with zeroes.
+4. Chan extends the onion payload by 1300 extra bytes, filling it with zeroes.
 
-1. Chan uses the +rho+ key to produce 2600 bytes.
+5. Chan uses the +rho+ key to produce 2600 bytes.
 
-1. Chan uses the generated byte stream to XOR and de-obfuscate the onion payload. Simultaneously the XOR operation obfuscates the extra 1300 zeroes, turning them into filler
+6. Chan uses the generated byte stream to XOR and de-obfuscate the onion payload. Simultaneously the XOR operation obfuscates the extra 1300 zeroes, turning them into filler
 
-1. Chan extracts the inner HMAC in the payload, which will become the outer HAMC for Dina.
+7. Chan extracts the inner HMAC in the payload, which will become the outer HAMC for Dina.
 
-1. Chan removes his hop payload and left-shifts the onion payload by the same amount. Some of the filler generated in the 1300 extended bytes move into the first-half 1300 bytes becoming part of the onion payload.
+8. Chan removes his hop payload and left-shifts the onion payload by the same amount. Some of the filler generated in the 1300 extended bytes move into the first-half 1300 bytes becoming part of the onion payload.
 
-1. Chan constructs the onion packet for Dina with this onion payload.
+9. Chan constructs the onion packet for Dina with this onion payload.
 
-1. Chan builds an +update_add_htlc+ message for Dina and inserts the onion packet into it.
+10. Chan builds an +update_add_htlc+ message for Dina and inserts the onion packet into it.
 
-1. Chan sends the +update_add_htlc+ to Dina
+11. Chan sends the +update_add_htlc+ to Dina
+
+12. Chan re-randomizes the session key as Bob did in the prior hop for Dina.
 
 ==== Dina receives the final payload
 
@@ -749,7 +798,7 @@ Finally the return node sends the return packet to the hop from which it receive
 
 Each hop receiving an error, will generate an +ammag+ key and obfuscate the return packet again using an XOR operation with the byte-stream from +ammag+.
 
-Eventually, the sender (origin node) receives a return packet. It will then generate +ammag+ and +um+ keys for each hop and XOR de-bfuscate the return error iteratively until it reveals the return packet.
+Eventually, the sender (origin node) receives a return packet. It will then generate +ammag+ and +um+ keys for each hop and XOR de-obfuscate the return error iteratively until it reveals the return packet.
 
 ==== Failure Messages
 
@@ -782,3 +831,5 @@ One proposed solution to this problem is called "stuckless payments", and it dep
 === Conclusion
 
 The Lightning Network's onion routing protocol is adapted from the Sphinx Protocol to better serve the needs of a payment network. As such, it offers a huge improvement in privacy and counter-surveillance compared to the public and transparent Bitcoin blockchain.
+
+In <<path_finding>> we will see how the combination of source routing and onion routing is used by Alice to find a good path and route the payment to Dina. To find a path, Alice first needs to learn about the network topology, which is the topic of the next section <<gossip>>.

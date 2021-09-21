@@ -43,8 +43,8 @@ Alice and Bob start with a payment channel that has 70,000 satoshi balance on ea
 As we saw in <<payment_channels>> this means that Alice and Bob have negotiated and each hold commitment transactions. These commitment transactions are asymmetric, delayed and revocable, and look like the example in <<alice_bob_commitment_txs_1>> below:
 
 [[alice_bob_commitment_txs_1]]
-.Alice and Bob's initial commitment transactions:
-image:images/alice_bob_commitment_txs_1.png[]
+.Alice and Bob's initial commitment transactions
+image::images/alice_bob_commitment_txs_1.png["Alice and Bob's initial commitment transactions"]
 
 ==== Adding an HTLC
 
@@ -55,10 +55,11 @@ To add the HTLC, Alice starts the flow we saw in <<HTLC_commitment_message_flow>
 [[update_add_htlc]]
 ==== The +update_add_htlc+ message
 
-Alice sends the `update_add_HTLC` Lightning message to Bob. This message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#adding-an-htlc-update_add_htlc[BOLT #2 - Peer Protocol - update_add_HTLC], and is shown in <<update_add_HTLC_message_fields>> below:
+Alice sends the `update_add_HTLC` Lightning message to Bob. This message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#adding-an-htlc-update_add_htlc[BOLT #2 - Peer Protocol - update_add_HTLC], and is shown below:
 
 [[update_add_HTLC_message_fields]]
 .The update_add_HTLC message
+====
 ----
 [channel_id:channel_id]
 [u64:id]
@@ -67,6 +68,7 @@ Alice sends the `update_add_HTLC` Lightning message to Bob. This message is defi
 [u32:cltv_expiry]
 [1366*byte:onion_routing_packet]
 ----
+====
 
 +channel_id+:: This is the channel that Alice has with Bob that she wants to add the HTLC. Remember that Alice and Bob may have multiple channels with each other.
 
@@ -91,34 +93,34 @@ The received information is enough for Bob to create a new commitment transactio
 
 We've already seen the basic structure of an HTLC in <<routing>>. The complete script of an offered HTLC is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT #3 - Transactions - Offered HTLC output] and is shown in <<offered_htlc_output_script>> below:
 
+[source,linenum]
 [[offered_htlc_output_script]]
 .Offered HTLC output script:
+====
 ----
-# Revocation
+# Revocation <1>
 OP_DUP OP_HASH160 <RIPEMD160(SHA256(revocationpubkey))> OP_EQUAL
 OP_IF
     OP_CHECKSIG
 OP_ELSE
     <remote_HTLCpubkey> OP_SWAP OP_SIZE 32 OP_EQUAL
     OP_IF
-        # Redemption
+        # Redemption <2>
         OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY
         2 OP_SWAP <local_HTLCpubkey> 2 OP_CHECKMULTISIG
     OP_ELSE
-        # Refund
+        # Refund <3>
         OP_DROP <cltv_expiry> OP_CHECKLOCKTIMEVERIFY OP_DROP
         OP_CHECKSIG
     OP_ENDIF
 OP_ENDIF
 ----
+<1> The first clause of the OP_IF conditional is redeemable by Alice with a revocation key. If this commitment is later revoked, Alice will have a revocation key to claim this output in a penalty transaction, taking the whole channel balance.
+<2>  The second clause is redeemable by the pre-image (payment secret or in our example Dina's secret) if it is revealed. This allows Bob to claim this output if he has the secret from Dina, meaning he has successfully delivered the payment to Dina.
+<3> The third and final clause is a refund of the HTLC to Alice, if the HTLC expires without reaching Dina. It is timelocked with the expiration +cltv_expiry+. This ensures that Alice's balance is not "stuck" in an HTLC that can't be routed to Dina.
+====
 
-There are three ways to claim this output. Try to read the script and see if you can figure it out (remember, it is a stack-based language so things appear "backwards"). In the order they appear in the script, these are:
-
-revocation:: The first clause of the OP_IF conditional is redeemable by Alice with a revocation key. If this commitment is later revoked, Alice will have a revocation key to claim this output in a penalty transaction, taking the whole channel balance.
-
-redemption:: The second clause is redeemable by the pre-image (payment secret or in our example Dina's secret) if it is revealed. This allows Bob to claim this output if he has the secret from Dina, meaning he has successfully delivered the payment to Dina.
-
-refund:: The third and final clause is a refund of the HTLC to Alice, if the HTLC expires without reaching Dina. It is timelocked with the expiration +cltv_expiry+. This ensures that Alice's balance is not "stuck" in an HTLC that can't be routed to Dina.
+There are three ways to claim this output. Try to read the script and see if you can figure it out (remember, it is a stack-based language so things appear "backwards").
 
 ==== New commitment with HTLC output
 
@@ -134,14 +136,16 @@ Shortly after sending the +update_add_htlc+ message, she will commit to the new 
 
 Alice sends +commitment_signed+ to Bob, with the signature for the new commitment and for the HTLC within. We saw the +commitment_signed+ message in <<payment_channels>>, but now we can understand the rest of the fields. As a reminder, it is shown in <<commitment_signed_message>> below:
 
-[[commitment_signed_message]]
+[[ops_commitment_signed_message]]
 .The commitment_signed message
+====
 ----
 [channel_id:channel_id]
 [signature:signature]
 [u16:num_htlcs]
 [num_htlcs*signature:htlc_signature]
 ----
+====
 
 The fields +num_htlcs+ and +htlc_signature+ now make more sense:
 
@@ -151,7 +155,7 @@ The fields +num_htlcs+ and +htlc_signature+ now make more sense:
 
 Alice can send these signatures without hesitation: she can always get a refund if the HTLC expires without being routed to Dina.
 
-Now, Bob has a new signed commitment transaction, as show in <<signed_commitment_3b>> below:
+Now, Bob has a new signed commitment transaction, as shown in <<signed_commitment_3b>> below:
 
 [[signed_commitment_3b]]
 .Bob has a new signed commitment
@@ -163,11 +167,13 @@ Now that Bob has a new signed commitment, he needs to acknowledge it and revoke 
 
 [[revoke_and_ack_message_2]]
 .The +revoke_and_ack+ message
+====
 ----
 [channel_id:channel_id]
 [32*byte:per_commitment_secret]
 [point:next_per_commitment_point]
 ----
+====
 
 Bob sends the +per_commitment_secret+ that allows Alice to construct a revocation key to build a penalty transaction spending Bob's old commitment. Once Bob has sent this, he cannot ever publish "Commitment #2" without risking a penalty transaction and losing all his money. So, the old commitment is effectively revoked.
 
@@ -215,11 +221,11 @@ image::images/revoked_commitment_2a.png[Alice has revoked the old commitment]
 
 === Multiple HTLCs
 
-At any point in time, Alice and Bob may have dozens or even hundreds of HTLCs across a single channel. Each HTLC would be a offered and added to the commitment transaction as an additional output. A commitment transaction would therefore always have 2 outputs for the channel partner balances and any number of HTLC outputs, one per HTLC.
+At any point in time, Alice and Bob may have dozens or even hundreds of HTLCs across a single channel. Each HTLC is offered and added to the commitment transaction as an additional output. A commitment transaction therefore always has 2 outputs for the channel partner balances and any number of HTLC outputs, one per HTLC.
 
-As we saw in the +commitment_signed+ message, there is an array for HTLC signatures, meaning that multiple HTLCs can be committed to at the same time.
+As we saw in the +commitment_signed+ message, there is an array for HTLC signatures so that multiple HTLC commitments can be transmitted at the same time.
 
-The current maximum number of HTLCs allowed on a channel is 483 HTLCs, to account for the maximum Bitcoin transaction size and ensure that the commitment transactions would continue to be valid Bitcoin transaction.
+The current maximum number of HTLCs allowed on a channel is 483 HTLCs to account for the maximum Bitcoin transaction size and ensure that the commitment transactions continue to be valid Bitcoin transactions.
 
 As we will see in the next section, the maximum is only for _pending_ HTLCs, since once an HTLC is fulfilled (or fails due to timeout/error), it is removed from the commitment transaction.
 
@@ -227,7 +233,7 @@ As we will see in the next section, the maximum is only for _pending_ HTLCs, sin
 
 Now Bob and Alice both have a new commitment transaction with an additional HTLC output and we have achieved a major step towards updating a payment channel.
 
-The new Balance of Alice and Bob does not reflect yet that Alice has successfully send 50,200 satoshis to Bob.
+The new balance of Alice and Bob does not reflect yet that Alice has successfully sent 50,200 satoshis to Bob.
 
 However the HTLCs are now set up in a way that secure settlement in exchange for the proof of payment will be possible.
 
@@ -265,7 +271,7 @@ H = RIPEMD160( SHA256 (R) )
 
 If the result +H+ matches the payment hash in the HTLC, Chan can do a little dance of celebration. This long-awaited secret can be used to redeem the HTLC, and will be passed back along the chain of payment channels all the way to Alice, resolving every HTLC that was part of this payment to Dina.
 
-Let's go back to Alice and Bob's channel and watch them unwind the HTLC. To get there, let's assume Dina sent the +update_fulfill_htlc+ to Chan, Chan sent +update_fulfill_htlc+ to Bob and Bob sent ++update_fulfill_htlc+. The payment pre-image has propagated all the way back to Alice.
+Let's go back to Alice and Bob's channel and watch them unwind the HTLC. To get there, let's assume Dina sent the +update_fulfill_htlc+ to Chan, Chan sent +update_fulfill_htlc+ to Bob and Bob sent +update_fulfill_htlc+ to Alice. The payment pre-image has propagated all the way back to Alice.
 
 ==== Bob settles the HTLC with Alice
 
@@ -326,7 +332,7 @@ At this point, you will easily understand why HTLCs are used for both "remote" a
 
 * Alice orders a coffee from Bob's shop page.
 * Bob's shop sends an invoice with a payment hash.
-* Alice constructs and HTLC from that payment hash.
+* Alice constructs an HTLC from that payment hash.
 * Alice offers the HTLC to Bob with +update_add_htlc+.
 * Alice and Bob exchange commitments and revocations adding the HTLC to their commitment transactions.
 * Bob sends +update_fulfill_htlc+ to Alice with the payment pre-image.

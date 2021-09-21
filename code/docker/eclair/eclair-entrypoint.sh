@@ -18,5 +18,4 @@ echo Eclair node started
 sleep 2
 
 # Executing CMD
-echo "$@"
 exec "$@"

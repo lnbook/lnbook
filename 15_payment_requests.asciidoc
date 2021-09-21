@@ -1,22 +1,28 @@
-[appendix]
 [[invoices]]
 [[lightning_payment_requests]]
+[[payment_requests]]
 == Lightning Payment Requests
 
 In this chapter we will look at _Lightning Payment Requests_ or as they are more commonly known _Lightning Invoices_.
 
+=== Invoices in the Lightning Protocol Suite
+
+_Payment Requests_, aka _Invoices_ are part of the Payment Layer and are show in the upper left of <<LN_payment_request_highlight>>:
+
+[[LN_payment_request_highlight]]
+.The Lightning Network Protocol Suite
+image::images/LN_payment_request_highlight.png["The Lightning Network Protocol Suite"]
+
 === Introduction
 
-As we've learned in prior chapters, minimally two pieces of data are required
+As we've learned throughout the book, minimally two pieces of data are required
 to complete a Lightning payment: a payment hash, and a destination. As
 `SHA-256` is used in the Lightning Network to implement HTLCs, this information
 requires 32-bytes in order to communicate. Destinations on the other hand are
 simply the `secp256k1` public key of the node that wishes to receive a payment.
 The purpose of a payment request in the context of the Lightning Network is to
-communicate these two pieces of information from sender to receiver. BOLT 11 is
-the name of the document in the set of Lightning Network specifications that
-describes a QR-code friendly format for communicating the information required
-to complete a payment from receiver to sender. In practice, more than just the
+communicate these two pieces of information from sender to receiver. The QR-code friendly format for communicating the information required
+to complete a payment from receiver to sender, is described in https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md[BOLT #11 - Invoice Protocol for Lightning Payments]. In practice, more than just the
 payment hash and destination are communicated in a payment request in order to
 make the encoding more fully feature.
 
@@ -25,7 +31,7 @@ make the encoding more fully feature.
 A commonly asked question when people first encounter a Lightning Payment
 request is: why can't a normal static address format be used instead?
 
-In order to answer this question, one must first internalize how Lightning
+In order to answer this question, you must first internalize how Lightning
 differs from base layer Bitcoin as a payment method. Compared to a Bitcoin
 address which may be used to make a potentially unbounded number of payments
 (though re-using a Bitcoin address may degrade one's privacy), a Lightning
@@ -41,16 +47,13 @@ the payment pre-image is for practical purposes a nonce (number only used
 once). If the sender attempts to make another payment using that identical
 payment hash, then they risk losing funds, as the payment may not actually be
 delivered to the destination. It's safe to assume that after a pre-image has
-been reveled, all nodes in the path will keep it around _forever_, then rather
+been reveled, all nodes in the path will keep it around forever, then rather
 than forward the HTLC in order to collect a routing fee if the payment is
-completed, they can simply _settle_ the payment at that instance and gain the
+completed, they can simply settle the payment at that instance and gain the
 entire payment amount in return. As a result, it's unsafe to ever use a payment
 request more than once.
 
-As we'll see later in the book, there exist new variants of the original
-Lightning Payment request that allow the sender to -reuse them as many times as
-they want. These variants flip the normal payment flow as the sender transmits
-a pre-image within the encrypted onion payload to the receiver, who is the only
+New variants of the original Lightning Payment request exist that allow the sender to reuse them as many times as they want. These variants flip the normal payment flow as the sender transmits a pre-image within the encrypted onion payload to the receiver, who is the only
 one that is able to decrypt it and settle the payment. Alternatively, assuming
 a mechanism that allows a sender to typically request a new payment request
 from the receiver, then an interactive protocol can be used in order to allow a
@@ -63,7 +66,7 @@ information required to complete a payment on the Lightning Network. As
 mentioned earlier, the payment hash and destination is the minimum amount of
 information required to complete a payment. However in practice, more
 information such as time-lock information, payment request expiration, and
-possibly an on-chain fallback address are also communicated.
+possibly an on-chain fallback address are also communicated. The full specification document is https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md[BOLT #11 - Invoice Protocol for Lightning Payments]
 
 ==== Payment Request Encoding in Practice
 
@@ -124,11 +127,10 @@ A full list of the currently defined multipliers is a follows:
 |==============================================
 
 
-
 ==== Bech32 & the Data Segment
 
 If the "unreadable" portion of looks familiar, then that's because it uses the
-very same encoding scheme as segwit compatible Bitcoin addresses use today,
+very same encoding scheme as Segwit compatible Bitcoin addresses use today,
 namely `bech32`. Describing the `bech32` encoding scheme is outside the scope
 of this chapter. In brief, it's a sophisticated way to encode short strings
 that has very good error correction as well as detection properties.
@@ -144,13 +146,13 @@ timestamp allows the sender to gauge how old the invoice is, and as we'll see
 later, allows the receiver to force an invoice to only be valid for a period of
 time if they wish.
 
-Similar to the TLV format we learned about in Chapter XXX, the BOLT 11 invoice
+Similar to the TLV format we learned about in <<tlv>>, the BOLT 11 invoice
 format uses a series of extensible key-value pairs to encode information
 needed to satisfy a payment. As key-value pairs are used, it's easy for add
 new values in the future if a new payment type or additional
 requirement/functionality is introduced.
 
-Finally a signature is included ed that covers the entire invoice signed by the
+Finally a signature is included that covers the entire invoice signed by the
 destination of the payment. This signature allows the sender to verify that the
 payment request was indeed created by the destination of the payment. Unlike
 Bitcoin payment request's which aren't signed, this allows us to ensure that a
@@ -178,7 +180,7 @@ A full list of all the currently defined tagged fields is as follows:
 
 .BOLT 11 Tagged Invoice Fields
 [options="header"]
-|==================================================================================================================================================
+|===
 |Field Tag|Data Length|Usage
 |`p`|`52`|The `SHA-256` payment hash.
 |`s`|`52`|A `256-bit` secret that increase the end to end privacy of a payment by mitigating probing by intermediate nodes.
@@ -190,7 +192,7 @@ A full list of all the currently defined tagged fields is as follows:
 |`f`|Variable|A fall back on-chain address to be used to complete the payment if the payment cannot be completed over LN.
 |`r`|Variable|One or more entries that allow a receiver to give the sender additional ephemeral edges to complete the payment.
 `9`|Variable|A set of 5-bit values that contain the feature bits that are required in order to complete the payment.
-|==================================================================================================================================================
+|===
 
 The elements contained in the field `r` are commonly referred to as "routing
 hints". They allow the receiver to communicate an extra set of edges that may
@@ -212,3 +214,7 @@ payment. As an example, if a new payment type is added in the future that isn't
 backwards compatible with the original payment type, then the receiver can set
 a _required_ feature bit in order to communicate that the payer needs to
 underhand that feature in order to complete the payment.
+
+=== Conclusion
+
+As we have seen, invoices are a lot more than just a request for an amount. They contain critical information about _how_ to make the payment, such as "routing hints", the destination node's public key, ephemeral keys to increase security and much more.

@@ -1,7 +1,9 @@
 [[path_finding]]
 == Path Finding and Payment Delivery
 
-Payment delivery on the Lightning Network depends on finding a path from the sender to the recipient, a process called _path finding_.
+Payment delivery on the Lightning Network depends on finding a path from the sender to the recipient, a process called _path finding_. Since the routing is done by the sender, the sender must find a suitable path to reach the destination. This path is then encoded in an onion, as we saw in <<onion_routing>>.
+
+In this chapter we will examine the problem of path finding, understand how uncertainty about channel balances complicates this problem and look at how a typical path finding implementation attempts to solve it.
 
 === Path finding in the Lightning protocol suite
 
@@ -9,9 +11,9 @@ Path finding, path selection, multi-path payments (MPP) and the payment attempt 
 
 These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_pathfinding_highlight>>:
 
-[[LN_protocol_routing_highlight]]
+[[LN_protocol_pathfinding_highlight]]
 .The Lightning Network Protocol Suite
-image::images/LN_protocol_routing_highlight.png["The Lightning Network Protocol Suite"]
+image::images/LN_protocol_pathfinding_highlight.png["The Lightning Network Protocol Suite"]
 
 ==== Where is the BOLT?
 
@@ -23,9 +25,10 @@ That's because path finding isn't an activity that requires any form of coordina
 
 The term path finding may be somewhat misleading, because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
 
-But, as the Lightning Network has grown explosively, the path finding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2000 channels _each_. A visualization of just a small subset of the Lightning Network channel graph (as of July 2021) is shown in <<lngraph>>:
+But, as the Lightning Network has grown explosively, the path finding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2000 channels _each_. A visualization of just a small subset of the Lightning Network channel graph is shown in <<lngraph>>:
 
 [[lngraph]]
+.A visualization of part of the Lightning Network as of July 2021
 image::images/LNGraphJuly2021.png[]
 
 [NOTE]
@@ -52,7 +55,7 @@ All of these criteria may be desirable to some extent and selecting paths that a
 
 Path finding in the Lightning Network falls under a general category of _graph theory_ in mathematics and the more specific category of _graph traversal_ in computer science.
 
-A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel balance is split between the two channel partners and the payment liquidity is different in each direction. A directed graph with numerical capacity constrains on its edges is called a _flow network_, a mathematical construct used to optimize transportation and other similar networks. Flow networks can be used as a framework when solutions need to achieve a specific flow while minimizing cost, known as the Minimum Cost Flow Problem (MCFP)_.
+A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel balance is split between the two channel partners and the payment liquidity is different in each direction. A directed graph with numerical capacity constrains on its edges is called a _flow network_, a mathematical construct used to optimize transportation and other similar networks. Flow networks can be used as a framework when solutions need to achieve a specific flow while minimizing cost, known as the Minimum Cost Flow Problem (MCFP).
 
 ==== Capacity, balance, liquidity
 
@@ -98,7 +101,7 @@ Our channel liquidity uncertainty range is the range between the minimum and max
 
 Finding a path through a graph is a problem modern computers can solve rather efficiently.
 Developers mainly choose breadth-first search if the edges are all of equal weight.
-In cases where the edges are not of equal weight, an algorithm based on Dijkstra Algorithm is used, such as A* ("a-star") or
+In cases where the edges are not of equal weight, an algorithm based on Dijkstra Algorithm is used, such as https://en.wikipedia.org/wiki/A*_search_algorithm[A* ("A-star")].
 In our case the weights of the edges can represent the routing fees.
 Only edges with a capacity larger than the amount to be sent will be included in the search.
 In this basic form, path finding in the Lightning network is very simple and straight forward.
@@ -122,15 +125,13 @@ However, the user might suspect that probing is taking place if the payment is n
 
 While "blind probing" is not optimal and leaves ample room for improvement, it should be noted that even this simplistic strategy works surprisingly well for smaller payments and well-connected nodes.
 
-Most Lightning node and wallet implementation improve on this approach, by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees), or some combination of cost/capacity.
+Most Lightning node and wallet implementations improve on this approach, by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees), or some combination of cost/capacity.
 
 === Path finding and payment delivery process
 
 Path finding and payment delivery involves several steps, which we list below. Different implementations may use different algorithms and strategies, but the basic steps are likely to be very similar:
 
-* Create a _channel graph_ from announcements and updates, containing the capacity of each channel.
-
-* Filter the graph ignoring any channels with insufficient capacity for the amount we want to send.
+* Create a _channel graph_ from announcements and updates, containing the capacity of each channel and filter the graph ignoring any channels with insufficient capacity for the amount we want to send.
 
 * Find paths connecting the sender to the recipient.
 
@@ -150,7 +151,7 @@ These three activities can be repeated in a _payment round_ if we use the failur
 
 In the next sections we will look at each of these steps in more detail, as well as more advanced payment strategies.
 
-==== Channel graph construction
+=== Channel graph construction
 
 In <<gossip>> we covered the three main messages that nodes "gossip": +node_announcement+, +channel_announcement+, and +channel_update+. These three messages allow any node to gradually construct a "map" of the Lightning Network in the form of a _channel graph_. Each of these messages provides a critical piece of information for the channel graph:
 
@@ -160,11 +161,11 @@ channel_announcement:: This contains the capacity and channel ID of a public (an
 
 channel_update:: This contains a node's fee and timelock (CLTV) expectations for routing an outgoing (from that node's perspective) payment over a specified channel.
 
-In terms of a mathematical graph, the node_announcement is the information needed to create the nodes or _vertices_ of the graph. The channel_announcement allows us to create the _edges_ of the graph representing the payment channels. Since each direction of the payment channel has its own balance, we create a directed graph. The channel_update allows us to incorporate fees and timelocks to set the _cost_ or _weight_ of the graph edges.
+In terms of a mathematical graph, the +node_announcement+ is the information needed to create the nodes or _vertices_ of the graph. The +channel_announcement+ allows us to create the _edges_ of the graph representing the payment channels. Since each direction of the payment channel has its own balance, we create a directed graph. The +channel_update+ allows us to incorporate fees and timelocks to set the _cost_ or _weight_ of the graph edges.
 
 Depending on the algorithm we will use for path finding, we may establish a number of different cost functions for the edges of the graph.
 
-For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the node_announcement and channel_announcement messages.
+For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the +node_announcement+ and +channel_announcement+ messages.
 
 In this chapter we will see how Selena attempts to find a path to pay Rashid 1,000,000 (1m) satoshis. To start, Selena is constructing a channel graph using the information from the Lightning Network gossip to discover nodes and channels. Selena will then explore her channel graph to find a path to send a payment to Rashid.
 
@@ -184,7 +185,7 @@ The map territory relation is best illustrated in "Sylvie and Bruno Concluded", 
 
 What does this mean for the Lightning Network? LN is the territory, and a channel graph is a map of that territory:
 
-While we could imagine a theoretical (Platonic ideal) channel graph that represents the complete, up-to-date map of the Lightning Network, such a map is simply the Lightning Nwtwork itself. Each node has its own channel graph which is constructed from announcements and is necessarily incomplete, incorrect, and out-of-date!
+While we could imagine a theoretical (Platonic ideal) channel graph that represents the complete, up-to-date map of the Lightning Network, such a map is simply the Lightning Network itself. Each node has its own channel graph which is constructed from announcements and is necessarily incomplete, incorrect, and out-of-date!
 
 The map can never completely and accurately describe the territory.
 ****
@@ -279,7 +280,7 @@ The fee and timelock information are very important not just as path selection m
 
 It is also important to note that a channel must have liquidity that is sufficient not only for the payment amount but also for the cumulative fees of all the subsequent hops. Even though Selena's channel to Xavier (S-->X) has enough liquidity for a 1m satoshi payment, it *does not* have enough liquidity once we consider fees. We need to know fees because only paths that have sufficient liquidity for *both payment and all fees* will be considered.
 
-==== Finding candidate paths
+=== Finding candidate paths
 
 Finding a suitable path through a directed graph like this is a well-studied computer science problem (known broadly as the "Shortest Path problem"), which can be solved by a variety of algorithms depending on the desired optimization and resource constraints.
 
@@ -302,7 +303,7 @@ But, as we saw previously, the channel +S->X+ does not have enough liquidity for
 
 With two possible paths, Selena is ready to attempt delivery!
 
-==== Payment delivery (Trial-and-error loop)
+=== Payment delivery (Trial-and-error loop)
 
 Selena's node starts the trial-and-error loop, by constructing the HTLCs, building the onion and attempting delivery of the payment. For each attempt, there are three possible outcomes:
 
@@ -314,7 +315,7 @@ If the payment fails, then it can be re-tried via a different path by updating t
 
 We'll look at what happens if the payment is "stuck" in <<stuck_payments>>. The important detail is that a stuck payment is the worst outcome because we cannot retry with another HTLC as both (the stuck one and the retry one) might go through eventually and cause a double payment.
 
-===== First attempt (path #1)
+==== First attempt (path #1)
 
 Selena attempts the first path (S->A->B->R). She constructs the onion and sends it, but receives a failure code from Bob's node. Bob reports back a +temporary channel failure+ with a +channel_update+ identifying the channel B->R as the one that can't deliver. This attempt is shown in <<path_1_fail>>:
 
@@ -326,7 +327,7 @@ image::images/path_1_fail.png[]
 
 From this failure code, Selena will deduce that Bob doesn't have enough liquidity to deliver the payment to Rashid on that channel. Importantly, this failure narrows the uncertainty of the liquidity of that channel! Previously, Selena's node assumed that the liquidity on Bob's side of the channel was somewhere in the range (0, 4m). Now, she can assume that the liquidity is in the range (0, 999999). Similarly, Selena can now assume that the liquidity of that channel on Rashid's side is in the range (1m, 4m), instead of (0, 4m). Selena has learned a lot from this failure.
 
-===== Second attempt (path #4)
+==== Second attempt (path #4)
 
 Now Selena attempts the fourth candidate path (S->A->B->X->Y->R). This is a longer path and will incur more fees, but it's now the best option for delivery of the payment.
 
