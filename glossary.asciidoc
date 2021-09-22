@@ -109,14 +109,18 @@ closing transaction::
     Mutually closing a channel with the help of a closing transaction has the advantage that fewer blockchain transactions are required to claim all funds, in comparison to unilaterally forcing a channel close by publishing a commitment transaction. Additionally, funds for both parties are immediately spendable from a closing transaction.
 
 coinbase::
-    A special field used as the sole input for coinbase transactions. The coinbase allows the block reward to be claimed and provides up to 100 bytes for arbitrary data.
-    The block reward consists of two things.
-    First, newly generated coins. The amount of allowed coins to be generated is part of the consensus rules and decreases over time based on the current block height.
-    Second, the miner is also allowed to add all the fees of the transactions from the current block to the coinbase.
+    The coinbase is a special field only permitted in the sole input of coinbase transactions.
+    The coinbase allows up 100 bytes of arbitrary data, but since BIP34 must first feature the current block height to ensure that coinbase transactions are unique.
     Not to be confused with coinbase transaction.
 
 coinbase transaction::
     The first transaction in a block which is always created by a miner and which includes a single coinbase.
+    The coinbase transaction may claim the block reward and assign it to one or more outputs.
+    The block reward consists of two parts.
+    First, newly generated coins. The amount of allowed coins to be generated is part of the consensus rules and decreases over time based on the current block height.
+    Second, the miner may also claim all the fees of transactions included in the current block.
+    Coinbase outputs can only be spent after maturing for 100 blocks.
+    If the block includes any segwit transactions, the coinbase transaction must include a commitment to the witness transaction identifiers in an additional nulldata output.
     Not to be confused with coinbase.
 
 cold storage::
