@@ -7,7 +7,7 @@ In this chapter we are focusing on the "Source based Onion Routing (SPHINX)" par
 
 [[LN_protocol_onion_highlight]]
 .The Lightning Network Protocol Suite
-image::images/LN-protocol-onion-highlight.png["The Lightning Network Protocol Suite"]
+image::images/mtln_1001.png["The Lightning Network Protocol Suite"]
 
 Onion routing describes a method of encrypted communication where a message sender builds successive _nested layers of encryption_ that are "peeled" off by each intermediary node, until the innermost layer is delivered to the intended recipient. The name "onion routing" describes this use of layered encryption that is peeled off one layer at a time, like the skin of an onion.
 
@@ -36,7 +36,7 @@ As a reminder, the path selected by Alice is shown in <<alice_dina_path>>, below
 
 [[alice_dina_path]]
 .Path: Alice to Bob to Chan to Dina
-image::images/alice_dina_path.png["Alice to Bob to Chan to Dina"]
+image::images/mtln_1002.png["Alice to Bob to Chan to Dina"]
 
 Let's see how Alice can use this path without revealing information to intermediaries Bob and Chan.
 
@@ -53,25 +53,25 @@ Alice starts by writing a secret letter to Dina.  She then seals the letter insi
 
 [[dina_envelope]]
 .Dina's secret letter, sealed in an envelope
-image::images/dina_envelope.png[Dina's secret letter, sealed in an envelope]
+image::images/mtln_1003.png[Dina's secret letter, sealed in an envelope]
 
 Dina's letter will be delivered to Dina by Chan, who is immediately before Dina in the "path". So, Alice puts Dina's envelope inside an envelope addressed to Chan (see <<chan_envelope>>). The only part that Chan can read is the destination (routing instructions): "To Dina". Sealing this inside an envelope addressed to Chan represents encrypting it with Chan's public key so that only Chan can read the envelope address. Chan still can't open Dina's envelope. All he sees is the instructions on the outside (the address).
 
 [[chan_envelope]]
 .Chan's envelope, containing Dina's sealed envelope
-image::images/chan_envelope.png[Chan's envelope, containing Dina's sealed envelope]
+image::images/mtln_1004.png[Chan's envelope, containing Dina's sealed envelope]
 
 Now, this letter will be delivered to Chan by Bob. So Alice puts it inside an envelope addressed to Bob (see <<bob_envelope>>). As before, the envelope represents a message encrypted to Bob that only Bob can read. Bob can only read the outside of Chan's envelope (the address), so he knows to send it to Chan.
 
 [[bob_envelope]]
 .Bob's envelope, containing Chan's sealed envelope
-image::images/bob_envelope.png[Bob's envelope, containing Chan's sealed envelope]
+image::images/mtln_1005.png[Bob's envelope, containing Chan's sealed envelope]
 
 Now, if we could look through the envelopes (with X-rays!) we would see the envelopes nested one inside the other, as shown in <<nested_envelopes>>, below:
 
 [[nested_envelopes]]
 .Nested envelopes
-image::images/nested_envelopes.png[Nested envelopes]
+image::images/mtln_1006.png[Nested envelopes]
 
 ==== Peeling the layers
 
@@ -79,7 +79,7 @@ Alice now has an envelope that says "To Bob" on the outside. It represents an en
 
 [[sending_nested_envelopes]]
 .Sending the envelopes
-image::images/sending_nested_envelopes.png[Sending the envelopes]
+image::images/mtln_1007.png[Sending the envelopes]
 
 As you can see, Bob receives the envelope from Alice. He knows it came from Alice, but doesn't know if Alice is the original sender or just someone forwarding envelopes. He opens it to find an envelope inside that says "To Chan". Since this is addressed to Chan, Bob can't open it. He doesn't know what's inside it and doesn't know if Chan is getting a letter or another envelope to forward. Bob doesn't know if Chan is the ultimate recipient or not. Bob forwards the envelope to Chan.
 
@@ -109,7 +109,7 @@ From <<routing>> we know that Alice will send a 50,000 satoshi payment to Dina v
 
 [[alice_dina_htlc_path]]
 .Payment path with HTLCs from Alice to Dina
-image::images/alice-dina-htlc.png[Payment path with HTLCs from Alice to Dina]
+image::images/mtln_1008.png[Payment path with HTLCs from Alice to Dina]
 
 As we will see in <<gossip>>, Alice is able to construct this path to Dina because Lightning nodes announce their channels to the entire Lightning Network using the _Lightning Gossip Protocol_. After the initial channel announcement, Bob and Chan each sent out an additional "channel update" message with their routing fee and timelock expectations for payment routing.
 
@@ -127,7 +127,7 @@ This information is used by Alice to identify the nodes, channels, fees, and tim
 
 [[alice_dina_path_detail]]
 .A detailed path constructed from gossiped channel and node information
-image::images/alice_dina_path_detail.png[A path constructed from gossiped channel and node information]
+image::images/mtln_1009.png[A path constructed from gossiped channel and node information]
 
 Alice already knows her own channel to Bob, and therefore doesn't need this info to construct the path. Note also that Alice didn't need a channel update from Dina, because she has the update from Chan for that last channel in the path.
 
@@ -171,7 +171,7 @@ Alice serializes it in TLV format as shown (simplified) <<dina_onion_payload>> b
 
 [[dina_onion_payload]]
 .Dina's payload is constructed by Alice
-image::images/dina_onion_payload.png[Dina's payload is constructed by Alice]
+image::images/mtln_1010.png[Dina's payload is constructed by Alice]
 
 ===== Hop payload for Chan
 
@@ -189,7 +189,7 @@ Alice serializes this payload in TLV format, as shown (simplified) in <<chan_oni
 
 [[chan_onion_payload]]
 .Chan's payload is constructed by Alice
-image::images/chan_onion_payload.png[Chan's payload is constructed by Alice]
+image::images/mtln_1011.png[Chan's payload is constructed by Alice]
 
 ===== Hop payload for Bob
 
@@ -214,7 +214,7 @@ Alice serializes this payload in TLV format, as shown (simplified) in <<bob_onio
 
 [[bob_onion_payload]]
 .Bob's payload is constructed by Alice
-image::images/bob_onion_payload.png[Bob's payload is constructed by Alice]
+image::images/mtln_1012.png[Bob's payload is constructed by Alice]
 
 ===== Finished hop payloads
 
@@ -222,7 +222,7 @@ Alice has now built the three hop payloads that will be wrapped in an onion. A s
 
 [[onion_hop_payloads]]
 .Hop payloads for all the hops
-image::images/onion_hop_payloads.png[Hop payloads for all the hops]
+image::images/mtln_1013.png[Hop payloads for all the hops]
 
 ==== Key generation
 
@@ -258,7 +258,7 @@ The relationship between the various keys and how they are generated is shown in
 
 [[onion_keygen]]
 .Onion Key Generation
-image::images/onion_keygen.png[Onion Key Generation]
+image::images/mtln_1014.png[Onion Key Generation]
 
 [[session_key]]
 ===== Alice's session key
@@ -389,7 +389,7 @@ The onion size is 1366 bytes structured as shown in <<onion_packet>> below:
 
 [[onion_packet]]
 .The onion packet
-image::images/onion_packet.png[]
+image::images/mtln_1015.png[]
 
 * 1 byte: A version byte
 * 33 bytes: A compressed public session key (<<session_key>>) from which the per-hop shared secret (<<shared_secret>>) can be generated without revealing Alice's identity
@@ -455,13 +455,13 @@ This is shown in <<onion_payload_filler>>:
 
 [[onion_payload_filler]]
 .Filling the onion payload with a random byte-stream
-image::images/onion_payload_filler.png[]
+image::images/mtln_1016.png[]
 
 Alice will now insert Dina's hop payload into the left side of the 1300 byte array, shifting the filler to the right and discarding anything that overflows. This is visualized in <<onion_add_dina>>:
 
 [[onion_add_dina]]
 .Adding Dina's hop payload
-image::images/onion_add_dina.png[]
+image::images/mtln_1017.png[]
 
 Another way to look at this is that Alice measures the length of Dina's hop payload, shifts the filler right to create an equal space in the left side of the onion payload and inserts Dina's payload in that space.
 
@@ -473,7 +473,7 @@ To do this, Alice generates a byte-stream using the +rho+ key (which Dina also k
 
 [[onion_obfuscate_dina]]
 .Obfuscating the onion payload
-image::images/onion_obfuscate_dina.png[]
+image::images/mtln_1018.png[]
 
 One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in the "unwrapping" section, if Dina applies the same XOR operation with the byte-stream generated from +rho+, it will reveal the original onion payload.
 
@@ -488,7 +488,7 @@ Finally, Alice calculates a Hash-based Message Authentication Code (HMAC) for Di
 
 [[dina_hop_payload_hmac]]
 .Adding an HMAC integrity checksum to Dina's hop payload
-image::images/dina_hop_payload_hmac.png[]
+image::images/mtln_1019.png[]
 
 ===== Onion Routing Replay Protection & Detection
 
@@ -525,7 +525,7 @@ In <<chan_onion_wrapping>> we see the steps used to wrap Chan's hop payload in t
 
 [[chan_onion_wrapping]]
 .Wrapping the onion for Chan
-image::images/chan_onion_wrapping.png[]
+image::images/mtln_1020.png[]
 
 Alice starts with the 1300 onion payload created for Dina. The first 65 (or less) bytes of this are Dina's payload obfuscated and the rest is filler. Alice must be careful not to overwrite Dina's payload.
 
@@ -552,7 +552,7 @@ All right, by now this is easy!
 
 [[bob_onion_wrapping]]
 .Wrapping the onion for Bob
-image::images/bob_onion_wrapping.png[]
+image::images/mtln_1021.png[]
 
 Start with the onion payload (obfuscated) containing Chan's and Dina's hop payloads.
 
@@ -581,7 +581,7 @@ The result can be seen in <<onion_packet_2>> below:
 
 [[onion_packet_2]]
 .The onion packet
-image::images/onion_packet.png[]
+image::images/mtln_1015.png[]
 
 === Sending the onion
 
@@ -640,7 +640,7 @@ First, Bob *extends* the onion payload by 1300 bytes and filles them with +0+ va
 
 [[bob_extends]]
 .Bob extends the onion payload by 1300 (zero-filled) bytes
-image::images/bob_extends.png[Bob extends the onion payload by 1300 (zero-filled) bytes]
+image::images/mtln_1023.png[Bob extends the onion payload by 1300 (zero-filled) bytes]
 
 This empty space will become obfuscated and turn into "filler", by the same process that Bob uses to deobfuscate his own hop payload. Let's see how that works.
 
@@ -661,7 +661,7 @@ At the same time, applying the +rho+ byte stream to the 1300 zeroes that were ad
 
 [[bob_deobfuscates]]
 .Bob de-obfuscates the onion, obfuscates the filler
-image::images/bob_deobfuscates.png[Bob de-obfuscates the onion, obfuscates the filler]
+image::images/mtln_1024.png[Bob de-obfuscates the onion, obfuscates the filler]
 
 ==== Bob extracts the outer HMAC for the next hop
 
@@ -674,7 +674,7 @@ Now Bob can remove his hop payload from the front of the onion and left-shift th
 
 [[bob_removes_shifts]]
 .Bob removes the hop payload and left-shifts the rest, filling the gap with new filler
-image::images/bob_removes_shifts.png[Bob removes the hop payload and left-shifts the rest, filling the gap with new filler]
+image::images/mtln_1025.png[Bob removes the hop payload and left-shifts the rest, filling the gap with new filler]
 
 Now Bob can keep the first half 1300 bytes, and discard the extended (filler) 1300 bytes.
 

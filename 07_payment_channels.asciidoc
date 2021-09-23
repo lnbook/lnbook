@@ -7,7 +7,7 @@ The messages exchanged by Alice and Bob's nodes are defined in https://github.co
 
 [[LN_protocol_channel_highlight]]
 .The Lightning Network Protocol Suite
-image::images/LN-protocol-channel-highlight.png["The Lightning Network Protocol Suite"]
+image::images/mtln_0701.png["The Lightning Network Protocol Suite"]
 
 === A different way of using the Bitcoin system
 
@@ -21,7 +21,7 @@ The Lightning Network is simply a different and creative way of using Bitcoin. I
 
 [[on_off_chain]]
 .Lightning payment channel made of on-chain and off-chain transactions
-image::images/on_off_chain.png["Lightning payment channel made of on-chain and off-chain transactions"]
+image::images/mtln_0702.png["Lightning payment channel made of on-chain and off-chain transactions"]
 
 Lightning is Bitcoin. It's just a different way of using the Bitcoin system.
 
@@ -144,7 +144,7 @@ Channel establishment is achieved by the exchange of six messages between Alice 
 
 [[funding_message_flow]]
 .The funding message flow
-image::images/funding_message_flow.png["The funding message flow"]
+image::images/mtln_0703.png["The funding message flow"]
 
 In "<<funding_message_flow>>" Alice and Bob's nodes are represented by the vertical lines "A" and "B" on either side of the diagram. A time-sequence diagram like this shows time flowing downwards, and messages flowing from one side to the other between the two communication peers. The lines are sloped down to represent the elapsed time needed to transmit each message and the direction of the message is shown by an arrow at the end of each line.
 
@@ -275,7 +275,7 @@ Alice's node can now construct a funding transaction, sending the amount agreed 
 
 [[A_B_funding_Tx]]
 .Alice constructs the funding transaction
-image::images/A_B_funding_Tx.png["Alice constructs the funding transaction"]
+image::images/mtln_0704.png["Alice constructs the funding transaction"]
 
 Alice *does not broadcast* this transaction, because doing so would put her 140,000 satoshi at risk. Once spent to the 2-of-2 multisig, there is no way for Alice to recover her money without Bob's signature.
 
@@ -304,7 +304,7 @@ In practice, it is a bit more complicated as we will see in subsequent chapters,
 
 [[A_B_fund_refund_Tx]]
 .Alice also constructs the refund transaction
-image::images/A_B_fund_refund_Tx.png["Alice also constructs the refund transaction"]
+image::images/mtln_0705.png["Alice also constructs the refund transaction"]
 
 Later in this chapter we will see how more commitment transactions can be made to distribute the balance of the channel in different amounts.
 
@@ -421,7 +421,7 @@ In <<competing_commitments_1>> we see several commitment transactions:
 
 [[competing_commitments_1]]
 .Multiple commitment transactions
-image::images/competing_commitments_1.png[Multiple commitment transactions]
+image::images/mtln_0706.png[Multiple commitment transactions]
 
 The first commitment transaction shown in <<competing_commitments_1>> is the "refund transaction" that Alice constructed before funding the channel. In the diagram, this is "Commitment #0". After Alice pays Bob 70,000 satoshis, the new commitment transaction ("Commitment #1") has two outputs paying Alice and Bob their respective balance. We have included two subsequent commitment transactions (Commitment #2 and Commitment #3) which represent Alice paying Bob an additional 10,000 satoshis and then 20,000 satoshis respectively.
 
@@ -471,13 +471,13 @@ Alice and Bob hold slightly different commitment transactions. Let's look specif
 
 [[commitment_2]]
 .Commitment Transaction #2
-image::images/commitment_2.png[Commitment Transaction #2]
+image::images/mtln_0707.png[Commitment Transaction #2]
 
 Alice and Bob hold two different variations of this transaction, as shown in <<asymmetric_1>>:
 
 [[asymmetric_1]]
 .Asymmetric commitment transactions
-image::images/asymmetric_1.png[Asymmetric commitment transactions]
+image::images/mtln_0708.png[Asymmetric commitment transactions]
 
 By convention, within the Lightning protocol, we refer to the two channel partners as _self_ (also known as _local_) and _remote_, depending on which side we're looking at. The outputs that pay each channel partner are called _to_local_ and _to_remote_, respectively.
 
@@ -493,7 +493,7 @@ In the commitment transaction held by Alice, for example, the _to_local_ output 
 
 [[asymmetric_delayed_1]]
 .Asymmetric and delayed commitment transactions
-image::images/asymmetric_delayed_1.png[Asymmetric and delayed commitment transactions]
+image::images/mtln_0709.png[Asymmetric and delayed commitment transactions]
 
 That means that if Alice closes the channel by broadcasting and confirming the commitment transaction she holds, she cannot spend her balance for 432 blocks, but Bob can claim his balance immediately. If Bob closes the channel using the commitment transaction he holds, he cannot spend his output for 432 blocks while Alice can immediately spend hers.
 
@@ -513,7 +513,7 @@ So, in our example, each side holds a commitment transaction that includes a rev
 
 [[asymmetric_delayed_revocable_1]]
 .Asymmetric, delayed and revocable commitments
-image::images/asymmetric_delayed_revocable_1.png["Asymmetric, delayed and revocable commitments"]
+image::images/mtln_0710.png["Asymmetric, delayed and revocable commitments"]
 
 [[commitment_transaction]]
 === The commitment transaction
@@ -573,7 +573,7 @@ In <<commitment_message_flow>> we see the Alice and Bob exchanging two pairs of 
 
 [[commitment_message_flow]]
 .Commitment and revocation message flow
-image::images/commitment_message_flow.png[Commitment and revocation message flow]
+image::images/mtln_0711.png[Commitment and revocation message flow]
 
 ==== The commitment_signed message
 
@@ -649,7 +649,7 @@ Let's review our channel between Alice and Bob and show a specific example of a 
 
 [[competing_commitments_2]]
 .Revoked and current commitments
-image::images/competing_commitments_2.png[Revoked and current commitments]
+image::images/mtln_0712.png[Revoked and current commitments]
 
 With each commitment, Alice has revoked the previous (older) commitment. The current state of the channel and the correct balance is represented by Commitment #3. All previous commitments have been revoked and Bob has the keys necessary to issue penalty transactions against them, in case Alice tries to broadcast one of them.
 
@@ -659,7 +659,7 @@ Alice decides to take a huge risk and broadcast the revoked Commitment #1, to st
 
 [[cheating_commitment]]
 .Alice cheating
-image::images/cheating_commitment.png[Alice cheating]
+image::images/mtln_0713.png[Alice cheating]
 
 As you can see, Alice's old commitment has two outputs, one paying herself 70,000 satoshis (to_local output) and one paying Bob 70,000 satoshis. Alice can't yet spend her 70,000 to_local output because it has a 432 block (3 day) timelock. She is now hoping that Bob doesn't notice for three days.
 
@@ -669,7 +669,7 @@ Bob's node will immediately broadcast a penalty transaction. Since this old comm
 
 [[penalty_transaction]]
 .Cheating and penalty
-image::images/penalty_transaction.png[Cheating and penalty]
+image::images/mtln_0714.png[Cheating and penalty]
 
 Bob's penalty transaction pays 140,000 satoshis to his own wallet, taking the entire channel capacity. Alice has not only failed to cheat, she has lost everything in the attempt!
 
@@ -687,7 +687,7 @@ The closing message flow is defined in https://github.com/lightningnetwork/light
 
 [[closing_message_flow]]
 .The channel close message flow
-image::images/closing_message_flow.png[The channel close message flow]
+image::images/mtln_0715.png[The channel close message flow]
 
 ==== The shutdown message
 
@@ -747,7 +747,7 @@ Alice broadcasts a transaction shown in <<closing_transaction>> below to close t
 
 [[closing_transaction]]
 .The cooperative close transaction
-image::images/closing_transaction.png[The cooperative close transaction]
+image::images/mtln_0716.png[The cooperative close transaction]
 
 As soon as this closing transaction is confirmed on the Bitcoin blockchain, the channel is closed. Now, Alice and Bob can spend their outputs as they please.
 

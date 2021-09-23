@@ -13,7 +13,7 @@ These components are highlighted by a double outline in the protocol suite, show
 
 [[LN_protocol_pathfinding_highlight]]
 .The Lightning Network Protocol Suite
-image::images/LN_protocol_pathfinding_highlight.png["The Lightning Network Protocol Suite"]
+image::images/mtln_1201.png["The Lightning Network Protocol Suite"]
 
 ==== Where is the BOLT?
 
@@ -29,7 +29,7 @@ But, as the Lightning Network has grown explosively, the path finding problem's 
 
 [[lngraph]]
 .A visualization of part of the Lightning Network as of July 2021
-image::images/LNGraphJuly2021.png[]
+image::images/mtln_1202.png[]
 
 [NOTE]
 ====
@@ -194,13 +194,13 @@ Selena listens to node_announcement messages and discovers 4 other nodes (in add
 
 [[channel_graph_nodes]]
 .Node announcements
-image::images/channel_graph_nodes.png[]
+image::images/mtln_1203.png[]
 
 Selena also receives seven channel_announcement messages with the corresponding channel capacities, allowing her to construct a basic "map" of the network, shown in <<channel_graph_1>>, below:
 
 [[channel_graph_1]]
 .The channel graph
-image::images/channel_graph_1.png[]
+image::images/mtln_1204.png[]
 
 ===== Uncertainty in the channel graph
 
@@ -210,7 +210,7 @@ But wait: Selena does know *some* channel balances! She knows the balances of th
 
 [[channel_graph_2]]
 .Channel graph with known and unknown balances
-image::images/channel_graph_2.png[]
+image::images/mtln_1205.png[]
 
 While the "?" symbol seems ominous, a lack of certainty is not the same as complete ignorance. We can _quantify_ the uncertainty and _reduce_ it by updating the graph with the successful/failed HTLCs we attempt.
 
@@ -274,7 +274,7 @@ In <<channel_graph_3>> below we see how Selena can update the channel graph base
 
 [[channel_graph_3]]
 .Channel graph fees and other channel metrics
-image::images/channel_graph_3.png[]
+image::images/mtln_1206.png[]
 
 The fee and timelock information are very important not just as path selection metrics. As we saw in <<onion_routing>>, the sender needs to add up fees and timelocks (cltv_expiry_delta) at each hop to make the onion. The process of calculating fees happens from the recipient to the sender *backwards* along the path, because each intermediary hop expects an incoming HTLC with higher amount and expiry timelock than the outgoing HTLC they will send to the next hop. So, for example, if Bob wants 1000 satoshis in fees and 30 blocks of expiry timelock delta, to send a payment to Rashid, then that amount and expiry delta must be added to the HTLC _from Alice_.
 
@@ -321,7 +321,7 @@ Selena attempts the first path (S->A->B->R). She constructs the onion and sends 
 
 [[path_1_fail]]
 .Path 1 attempt fails
-image::images/path_1_fail.png[]
+image::images/mtln_1207.png[]
 
 ===== Learning from failure
 
@@ -335,7 +335,7 @@ Fortunately, Selena receives an +update_fulfill_htlc+ message from Alice, indica
 
 [[path_4_success]]
 .Path 4 attempt succeeds
-image::images/path_4_success.png[]
+image::images/mtln_1208.png[]
 
 ===== Learning from success
 
@@ -396,7 +396,7 @@ In our example, Selena's node will attempt to split the 1m satoshi payment into 
 
 [[mpp_paths]]
 .Sending two parts of a multi-path payment
-image::images/mpp_paths.png[]
+image::images/mtln_1209.png[]
 
 Because the S->X channel can now be utilized, and (luckily for Selena), the B->R channel has sufficient liquidity for 600k satoshis, the two parts are successful along paths that were previously not possible.
 
@@ -428,7 +428,7 @@ This multi-round example of sending a payment using MPP is shown in <<mpp_rounds
 
 [[mpp_rounds]]
 .Sending a payment in multiple rounds with MPP
-image::images/mpp_rounds.png[]
+image::images/mtln_1210.png[]
 
 In the end, Selena's node used three rounds of path finding to send the 1m satoshis in 30 parts.
 
