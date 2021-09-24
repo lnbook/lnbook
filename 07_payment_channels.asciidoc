@@ -163,7 +163,7 @@ Once the transaction has sufficient confirmations (as defined by the `minimum_de
 
 Alice's node requests a payment channel with Bob's node, by sending an +open_channel+ message. The message contains information about Alice's _expectations_ for the channel setup, which Bob may accept or decline.
 
-The structure of the +open_channel+ message (taken from BOLT#2) is shown in <<open_channel_message>> below:
+The structure of the +open_channel+ message (taken from BOLT#2) is shown in <<open_channel_message>>.
 
 [[open_channel_message]]
 .The open_channel message
@@ -216,10 +216,11 @@ If you want to understand the other fields of this and Lightning peer protocol m
 
 ===== The accept_channel message
 
-In response to Alice's +open_channel+ message, Bob sends back the +accept_channel+ message shown in <<accept_channel_message>> below:
+In response to Alice's +open_channel+ message, Bob sends back the +accept_channel+ message shown in <<accept_channel_message>>.
 
 [[accept_channel_message]]
 .The accept_channel message
+====
 ----
 [32*byte:temporary_channel_id]
 [u64:dust_limit_satoshis]
@@ -237,6 +238,7 @@ In response to Alice's +open_channel+ message, Bob sends back the +accept_channe
 [point:first_per_commitment_point]
 [accept_channel_tlvs:tlvs]
 ----
+====
 
 As you can see, this is similar to the +open_channel+ message and contains Bob's node expectations and configuration values.
 
@@ -254,7 +256,7 @@ Once Alice's node receives Bob's +accept_channel+ message, it has the informatio
 
 The funding transaction sends some amount of bitcoin (+funding_satoshis+ from the +open_channel+ message) to a 2-of-2 multisignature output that is constructed from Alice and Bob's +funding_pubkey+ public keys.
 
-Alice's node constructs a multisignature script as shown in <<A_B_multisig>> below:
+Alice's node constructs a multisignature script as shown here:
 
 
 [[A_B_multisig]]
@@ -340,7 +342,7 @@ You might have wondered how Bob would be able to alter (malleate) a transaction 
 
 ===== The funding_created message
 
-Now that Alice has constructed the necessary transactions, the channel construction message flow continues. Alice transmits the +funding_created+ message to Bob. In <<funding_created_message>> below you can see the contents of this message:
+Now that Alice has constructed the necessary transactions, the channel construction message flow continues. Alice transmits the +funding_created+ message to Bob. You can see the contents of this message here:
 
 [[funding_created_message]]
 .The funding_created message
@@ -377,7 +379,7 @@ More precisely, a `channel_id`, which is the 32 byte representation of a funding
 
 Bob will also need to send Alice his signature for the refund transaction, based on Bob's funding_pubkey which formed the 2-of-2 multisig. While Bob already has his local refund transaction this will allow Alice to complete the refund transaction with all necessary signatures and be sure her money is refundable in case something goes wrong.
 
-Bob constructs a +funding_signed+ message and sends it to Alice. In <<funding_signed_message>> below, we see the contents of this message:
+Bob constructs a +funding_signed+ message and sends it to Alice. Here we see the contents of this message:
 
 [[funding_signed_message]]
 .The funding_signed message
@@ -579,7 +581,7 @@ image::images/mtln_0711.png[Commitment and revocation message flow]
 
 ==== The commitment_signed message
 
-The structure of the +commitment_signed+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#committing-updates-so-far-commitment_signed[BOLT #2 - Peer Protocol - commitment_signed] and shown in <<commitment_signed_message>>, below:
+The structure of the +commitment_signed+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#committing-updates-so-far-commitment_signed[BOLT #2 - Peer Protocol - commitment_signed] and shown here:
 
 [[commitment_signed_message]]
 .The commitment_signed message
@@ -606,7 +608,7 @@ Alice's +commitment_signed+ message gives Bob the signature needed (Alice's part
 
 Now that Bob has a new commitment transaction, he can revoke the previous commitment by giving Alice a revocation key, and construct the new commitment with Alice's signature.
 
-The +revoke_and_ack+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#completing-the-transition-to-the-updated-state-revoke_and_ack[BOLT #2 - Peer Protocol - revoke_and_ack] and show in <<revoke_and_ack_message>> below:
+The +revoke_and_ack+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#completing-the-transition-to-the-updated-state-revoke_and_ack[BOLT #2 - Peer Protocol - revoke_and_ack] and shown here:
 
 [[revoke_and_ack_message]]
 .The revoke_and_ack message
@@ -693,7 +695,7 @@ image::images/mtln_0715.png[The channel close message flow]
 
 ==== The shutdown message
 
-Channel closing starts with one of the two channel partners sending the +shutdown+ message. The contents of this message are shown in <<shutdown_message>> below:
+Channel closing starts with one of the two channel partners sending the +shutdown+ message. The contents of this message are shown here:
 
 [[shutdown_message]]
 .The shutdown message
@@ -719,7 +721,7 @@ Now both Alice and Bob have each other's preferred wallet address, they can cons
 
 Assuming the channel has no outstanding commitments or updates and the channel partners have exchanged the +shutdown+ messages shown in the previous section, they can now finish this cooperative close.
 
-The *funder* of the channel (Alice in our example) starts by sending a +closing_signed+ message to Bob. This message proposes a transaction fee for the on-chain transaction, and Alice's signature (the 2-of-2 multisig) for the closing transaction. The +closing_signed+ message is shown in <<closing_signed_message>> below:
+The *funder* of the channel (Alice in our example) starts by sending a +closing_signed+ message to Bob. This message proposes a transaction fee for the on-chain transaction, and Alice's signature (the 2-of-2 multisig) for the closing transaction. The +closing_signed+ message is shown here:
 
 [[closing_signed_message]]
 .The closing_signed message
