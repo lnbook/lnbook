@@ -544,12 +544,12 @@ As shown above, each side sends a `revocation_basepoint` during the initial chan
 
 Given this information, the `revocationpubkey` for each channel state is derived via the following series of Elliptic Curve and hashing operations: `revocationpubkey = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)`.
 
-Due to the commutative property of the Abelian groups that Elliptic Curves are defined over, once the `per_commitment_secret` (the private key for the `per_commitment_point`) is revealed by the remote party, self can derive the private key for the `revocationpubkey` with the following operation: `per_commitment_secret = (revocationbase_priv * sha256(revocationpubkey || per_commitment_point)) + (per_commitment_secret * sha256(per_commitment_point || revocation_basepoint)) mod N`.
+Due to the commutative property of the Abelian groups that Elliptic Curves are defined over, once the `per_commitment_secret` (the private key for the `per_commitment_point`) is revealed by the remote party, self can derive the private key for the `revocationpubkey` with the following operation: `revocation_priv = (revocationbase_priv * sha256(revocation_basepoint || per_commitment_point)) + (per_commitment_secret * sha256(per_commitment_point || revocation_basepoint)) mod N`.
 
-To see why this works in practice, notice that we can _re order_ (commute) and expand the public key computation of the original formula for `revocation_basepoint`:
+To see why this works in practice, notice that we can _re order_ (commute) and expand the public key computation of the original formula for `revocationpubkey`:
 ```
-revocation_priv = G*(revocationbase_priv * sha256(revocation_basepoint || per_commitment_point) + G*(per_commitment_secret * sha256(per_commitment_point || revocation_basepoint))
-                 = G*(revocationbase_priv + sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint))
+revocationpubkey = G*(revocationbase_priv * sha256(revocation_basepoint || per_commitment_point) + G*(per_commitment_secret * sha256(per_commitment_point || revocation_basepoint))
+                 = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint))
 ```
 
 In other words, the `revocationbase_priv` can only be derived (and used to sign for the `revocationpubkey` by the party that knows _both_ the `revocationbase_priv` _and_ the `per_commitment_secret`. This little trick is what makes the public-key based revocation system used in the Lightning Network secure.
