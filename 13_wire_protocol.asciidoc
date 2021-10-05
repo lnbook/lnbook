@@ -3,10 +3,10 @@
 
 In this chapter, we dive into the wire protocol of the Lightning network,
 and also cover all the various extensibility levers that have been built into
-the protocol. By the end of this chapter, and aspiring reader should be able to
+the protocol. By the end of this chapter, an aspiring reader should be able to
 write their very own wire protocol parser for the Lighting Network. In addition
 to being able to write a custom wire protocol parser, a reader of this chapter
-will gain a deep understanding with respect of the various upgrade mechanisms
+will gain a deep understanding with respect to the various upgrade mechanisms
 that have been built into the protocol.
 
 === Messaging Layer in the Lightning protocol suite
@@ -28,7 +28,7 @@ proper framing to decode these bytes on the wire, we'll be able to extract
 structure and finally parse this structure into protocol messages within our
 higher-level language.
 
-It's important to note that as the Lightning Network is an _end to end
+It's important to note that the Lightning Network is an _end to end
 encrypted_ protocol, and the wire framing is itself encapsulated within an
 _encrypted_ message transport layer. As we see in <<encrypted_message_transport>> the Lighting
 Network uses a custom variant of the Noise protocol to handle
@@ -75,7 +75,7 @@ signatures. When we describe the _structure_ of wire messages later in this
 chapter, we refer to the high-level type (the abstract type) rather than the
 lower level representation of said type. In this section, we peel back this
 abstraction layer to ensure our future wire parser is able to properly
-encoding/decode any of the higher level types.
+encode/decode any of the higher level types.
 
 In <<message_types>>, we map the name of a given message type to the
 high-level routine used to encode/decode the type.
@@ -89,8 +89,8 @@ high-level routine used to encode/decode the type.
 | `channel_id` | A 32-byte fixed-length byte slice that maps an outpoint to a 32 byte value.      | Given an outpoint, one can convert it to a `channel_id` by taking the txid of the outpoint and XOR'ing it with the index (interpreted as the lower 2 bytes).
 | `short_chan_id` | An unsigned 64-bit integer (`uint64`) | Composed of the block height (24 bits), transaction index (24 bits), and output index (16 bits) packed into 8 bytes.
 | `milli_satoshi` | An unsigned 64-bit integer (`uint64`) | Represents 1000th of a satoshi.
-| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin.
-| `satoshi` | An unsigned 64-bit integer (`uint64`) | The based unit of bitcoin.
+| `satoshi` | An unsigned 64-bit integer (`uint64`) | The base unit of bitcoin.
+| `satoshi` | An unsigned 64-bit integer (`uint64`) | The base unit of bitcoin.
 | `pubkey`  | An secp256k1 public key encoded in _compressed_ format, occupying 33 bytes. | Occupies a fixed 33-byte length on the wire.
 | `sig`     | An ECDSA signature of the secp256k1 Elliptic Curve. | Encoded as a _fixed_ 64-byte byte slice, packed as `R \|\| S`
 | `uint8`   | An 8-bit integer.  |
@@ -109,7 +109,7 @@ body.
 === Type Length Value (TLV) Message Extensions
 
 Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
-and if while parsing a messages, extra bytes are left over, then those bytes
+and if while parsing a message, extra bytes are left over, then those bytes
 are to be ignored. At an initial glance, this requirement may appear to be
 somewhat arbitrary, however this requirement allows for de-coupled de-synchronized evolution of the Lighting
 Protocol itself. We discuss this more towards the end of the chapter. But first, we turn our attention to exactly what those "extra bytes" at
@@ -122,8 +122,8 @@ internal format used at Google, and has blossomed into one of the most popular
 message serialization formats used by developers globally. The Protobuf format
 describes how a message (usually some sort of data structure related to an API)
 is encoded on the wire and decoded on the other end. Several "Protobuf
-compilers" exists in dozens of languages which act as a bridge that allows any
-language to encode a Protobuf that will be able to decode by a compliant decode
+compilers" exist in dozens of languages which act as a bridge that allows any
+language to encode a Protobuf that will be able to be decoded by a compliant decoder
 in another language. Such cross language data structure compatibility allows
 for a wide range of innovation, because it's possible to transmit structure and even
 typed data structures across language and abstraction boundaries.
@@ -133,7 +133,7 @@ handle changes in the underlying messages structure. As long as the field
 numbering schema is adhered to, then it's possible for a newer write of
 Protobufs to include information within a Protobuf that may be unknown to any
 older readers. When the old reader encounters the new serialized format, if
-there're types/fields that it doesn't understand, then it simply _ignores_
+there are types/fields that it doesn't understand, then it simply _ignores_
 them. This allows old clients and new clients to co-exist, as all clients can
 parse some portion of the newer message format.
 
@@ -141,18 +141,18 @@ parse some portion of the newer message format.
 
 Protobufs are extremely popular amongst developers as they have built in
 support for both forwards and backwards compatibility. Most developers are
-likely familiar with the concept of backwards computability. In simple terms,
-the principles states that any changes to a message format or API should be
+likely familiar with the concept of backwards compatibility. In simple terms,
+the principle states that any changes to a message format or API should be
 done in a manner that doesn't break support for older clients. Within our
-Protobuf extensibility examples above, backwards computability is achieved by
+Protobuf extensibility examples above, backwards compatibility is achieved by
 ensuring that new additions to the proto format don't break the known portions
-of older readers. Forwards computability on the other hand is just as important
-for de-synchronized updates however it's less commonly known. For a change to
+of older readers. Forwards compatibility on the other hand is just as important
+for de-synchronized updates, however it's less commonly known. For a change to
 be forwards compatible, then clients are to simply ignore any information
-they don't understand. The soft for mechanism of upgrading the Bitcoin
+they don't understand. The soft fork mechanism of upgrading the Bitcoin
 consensus system can be said to be both forwards and backwards compatible: any
-clients that don't update can still use Bitcoin, and if they encounters any
-transactions they don't understand, then they simply ignore them as their funds
+clients that don't update can still use Bitcoin, and if they encounter any
+transactions they don't understand, then they simply ignore them, as their funds
 aren't using those new features.
 
 [[tlv]]
@@ -164,8 +164,8 @@ utilizes a custom message serialization format plainly called: Type Length
 Value, or TLV for short. The format was inspired by the widely used Protobuf
 format and borrows many concepts by significantly simplifying the
 implementation as well as the software that interacts with message parsing. A
-curious reader might ask "why not just use Protobufs"? In response, the
-Lighting developers would respond that we're able to have the best of the
+curious reader might ask "why not just use Protobufs"?
+The Lighting developers would respond that we're able to have the best of the
 extensibility of Protobufs while also having the benefit of a smaller
 implementation and thus smaller attack. As of version v3.15.6, the Protobuf
 compiler weighs in at over 656,671 lines of code.  In comparison LND's
@@ -246,7 +246,7 @@ in theory.
 As the Lighting Network is a decentralized system, no single entity can enforce a
 protocol change or modification upon all the users of the system. This
 characteristic is also seen in other decentralized networks such as Bitcoin.
-However, unlike Bitcoin overwhelming consensus *is not* required to change a
+However, unlike Bitcoin, overwhelming consensus *is not* required to change a
 subset of the Lightning Network. Lighting is able to evolve at will without a
 strong requirement of coordination, as unlike Bitcoin, there is no global consensus required in the Lightning Network. Due to this fact and the several
 upgrade mechanisms embedded in the Lighting Network, only the
@@ -386,7 +386,7 @@ utilized.
 
 One example of an end-to-end upgrade within the network was the roll-out of multi-part payments (MPP). MPP is a protocol-level feature that enables a
 single payment to be split into multiple parts or paths, to be assembled at the
-recipient for settlement. The roll out our MPP was coupled with a new
+recipient for settlement. The roll out of MPP was coupled with a new
 `node_announcement` level feature bit that indicates that the recipient knows
 how to handle partial payments. Assuming a sender and recipient know about each
 other (possibly via a BOLT 11 invoice), then they're able to use the new
