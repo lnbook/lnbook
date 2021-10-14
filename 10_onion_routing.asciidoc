@@ -829,18 +829,18 @@ However, this means that the sender of the HTLC has to wait until expiry, and th
 One proposed solution to this problem is called "stuckless payments", and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e. point addition on the elliptic curve instead of a hash and secret pre-image). PTLCs are cumbersome using ECDSA but much easier with Bitcoin's Taproot and Schnorr Signature features which were recently locked in for activation in November 2021. It is expected that PTLCs will be implemented in the Lightning Network after these Bitcoin features become activated.
 
 [[keysend]]
-=== `keysend` Spontaenous Payments
+=== keysend Spontaneous Payments
 
 In the payment flow described earlier in the chapter, we assumed that Dina
-received an invoice from Alice "out of band", or obtained it via some mechanism
+received an invoice from Alice "out of band," or obtained it via some mechanism
 unrelated to the protocol (typically copy/paste or QR code scans). This trait
-means that the payment process always takes two steps: first the sender
-obtains an invoice and then uses the payment hash (encoded in the invoice) to
-successfully route an HTLC. This extra round trip required to obtain an invoice
+means that the payment process always takes two steps: first, the sender
+obtains an invoice and second, uses the payment hash (encoded in the invoice) to
+successfully route an HTLC. The extra round trip required to obtain an invoice
 before making a payment may be a bottleneck in applications that involve
-streaming micro payments over Lightning. What if we could just "push" a payment
+streaming micropayments over Lightning. What if we could just "push" a payment
 over spontaneously, without having to obtain an invoice from the recipient
-first? The "keysend" protocol is an end-to-end extension (only the sender and
+first? The `keysend` protocol is an end-to-end extension (only the sender and
 receiver are aware) to the Lightning protocol that enables spontaneous push
 payments.
 
@@ -849,43 +849,42 @@ payments.
 The modern Lightning protocol uses the TLV (Type-Length-Value) encoding in
 the onion to encode information that tells each node _where_ and _how_ to
 forward the payment. Leveraging the TLV format, each piece of routing information
-(like the next node to pass the HTLC to) is assigned a specific type (or key)
+(like the next node to which to pass the HTLC) is assigned a specific type (or key)
 encoded as a `BigSize` variable length integer (max sized as as 64-bit
 integer). These "essential" (reversed values below `65536`) types are defined
 in BOLT-04 along with the rest of the onion routing details. Onion types with a
 value greater than `65536` are intended to be used by wallets and applications
-as "custom records".
+as "custom records."
 
 Custom records allow payment applications to attach additional metadata or
 context to a payment as key/value pairs in the onion. Since the custom records
 are included in the onion payload itself, like all other hop contents, the
-records are end to end encrypted. As the custom records effectively consume a
-portion of the fixed-sized `1300` bytes onion packet, encoding each key and
+records are end-to-end encrypted. As the custom records effectively consume a
+portion of the fixed-size `1300` bytes onion packet, encoding each key and
 value of each custom record reduces the amount of available space for encoding
-the rest of the route. In practice, this means that more onion space that is
-used for custom records, the shorter the route can be. Given that each HTLC
-packet is fixed sized, custom records don't _add_ any additional data to an
-HTLC, rather they re-allocate bytes that would've been filled with random data
+the rest of the route. In practice, this means that the more onion space used for custom records, the shorter the route can be. Given that each HTLC
+packet is fixed-size, custom records don't _add_ any additional data to an
+HTLC; rather, they reallocate bytes that would have been filled with random data
 otherwise.
 
-==== Sending & Receiving `keysend` payments
+==== Sending and Receiving keysend payments
 
 A `keysend` payment inverts the typical flow of an HTLC where the receiver
 reveals a secret pre-image to the sender. Instead, the sender includes the
 pre-image _within_ the onion to the receiver and routes the HTLC to the
 receiver. The receiver then decrypts the onion payload, and uses the included
-pre-image (which MUST match the payment hash of the HTLC) to settle the
+pre-image (which _must_ match the payment hash of the HTLC) to settle the
 payment. As a result, `keysend` payments can be carried out without first
 obtaining an invoice from the receiver, as the pre-image is "pushed" over to
 the receiver. A `keysend` payment uses a TLV custom record type of `5482373484`
 to encode a 32-byte pre-image value. 
 
-==== `keysend` & Custom Records in Lightning Applications
+==== keysend and Custom Records in Lightning Applications
 
 Many streaming Lightning applications use the `keysend` protocol to continually
 stream satoshis to a destination identified by its public key in the network.
-Typically an application will also include additional metadata such as a
-tipping/donation note, or other application level information in addition to
+Typically, an application will also include metadata such as a
+tipping/donation note or other application-level information in addition to
 the `keysend` record.
 
 === Conclusion
