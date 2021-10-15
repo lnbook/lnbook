@@ -1,10 +1,10 @@
 [[getting-started]]
-== Getting started
+== Getting Started
 
 
 In this chapter, we will begin where most people start when encountering the Lightning Network for the first time - choosing software to participate in the Lightning Network economy. We will examine the choices of two users who represent a common use-case for the Lightning Network and learn by example. Alice, a coffee shop customer, will be using a Lightning wallet on her mobile device to buy coffee from Bob's Cafe. Bob, a merchant, will be using a Lightning node and wallet to run a point-of-sale system at his cafe, so he can accept payments over the Lightning Network.
 
-=== Alice's first Lightning wallet
+=== Alice's First Lightning Wallet
 
 Alice is a long time Bitcoin user. We first met Alice in Chapter 1 of _"Mastering Bitcoin"_ footnote:["Mastering Bitcoin 2nd Edition, Chapter 1" Andreas M. Antonopoulos (https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch01.asciidoc).], when she bought a cup of coffee from Bob's cafe using a Bitcoin transaction. If you are not yet familiar with how Bitcoin transactions work or need a refresher, please read Mastering Bitcoin or the summary in <<bitcoin_fundamentals_review>>.
 
@@ -12,14 +12,14 @@ Alice recently learned that Bob's Cafe just started accepting Lightning Network 
 
 Alice does not want to entrust custody of her bitcoin to third parties. She has learned enough about cryptocurrency to know how to use a wallet. She also wants a mobile wallet so that she can use it for small payments on-the-go, so she chooses the _Eclair_ wallet, a popular non-custodial mobile Lightning wallet. Let's learn more about how and why she's made these choices.
 
-=== Lightning nodes
+=== Lightning Nodes
 
 The Lightning Network is accessed via software applications that can speak the Lightning Network protocol. A _Lightning Network node_ (or simply "node") is a software application that has three important characteristics. First, Lightning nodes are "wallets", so they send and receive payments over the Lightning Network as well as on the Bitcoin network. Second, nodes must communicate on a peer-to-peer basis with other Lightning nodes creating the network. Finally, Lightning nodes also need access to the Bitcoin blockchain (or other blockchains for other cryptocurrencies) to secure the funds used for payments.
 
 Users have the highest degree of control by running their own Bitcoin node and Lightning node. However, Lightning nodes can also use a lightweight Bitcoin client, commonly referred to as Simplified Payment Verification (SPV), to interact with the Bitcoin blockchain.
 
 [[ln_explorer]]
-=== Lightning explorers
+=== Lightning Explorers
 
 Lightning network explorers are useful tools to show the statistics of nodes, channels and network capacity.
 
@@ -42,7 +42,7 @@ Use Lightning explorers to visualize the network or gather information, but not 
 To have an authoritative view of the Lightning Network, run your own Lightning node that will build a channel graph and collect various statistics, which you can view with a web-based interface.
 ====
 
-=== Lightning wallets
+=== Lightning Wallets
 
 The term "Lightning wallet" is somewhat ambiguous, as it can describe a broad variety of components combined with some user interface. The most common components of Lightning wallet software include:
 
@@ -152,7 +152,7 @@ https://testnet.help/en/btcfaucet/testnet
 
 All of the examples in this book can be replicated exactly on testnet with TBTC, so you can follow along if you want without risking real money.
 
-=== Balancing complexity and control
+=== Balancing Complexity and Control
 
 Lightning wallets have to strike a careful balance between complexity and user control. Those that give the user the most control over their funds, the highest degree of privacy, and the greatest independence from third party services are necessarily more complex and difficult to operate. As the technology advances, some of these trade-offs will become less stark, and users may be able to get more control without more complexity. However, for now, different companies and projects are exploring different positions along this control-complexity spectrum and hoping to find the "sweet spot" for the users they are targeting.
 
@@ -160,7 +160,7 @@ When selecting a wallet, keep in mind that even if you don't see these trade-off
 
 In the next section, we will return to our first user and walk through her first Lightning wallet setup. She has chosen a wallet that is more sophisticated than the easier custodial wallets. This allows us to show some of the underlying complexity and introduce some of the inner workings of an advanced wallet. You may find that your first ideal wallet is further towards "ease of use", accepting some of the control and privacy trade-offs. Or perhaps you are more of a "power user" and want to run your own Lightning and Bitcoin nodes as part of your wallet solution.
 
-=== Downloading and installing a Lightning wallet
+=== Downloading and Installing a Lightning Wallet
 
 When looking for a new cryptocurrency wallet, you must be very careful to select a secure source for the software.
 
@@ -185,11 +185,11 @@ Alice notices a few different elements on this page, that help her ascertain tha
 Always exercise great care when installing software on any device. There are many fake cryptocurrency wallets that will not only steal your money but might also compromise all other applications on your device.
 ====
 
-=== Creating a new wallet
+=== Creating a New Wallet
 
 When Alice opens the Eclair Mobile app for the first time, she is presented with a choice to "Create a New Wallet" or to "Import an Existing Wallet". Alice will create a new wallet, but let's first discuss why these options are presented here and what it means to "import an existing wallet".
 
-==== Responsibility with key custody
+==== Responsibility with Key Custody
 
 As we mentioned at the beginning of this section, Eclair is a _non-custodial_ wallet, meaning that Alice has sole custody of the keys used to control her bitcoin. This also means that Alice is responsible for protecting and backing up those keys. If Alice loses the keys, no one can help her recover the bitcoin, and they will be lost forever.
 
@@ -198,7 +198,7 @@ As we mentioned at the beginning of this section, Eclair is a _non-custodial_ wa
 With the Eclair Mobile wallet, Alice has custody and control of the keys and, therefore, full responsibility to keep the keys safe and backed up. If she loses the keys, she loses the bitcoin, and no one can help her recover from that loss!
 ====
 
-==== Mnemonic words
+==== Mnemonic Words
 
 Similar to most Bitcoin wallets, Eclair Mobile provides a _mnemonic phrase_ (also sometimes called a "seed" or "seed phrase") for Alice to back up. The mnemonic phrase consists of 24 English words, selected randomly by the software, and used as the basis for the keys that are generated by the wallet. The mnemonic phrase can be used by Alice to restore all the transactions and funds in the Eclair Mobile wallet in the case of an event such as a lost mobile device, a software bug, or memory corruption.
 
@@ -216,7 +216,7 @@ image::images/mtln_0202.png["New Wallet Mnemonic Phrase"]
 In <<eclair-mnemonic>>, we have purposely obscured part of the mnemonic phrase to prevent readers of this book from reusing the mnemonic.
 
 [[mnemonic-storage]]
-==== Storing the mnemonic safely
+==== Storing the Mnemonic Safely
 
 Alice needs to be careful to store the mnemonic phrase in a way that prevents theft but also avoids accidental loss. The recommended way to properly balance these risks is to write two copies of the mnemonic phrase on paper, with each of the words numbered - the order matters.
 
@@ -231,7 +231,7 @@ Never attempt a "DIY" security scheme that deviates in any way from the best pra
 
 After Alice initializes her Eclair Mobile wallet, she will see a brief tutorial that highlights the various elements of the user interface. We won't replicate the tutorial here, but we will explore all of those elements as we follow Alice's attempt to buy a cup of coffee!
 
-=== Loading bitcoin onto the wallet
+=== Loading Bitcoin Onto the Wallet
 
 Alice now has a Lightning wallet. But, it's empty! She now faces one of the more challenging aspects of this experiment; she has to find a way to acquire some bitcoin and load it onto her Eclair wallet.
 
@@ -241,7 +241,7 @@ If Alice already has bitcoin in another wallet, she could choose to send that bi
 ====
 
 [[acquiring-bitcoin]]
-==== Acquiring bitcoin
+==== Acquiring Bitcoin
 
 There are several ways Alice can acquire bitcoin:
 
@@ -253,7 +253,7 @@ There are several ways Alice can acquire bitcoin:
 
 All of these methods have varying degrees of difficulty, and many will involve paying a fee. Some will also require Alice to provide identification documents to comply with local banking regulations. However, with all these methods, Alice will be able to receive bitcoin.
 
-==== Receiving bitcoin
+==== Receiving Bitcoin
 
 Let's assume Alice has found a local Bitcoin ATM and has decided to buy some bitcoin in exchange for cash. An example of a Bitcoin ATM, one built by the Lamassu company, is shown in <<bitcoin-atm>>. Such Bitcoin ATMs accept national currency (cash) through a cash slot and send bitcoin to a Bitcoin address scanned from a user's wallet using a built-in camera.
 
@@ -305,7 +305,7 @@ Fortunately, the Lightning Network offers more private solutions to this, discus
 
 Finally, if Alice bought bitcoin from a cryptocurrency exchange, she could (and should) "withdraw" the bitcoin by pasting her Bitcoin address into the exchange website. The exchange will then send the bitcoin to her address directly.
 
-=== From Bitcoin to Lightning network
+=== From Bitcoin to Lightning Network
 
 Alice's bitcoin is now controlled by her Eclair wallet and has been recorded on the Bitcoin blockchain. At this point, Alice's bitcoin is "on-chain," meaning that the transaction has been broadcast to the entire Bitcoin network, verified by all Bitcoin nodes, and "mined" (recorded) onto the Bitcoin blockchain.
 
@@ -313,7 +313,7 @@ So far, the Eclair Mobile wallet has behaved only as a Bitcoin wallet, and Alice
 
 Now, Alice is ready to start using the Lightning Network by taking her bitcoin "off-chain" in order to take advantage of the fast, cheap, and private payments that the Lightning Network offers.
 
-==== Lightning Network channels
+==== Lightning Network Channels
 
 Swiping right, Alice accesses the "LIGHTNING CHANNELS" section of Eclair. Here she can manage the channels that will connect her wallet to the Lightning Network.
 
@@ -361,7 +361,7 @@ Choosing the ACINQ node will slightly reduce Alice's privacy, as it will give AC
 
 Alice selects "ACINQ Node" and is ready to open her first channel on the Lightning network.
 
-==== Opening a Lightning channel
+==== Opening a Lightning Channel
 
 When Alice selects a node to open a new channel, she is asked to select how much bitcoin she wants to allocate to this channel. In subsequent chapters, we will discuss the implications of these choices, but for now, Alice will allocate almost all her funds to the channel. Since she will have to pay transaction fees to open the channel, she will select an amount slightly less than her total balance footnote:[The Eclair wallet doesn't offer an option to automatically calculate the necessary fees and allocate the maximum amount of funds to a channel, so Alice has to calculate this herself.]
 
@@ -390,7 +390,7 @@ image::images/mtln_0211.png["Channel is Open"]
 Did you notice that the channel amount seems to have changed? It hasn't: the channel contains 0.018 BTC, but in the time between screenshots the BTC exchange rate changed, so the USD value is different. You can choose to show balances in BTC or USD, but keep in mind that USD values are calculated in real-time and will change!
 ====
 
-=== Buying a cup of coffee using LN
+=== Buying a Cup of Coffee Using Ln
 
 Alice now has everything ready to start using the Lightning Network. As you can see, it took a bit of work and a bit of time waiting for confirmations. However, now subsequent actions are fast and easy. The Lightning Network enables payments without having to wait for confirmations, as funds get settled in seconds.
 
@@ -412,7 +412,7 @@ On the counter at Bob's Cafe, there is a tablet device showing <<bob-cafe-posapp
 .Bob's Point-of-Sale Application
 image::images/mtln_0212.png["Bob's Point-of-Sale Application"]
 
-==== A Lightning invoice
+==== A Lightning Invoice
 
 Alice selects the "Cafe Latte" option from the screen and is presented with a _Lightning Invoice_ (also known as a "payment request") as shown in <<bob-cafe-invoice>>
 

@@ -21,7 +21,7 @@ This chapter covers several important concepts from Bitcoin, including:
 * Timelocks
 
 
-=== Keys and digital signatures
+=== Keys and Digital Signatures
 
 You may have heard that bitcoin is based on _cryptography_, which is a branch of mathematics used extensively in computer security. Cryptography can also be used to prove knowledge of a secret without revealing that secret (digital signature), or prove the authenticity of data (digital fingerprint). These types of cryptographic proofs are the mathematical tools critical to bitcoin and used extensively in bitcoin applications.
 
@@ -29,7 +29,7 @@ Ownership of bitcoin is established through _digital keys_, _bitcoin addresses_,
 
 Most bitcoin transactions require a valid digital signature to be included in the blockchain, which can only be generated with a secret key; therefore, anyone with a copy of that key has control of the bitcoin.  The digital signature used to spend funds is also referred to as a _witness_, a term used in cryptography. The witness data in a bitcoin transaction testifies to the true ownership of the funds being spent. Keys come in pairs consisting of a private (secret) key and a public key. Think of the public key as similar to a bank account number and the private key as similar to the secret PIN.
 
-==== Private and public keys
+==== Private and Public Keys
 
 A private key is simply a number, picked at random. In practice, and to make managing many keys easy, most bitcoin wallets generate a sequence of private keys from a single random _seed_, using a deterministic derivation algorithm. Simply put, a single random number is used to produce a repeatable sequence of seemingly random numbers that are used as private keys. This allows users to only backup the seed and be able to _derive_ all the keys they need from that seed.
 
@@ -107,7 +107,7 @@ Proof-of-Work/Hash Grinding:: You can use a hash to prove you have done computat
 
 Atomicity:: You can make a secret pre-image a pre-requisite of spending funds in several linked transactions. If any one of the parties reveals the pre-image in order to spend one of the transactions, all the other parties can now spend their transactions too. All or none become spendable, achieving atomicity across several transactions.
 
-==== Digital signatures
+==== Digital Signatures
 
 The private key is used to create signatures that are required to spend bitcoin by proving ownership of funds used in a transaction.
 
@@ -133,12 +133,12 @@ Signatures are not always applied to the entire transaction. To provide signing 
 
 More information about signature hash types can be found in https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc#sighash_types[_Mastering Bitcoin Second Edition - Chapter 6 - Signature Hash Types_]
 
-=== Bitcoin transactions
+=== Bitcoin Transactions
 
 Transactions are data structures that encode the transfer of value between participants in the bitcoin system.
 
 [[utxo]]
-==== Inputs and outputs
+==== Inputs and Outputs
 
 The fundamental building block of a bitcoin transaction is a transaction output. Transaction outputs are indivisible chunks of bitcoin currency, recorded on the blockchain, and recognized as valid by the entire network. A transaction spends "inputs" and creates "outputs". Transaction inputs are simply references to outputs of previously recorded transactions. This way, each transaction spends the outputs of previous transactions and creates new outputs.
 
@@ -180,7 +180,7 @@ The illustrations and examples above show how a Bitcoin transaction combines (sp
 While the transactions created by the Lightning Network have multiple outputs they do not have "change" per se, because the entire available balance of a channel is split between the two channel partners.
 ====
 
-==== Transaction chains
+==== Transaction Chains
 
 Every output can be spent, as an input in a subsequent transaction. So for example, if Bob decided to spend 10,000 satoshi in a transaction paying Chan, and Chan spend 4,000 satoshi to pay Dina:
 
@@ -194,7 +194,7 @@ The only type of transaction that doesn't have "inputs" is a special transaction
 
 Since transactions are chained, if you pick a transaction at random, you can follow any one of its inputs backwards to the previous transaction that created it. If you keep doing that you will eventually reach a coinbase transaction where the bitcoin was first mined.
 
-==== TxID: Transaction identifiers
+==== Txid: Transaction Identifiers
 
 Every transaction in the Bitcoin system is identified by a unique identifier (assuming the existence of BIP-0030), called the _transaction ID_ or _TxID_ for short. To produce a unique identifier, we use the SHA-256 cryptographic hash function to produce a hash of the transaction's data. This "fingerprint" serves as a universal identifier. A transaction can be referenced by its transaction ID and once a transaction is recorded on the Bitcoin blockchain, every node in the Bitcoin network knows that this transaction is valid.
 
@@ -215,7 +215,7 @@ or use the short link (case sensitive):
 
 http://bit.ly/AliceTx
 
-==== Outpoints: output identifiers
+==== Outpoints: Output Identifiers
 
 As every transaction has a unique ID, we can also identify a transaction output within that transaction uniquely by reference to the TxID and the output index number. The first output in a transaction is output index 0, the second output is output index 1 and so on. An output identifier is commonly known as an _outpoint_.
 
@@ -274,7 +274,7 @@ Using a simplified model, for validation, the unlocking script and locking scrip
 
 Obviously, this simplified example would make a very poor choice for locking an actual Bitcoin output because there is no secret, just basic arithmetic. Anyone could spend the output by providing the answer "2". Most locking scripts therefore require demonstrating knowledge of a secret.
 
-==== Locking to a public key (signature)
+==== Locking to a Public Key (Signature)
 
 The simplest form of a locking script that requires a signature. Let's consider Alice's transaction that pays Bob 50,000 satoshis. The output Alice creates to pay Bob will have a locking script requiring Bob's signature and would look like this:
 
@@ -309,7 +309,7 @@ To validate Bob's transaction, a Bitcoin node would do the following:
 * Execute this script on the Bitcoin Script execution engine to see what result is produced
 * If the result is +TRUE+, deduce that Bob's transaction is valid because it was able to fulfill the spending condition to spend that outpoint.
 
-==== Locking to a hash (secret)
+==== Locking to a Hash (Secret)
 
 Another type of locking script, one that is used in the Lightning Network, is a _hash lock_. In order to unlock it you must know the secret _pre-image_ to the hash.
 
@@ -354,7 +354,7 @@ Only Bob knows +R+, so only Bob can produce a transaction with an unlocking scri
 Interestingly, Bob can give the +R+ value to anyone else, who can then spend that Bitcoin. This makes the secret value +R+ almost like a bitcoin "voucher", since anyone who has it can spend the output Alice created. We'll see how this is a useful property for the Lightning Network!
 
 [[multisig]]
-==== Multisignature scripts
+==== Multisignature Scripts
 
 The Bitcoin scripting language provides a multisignature building block (primitive), that can be used to build escrow services and complex ownership configurations between several stakeholders. An arrangement that requires multiple signatures to spend Bitcoin is called a _multisignature scheme_, further specified as an _K-of-N_ scheme, where:
 
@@ -388,7 +388,7 @@ The two scripts together would form the combined validation script:
 
 A multisignature locking script can be represented by a Bitcoin address, encoding the hash of the locking script. For example, the initial funding transaction of a Lightning payment channel is a transaction that pays to an address that encodes a locking script of a 2-of-2 multisig of the two channel partners.
 
-==== Timelock scripts
+==== Timelock Scripts
 
 Another important building block that exists in Bitcoin and is used extensively in the Lightning Network is a _timelock_. A timelock is a restriction on spending that requires that a certain time or block height has elapsed before spending is allowed. It is a bit like a post-dated check drawn from a bank account that can't be "cashed" before the date on the check.
 
@@ -403,7 +403,7 @@ Output-level absolute timelocks are implemented by the operator +CHECKLOCKTIMEVE
 Output-level relative timelocks are implemented by the operator +CHECKSEQUENCEVERIFY+, often shortened in conversation as _CSV_. Relative timelocks implement a spending constraint that is relative to the confirmation of the transaction, expressing the equivalent of "can't be spent until 1024 blocks after confirmation".
 
 [[conditional_scripts]]
-==== Scripts with multiple conditions
+==== Scripts with Multiple Conditions
 
 One of the more powerful features of Bitcoin Script is flow control, also known as conditional clauses. You are probably familiar with flow control in various programming languages that use the construct +IF...THEN...ELSE+. Bitcoin conditional clauses look a bit different, but are essentially the same construct.
 

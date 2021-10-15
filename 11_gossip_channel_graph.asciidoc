@@ -1,5 +1,5 @@
 [[gossip]]
-== Gossip and the channel graph
+== Gossip and the Channel Graph
 
 In this chapter we will describe the Lightning Network's _Gossip Protocol_ and how it is used by nodes to construct and maintain a _Channel Graph_. We will also review the _DNS Bootstrap_ mechanism used to find peers to "gossip" with.
 
@@ -91,7 +91,7 @@ existing Internet protocols to maintain and distribute a set of bootstrapping pe
 
 Similar to the Bitcoin protocol, the primary initial peer discovery mechanism used in the Lightning Network happens via DNS. As initial peer discovery is a critical and universal task for the network, the process has been _standardized_ in https://github.com/lightningnetwork/lightning-rfc/blob/master/10-dns-bootstrap.md[BOLT #10 - DNS Bootstrap].
 
-==== DNS Bootstrapping
+==== Dns Bootstrapping
 
 The https://github.com/lightningnetwork/lightning-rfc/blob/master/10-dns-bootstrap.md[BOLT #10] document describes a standardized way of implementing peer
 discovery using the Domain Name System (DNS). Lightning's flavor of DNS based bootstrapping uses up to 3 distinct record types:
@@ -217,7 +217,7 @@ peer and established its first connection! Now we can begin the second phase of 
 
 First, we'll explore more of the intricacies of BOLT 10 itself to take a deeper look into how things work under the hood.
 
-==== SRV Query Options
+==== Srv Query Options
 
 The https://github.com/lightningnetwork/lightning-rfc/blob/master/10-dns-bootstrap.md[BOLT #10] standard is highly extensible due to its usage of nested
 sub-domains as a communication layer for additional query options. The
@@ -252,11 +252,11 @@ Try some combinations of the various flags using the +dig+ DNS command-line tool
 dig @8.8.8.8 r0.a6.nodes.lightning.directory SRV
 ----
 
-=== The channel graph
+=== The Channel Graph
 
 Now that our new node is able to use the DNS bootstrapping protocol to connect to their very first peer, it can start to sync the channel graph! However, before we sync the channel graph, we'll need to learn exactly _what_ we mean by the channel graph. In this section we'll explore the precise _structure_ of the channel graph and examine the unique aspects of the channel graph compared to the typical abstract "graph" data structure which is well known/used in the field of computer science.
 
-==== A directed graph
+==== A Directed Graph
 
 A graph in computer science is a special data structure composed of vertices (typically referred to as nodes) and edges (also known as links). Two nodes may be connected by one or more edges. The channel graph is also _directed_ given that a payment is able to flow in either direction over a given edge (a channel). An example of a _directed graph_ is shown below:
 
@@ -269,7 +269,7 @@ In the context of the Lightning Network, our vertices are the Lightning nodes th
 As channels themselves are UTXOs (funded 2-of-2 multisig addresses), we can view the channel graph as a special subset of the Bitcoin UTXO set, on top of which we can add some additional information (the nodes, etc) to arrive at the final overlay structure which is the channel graph. This anchoring of fundamental components of the channel graph in the
 base Bitcoin blockchain means that it's impossible to _fake_ a valid channel graph, which has useful properties when it comes to spam prevention as we'll see later.
 
-=== Gossip protocol messages
+=== Gossip Protocol Messages
 
 The channel graph information is propagated across the Lightning P2P Network as three messages, which are described in https://github.com/lightningnetwork/lightning-rfc/blob/master/07-routing-gossip.md[BOLT #7]:
 
@@ -285,7 +285,7 @@ themselves _authenticated_ allowing a 3rd party to ensure that the owner of a ch
 With the high level structure of the channel graph laid out, we'll now dive down into the precise structure of each of the three messages used to gossip the channel graph. We'll also explain how one can also _verify_ each message and component of the channel graph.
 
 [[node_announcement]]
-==== The node_announcement message
+==== The Node_Announcement Message
 
 First, we have the +node_announcement+ message, which serves two primary
 purposes:
@@ -333,7 +333,7 @@ Validating an incoming +node_announcement+ is straight forward. The following as
 
   * The included +alias+ bytes MUST be a valid UTF-8 string.
 
-==== The channel_announcement message
+==== The Channel_Announcement Message
 
 Next, we have the +channel_announcement+ message, which is used to _announce_ a new _public_ channel to the wider network. Note that announcing a channel is _optional_. A channel only needs to be announced if it is intended to be used for routing by the Lightning network. Active routing nodes may wish to announce all their channels. However, certain nodes like mobile nodes likely don't have the
 uptime or desire to be an active routing node. As a result, these
@@ -345,7 +345,7 @@ An unannounced channel isn't part of the known public channel graph, but can sti
 
 Due to the existence of unadvertised channels, the _true_ size of the channel graph (both the public and private components) is unknown.
 
-===== Locating a channel on the Bitcoin blockchain
+===== Locating a channel on the bitcoin blockchain
 
 As mentioned earlier, the channel graph is authenticated due to its usage of public key cryptography, as well as the Bitcoin blockchain as a spam prevention system. In order to have a node accept a new +channel_announcement+, the advertisement must _prove_ that the channel actually exists in the Bitcoin blockchain. This proof system adds an upfront cost to adding a new entry to the channel graph (the on-chain fees one must pay to create the UTXO of the channel). As a result, we mitigate spam and ensure that a dishonest node on the network can't fill up the memory of an honest node at no cost with bogus channels.
 
@@ -357,7 +357,7 @@ The +scid+ is used both in +channel_announcement+ (and +channel_update+) as well
 
 [[short_channel_id]]
 [[scid]]
-===== The Short Channel ID
+===== The short channel id
 
 Based on the information above, we have three pieces of information we need to encode in order to uniquely reference a given channel. As we want a compact representation, we'll attempt to encode the information into a _single_ integer. Our integer format of choice is an unsigned 64-bit integer, comprised of 8 bytes.
 
@@ -431,7 +431,7 @@ Finally, the verifier will reconstruct the multisig script from +bitcoin_key_1+ 
 
 The verifier has now independently verified that the payment channel in the announcement is funded and confirmed on the Bitcoin blockchain!
 
-==== The channel_update message
+==== The Channel_Update Message
 
 The third and final message used in the gossip protocol is the +channel_update+ message. Two of these are generated for each payment channel (one by each channel partner) announcing their routing fees, timelock expectations and capabilities.
 

@@ -5,7 +5,7 @@ Payment delivery on the Lightning Network depends on finding a path from the sen
 
 In this chapter we will examine the problem of path finding, understand how uncertainty about channel balances complicates this problem and look at how a typical path finding implementation attempts to solve it.
 
-=== Path finding in the Lightning protocol suite
+=== Path Finding in the Lightning Protocol Suite
 
 Path finding, path selection, multi-path payments (MPP) and the payment attempt trial & error loop occupy the majority of the "Payment Layer" at the top of the protocol suite.
 
@@ -15,13 +15,13 @@ These components are highlighted by a double outline in the protocol suite, show
 .The Lightning Network Protocol Suite
 image::images/mtln_1201.png["The Lightning Network Protocol Suite"]
 
-==== Where is the BOLT?
+==== Where Is the Bolt?
 
 So far we've looked at several technologies that are part of the Lightning Network and we have seen their exact specification as part of a BOLT standard. You may be surprised to find that path finding is not part of the BOLTs!
 
 That's because path finding isn't an activity that requires any form of coordination or interoperability between different implementations. As we've seen, the path is selected by the sender. Even though the routing details are specified in detail in the BOLTs, the path discovery and selection are left entirely up to the sender. So each node implementation can choose a different strategy/algorithm to find paths. In fact, the different node/client and wallet implementations can even compete and use their path finding algorithm as a point of differentiation.
 
-=== Path finding: what problem are we solving?
+=== Path Finding: What Problem Are We Solving?
 
 The term path finding may be somewhat misleading, because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
 
@@ -38,7 +38,7 @@ The network visualization above was produced with a simple python script you can
 
 If the sender and recipient are connected to other well-connected nodes and have at least one channel with adequate capacity - there will be thousands of paths. The problem becomes: selecting the _best_ path that will succeed in payment delivery, out of a list of thousands of possible paths.
 
-==== Selecting the best path
+==== Selecting the Best Path
 
 To select the "best" path, we have to first define what we mean by "best". There may be many different criteria such as:
 
@@ -51,13 +51,13 @@ To select the "best" path, we have to first define what we mean by "best". There
 All of these criteria may be desirable to some extent and selecting paths that are favorable across many dimensions is not an easy task. Optimization problems like this may be too complex to solve for the "best" solution, but often can be solved for some approximation of the optimal. Which is good news, because otherwise path finding would be an intractable problem.
 
 
-==== Path finding in math and computer science
+==== Path Finding in Math and Computer Science
 
 Path finding in the Lightning Network falls under a general category of _graph theory_ in mathematics and the more specific category of _graph traversal_ in computer science.
 
 A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel balance is split between the two channel partners and the payment liquidity is different in each direction. A directed graph with numerical capacity constrains on its edges is called a _flow network_, a mathematical construct used to optimize transportation and other similar networks. Flow networks can be used as a framework when solutions need to achieve a specific flow while minimizing cost, known as the Minimum Cost Flow Problem (MCFP).
 
-==== Capacity, balance, liquidity
+==== Capacity, Balance, Liquidity
 
 In order to better understand the problem of transporting satoshis from point A to point B, we need to better define three important terms: capacity, balance, and liquidity. We use these terms to describe a payment channel's ability to route a payment.
 
@@ -76,7 +76,7 @@ capacity = balance(A) + balance(B)
 liquidity(A) = balance(A) - channel_reserve(A) - pending_HTLCs(A)
 ----
 
-==== Uncertainty of balances
+==== Uncertainty of Balances
 
 If we knew the exact channel balances of every channel, we could compute one or more payment paths using any of the standard path finding algorithms taught in good computer science programs. But we don't know the channel balances, we only know the aggregate channel capacity, which is advertised by nodes in channel announcements. In order for a payment to succeed, there must be adequate balance on the sending side of the channel. If we don't know how the capacity is distributed between the channel partners, we don't know if there is enough balance in the direction we are trying to send the payment.
 
@@ -97,7 +97,7 @@ channel_reserve <= liquidity <= (capacity - channel_reserve)
 
 Our channel liquidity uncertainty range is the range between the minimum and maximum possible liquidity. This is unknown to the network, except the two channel partners. However, as we will see we can use failed HTLCs returned from our payment attempts to update our liquidity estimate and reduce uncertainty. If for example we get an HTLC failure code that tells us that a channel cannot fulfill an HTLC that is smaller than our estimate for maximum liquidity, that means the maximum liquidity can be updated to the amount of the failed HTLC. In simpler terms, if we think the liquidity can handle an HTLC of N satoshis and we find out it fails to deliver M satoshis (where M is smaller), then we can update our estimate to M-1 as the upper bound. We tried to find the ceiling and bumped against it, so it's lower than we thought!
 
-==== Path finding complexity
+==== Path Finding Complexity
 
 Finding a path through a graph is a problem modern computers can solve rather efficiently.
 Developers mainly choose breadth-first search if the edges are all of equal weight.
@@ -113,7 +113,7 @@ But we can't be certain unless we try it out or ask the channel owners directly.
 Even if we were able to ask the channel owners directly, their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
 Not only do we have limited information but the information we have is highly dynamic and might change at any point in time without our knowledge.
 
-==== Keeping it simple
+==== Keeping It Simple
 
 The path finding mechanism implemented in Lightning nodes is to first create a list of candidate paths, filtered and sorted by some function. Then, the node or wallet will probe paths (by attempting to deliver a payment) in a trial-and-error loop until a path is found that successfully delivers the payment.
 
@@ -127,7 +127,7 @@ While "blind probing" is not optimal and leaves ample room for improvement, it s
 
 Most Lightning node and wallet implementations improve on this approach, by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees), or some combination of cost/capacity.
 
-=== Path finding and payment delivery process
+=== Path Finding and Payment Delivery Process
 
 Path finding and payment delivery involves several steps, which we list below. Different implementations may use different algorithms and strategies, but the basic steps are likely to be very similar:
 
@@ -151,7 +151,7 @@ These three activities can be repeated in a _payment round_ if we use the failur
 
 In the next sections we will look at each of these steps in more detail, as well as more advanced payment strategies.
 
-=== Channel graph construction
+=== Channel Graph Construction
 
 In <<gossip>> we covered the three main messages that nodes "gossip": +node_announcement+, +channel_announcement+, and +channel_update+. These three messages allow any node to gradually construct a "map" of the Lightning Network in the form of a _channel graph_. Each of these messages provides a critical piece of information for the channel graph:
 
@@ -223,7 +223,7 @@ Once we attempt to send an HTLC we can learn more about channel balances: if we 
 You may be thinking "What's the point of learning from a successful HTLC?" After all, if it succeeded we're "done". But consider that we may be sending one part of a multi-part payment. We also may be sending other single-part payments within a short time. Anything we learn about liquidity is useful for the next attempt!
 ====
 
-==== Liquidity uncertainty and probability
+==== Liquidity Uncertainty and Probability
 
 To quantify the uncertainty of a channel's liquidity, we can apply probability theory. A basic model of the probability of payment delivery will lead to some rather obvious, but important, conclusions:
 
@@ -266,7 +266,7 @@ In other words, "The more channels (hops) you use, the lower the chance of succe
 There is a lot of mathmatical theory and modelling behind the uncertainty of the liquidity in the channels. Fundamental work about modeling the uncertainty intervals of the channel liquidity can be found in the paper https://arxiv.org/abs/2103.08576[Security and Privacy of Lightning Network Payments with Uncertain Channel Balances] by (co-author of this book) Pickhardt et. al.
 ====
 
-==== Fees and other channel metrics
+==== Fees and Other Channel Metrics
 
 Next, our sender will add information to the graph from +channel_update+ messages received from the intermediary nodes. As a reminder, the +channel_update+ contains a wealth of information about a channel and the expectations of one of the channel partners.
 
@@ -280,7 +280,7 @@ The fee and timelock information are very important not just as path selection m
 
 It is also important to note that a channel must have liquidity that is sufficient not only for the payment amount but also for the cumulative fees of all the subsequent hops. Even though Selena's channel to Xavier (S-->X) has enough liquidity for a 1m satoshi payment, it *does not* have enough liquidity once we consider fees. We need to know fees because only paths that have sufficient liquidity for *both payment and all fees* will be considered.
 
-=== Finding candidate paths
+=== Finding Candidate Paths
 
 Finding a suitable path through a directed graph like this is a well-studied computer science problem (known broadly as the "Shortest Path problem"), which can be solved by a variety of algorithms depending on the desired optimization and resource constraints.
 
@@ -303,7 +303,7 @@ But, as we saw previously, the channel +S->X+ does not have enough liquidity for
 
 With two possible paths, Selena is ready to attempt delivery!
 
-=== Payment delivery (Trial-and-error loop)
+=== Payment Delivery (Trial-And-Error Loop)
 
 Selena's node starts the trial-and-error loop, by constructing the HTLCs, building the onion and attempting delivery of the payment. For each attempt, there are three possible outcomes:
 
@@ -315,7 +315,7 @@ If the payment fails, then it can be re-tried via a different path by updating t
 
 We'll look at what happens if the payment is "stuck" in <<stuck_payments>>. The important detail is that a stuck payment is the worst outcome because we cannot retry with another HTLC as both (the stuck one and the retry one) might go through eventually and cause a double payment.
 
-==== First attempt (path #1)
+==== First Attempt (Path #1)
 
 Selena attempts the first path (S->A->B->R). She constructs the onion and sends it, but receives a failure code from Bob's node. Bob reports back a +temporary channel failure+ with a +channel_update+ identifying the channel B->R as the one that can't deliver. This attempt is shown in <<path_1_fail>>:
 
@@ -327,7 +327,7 @@ image::images/mtln_1207.png[]
 
 From this failure code, Selena will deduce that Bob doesn't have enough liquidity to deliver the payment to Rashid on that channel. Importantly, this failure narrows the uncertainty of the liquidity of that channel! Previously, Selena's node assumed that the liquidity on Bob's side of the channel was somewhere in the range (0, 4m). Now, she can assume that the liquidity is in the range (0, 999999). Similarly, Selena can now assume that the liquidity of that channel on Rashid's side is in the range (1m, 4m), instead of (0, 4m). Selena has learned a lot from this failure.
 
-==== Second attempt (path #4)
+==== Second Attempt (Path #4)
 
 Now Selena attempts the fourth candidate path (S->A->B->X->Y->R). This is a longer path and will incur more fees, but it's now the best option for delivery of the payment.
 
@@ -350,7 +350,7 @@ However, this knowledge becomes somewhat "stale" as the other nodes send or rout
 Therefore, Selena's node must consider how long to keep this knowledge before assuming that it is stale and no longer useful.
 
 [[mpp]]
-=== Multi-Path Payments (MPP)
+=== Multi-Path Payments (Mpp)
 
 _Multi-Path Payments (MPP)_ are a feature that was introduced in the Lightning Network in 2020 and is already very widely available. Multi-Path Payments allow a payment to be split into multiple _parts_ which are sent as HTLCs over several different paths to the intended recipient, preserving the _atomicity_ of the overall payment. In this context, atomicity means that either all the HTLC parts of a payment are eventually fulfilled or the  entire payment fails and all the HTLC parts fail. There is no possibility of a partially successful payment.
 
@@ -361,7 +361,7 @@ Multi-Path Payments are a significant improvement in the Lightning Network as th
 Now that MPP is available it is best to think of a single-path payment as a subcategory of a MPP. Essentially, a single-path is just a multi-path of size one. All payments can be considered as Multi-Path Payments unless the size of the payment and liquidity available make it possible to deliver with a single part.
 ====
 
-==== Using MPP
+==== Using Mpp
 
 MPP is not something that a user will select, but rather it is a node path-finding and payment delivery strategy. The same basic steps are implemented: create a graph, select paths and the trial-and-error loop. The difference is that during path selection we must also consider how to split the payment in order to optimize delivery.
 
@@ -400,7 +400,7 @@ image::images/mtln_1209.png[]
 
 Because the S->X channel can now be utilized, and (luckily for Selena), the B->R channel has sufficient liquidity for 600k satoshis, the two parts are successful along paths that were previously not possible.
 
-==== Trial-and-error over multiple "rounds"
+==== Trial-And-Error Over Multiple "Rounds"
 
 Multi-Path Payments lead to a somewhat modified "trial-and-error" loop for payment delivery. Because we are attempting multiple paths in each attempt, we have four possible outcomes:
 

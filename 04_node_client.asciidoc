@@ -1,5 +1,5 @@
 [[set_up_a_lightning_node]]
-== Lightning node software
+== Lightning Node Software
 
 As we have seen in previous chapters, a Lightning node is a computer system that participates in the Lightning Network. The Lightning Network is not a product or company, it is a set of open standards that define a baseline for interoperability. As such, Lightning node software has been built by a variety of companies and community groups. The vast majority of Lightning software is _open source_, meaning that the source code is open and licensed in such a way as to enable collaboration, sharing and community participation in the development process. Similarly, the Lightning node implementations we will present in this chapter are all open source and are collaboratively developed.
 
@@ -13,11 +13,11 @@ Another major difference between Lightning node software and Bitcoin node softwa
 
 In this chapter, you will learn how to set up each of the software packages for the most popular Lightning node implementations. We've presented them in alphabetical order to emphasize that we generally do not prefer or endorse one over the other. Each has its strengths and weaknesses and choosing one will depend on a variety of factors. Since they are developed in different programming languages (e.g. Go, C, etc.), your choice may also depend on your level of familiarity and expertise with a specific language and development toolset.
 
-=== Lightning development environment
+=== Lightning Development Environment
 
 If you're a developer, you will want to set up a development environment with all the tools, libraries, and support software for writing and running Lightning software. In this highly technical chapter, we'll walk through that process step-by-step. If the material becomes too dense or you're not actually setting up a development environment, then feel free to skip to the next chapter, which is less technical.
 
-==== Using the command-line
+==== Using the Command-Line
 
 The examples in this chapter, and more broadly in most of this book, use a command-line terminal. That means that you type commands into a terminal and receive text responses. Furthermore, the examples are demonstrated on an operating system based on the Linux kernel and GNU software system, specifically the latest long-term stable release of Ubuntu (Ubuntu 20.04 LTS). The majority of the examples can be replicated on other operating systems such as Windows or Mac OS, with small modifications to the commands. The biggest difference between operating systems is the _package manager_ which installs the various software libraries and their pre-requisites. In the given examples, we will use +apt+, which is the package manager for Ubuntu. On Mac OS, a common package manager used for open source development is Homebrew (command +brew+) found at https://brew.sh.
 
@@ -30,7 +30,7 @@ In many of the examples in this chapter we will be using the operating system's 
 
 To keep things consistent, we use the +bash+ shell in all command-line examples. While other shells will behave in a similar way, and you will be able to run all the examples without it, some of the shell scripts are written specifically for the +bash+ shell and may require some changes or customizations to run in another shell. For consistency, you can install the +bash+ shell on Windows and Mac OS, and it comes installed by default on most Linux systems.
 
-==== Downloading the book repository
+==== Downloading the Book Repository
 
 All the code examples are available in the book's online repository. Because the repository will be kept up-to-date as much as possible, you should always look for the latest version in the online repository instead of copying it from the printed book or the ebook.
 
@@ -56,7 +56,7 @@ $ cd lnbook
 
 All subsequent examples will assume that you are running commands from inside this folder.
 
-=== Docker containers
+=== Docker Containers
 
 Many developers use a _container_, which is a type of virtual machine, to install a pre-configured operating system and applications with all the necessary dependencies. Much of the Lightning software can also be installed using a container system such as _Docker_ found at https://docker.com. Container installations are a lot easier, especially for those who are not used to a command-line environment.
 
@@ -126,7 +126,7 @@ code/docker
 
 As we will see in the next few sections, you can build these containers locally, or you can pull them from the book's repository on _Docker Hub_. The following sections will assume that you have installed Docker and are familiar with the basic use of the +docker+ command.
 
-=== Bitcoin Core and regtest
+=== Bitcoin Core and Regtest
 
 Most of the Lightning node implementations need access to a full Bitcoin node in order to work.
 
@@ -136,7 +136,7 @@ A Bitcoin node can be operated in _regtest_ mode, where the node creates a local
 
 The container for Bitcoin Core is +bitcoind+. It is configured to run Bitcoin Core in +regtest+ mode and to mine 6 new blocks every 10 seconds. Its RPC port is exposed on port 18443 and accessible for RPC calls with the username +regtest+ and the password +regtest+. You can also access it with an interactive shell and run +bitcoin-cli+ commands locally.
 
-==== Building the Bitcoin Core container
+==== Building the Bitcoin Core Container
 
 Let's prepare the +bitcoind+ container. The easiest way is to pull the latest container from _Docker Hub_:
 
@@ -208,7 +208,7 @@ As you can see, bitcoind starts up and mines 101 simulated blocks to get the cha
 
 For now, there are no transactions. But we have some test bitcoin that has been mined in the wallet and is available to spend. When we connect some Lightning nodes to this chain, we will send some bitcoin to their wallets so that we can open some Lightning channels between the Lightning nodes.
 
-===== Interacting with the Bitcoin Core container
+===== Interacting with the bitcoin core container
 
 In the mean time, we can also interact with the +bitcoind+ container by sending it shell commands. The container is sending a log file to the terminal, displaying the mining process of the bitcoind process. To interact with the shell we can issue commands in another terminal, using the +docker exec+ command. Since we previously named the running container with the +name+ argument, we can refer to it by that name when we run the +docker exec+ command. First, let's run an interactive +bash+ shell:
 
@@ -258,7 +258,7 @@ $ docker exec bitcoind bash -c "cli getblockchaininfo | jq .blocks"
 
 As you will see in the following sections, we can run several containers at the same time and then interact with them individually. We can issue commands to extract information such as the Lightning node public key or to take actions such as opening a Lightning channel to another node. The +docker run+ and +docker exec+ commands together with +jq+ for JSON decoding are all we need to build a working Lightning Network that mixes many different node implementations. This enables us to try out diverse experiments on our own computer.
 
-=== The c-lightning Lightning node project
+=== The C-Lightning Lightning Node Project
 
 C-lightning is a lightweight, highly customizable, and standard-compliant implementation of the Lightning Network protocol, developed by Blockstream as part of the Elements project. The project is open source and developed collaboratively on Github:
 
@@ -266,7 +266,7 @@ https://github.com/ElementsProject/lightning
 
 In the following sections, we will build a Docker container that runs a c-lightning node connecting to the bitcoind container we build previously. We will also show you how to configure and build the c-lightning software directly from the source code.
 
-==== Building c-lightning as a Docker container
+==== Building C-Lightning As a Docker Container
 
 The c-lightning software distribution has a Docker container, but it is designed for running c-lightning in production systems and along side a bitcoind node. We will be using a somewhat simpler container configured to run c-lightning for demonstration purposes.
 
@@ -317,7 +317,7 @@ Our container is now built and ready to run. However, before we run the c-lightn
 Docker containers can "talk" to each other over a virtual local area network managed by the Docker system. Each container can have a custom name and other containers can use that name to resolve its IP address and easily connect to it.
 ====
 
-==== Setting up a Docker network
+==== Setting Up a Docker Network
 
 Once a Docker network is set up, Docker will activate the network on our local computer every time Docker starts, e.g. after rebooting. So we only need to set up a network once by using the +docker network create+ command. The network name itself is not important, but it has to be unique on our computer. By default, Docker has three networks named +host+, +bridge+, and +none+. We will name our new network +lnbook+ and create it like this:
 
@@ -335,7 +335,7 @@ ee8824567c95        none                null                local
 
 As you can see, running +docker network ls+ gives us a listing of the Docker networks. Our +lnbook+ network has been created. We can ignore the network ID, as it is automatically managed.
 
-==== Running the bitcoind and c-lightning containers
+==== Running the Bitcoind and C-Lightning Containers
 
 The next step is to start the bitcoind and c-lightning containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the +network+ argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start bitcoind like this:
 
@@ -397,13 +397,13 @@ In the next section we will also look at how to download, configure and compile 
 If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The Docker container we just built is sufficient for most of the examples in the book.
 ====
 
-==== Installing c-lightning from source code
+==== Installing C-Lightning from Source Code
 
 The c-lightning developers have provided detailed instructions for building c-lightning from source code. We will be following the instructions here:
 
 https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md
 
-==== Installing prerequisite libraries and packages
+==== Installing Prerequisite Libraries and Packages
 
 These installation instructions assume you are building c-lightning on a Linux or similar system with GNU build tools. If that is not the case, look for the instructions for your operating system in the ElementsProject repository above.
 
@@ -446,7 +446,7 @@ $
 
 After a few minutes and a lot of on-screen activity, you will have installed all the necessary packages and libraries. Many of these libraries are also used by other Lightning packages and needed for software development in general.
 
-==== Copying the c-lightning source code
+==== Copying the C-Lightning Source Code
 
 Next, we will copy the latest version of c-lightning from the source code repository. To do this, we will use the +git clone+ command which clones a version-controlled copy onto your local machine thereby allowing you to keep it synchronized with subsequent changes without having to download the whole repository again:
 
@@ -467,7 +467,7 @@ $ cd lightning
 
 We now have a copy of c-lightning cloned into the +lightning+ subfolder, and we have used the +cd+ (change directory) command to enter that subfolder.
 
-==== Compiling the c-lightning source code
+==== Compiling the C-Lightning Source Code
 
 Next, we use a set of _build scripts_ that are commonly available in many open source projects. These _build scripts_ use the +configure+ and +make+ commands which allow us to:
 
@@ -561,7 +561,7 @@ v0.10.1-34-gfe86c11
 
 The version consists of the latest release version (v0.10.1) followed by the number of changes since the release (34) and finally a hash identifying exactly which revision (fe86c11). You may see a different version from that shown above as the software continues to evolve long after this book is published. However, no matter what version you see, the fact that the commands execute and respond with version information means that you have succeeded in building the c-lightning software.
 
-=== The Lightning Network Daemon (LND) node project
+=== The Lightning Network Daemon (Lnd) Node Project
 
 The Lightning Network Daemon (LND) is a complete implementation of a Lightning Network node by Lightning Labs. The LND project provides a number of executable applications, including +lnd+ (the daemon itself) and +lncli+ (the command-line utility). LND has several pluggable back-end chain services including btcd (a full-node), bitcoind (Bitcoin Core), and neutrino (a new experimental light client). LND is written in the Go programming language. The project is open source and developed collaboratively on Github:
 
@@ -569,7 +569,7 @@ https://github.com/LightningNetwork/lnd
 
 In the next few sections we will build a Docker container to run LND, build LND from source code, and learn how to configure and run LND.
 
-==== The LND docker container
+==== The Lnd Docker Container
 
 We can pull the LND example docker container from the book's Docker Hub repository:
 
@@ -618,7 +618,7 @@ Our container is now ready to run. As with the c-lightning container we built pr
 Normally, each node operator runs their own Lightning node and their own Bitcoin node on their own server. For us, a single bitcoind container can serve many Lightning nodes. On our simulated network we can run several Lightning nodes, all connecting to a single Bitcoin node in regtest mode.
 ====
 
-==== Running the bitcoind and LND containers
+==== Running the Bitcoind and Lnd Containers
 
 As before, we start the bitcoind container in one terminal and LND in another. If you already have the bitcoind container running, you do not need to restart it. Just leave it running and skip the next step. To start bitcoind in the +lnbook+ network we use +docker run+ like this:
 
@@ -679,7 +679,7 @@ In the next section we will look at how to download and compile LND directly fro
 If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The Docker container we just built is sufficient for most of the examples in the book.
 ====
 
-==== Installing LND from source code
+==== Installing Lnd from Source Code
 
 In this section we will build LND from scratch. LND is written in the Go programming language. IF you want to find out more about Go, search for +golang+ instead of +go+ to avoid irrelevant results. Because it is written in Go and not C or C++, it uses a different "build" framework than the GNU autotools/make framework we saw used in c-lightning previously. Don't fret though, it is quite easy to install and use the golang tools and we will show each step here. Go is a fantastic language for collaborative software development as it produces very consistent, precise, and easy to read code regardless of the number of authors. Go is focused and "minimalist" in a way that encourages consistency across versions of the language. As a compiled language, it is also quite efficient. Let's dive in.
 
@@ -712,7 +712,7 @@ $ export PATH=$PATH:$GOPATH/bin
 
 To avoid having to set these environment variables every time you open a shell, you can add those two lines to the end of your bash shell configuration file +.bashrc+ in your home directory, using the editor of your choice.
 
-==== Copying the LND source code
+==== Copying the Lnd Source Code
 
 As with many open source projects nowadays, the source code for LND is on Github (www.github.com). The +go get+ command can fetch it directly using the Git protocol:
 
@@ -723,7 +723,7 @@ $ go get -d github.com/lightningnetwork/lnd
 
 Once +go get+ finishes, you will have a sub-directory under +GOPATH+ that contains the LND source code.
 
-==== Compiling the LND source code
+==== Compiling the Lnd Source Code
 
 LND uses the +make+ build system. To build the project, we change directory to LND's source code and then use +make+ like this:
 
@@ -745,7 +745,7 @@ lncli version 0.10.99-beta commit=clock/v1.0.0-106-gc1ef5bb908606343d2636c8cd345
 
 You will likely see a different version from that shown above, as the software continues to evolve long after this book is published. However, no matter what version you see, the fact that the commands execute and show you version information means that you have succeeded in building the LND software.
 
-=== The Eclair Lightning node project
+=== The Eclair Lightning Node Project
 
 Eclair (French for Lightning) is a Scala implementation of the Lightning Network made by ACINQ. Eclair is also one of the most popular and pioneering mobile Lightning wallets which we used to demonstrate a Lightning payment in the second chapter. In this section we examine the Eclair server project which runs a Lightning node. Eclair is an open source project and can be found on GitHub:
 
@@ -754,7 +754,7 @@ https://github.com/ACINQ/eclair
 
 In the next few sections we will build a Docker container to run Eclair, as we did previously with c-lightning and LND. We will also build Eclair directly from the source code.
 
-==== The Eclair docker container
+==== The Eclair Docker Container
 
 Let's pull the book's eclair container from the Docker Hub repository:
 
@@ -802,7 +802,7 @@ Our image is now ready to run. The Eclair container also depends on a running in
 
 One notable difference between Eclair and LND or c-lightning is that Eclair doesn't contain a separate bitcoin wallet but instead relies directly on the bitcoin wallet in Bitcoin Core. Recall that using LND we "funded" its bitcoin wallet by executing a transaction to transfer bitcoin from Bitcoin Core's wallet to LND's bitcoin wallet. This step is not necessary using Eclair. When running Eclair, the Bitcoin Core wallet is used directly as the source of funds to open channels. As a result, unlike the LND or c-lightning containers, the Eclair container does not contain a script to transfer bitcoin into its wallet on startup.
 
-==== Running the bitcoind and Eclair containers
+==== Running the Bitcoind and Eclair Containers
 
 As before, we start the bitcoind container in one terminal and the Eclair container in another. If you already have the bitcoind container running, you do not need to restart it. Just leave it running and skip the next step. To start +bitcoind+ in the +lnbook+ network, we use +docker run+ like this:
 
@@ -872,7 +872,7 @@ In the next section we will also look at how to download and compile Eclair dire
 If you are not planning on diving into the source code or programming of a Lightning node, you can skip the next section entirely. The Docker container we just built is sufficient for most of the examples in the book.
 ====
 
-==== Installing Eclair from source code
+==== Installing Eclair from Source Code
 
 In this section we will build Eclair from scratch. Eclair is written in the Scala programming language which is compiled using the Java compiler. To run Eclair, we first need to install Java and its build tools. We will be following the instructions found in the BUILD.md document of the Eclair project:
 
@@ -902,7 +902,7 @@ Java version: 11.0.7, vendor: Ubuntu, runtime: /usr/lib/jvm/java-11-openjdk-amd6
 
 We have OpenJDK 11.0.7 and Maven 3.6.1, so we're ready.
 
-==== Copying the Eclair source code
+==== Copying the Eclair Source Code
 
 The source code for Eclair is on Github. The +git clone+ command can create a local copy for us. Let's change to our home directory and run it there:
 
@@ -915,7 +915,7 @@ $ git clone https://github.com/ACINQ/eclair.git
 
 Once +git clone+ finishes you will have a sub-directory +eclair+ containing the source code for the Eclair server.
 
-==== Compiling the Eclair source code
+==== Compiling the Eclair Source Code
 
 Eclair uses the +Maven+ build system. To build the project we change the working directory to Eclair's source code and then use +mvn package+ like this:
 
@@ -951,7 +951,7 @@ https://github.com/ACINQ/eclair#installing-eclair
 
 Congratulations! You have built Eclair from source and you are ready to code, test, fix bugs, and contribute to this project!
 
-=== Building a complete network of diverse Lightning nodes
+=== Building a Complete Network of Diverse Lightning Nodes
 
 Our final example, presented in this section, will bring together all the various containers we've built to form a Lightning network made of diverse (LND, c-lightning, Eclair) node implementations. We'll compose the network by connecting the nodes together and opening channels from one node to another. As the final step, we'll route a payment across these channels!
 
@@ -963,7 +963,7 @@ image::images/mtln_1002.png["A small demonstration network of four nodes"]
 
 Finally, we will have Dina create an invoice and have Alice pay that invoice. Since Alice and Dina are not directly connected, the payment will be routed as an HTLC across all the payment channels.
 
-==== Using docker-compose to orchestrate Docker containers
+==== Using Docker-Compose to Orchestrate Docker Containers
 
 To make this example work, we will be using a _container orchestration_ tool that is available as a command called +docker-compose+. This command allows us to specify an application composed of several containers and run the application by launching all the cooperating containers together.
 
@@ -983,7 +983,7 @@ docker-compose version 1.21.0, build unknown
 
 The most common +docker-compose+ commands we will use are +up+ and +down+, e.g. +docker-compose up+.
 
-==== Docker-compose configuration
+==== Docker-Compose Configuration
 
 The configuration file for +docker-compose+ is found in the +code/docker+ directory and is named +docker-compose.yml+. It contains a specification for a network and each of the four containers. The top looks like this:
 
@@ -1013,7 +1013,7 @@ The fragment above defines a network called +lnnet+ and a container called +bitc
 
 Since all these diverse implementations follow the Basis of Lightning Technologies (BOLT) specification and have been extensively tested for interoperability, they have no difficulty working together to build a Lightning network.
 
-==== Starting the example Lightning network
+==== Starting the Example Lightning Network
 
 Before we get started, we should make sure we're not already running any of the containers. If a new container shares the same name as one that is already running, then it will fail to launch. Use +docker ps+, +docker stop+, and +docker rm+ as necessary to stop and remove any currently running containers!
 
@@ -1064,7 +1064,7 @@ Following the start up, you will see a whole stream of log files as each of the 
 $ docker-compose logs -f Alice
 ----
 
-==== Opening channels and routing a payment
+==== Opening Channels and Routing a Payment
 
 Our Lightning network should now be running. As we saw in the previous sections of this chapter, we can issue commands to a running Docker container with the +docker exec+ command. Regardless of whether we started the container with +docker run+ or started a bunch of them with +docker-compose up+, we can still access containers individually using the Docker commands.
 

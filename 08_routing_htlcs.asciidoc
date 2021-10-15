@@ -1,5 +1,5 @@
 [[routing]]
-== Routing on a Network of Payment channels
+== Routing On a Network of Payment Channels
 
 In this chapter we will finally unpack how payment channels can be connected to form a _network of payment channels_ via a process called _routing_. Specifically, we will look at the first part of the routing layer, the Atomic & Trustless Multihop Payment protocol. This is highlighted by a double outline in the protocol suite, shown in <<LN_protocol_routing_highlight>>:
 
@@ -7,7 +7,7 @@ In this chapter we will finally unpack how payment channels can be connected to 
 .The Lightning Network Protocol Suite
 image::images/mtln_0801.png["The Lightning Network Protocol Suite"]
 
-=== Routing a payment
+=== Routing a Payment
 
 In this section we will examine routing from the perspective of Dina, a gamer who receives donations from her fans while she streams her game sessions.
 
@@ -34,7 +34,7 @@ This process of connecting a series of payment channels with end-to-end security
 
 In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in-which payments flow through the network. First, we will clarify the concept of "routing" and compare it to that of "path finding", as these are often confused and used interchangeably. Next, we will construct the fairness protocol: An atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between 4 people. Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
 
-=== Routing vs. Path Finding
+=== Routing Vs. Path Finding
 
 It's important to note that we separate the concept of _routing_ from the concept of _path finding_. These two concepts are often confused and the term "routing" is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
 
@@ -44,7 +44,7 @@ Routing refers to the series of interactions across the network that attempt to 
 
 An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob (perhaps even more than one), yet there may not be an active _route_ on which to send the payment. One example is the scenario where all the nodes connecting Alice and Bob are currently off-line. In this example, one can examine the _channel graph_ and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, as the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
 
-=== Creating a network of payment channels
+=== Creating a Network of Payment Channels
 
 Before we dive into the concept of an atomic trustless multihop payment, let's work through an example.
 Let's return to Alice who, in previous chapters, purchased a coffee from Bob with whom she has an open channel.
@@ -64,7 +64,7 @@ Essentially, Alice will pay Bob, who will pay Chan, who will pay Dina. No direct
 
 The main challenge is to do this in a way that prevents Bob and Chan from stealing the money that Alice wants delivered to Dina.
 
-==== A physical example of "routing"
+==== A Physical Example of "Routing"
 
 To understand how the Lightning Network protects the payment while being routed, we can compare it to an example of routing physical payments with gold coins in the real world.
 
@@ -277,7 +277,7 @@ The fairness protocol for routing used in the Lightning Network today is called 
 
 Another proposed mechanism for implementing routing is a _Point Time-Locked Contract (PTLC)_. PTLCs also achieve atomicity, trustless operation and multihop security, but do so with increased efficiency and better privacy.  Efficient implementation of PTLCs depends on a new digital signature algorithm called _Schnorr signatures_, which is expected to be activated in Bitcoin in 2021.
 
-=== Revisiting our example
+=== Revisiting Our Example
 
 Let's revisit our example from the first part of this chapter. Alice wants to "tip" Dina, with a Lightning payment. Let's say Alice wants to send Dina 50,000 satoshis as a tip.
 
@@ -304,7 +304,7 @@ Remember how Bob and Chan might expect a small compensation for routing the paym
 Now, Alice's node can construct a Lightning payment. In the next few sections we will see how Alice's node constructs a Hash Time-Locked Contract (HTLCs) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
 
 
-==== On-chain vs Off-chain settlement of HTLCs
+==== On-Chain Vs Off-Chain Settlement of Htlcs
 
 The purpose of the Lightning Network is to enable _off-chain_ transactions that are trusted just the same as on-chain transactions, because no one can cheat. The reason no one can cheat is because at any time, any of the participants can take their off-chain transactions on-chain. Each off-chain transaction is ready to be submitted to the Bitcoin blockchain at any time. Thus, the Bitcoin blockchain acts as a dispute-resolution and final settlement mechanism if necessary.
 
@@ -313,7 +313,7 @@ The mere fact that any transaction can be taken on-chain at any time is precisel
 In all the examples that follow, we will assume that any of these transactions can be made on-chain at any time. The participants will choose to keep them off-chain, but there is no difference in the functionality of the system other than the higher fees and delay imposed by on-chain mining of the transactions. The example works the same if all the transactions are on-chain or off-chain.
 
 [[htlcs]]
-=== Hash Time Locked Contracts (HTLCs)
+=== Hash Time Locked Contracts (Htlcs)
 
 In this section we explain how Hash Time Locked Contracts (HTLCs) work.
 
@@ -339,7 +339,7 @@ In this code, +H+ is the hash, or _payment hash_ and +R+ is the secret or _payme
 
 The use of a cryptographic hash function is one element that guarantees _trustless operation_. The payment intermediaries do not need to trust each other because they know that no one can guess the secret or fake it.
 
-==== HTLCs in Bitcoin Script
+==== Htlcs in Bitcoin Script
 
 In our gold coin example, Alice had a contract enforced by escrow like this:
 
@@ -382,7 +382,7 @@ In the following sections, we will focus on the main elements of the script and 
 
 The main part of the HTLC is in line 10 of <<received_htlc>>. Let's build it up from scratch!
 
-==== Payment pre-image and hash verification
+==== Payment Pre-Image and Hash Verification
 
 The core of an HTLC is the "hash", where payment can be made if the recipient knows the payment pre-image. Alice locks the payment to a specific payment hash and Bob has to present a payment pre-image to claim the funds. The Bitcoin system can verify that Bob's payment pre-image is correct by hashing it and comparing the result to the payment hash that Alice used to lock the funds.
 
@@ -416,7 +416,7 @@ The Bitcoin Script engine would evaluate this script as follows:
 3. +H+ is pushed to the stack
 4. The OP_EQUAL operator compares +H+ and H~R~. If they are equal, the result is +TRUE+, the script is complete and the payment is verified.
 
-==== Extending HTLCs from Alice to Dina
+==== Extending Htlcs from Alice to Dina
 
 Alice will now extend the HTLC across the network so that it reaches Dina.
 
@@ -434,7 +434,7 @@ Bob isn't taking a risk and isn't trusting Alice or Chan. Instead, Bob is trusti
 
 Similarly, Chan can extend a 50,000 HTLC to Dina. He isn't risking anything or trusting Bob or Dina. To redeem the HTLC, Dina would have to broadcast the secret, which Chan could use to redeem Bob's HTLC. Chan would also earn 100 satoshis as a routing fee.
 
-==== Back-propagating the secret
+==== Back-Propagating the Secret
 
 Once Dina receives a 50,000 HTLC from Chan, she can now get paid. Dina could simply commit this HTLC on-chain and spend it by revealing the secret in the spending transaction. Or, instead, Dina can update the channel balance with Chan by giving him the secret. There's no reason to incur a transaction fee and go on-chain. So, instead, Dina sends the secret to Chan and they agree to update their channel balances to reflect a 50,000 satoshi Lightning payment to Dina. In <<alice_dina_htlc_redeem_1>> we see Dina giving the secret to Chan, thereby fulfilling the HTLC.
 
@@ -469,7 +469,7 @@ The final channel balances reflect Alice's payment to Dina and the routing fees 
 image::images/mtln_0813.png["Channel balances after the payment"]
 
 [[preventing_theft]]
-==== Signature binding - preventing theft of HTLCs
+==== Signature Binding - Preventing Theft of Htlcs
 
 There's a catch. Did you notice it?
 
@@ -570,7 +570,7 @@ With that optimization, you now see how we arrive at the HTLC script shown in li
     OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY...
 ----
 
-==== HTLC cooperative and timeout failure
+==== Htlc Cooperative and Timeout Failure
 
 So far we looked at the "Hash" part of HTLC, and how it would work if everyone cooperated and was online at the time of payment.
 
@@ -603,7 +603,7 @@ The +OP_DROP+ operator simply drops the topmost item on the script stack. This i
 
 Finally, once the stack has been cleaned up, there should be a public key and signature left behind, that +OP_CHECKSIG+ can verify. As we saw in <<preventing_theft>>, this is necessary to ensure that only the rightful owner of the funds can claim them, by binding this output to their public key and requiring a signature.
 
-==== Decrementing time-locks
+==== Decrementing Time-Locks
 
 As the HTLCs are extended from Alice to Dina, the time-lock refund clause in each HTLC has a _different_ cltv_expiry value. We will see this in more detail as we talk about <<onion_routing>>. But suffice it to say that to ensure an orderly unwinding of a payment that fails, each hop needs to wait a bit less for their refund. The difference between time-locks for each hop is called the cltv_expiry_delta and is set by each node and advertized to the network as we will see in <<gossip>>.
 

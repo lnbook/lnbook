@@ -17,13 +17,13 @@ The Lightning Network uses an implementation of onion routing protocol based on 
 
 The implementation of onion routing in the Lightning Network is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md[BOLT #4 - Onion Routing Protocol]
 
-=== A physical example illustrating onion routing
+=== A Physical Example Illustrating Onion Routing
 
 There are many ways to describe onion routing, but one of the easiest is to use the physical equivalent of sealed envelopes. An envelope represents a layer of encryption, allowing only the named recipient to open it and read the contents.
 
 Let's say Alice wants to send a secret letter to Dina, indirectly via some intermediaries.
 
-==== Selecting a path
+==== Selecting a Path
 
 The Lightning Network uses _source routing_, which means that the payment path is selected and specified by the sender, and only the sender. In this example, Alice's secret letter to Dina will be the equivalent of a payment. To make sure the letter reaches Dina, Alice will create a path from her to Dina, using Bob and Chan as intermediaries.
 
@@ -47,7 +47,7 @@ Internet routing is based on _packet switching_ at each intermediary routing nod
 However, the lack of privacy in such a routing mechanism, where every intermediary node sees the sender and recipient, make this a poor choice for use in a payment network.
 ****
 
-==== Building the layers
+==== Building the Layers
 
 Alice starts by writing a secret letter to Dina.  She then seals the letter inside an envelope and writes "To Dina" on the outside (see <<dina_envelope>>). The envelope represents encryption with Dina's public key, so that only Dina can open the envelope and read the letter.
 
@@ -73,7 +73,7 @@ Now, if we could look through the envelopes (with X-rays!) we would see the enve
 .Nested envelopes
 image::images/mtln_1006.png[Nested envelopes]
 
-==== Peeling the layers
+==== Peeling the Layers
 
 Alice now has an envelope that says "To Bob" on the outside. It represents an encrypted message that only Bob can open (decrypt). Alice will now begin the process by sending this to Bob. The entire process is shown in <<sending_nested_envelopes>> below:
 
@@ -91,7 +91,7 @@ This is the essence of onion routing. The sender wraps a message in layers, spec
 
 Now, let's look at the details of the onion routing implementation in the Lightning Network.
 
-=== Introduction to onion routing of HTLCs
+=== Introduction to Onion Routing of Htlcs
 
 Onion routing in the Lightning Network appears complex at first glance, but once you understand the basic concept is really quite simple.
 
@@ -103,7 +103,7 @@ Each intermediary node, or Bob and Chan in our example, is called a _hop_. Every
 
 Now that we know the terminology used in Lightning Onion Routing, let's restate Alice's task: Alice must construct an _onion_ with _hop data_, telling each _hop_ how to construct an _outgoing HTLC_ in order to send a payment to the _final node_ (Dina).
 
-==== Alice selects the path
+==== Alice Selects the Path
 
 From <<routing>> we know that Alice will send a 50,000 satoshi payment to Dina via Bob and Chan. This payment is transmitted via a series of HTLCs, as shown in <<alice_dina_htlc_path>>, below:
 
@@ -131,7 +131,7 @@ image::images/mtln_1009.png[A path constructed from gossiped channel and node in
 
 Alice already knows her own channel to Bob, and therefore doesn't need this info to construct the path. Note also that Alice didn't need a channel update from Dina, because she has the update from Chan for that last channel in the path.
 
-==== Alice constructs the payloads
+==== Alice Constructs the Payloads
 
 There are two possible formats that Alice can use for the information communicated to each hop: A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will.
 
@@ -142,7 +142,7 @@ Both formats are specified in https://github.com/lightningnetwork/lightning-rfc/
 
 Alice will start building the hop data from the end of the path backwards: Dina, Chan, Bob.
 
-===== Final node payload for Dina
+===== Final node payload for dina
 
 Alice first builds the payload that will be delivered to Dina. Dina will not be constructing an "outgoing HTLC", because Dina is the final node and payment recipient. For this reason, the payload for Dina is different than all the others (uses all zeros for the `short_channel_id`), but only Dina will know this since it will be encrypted in the innermost layer of the onion. Essentially, this is the "secret letter to Dina" we saw in our physical envelope example.
 
@@ -173,7 +173,7 @@ Alice serializes it in TLV format as shown (simplified) <<dina_onion_payload>> b
 .Dina's payload is constructed by Alice
 image::images/mtln_1010.png[Dina's payload is constructed by Alice]
 
-===== Hop payload for Chan
+===== Hop payload for chan
 
 Next, Alice constructs the hop payload for Chan. This will tell Chan how to setup an outgoing HTLC to Dina.
 
@@ -191,7 +191,7 @@ Alice serializes this payload in TLV format, as shown (simplified) in <<chan_oni
 .Chan's payload is constructed by Alice
 image::images/mtln_1011.png[Chan's payload is constructed by Alice]
 
-===== Hop payload for Bob
+===== Hop payload for bob
 
 Finally, Alice constructs the hop payload for Bob, which also contains the same three fields as the hop payload for Chan, but with different values:
 
@@ -224,7 +224,7 @@ Alice has now built the three hop payloads that will be wrapped in an onion. A s
 .Hop payloads for all the hops
 image::images/mtln_1013.png[Hop payloads for all the hops]
 
-==== Key generation
+==== Key Generation
 
 Alice must now generate several keys that will be used to encrypt the various layers in the onion.
 
@@ -360,7 +360,7 @@ Note that the very first hop uses the original session key generated, as this ke
 
 
 [[wrapping_the_onion]]
-=== Wrapping the onion layers
+=== Wrapping the Onion Layers
 
 The process of wrapping the onion is detailed in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4 - Onion Routing - Packet Construction].
 
@@ -368,7 +368,7 @@ In this section we will describe this process at a high-level and somewhat simpl
 
 
 [[fixed_length_onions]]
-==== Fixed-length Onions
+==== Fixed-Length Onions
 
 We've mentioned the fact that none of the "hop" nodes know how long the path is, or where they are in the path. How is this possible?
 
@@ -400,7 +400,7 @@ A unique trait of Sphinx as a mix-net packet format is that rather than include 
 
 In practice, this little trick allows us to keep the onion packet as compact as possible while still retaining the desired security properties.
 
-==== Wrapping the onion (outlined)
+==== Wrapping the Onion (Outlined)
 
 Here is the process of wrapping the onion, outlined below. Come back to this list, as we explore each step with our real-world example.
 
@@ -440,7 +440,7 @@ Note that at each phase the _mu_ key is used to generate an HMAC over the _encry
 This outer HMAC allows the node processing the packet to verify the integrity of the onion packet (no bytes modified).
 The inner HMAC is then revealed during the inverse of the "shift and encrypt" routine described above, which serves as the _outer_ HMAC for the next hop.
 
-==== Wrapping Dina's hop payload
+==== Wrapping Dina's Hop Payload
 
 As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
 
@@ -490,7 +490,7 @@ Finally, Alice calculates a Hash-based Message Authentication Code (HMAC) for Di
 .Adding an HMAC integrity checksum to Dina's hop payload
 image::images/mtln_1019.png[]
 
-===== Onion Routing Replay Protection & Detection
+===== Onion routing replay protection & detection
 
 The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
 Note that we compute the HMAC over the _encrypted_ data rather then over the plaintext data.
@@ -519,7 +519,7 @@ Once again, due to the unique attributes of the HTLC construct, we can make a fu
 Given that HTLCs are _time locked_ contracts based on the absolute block height, once an HTLC has expired, then the contract is effectively permanently closed.
 As a result, nodes can use this CLTV expiration height as an indicator to know when it's safe to garbage collect an entry in the anti-replay log.
 
-==== Wrapping Chan's hop payload
+==== Wrapping Chan's Hop Payload
 
 In <<chan_onion_wrapping>> we see the steps used to wrap Chan's hop payload in the onion. These are the same steps Alice used to wrap Dina's hop payload.
 
@@ -544,7 +544,7 @@ Now Chan's payload is in the front of the onion. When Chan sees this he has no i
 Next, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan +rho+ key. Only Alice and Chan have this +rho+ key and only they can produce the byte stream to obfuscate and de-obfuscate the onion.
 Finally, as we did in the earlier step, we compute Chan's outer HMAC, which is what she'll use to verify the integrity of the encrypted onion packet.
 
-==== Wrapping Bob's hop payload
+==== Wrapping Bob's Hop Payload
 
 In <<bob_onion_wrapping>> we see the steps used to wrap Bob's hop payload in the onion.
 
@@ -565,7 +565,7 @@ Obfuscate the whole thing XOR with the _rho_ key from the Alice-Bob-shared-secre
 Calculate the outer HMAC and stick it on the end of Bob's hop payload.
 
 
-==== The final onion packet
+==== The Final Onion Packet
 
 The final onion payload is ready to be sent to Bob. Alice doesn't need to add any more hop payloads.
 
@@ -583,11 +583,11 @@ The result can be seen in <<onion_packet_2>> below:
 .The onion packet
 image::images/mtln_1015.png[]
 
-=== Sending the onion
+=== Sending the Onion
 
 In this section we will look at how the onion packet is forwarded and how HTLCs are deployed along the path.
 
-==== The update_add_htlc message
+==== The Update_Add_Htlc Message
 
 Onion packets are sent as part of the +update_add_htlc+ message. If you recall from <<update_add_htlc>>, in <<channel_operation>>, we saw the contents of the +update_add_htlc+ message were as follows:
 
@@ -602,7 +602,7 @@ Onion packets are sent as part of the +update_add_htlc+ message. If you recall f
 
 You will recall that this message is sent by one channel partner to ask the other channel partner to add an HTLC. This is how Alice will ask Bob to add an HTLC to pay Dina. Now you understand the purpose of the last field +onion_routing_packet+, which is 1366 bytes long. It's the fully-wrapped onion packet we just constructed!
 
-==== Alice sends the onion to Bob
+==== Alice Sends the Onion to Bob
 
 Alice will send the +update_add_htlc+ message to Bob. Let's look at what this message will contain:
 
@@ -618,7 +618,7 @@ cltv_expiry:: The expiry timelock for the HTLC will be 700,058. Alice adds 20 bl
 
 onion_routing_packet:: The final onion packet Alice constructed with all the hop payloads!
 
-==== Bob checks the onion
+==== Bob Checks the Onion
 
 As we saw in <<channel_operation>>, Bob will add the HTLC to the commitment transactions and update the state of the channel with Alice.
 
@@ -632,7 +632,7 @@ Now that Bob has generated the shared key and verified the HMAC, he can start un
 
 If Bob extracts and removes his hop payload, the remaining onion will not be 1300 bytes, it will be shorter! So the next hop will know that they are not the first hop and will be able to detect how long the path is. To prevent this, Bob needs to add more filler to refill the onion.
 
-==== Bob generates filler
+==== Bob Generates Filler
 
 Bob generates filler in a slightly different way than Alice, but following the same general principle.
 
@@ -644,7 +644,7 @@ image::images/mtln_1023.png[Bob extends the onion payload by 1300 (zero-filled) 
 
 This empty space will become obfuscated and turn into "filler", by the same process that Bob uses to deobfuscate his own hop payload. Let's see how that works.
 
-==== Bob de-obfuscates his hop payload
+==== Bob De-Obfuscates His Hop Payload
 
 Next, Bob will generate the +rho+ key from the Alice-Bob shared key. He will use this to generate a 2600 byte stream, using the +ChaCha20+ algorithm.
 
@@ -663,12 +663,12 @@ At the same time, applying the +rho+ byte stream to the 1300 zeroes that were ad
 .Bob de-obfuscates the onion, obfuscates the filler
 image::images/mtln_1024.png["Bob de-obfuscates the onion, obfuscates the filler"]
 
-==== Bob extracts the outer HMAC for the next hop
+==== Bob Extracts the Outer Hmac for the Next Hop
 
 Remember that an inner HMAC is included for each hop, then will then become the outer HMAC for the _next_ hop.
 In this case, Bob extracts the inner HMAC (he's already verified the integrity of the encrypted packet w/ the outer HMAC), and puts it aside as he'll append it to the deobfuscated packet to allow Chan to verify the HMAC of her encrypted packet.
 
-==== Bob removes his payload and left shifts the onion
+==== Bob Removes His Payload and Left Shifts the Onion
 
 Now Bob can remove his hop payload from the front of the onion and left-shift the remaining data. An amount of data equal to Bob's hop payload from the second-half 1300 bytes of filler will now shift into the onion payload space. This is shown in <<bob_removes_shifts>>:
 
@@ -682,7 +682,7 @@ Bob now has a 1300 byte onion packet to send to the next hop. It is almost ident
 
 No one can tell the difference between filler put there by Alice and filler put there by Bob. Filler is filler! It's all random bytes anyway. Note that if Bob (or one of Bob's other aliases) is present in the route in two disctinct locations, then they can tell the difference as the base protocol always uses the same payment hash across the entire route. Atomic Multipath Payments (AMP), and Point Time Locked Contrats (PTLCs) eliminate the correlation vector by randomizing the payment idenitifer across each route/hop.
 
-==== Bob constructs the new onion packet
+==== Bob Constructs the New Onion Packet
 
 Bob now copies the onion payload into the onion packet, appends the outer HMAC for chan, re-randomizes the session key (the same way Alice the sender does) with the Elliptic Curve multiplication operation, and appends a fresh version byte.
 
@@ -698,7 +698,7 @@ session_key_chan = session_key_bob * b_bob
 
 The `session_key_chan` public key will then be appended to the front of the onion packet for processing by Chan.
 
-==== Bob verifies the HTLC details
+==== Bob Verifies the Htlc Details
 
 Bob's hop payload contains the instructions needed to create an HTLC for Chan.
 
@@ -710,7 +710,7 @@ Next, Bob confirms that the outgoing amount (50,100 satoshis) is less than the i
 
 Similarly, Bob checks that the outgoing cltv_expiry is less than the incoming cltv_expiry giving Bob enough time to claim the incoming HTLC if there is a breach.
 
-==== Bob sends the update_add_htlc to Chan
+==== Bob Sends the Update_Add_Htlc to Chan
 
 Bob now constructs and HTLC to send to Chan, as follows:
 
@@ -726,7 +726,7 @@ cltv_expiry:: The expiry timelock for the HTLC will be 700,038.
 
 onion_routing_packet:: The onion packet Bob reconstructed after removing his hop payload.
 
-==== Chan forwards the onion
+==== Chan Forwards the Onion
 
 Chan repeats the exact same process as Bob:
 
@@ -754,13 +754,13 @@ Chan repeats the exact same process as Bob:
 
 12. Chan re-randomizes the session key as Bob did in the prior hop for Dina.
 
-==== Dina receives the final payload
+==== Dina Receives the Final Payload
 
 When Dina receives the +update_add_htlc+ message from Chan, she knows from the +payment_hash+ that this is a payment for her. She knows she is the last hop in the onion.
 
 Dina follows the exact same process as Bob and Chan to verify and unwrap the onion, except she doesn't construct new filler and doesn't forward anything. Instead, Dina responds to Chan with +update_fulfill_htlc+ to redeem the HTLC. The +update_fulfill_htlc+ will flow backwards along the path until it reaches Alice. All the HTLCs are redeemed and channel balances are updated. The payment is complete!
 
-=== Returning errors
+=== Returning Errors
 
 This far we've looked at the forward propagation of the onion establishing the HTLCs, and the backwards propagation of the payment secret unwinding the HTLCs once payment is successful.
 
@@ -829,7 +829,7 @@ However, this means that the sender of the HTLC has to wait until expiry, and th
 One proposed solution to this problem is called "stuckless payments", and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e. point addition on the elliptic curve instead of a hash and secret pre-image). PTLCs are cumbersome using ECDSA but much easier with Bitcoin's Taproot and Schnorr Signature features which were recently locked in for activation in November 2021. It is expected that PTLCs will be implemented in the Lightning Network after these Bitcoin features become activated.
 
 [[keysend]]
-=== keysend Spontaneous Payments
+=== Keysend Spontaneous Payments
 
 In the payment flow described earlier in the chapter, we assumed that Dina
 received an invoice from Alice "out of band," or obtained it via some mechanism
@@ -844,7 +844,7 @@ first? The `keysend` protocol is an end-to-end extension (only the sender and
 receiver are aware) to the Lightning protocol that enables spontaneous push
 payments.
 
-==== Custom Onion TLV Records
+==== Custom Onion Tlv Records
 
 The modern Lightning protocol uses the TLV (Type-Length-Value) encoding in
 the onion to encode information that tells each node _where_ and _how_ to
@@ -867,7 +867,7 @@ packet is fixed-size, custom records don't _add_ any additional data to an
 HTLC; rather, they reallocate bytes that would have been filled with random data
 otherwise.
 
-==== Sending and Receiving keysend payments
+==== Sending and Receiving Keysend Payments
 
 A `keysend` payment inverts the typical flow of an HTLC where the receiver
 reveals a secret pre-image to the sender. Instead, the sender includes the
@@ -879,7 +879,7 @@ obtaining an invoice from the receiver, as the pre-image is "pushed" over to
 the receiver. A `keysend` payment uses a TLV custom record type of `5482373484`
 to encode a 32-byte pre-image value. 
 
-==== keysend and Custom Records in Lightning Applications
+==== Keysend and Custom Records in Lightning Applications
 
 Many streaming Lightning applications use the `keysend` protocol to continually
 stream satoshis to a destination identified by its public key in the network.
