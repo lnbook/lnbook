@@ -34,7 +34,7 @@ This process of connecting a series of payment channels with end-to-end security
 
 In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in-which payments flow through the network. First, we will clarify the concept of "routing" and compare it to that of "path finding", as these are often confused and used interchangeably. Next, we will construct the fairness protocol: An atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between 4 people. Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
 
-=== Routing Vs. Path Finding
+=== Routing vs. Path Finding
 
 It's important to note that we separate the concept of _routing_ from the concept of _path finding_. These two concepts are often confused and the term "routing" is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
 
@@ -304,7 +304,7 @@ Remember how Bob and Chan might expect a small compensation for routing the paym
 Now, Alice's node can construct a Lightning payment. In the next few sections we will see how Alice's node constructs a Hash Time-Locked Contract (HTLCs) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
 
 
-==== On-Chain Vs Off-Chain Settlement of Htlcs
+==== On-Chain vs. Off-Chain Settlement of HTLCs
 
 The purpose of the Lightning Network is to enable _off-chain_ transactions that are trusted just the same as on-chain transactions, because no one can cheat. The reason no one can cheat is because at any time, any of the participants can take their off-chain transactions on-chain. Each off-chain transaction is ready to be submitted to the Bitcoin blockchain at any time. Thus, the Bitcoin blockchain acts as a dispute-resolution and final settlement mechanism if necessary.
 
@@ -313,7 +313,7 @@ The mere fact that any transaction can be taken on-chain at any time is precisel
 In all the examples that follow, we will assume that any of these transactions can be made on-chain at any time. The participants will choose to keep them off-chain, but there is no difference in the functionality of the system other than the higher fees and delay imposed by on-chain mining of the transactions. The example works the same if all the transactions are on-chain or off-chain.
 
 [[htlcs]]
-=== Hash Time Locked Contracts (Htlcs)
+=== Hash Time Locked Contracts (HTLCs)
 
 In this section we explain how Hash Time Locked Contracts (HTLCs) work.
 
@@ -339,7 +339,7 @@ In this code, +H+ is the hash, or _payment hash_ and +R+ is the secret or _payme
 
 The use of a cryptographic hash function is one element that guarantees _trustless operation_. The payment intermediaries do not need to trust each other because they know that no one can guess the secret or fake it.
 
-==== Htlcs in Bitcoin Script
+==== HTLCs in Bitcoin Script
 
 In our gold coin example, Alice had a contract enforced by escrow like this:
 
@@ -416,7 +416,7 @@ The Bitcoin Script engine would evaluate this script as follows:
 3. +H+ is pushed to the stack
 4. The OP_EQUAL operator compares +H+ and H~R~. If they are equal, the result is +TRUE+, the script is complete and the payment is verified.
 
-==== Extending Htlcs from Alice to Dina
+==== Extending HTLCs from Alice to Dina
 
 Alice will now extend the HTLC across the network so that it reaches Dina.
 
@@ -469,7 +469,7 @@ The final channel balances reflect Alice's payment to Dina and the routing fees 
 image::images/mtln_0813.png["Channel balances after the payment"]
 
 [[preventing_theft]]
-==== Signature Binding - Preventing Theft of Htlcs
+==== Signature Binding - Preventing Theft of HTLCs
 
 There's a catch. Did you notice it?
 
@@ -570,7 +570,7 @@ With that optimization, you now see how we arrive at the HTLC script shown in li
     OP_HASH160 <RIPEMD160(payment_hash)> OP_EQUALVERIFY...
 ----
 
-==== Htlc Cooperative and Timeout Failure
+==== HTLC Cooperative and Timeout Failure
 
 So far we looked at the "Hash" part of HTLC, and how it would work if everyone cooperated and was online at the time of payment.
 
