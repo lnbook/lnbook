@@ -628,7 +628,7 @@ While the Lightning Network is built on top of Bitcoin and inherits many of its 
 
 Some of these differences are differences in terminology. There are also architectural differences and differences in the user experience. In the next few sections, we will examine the differences and similarities, explain the terminology and adjust our expectations.
 
-==== Addresses Vs. Invoices, Transactions Vs. Payments
+==== Addresses vs. Invoices, Transactions vs. Payments
 
 In a typical payment using Bitcoin, a user receives a Bitcoin address (e.g. scanning a QR code on a webpage, or receiving it in an instant message or email from a friend). They then use their Bitcoin wallet to create a transaction to send funds to this address.
 
@@ -640,7 +640,7 @@ There are some differences in the user experience however. A Bitcoin address is 
 
 In Lightning however, each invoice can only be used once for a specific payment amount. You cannot pay more or less, you cannot use an invoice again and the invoice has an expiry time built in. In Lightning, a recipient has to generate a new invoice for each payment, specifying the payment amount in advance. There is an exception to this, a mechanism called _keysend_, which we will examine in <<keysend>>.
 
-==== Selecting Outputs Vs. Finding a Path
+==== Selecting Outputs vs. Finding a Path
 
 In order to make a payment on the Bitcoin network, a sender needs to consume one or more Unspent Transaction Outputs (UTXOs).
 If a user has multiple UTXOs, they (or rather their wallet) will need to select which UTXO(s) to send.
@@ -652,14 +652,14 @@ As many possible channels and paths can be used to make a payment, the Lightning
 
 With technologies such as Atomic Multi-Path (AMP) and Multi-Path Payments (MPP), which we will review in subsequent chapters, several Lightning paths can be aggregated into a single atomic payment, just like several Bitcoin UTXO can be aggregated into a single atomic Bitcoin transaction.
 
-==== Change Outputs On Bitcoin Vs. No Change On Lightning
+==== Change Outputs On Bitcoin vs. No Change On Lightning
 
 In order to make a payment on the Bitcoin network, the sender needs to consume one or more Unspent Transaction Outputs (UTXOs). UTXO can only be spent in full, they cannot be divided and partially spent. So if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, then they need to spend the entire 1 BTC UTXO by sending 0.8 BTC to the recipient and 0.2 BTC back to themselves as change. The 0.2 BTC change payment creates a new UTXO called a "change output".
 
 On Lightning, the funding transaction spends some Bitcoin UTXO, creating a multi-signature UTXO to open the channel. Once the bitcoin is locked within that channel, portions of it can be sent back and forth within the channel, without the need to create any change.
 This is because the channel partners simply update the channel balance and only create a new UTXO when the channel is eventually closed, with the channel closing transaction.
 
-==== Mining Fees Vs. Routing Fees
+==== Mining Fees vs. Routing Fees
 
 On the Bitcoin network, users pay fees to miners to have their transactions included in a block.
 These fees are paid to the miner who mines that particular block.
@@ -669,7 +669,7 @@ As miners will typically mine the most profitable transactions first, a user who
 On the Lightning Network, users pay fees to other (intermediary node) users to route payments through their channels.
 In order to route a payment, an intermediary node will have to move funds in two or more channels they own, as well as transmit the data for the sender's payment. Typically, the routing user will charge the sender based on the _value_ of the payment, having established a minimum _base fee_ (a flat fee for each payment) and a _fee rate_ (a pro-rated fee proportional to the value of the payment). Higher value payments will thus cost more to route, and a market for liquidity is formed, where different users charge different fees for routing through their channels.
 
-==== Varying Fees Depending On Traffic Vs. Announced Fees
+==== Varying Fees Depending On Traffic vs. Announced Fees
 
 On the Bitcoin network, miners are profit-seeking and will typically include as many transactions in a block as possible, while staying within the block capacity called the _block weight_.
 
@@ -681,7 +681,7 @@ The scarce resource on the Bitcoin network is the space in the blocks. Bitcoin u
 
 On the Lightning Network, users are paying fees to the users routing their payments. Routing a payment, in economic terms, is nothing more than providing and assigning capacity to the sender. Naturally, routers who charge lower fees for the same capacity will be more attractive to route through. Thus a fee market exists where routers are in competition with each other over the fees they charge to route payments through their channels.
 
-==== Public Bitcoin Transactions Vs. Private Lightning Payments
+==== Public Bitcoin Transactions vs. Private Lightning Payments
 
 On the Bitcoin network, every transaction is publicly visible on the Bitcoin blockchain. While the addresses involved are pseudonymous and are not typically tied to an identity, they are still seen and validated by every other user on the network.
 In addition, blockchain surveillance companies collect and analyze this data en-masse and sell it to interested parties such as private firms, governments and intelligence agencies.
@@ -690,7 +690,7 @@ Lightning Network payments on the other hand, are almost completely private. Typ
 
 In summary, Bitcoin transactions are broadcast publicly and stored forever. Lightning payments are executed between a few selected peers and information about them is privately stored and only until the channel is closed. Creating mass surveillance and analysis tools equivalent to those used on Bitcoin will be much harder on Lightning.
 
-==== Waiting for Confirmations Vs. Instant Settlement
+==== Waiting for Confirmations vs. Instant Settlement
 
 On the Bitcoin network, transactions are only settled once they have been included in a block, in which case they are said to be "confirmed" in that block. As more blocks are mined, the transaction acquires more "confirmations" and is considered more secure.
 
@@ -699,7 +699,7 @@ In practical terms, instant settlement means that payments take only a few secon
 
 Finally, when the channel is closed, a transaction is made on the Bitcoin network; once that transaction is confirmed, the channel is considered closed.
 
-==== Sending Arbitrary Amounts Vs. Capacity Restrictions
+==== Sending Arbitrary Amounts vs. Capacity Restrictions
 
 On the Bitcoin network, a user can send any amount of bitcoin that they own to another user, without capacity restrictions. A single transaction can theoretically send up to 21 million bitcoin as a payment.
 
@@ -711,7 +711,7 @@ If the payment is routed, every routing node along the routing path must have ch
 
 Hence, capacity and connectivity are critical and scarce resources in the Lightning Network.
 
-==== Incentives for Large Value Payment Vs. Small Value Payments
+==== Incentives for Large Value Payment vs. Small Value Payments
 
 The fee structure in Bitcoin is independent of the transaction value.
 A $1 million transaction has the same fee as a $1 transaction on Bitcoin, assuming a similar transaction size in bytes (more specifically "virtual" bytes after segwit).
@@ -720,7 +720,7 @@ Therefore, in Lightning the payment fee increases with payment value.
 These opposing fee structures create different incentives and lead to different usage in regards to transaction value.
 A transaction of greater value will be cheaper on Bitcoin and hence users will prefer Bitcoin for large value transactions. Similarly, on the other end of the scale, users will prefer Lightning for small value transactions.
 
-==== Using the Blockchain As a Ledger Vs. As a Court System
+==== Using the Blockchain As a Ledger vs. As a Court System
 
 On the Bitcoin network, every transaction is eventually recorded in a block on the blockchain.
 The blockchain thus forms a complete history of every transaction since Bitcoin's creation, and a way to fully audit every bitcoin in existence.
@@ -734,7 +734,7 @@ If Alice tries to cheat by submitting the opening state of the channel to the Bi
 For the Lightning Network, the Bitcoin blockchain acts as a court system.
 Like a robotic judge, Bitcoin records the initial and final balances of each channel, and approves penalties if one of the parties tries to cheat.
 
-==== Offline Vs. Online, Asynchronous Vs. Synchronous
+==== Offline vs. Online, Asynchronous vs. Synchronous
 
 When a Bitcoin user sends funds to a destination address he does not need to know anything about the recipient. The recipient might be offline or online, and no interaction between sender and recipient is needed. The interaction is between sender and the Bitcoin blockchain. Receiving bitcoin on the Bitcoin blockchain is a _passive_ and _asynchronous_ activity that does not require any interaction by the recipient, or for the recipient to be online at any time. Bitcoin addresses can even be generated offline and are never "registered" with the Bitcoin network. Only spending bitcoin requires interaction.
 
@@ -743,7 +743,7 @@ The recipient must run a node or have someone that runs a node on their behalf (
 
 The synchronous and always-online nature of the Lightning network is probably the biggest difference in the user experience and often confounds users who are accustomed to Bitcoin.
 
-==== Satoshis Vs. Milli-Satoshis
+==== Satoshis vs. Milli-Satoshis
 
 On the Bitcoin network, the smallest amount is a _satoshi_ which cannot be divided any further. Lightning is a bit more flexible, and Lightning nodes work with _milli-satoshis_ (thousandths of a satoshi). This allows tiny payments to be sent via Lightning. A single milli-satoshi payment can be sent across a payment channel, an amount so small it should properly be characterized as a _nanopayment_.
 
