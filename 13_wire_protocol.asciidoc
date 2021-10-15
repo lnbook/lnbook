@@ -106,7 +106,7 @@ including the prefix type of the message along with the contents of its message
 body.
 
 [[tlv_message_extensions]]
-=== Type Length Value (Tlv) Message Extensions
+=== Type Length Value (TLV) Message Extensions
 
 Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
 and if while parsing a messages, extra bytes are left over, then those bytes
@@ -156,7 +156,7 @@ transactions they don't understand, then they simply ignore them as their funds
 aren't using those new features.
 
 [[tlv]]
-=== Type-Length-Value (Tlv) Format
+=== Type-Length-Value (TLV) Format
 
 In order to be able to upgrade messages in both a forwards and backwards
 compatible manner, in addition to feature bits (more on that later), the LN
@@ -184,7 +184,7 @@ record:
 
 Both the `type` and `length` are encoded using a variable sized integer that's inspired by the variable sized integer (varint) used in Bitcoin's p2p protocol, called `BigSize` for short.
 
-==== Bigsize Integer Encoding
+==== BigSize Integer Encoding
 
 In its fullest form, a `BigSize`
 integer can represent value up to 64-bits. In contrast to Bitcoin's varint
@@ -207,14 +207,14 @@ integer follows one of the four following options:
 4. Otherwise, we just encode the value as a full-size 64-bit integer.
 
 
-====  Tlv Encoding Constraints
+====  TLV Encoding Constraints
 
 Within the context of a TLV message, record types below `2^16` are said to be _reserved_ for future use. Types beyond this
 range are to be used for "custom" message extensions used by higher-level application protocols.
 
 The `value` of a record depends on the `type`. In other words, it can take any form as parsers will attempt to interpret it depending on the context of the type itself.
 
-==== Tlv Canonical Encoding
+==== TLV Canonical Encoding
 
 One issue with the Protobuf format is that encodings of the same message may
 output an entirely different set of bytes when encoded by two different
@@ -316,7 +316,7 @@ not. The feature bits within the `init` message allow peers to understand if
 they can maintain a connection, and also which features are negotiated for the
 lifetime of a given connection.
 
-==== Tlv for Forwards & Backwards Compatibility
+==== TLV for Forward and Backward Compatibility
 
 As we learned earlier in the chapter, Type-Length-Value, or TLV records can be
 used to extend messages in a forwards and backwards compatible manner.
