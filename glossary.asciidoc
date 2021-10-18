@@ -5,7 +5,7 @@
 This quick glossary contains many of the terms used in relation to Bitcoin. These terms are used throughout the book, so bookmark this for a quick reference.
 
 address::
-    Bitcoin invoice addresses compactly encode the information necessary to pay a receiver. A modern address consists of a string of letters and numbers that starts with bc1 and looks like +bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4+. An address is shorthand for a receiver's locking script which can be used by a sender to sign over funds to the receiver. Most addresses either represent the receiver's public key or some form of redeemscript that defines more complex spending conditions. The above example is a bech32 address encoding a witness program locking funds to the hash of a public key (Pay to Witness Public Key Hash). There are also older address formats that start with 1 or 3 that use the base58check address encoding to represent public key hashes or script hashes.
+    Bitcoin invoice addresses compactly encode the information necessary to pay a receiver. A modern address consists of a string of letters and numbers that starts with bc1 and looks like +bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4+. An address is shorthand for a receiver's locking script, which can be used by a sender to sign over funds to the receiver. Most addresses either represent the receiver's public key or some form of redeemscript that defines more complex spending conditions. The preceding example is a bech32 address encoding a witness program that locks funds to the hash of a public key (Pay to Witness Public Key Hash). There are also older address formats starting with 1 or 3 that use the base58check address encoding to represent public key hashes or script hashes.
 
 
 Asymmetric Cryptographic System::
@@ -30,7 +30,7 @@ balance::
     See _capacity_.
 
 bech32::
-    Bech32 refers to a generic checksummed base32 encoded format featuring strong error detection guarantees. While bech32 was originally developed to be used as the address format for native segwit outputs (BIP173), it is also used to encode lightning invoices (BOLT11). While native segwit version 0 outputs (P2WPKH and P2WSH) use bech32, higher native segwit output versions (e.g. P2TR) use the improved variant bech32m (BIP350). Bech32(m) addresses are sometimes referred to as "bc1" for the prefix of such addresses. Native segwit outputs are more blockspace efficient than older output types and therefore may require lower fees to be spent.
+    Bech32 refers to a generic checksummed base32-encoded format featuring strong error detection guarantees. While bech32 was originally developed to be used as the address format for native segwit outputs (BIP173), it is also used to encode lightning invoices (BOLT11). While native segwit version 0 outputs (P2WPKH and P2WSH) use bech32, higher native segwit output versions (e.g., P2TR) use the improved variant bech32m (BIP350). Bech32(m) addresses are sometimes referred to as "bc1" for the prefix of such addresses. Native segwit outputs are more blockspace-efficient than older output types and therefore may require lower fees to be spent.
 
 bip, BIP::
     Bitcoin Improvement Proposals. A set of proposals that members of the Bitcoin community have submitted to improve Bitcoin. For example, BIP-21 is a proposal to improve the Bitcoin uniform resource identifier (URI) scheme. BIPs can be found at https://github.com/bitcoin/bips.
@@ -45,17 +45,17 @@ Bitcoin mining::
     Every time a new block is created, the mining node will receive new bitcoin created within the coinbase transaction of that block.
 
 block::
-    A block consist of a header and a body of valid transactions.
+    A block consists of a header and a body of valid transactions.
     The block is marked with a timestamp and commits to a specific predecessor block.
-    When hashed, the block header provides the proof of work which makes the blockchain probabilistically immutable.
+    When hashed, the block header provides the proof of work that makes the blockchain probabilistically immutable.
     Blocks must adhere to the rules enforced by network consensus to extend the main blockchain.
     When a block is appended to the blockchain, the included transactions are considered to have their first confirmation.
 
 blockchain::
     The blockchain is a distributed log of all Bitcoin transactions.
-    Transactions are grouped in discrete updates called blocks limited to up to 4 million weight units.
+    Transactions are grouped in discrete updates called blocks, limited up to 4 million weight units.
     Blocks are produced approximately every ten minutes via a stochastic process called mining.
-    Each block includes a computationally intensive "proof of work".
+    Each block includes a computationally intensive "proof of work."
     The proof of work requirement is used to regulate the block intervals and protect the blockchain against attacks to rewrite history:
     an attacker would need to outdo existing proof of work to replace already published blocks, making each block probabilistically immutable as it is buried under subsequent blocks.
 
@@ -81,11 +81,11 @@ closing transaction::
     Mutually closing a channel with the help of a closing transaction has the advantage that fewer blockchain transactions are required to claim all funds, in comparison to unilaterally forcing a channel close by publishing a commitment transaction. Additionally, funds for both parties are immediately spendable from a closing transaction.
 
 CLTV::
-    CLTV is a shortform for the bitcoin OP code OP_CHECKLOCKTIMEVERIFY. This defines an absolute blockheight before an output can be spend. The atomicity of the routing process heavily depends on CLTV values in HTLCs. Routing nodes announce their CLTV expiry deltas that they wish for an incoming and outgoing htlc to have at least via the gossip protocol.
+    CLTV is a shortform for the bitcoin OP code OP_CHECKLOCKTIMEVERIFY. This defines an absolute blockheight before an output can be spent. The atomicity of the routing process heavily depends on CLTV values in HTLCs. Routing nodes announce the CLTV expiry deltas that they wish for an incoming and outgoing HTLC to have, at least via the gossip protocol.
 
 coinbase::
     The coinbase is a special field only permitted in the sole input of coinbase transactions.
-    The coinbase allows up 100 bytes of arbitrary data, but since BIP34 must first feature the current block height to ensure that coinbase transactions are unique.
+    The coinbase allows up 100 bytes of arbitrary data, but BIP34 must first feature the current block height to ensure that coinbase transactions are unique.
     Not to be confused with coinbase transaction.
 
 coinbase transaction::
@@ -155,15 +155,15 @@ ephemeral key::
 
 feature bits::
     A binary string that Lightning nodes use to communicate to each other which features they support.
-    Feature bits are included in many Lightning Messages as well as BOLT #11.
-    They can be decoded using BOLT #9, and will tell nodes which features the node has enabled, and whether these are backward-compatible.
+    Feature bits are included in many Lightning Messages as well as BOLT 11.
+    They can be decoded using BOLT 9, and will tell nodes which features the node has enabled, and whether these are backward compatible.
     Also known as feature flags.
 
 fees::
     In the context of the Lightning Network, nodes will charge routing fees for forwarding other users' payments.
     Individual nodes can set their own fee policies which will be calculated as the sum of a fixed _base_fee_ and a _fee_rate_ which depends on the payment amount.
     In the context of Bitcoin, the sender of a transaction pays a fee to miners for including the transaction in a block.
-    Bitcoin transaction fees do not include a base fee and only depende linearly on the size of the transaction in Bytes but not on the amount.
+    Bitcoin transaction fees do not include a base fee and only depend linearly on the size of the transaction in bytes but not on the amount.
 
 funding transaction::
     The funding transaction is used to open a payment channel.
@@ -235,8 +235,8 @@ Lightning Network, Lightning Network Protocol, Lightning Protocol::
    Other components of the Lightning Network are the gossip protocol, the transport layer, and payment requests.
 
 Lightning Network Protocol Suite::
-   The Lightning Protocol Suite consists of 5 Layers which are responsible for various parts of the protocol.
-   From bottom (the first layer) to the top (the fifth layer) these layers are called: Network Communication Layer, Messaging Layer, Peer 2 Peer Layer, Routing Layer, Payment Layer.
+   The Lightning Protocol Suite consists of five Layers that are responsible for various parts of the protocol.
+   From bottom (the first layer) to the top (the fifth layer), these layers are called the Network Communication Layer, the Messaging Layer, the Peer 2 Peer Layer, the Routing Layer, and the Payment Layer.
    Various BOLTs define tasks on one or several layers.
 
 Lightning Network Node, Lightning Node::
@@ -258,7 +258,7 @@ Locktime::
 
 Messaging Layer::
     The Layer builds on top of the Network Connection Layer of the Lightning Network Protocol Suite.
-    It is responsible to ensure an encrypted and secure communication and exchange of information via the chosen Network Connection Layer protocol.
+    It is responsible for ensuring an encrypted and secure communication and exchange of information via the chosen Network Connection Layer protocol.
     The messaging layer defines the framing and format of Lightning Messages as defined in BOLT 01.
     The feature bits defined in BOLT 09 are also part of this layer.
 
@@ -269,8 +269,8 @@ millisatoshi::
 MPP::
 A multipart payment (which is often also referred to as multipath payment) is a method for payments where the sender can split the payment amount into multiple smaller parts and deliver them potentially along multiple potentially disjoint paths. As the MPP strategies do not require one to send the smaller splits along different paths the term multipart payment is more accurate than multipath payment. In computer science multipart paryments are modelled as network flows.
 
-multi-signature::
-    Mult-isignature (multisig) refers to requiring more than one key to authorize a Bitcoin transaction.
+multisignature::
+    Multisignature (multisig) refers to requiring more than one key to authorize a Bitcoin transaction.
     Payment channels are always encoded as multisignature addresses requiring one signature from each peer of the payment channel.
     In the standard case of a two-party payment channel, a 2-of-2 multisignature address is used.
 
@@ -287,7 +287,7 @@ network capacity::
 
 Network Connection Layer::
     The lowest layer of the Lightning Network Protocol Suite.
-    Its responsability is to support internet protocols like IPv4, IPv6, TOR2 and TOR3 and use them to establise a secure cryptographic communication channel on top of them as defined in BOLT8 or to speak DNS for the Bootstrapping of the Network as defined BOLT 10.
+    Its responsibility is to support internet protocols like IPv4, IPv6, TOR2, and TOR3, and use them to establish a secure cryptographic communication channel as defined in BOLT 8, or to speak DNS for the bootstrapping of the network as defined in BOLT 10.
 
 Noise_XK::
     The template of the Noise protocol framework to establish an authenticated and encrypted communication channel between two peers of the Lightning Network.
@@ -344,18 +344,18 @@ payment channel::
 
 Payment Layer::
     The top and fifth Layer of the Lightning Network Protocol Suite operates on top of the Routing Layer.
-    Its responsability is to enable the Payment process via BOLT #11 invoices.
-    While it heaviliy uses the Channel Graph from the Gossip Protcol as defined in BOLT #7 the actual strategies to deliver a payment are not part of the specification of the Protocol and left to the implementations.
-    As this topic is very import to ensure reliability of the Payment process and Payment deliver we included it in this book.
+    Its responsibility is to enable the Payment process via BOLT 11 invoices.
+    While it heavily uses the channel graph from the gossip protocol (as defined in BOLT 7), the actual strategies to deliver a payment are not part of the specification of the Protocol and are left to the implementations.
+    As this topic is very important to ensure reliability of the payment delivery process, we included it in this book.
 
 peer::
     Two parties which form a payment channel are called peers.
     In particular, they are connected via an encrypted, authenticated communication over a TCP Socket.
 
 Peer-to-Peer Layer::
-    The Peer to Peer layer is the third layer of the Lightning Network Protocol Suite and works on top of the Messaging Layer.
-    It is responsible to define the syntax and semantics of Information exchanged between peers via Lightning Messages.
-    This consists of Control messages as defined in BOLT #9, Channel esablishment, operation and closing messages as defined in BOLT #2 as well as Gossip and Routing Messages as defined in BOLT #7.
+    The Peer-to-Peer layer is the third layer of the Lightning Network Protocol Suite and works on top of the Messaging layer.
+    It is responsible for defining the syntax and semantics of Information exchanged between peers via Lightning Messages.
+    This consists of control messages as defined in BOLT 9; channel establishment, operation, and closing messages as defined in BOLT 2; and gossip and routing messages as defined in BOLT 7.
 
 private channel::
     A channel not announced to the rest of the network.
@@ -380,7 +380,7 @@ Proof of Work (PoW)::
     See _Bitcoin mining_ for more information.
 
 Point Time-Locked Contract (PTLC)::
-    A Point Time-Locked Contract (PTLC) is a Bitcoin Script that allows a conditional spend either on the presentation of a secret or after a certain blockheight has passed, similar to an HTLC. Unlike HTLCs, PTLCs do not depend on a preimage of a hash function but rather on the private key from an elliptic curve point. The security assumption is thus based on the discrete logarithm. PTLCs are not yet implemented on the Lightning Network.
+    A Point Time-Locked Contract (PTLC) is a Bitcoin script that allows a conditional spend either on the presentation of a secret or after a certain blockheight has passed, similar to an HTLC. Unlike HTLCs, PTLCs do not depend on a preimage of a hash function but rather on the private key from an elliptic curve point. The security assumption is thus based on the discrete logarithm. PTLCs are not yet implemented on the Lightning Network.
 
 Relative Timelock::
     Relative Timelock is a type of timelock which allows an input to specify the earliest time the input can be added to a block. The time is relative and is based on when the output referenced by that input was included in a block. Such a feature is jointly achieved by nSequence field and CheckSequenceVerify opcode, which was introduced by BIP68/112/113.
@@ -404,9 +404,9 @@ RIPEMD-160::
     RIPEMD-160 is a 160-bit cryptographic hash function. RIPEMD-160 is a strengthened version of RIPEMD with a 160-bit hash result, and is expected to be secure for the next ten years or more.
 
 Routing Layer::
-    The fourth Layer of the Lightning Network Protocol Suite operats on top of the Peer 2 Peer Layer.
-    Its responsability is to define the cryptographic primitives and neccessary communication protocol to allow the secure and atomic transport of bitcoin from a sending node to a recipient node.
-    While BOLT #4 defines the onion format that is used to communicate transport information to remote peers with whom no direct connections exist the actual transport of the Onions and cryptographic primitives are defined in BOLT #2.
+    The fourth Layer of the Lightning Network Protocol Suite operates on top of the Peer-to-Peer layer.
+    Its responsibility is to define the cryptographic primitives and neccessary communication protocol to allow the secure and atomic transport of bitcoin from a sending node to a recipient node.
+    While BOLT 4 defines the onion format that is used to communicate transport information to remote peers with whom no direct connections exist, the actual transport of the Onions and cryptographic primitives are defined in BOLT 2.
 
 topology::
     The topology of the Lightning Network describes the shape of the Lightning Network as a mathematical graph.
@@ -438,11 +438,12 @@ ScriptSig (aka signature script)::
 secret key (aka private key)::
     The secret number that unlocks bitcoin sent to the corresponding address. pass:[<span class="keep-together">A secret</span>] key looks like the following:
 ----
-5J76sF8L5jTtzE96r66Sf8cka9y44wdpJjMwCxR3tzLh3ibVPxh
+5J76sF8L5jTtzE96r66Sf8cka9y44wdp
+JjMwCxR3tzLh3ibVPxh
 ----
 
 Segregated Witness::
-    Segregated Witness is an upgrade to the Bitcoin protocol that adds a new witness for signatures and other transaction authorization proofs. This new witness field is exempt from the calculation of a new transaction ID, which solves most classes of 3rd party transaction malleability. Segregated Witness was deployed as a soft fork and is a change that technically makes Bitcoin’s protocol rules more restrictive.
+    Segregated Witness is an upgrade to the Bitcoin protocol that adds a new witness for signatures and other transaction authorization proofs. This new witness field is exempt from the calculation of a new transaction ID, which solves most classes of third party transaction malleability. Segregated Witness was deployed as a soft fork and is a change that technically makes Bitcoin’s protocol rules more restrictive.
 
 SHA::
     The Secure Hash Algorithm or SHA is a family of cryptographic hash functions published by the National Institute of Standards and Technology (NIST). The Bitcoin protocol currently uses SHA256.
@@ -506,8 +507,7 @@ watchtower::
     Watchtowers are a security service on the Lightning network that monitor channels.
     In the case that one of the channel partners goes offline or loses their backup, a watchtower keeps their own backups and can restore their channel information.
     They also monitor the Bitcoin blockchain and can submit a penalty transaction in the case that one of the partners tries to "cheat" by broadcasting an outdated state.
++
+Watchtowers can be run by the channel partners themselves, or as a paid service offered by a third party. Watchtowers have no control over the funds in the channels themselves.
 
-    Watchtowers can be run by the channel partners themselves, or as a paid service offered by a third party.
-    Watchtowers have no control over the funds in the channels themselves.
-
-Some contributed definitions have been sourced under a CC-BY license from the https://en.bitcoin.it/wiki/Main_Page[Bitcoin Wiki], https://en.wikipedia.org[Wikipedia], https://github.com/bitcoinbook/bitconbook[Mastering Bitcoin] or from other open-source publications.
+Some contributed definitions have been sourced under a CC-BY license from the https://en.bitcoin.it/wiki/Main_Page[Bitcoin Wiki], https://en.wikipedia.org[Wikipedia], https://github.com/bitcoinbook/bitconbook[Mastering Bitcoin] or from other open source publications.
