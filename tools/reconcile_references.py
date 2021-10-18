@@ -6,32 +6,59 @@ markup_files = glob.glob('*.asciidoc')
 anchor_re = re.compile("\[\[(.*)\]\]")
 ref_re = re.compile(".*\<\<([^\>]*)\>\>.")
 
-refs = []
-anchors = []
-dup_anchors = []
+refs = {}
+anchors = {}
+dup_anchors = {}
+
+
+# Find anchors and references in asciidoc files
 
 for markup_file in markup_files:
 	markup_f = open(markup_file, 'r')
 	markup_contents = markup_f.read()
 	markup_f.close()
-	for line in markup_contents.splitlines():
+	for linenum,line in enumerate(markup_contents.splitlines()):
 		ref_match = ref_re.match(line)
 		if ref_match:
-			if ref_match.group(1) not in refs:
-				refs.append(ref_match.group(1))
+			if ref_match.group(1) not in refs.keys():
+				refs[ref_match.group(1)] = {
+					'ref'	:	ref_match.group(1),
+					'file'	:	markup_file,
+					'linenum' : linenum,
+					'line' : line,
+				}
 		anchor_match = anchor_re.match(line)
 		if anchor_match:
-			if anchor_match.group(1) not in anchors:
-				anchors.append(anchor_match.group(1))
+			if anchor_match.group(1) not in anchors.keys():
+				anchors[anchor_match.group(1)] = {
+					'ref'	:	anchor_match.group(1),
+					'file'	:	markup_file,
+					'linenum' : linenum,
+					'line' : line,
+				}
 			else:
-				dup_anchors.append(anchor_match.group(1))
+				dup_anchors[anchor_match.group(1)] = {
+					'ref'	:	anchor_match.group(1),
+					'file'	:	markup_file,
+					'linenum' : linenum,
+					'line' : line,
+				}
 
-print("\nAnchors: ", len(anchors))
-print("\nDuplicated Anchors: ", len(dup_anchors))
-print(dup_anchors)
-print("\nReferences: ", len(refs))
-print(refs)
-broken_refs = list(set(refs) - set(anchors))
-print("\nBroken references: ", len(broken_refs), broken_refs)
-missing_refs = list(set(anchors) -  set(refs))
-print("\nUn-referenced Anchors: ", len(missing_refs), missing_refs)
+
+# Find broken, unmatched, missing
+broken_refs = set(refs.keys()) - set(anchors.keys())
+missing_refs = set(anchors.keys()) -  set(refs.keys())
+
+print("\nAnchors: ", len(anchors), "\n")
+print('\n'.join(sorted(anchors.keys())))
+# print("\nDuplicated Anchors: ", len(dup_anchors))
+# print('\n'.join(sorted(dup_anchors.keys())))
+# print("\nReferences: ", len(refs), "\n")
+# print('\n'.join(sorted(refs.keys())))
+
+
+
+print("\nBroken Reference Detail: ")
+
+for br in sorted(broken_refs):
+	print(f"{refs[br]['ref']} : {refs[br]['file']}:{refs[br]['linenum']}")
