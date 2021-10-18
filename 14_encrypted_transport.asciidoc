@@ -1,8 +1,8 @@
 [[encrypted_message_transport]]
-== Lightning's Encrypted Message Transport (Brontide)
+== Lightning's Encrypted Message Transport
 
 In this chapter we will review the Lightning Network's _Encrypted Message
-Transport_, also known as the _Brontide Protocol_, which allows peers to
+Transport_, sometimes referred to as the _Brontide Protocol_, which allows peers to
 establish end-to-end encrypted communication, authentication, and integrity
 checking.
 
@@ -33,9 +33,8 @@ be familiar with the state of the art in encrypted messaging protocols, as well
 as the various properties such a protocol provides to the network. It's worth
 mentioning that the core of the encrypted message transport is _agnostic_ to
 its usage within the context of the Lightning Network. As a result, the
-custom encrypted message transport Lightning uses, commonly referred to as
-"Brontide" (more on that later) can be dropped into any context that requires
-encrypted communication between two parties.
+custom encrypted message transport Lightning uses, can be dropped into any context
+that requires encrypted communication between two parties.
 
 === The Channel Graph as Decentralized Public Key Infrastructure
 
@@ -129,9 +128,9 @@ cryptographic primitives such as symmetric encryption and public key
 cryptography, its customary that each flavor of the Noise protocol is referred
 to by a unique name. In the spirit of "Noise", each flavor of the protocol
 selects a name derived from some sort of "noise". In the context of the
-Lightning Network, the flavor of Noise use will be referred to from here on as
-"Brontide". A brontide is a low billowing noise, similar to what one would hear
-during a thunderstorm when very far away.
+Lightning Network, the flavor of the Noise protocol used is sometimes referred to
+as "Brontide". A brontide is a low billowing noise, similar to what one would
+hear during a thunderstorm when very far away.
 
 === Lightning Encrypted Transport in Detail
 
@@ -164,7 +163,7 @@ encrypt messages (`k`) as well as rotate keys (`ck`) throughout the lifetime of
 the session.
 
 In the context of a handshake, `s` is usually a long-term static public key.
-Within Brontide, the public key crypto system used is an elliptic curve one,
+In our case, the public key crypto system used is an elliptic curve one,
 instantiated with the `secp256k1` curve which is used elsewhere in Bitcoin.
 Several ephemeral keys are generated throughout the handshake. We use `e` to
 refer to a new ephemeral key. ECDH operations between two keys are notated as
@@ -201,7 +200,7 @@ that the handshake has been successful up until that point. Otherwise if a MAC
 check ever fails, then the handshake process has failed, and the connection
 should be terminated.
 
-Brontide also adds a new piece of data to each handshake message: a protocol
+The protocol also adds a new piece of data to each handshake message: a protocol
 version. The initial protocol version is `0`. At the time of writing, no new
 protocol versions has been created. As a result, if a peer receives a version
 other than `0`, then they should reject the handshake initiation attempt.
@@ -213,12 +212,12 @@ choice, `secp256k1` as the elliptic curve, and `ChaChaPoly-130` as the AEAD
 Each variant of the Noise protocol has a unique ASCII string used to uniquely
 refer to it. In order to ensure that two parties are using the same protocol
 variant, the ASCII string is hashed into a digest, which is used to initialize
-the starting handshake state. In the context of Brontide, the ASCII string
-describing the protocol is: `Noise_XK_secp256k1_ChaChaPoly_SHA256`.
+the starting handshake state. In the context of the Lightning Network, the ASCII
+string describing the protocol is: `Noise_XK_secp256k1_ChaChaPoly_SHA256`.
 
 ==== Handshake in Three Acts
 
-The handshake portion of Brontide can be see prated into three distinct "acts".
+The handshake portion can be see prated into three distinct "acts".
 The entire handshake takes 1.5 round trips between the initiator and responder.
 At each act, a single message is sent between both parties. The handshake
 message is a _fixed_ sized payload prefixed by the protocol version.
@@ -318,7 +317,7 @@ does indeed know the public key of the responder.
 ===== Handshake acts
 
 After the initial handshake initialization, we can begin the actual execution
-of the handshake process. The Brontide handshake is compromised of a series of
+of the handshake process. The handshake is compromised of a series of
 three messages sent between the initiator and responder, hence referred to as
 "acts". As each act is a single message sent between the parties, a handshake
 is completed in a total of 1.5 round trips (0.5 for each act).
@@ -610,7 +609,7 @@ Key rotation for a key `k` is performed according to the following steps:
 
 === Conclusion
 
-Lightning's underlying transport encryption, known as _Brontide_, is based on the Noise protocol and offers strong security guarantees of privacy, authenticity and integrity for all communications between Lightning peers.
+Lightning's underlying transport encryption, is based on the Noise protocol and offers strong security guarantees of privacy, authenticity and integrity for all communications between Lightning peers.
 
 Unlike Bitcoin where peers often communicate "in the clear" (without encryption), all Lightning communications are encrypted peer-to-peer. In addition to transport encryption (peer-to-peer), in the Lightning Network payments are *also* encrypted into onion packets (hop-to-hop) and payment details are sent out-of-band between the sender and recipient (end-to-end). The combination of all these security mechanisms is cumulative and provides layered defense against de-anonymization, man-in-the-middle attacks and network surveillance.
 
