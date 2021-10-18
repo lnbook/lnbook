@@ -462,24 +462,24 @@ Bob has recieved 50,200 satoshi from Alice and paid 50,100 satoshi to Chan, so h
 
 Alice receives the secret and has settled the 50,200  satoshi HTLC. The secret can be used as a _receipt_ to prove that Dina got paid for that specific payment hash.
 
-The final channel balances reflect Alice's payment to Dina and the routing fees paid at each hop, as shown in <<alice_dina_htlc_redeem_4>>
+The final channel balances reflect Alice's payment to Dina and the routing fees paid at each hop, as shown in <<alice_dina_htlc_redeem_4>>.
 
 [[alice_dina_htlc_redeem_4]]
 .Channel balances after the payment
 image::images/mtln_0813.png["Channel balances after the payment"]
 
 [[preventing_theft]]
-==== Signature Binding - Preventing Theft of HTLCs
+==== Signature Binding: Preventing Theft of HTLCs
 
 There's a catch. Did you notice it?
 
-If Alice, Bob and Chan create the HTLCs as shown above, they face a small but not insignificant risk of loss. Any of those HTLCs can be redeemed (spent) by anyone who knows the secret. At first only Dina knows the secret. Dina is supposed to only spend the HTLC from Chan. But Dina could spend all three HTLCs at the same time, or even in a single spending transaction! After all Dina knows the secret before anyone else. Similarly, once Chan knows the secret he is only supposed to spend the HTLC offered by Bob. But what if Chan also spends Alice's offered HTLC too?
+If Alice, Bob, and Chan create the HTLCs as shown in <<alice_dina_htlc_redeem_4>>, they face a small but not insignificant risk of loss. Any of those HTLCs can be redeemed (spent) by anyone who knows the secret. At first only Dina knows the secret. Dina is supposed to only spend the HTLC from Chan. But Dina could spend all three HTLCs at the same time, or even in a single spending transaction! After all, Dina knows the secret before anyone else. Similarly, once Chan knows the secret he is only supposed to spend the HTLC offered by Bob. But what if Chan also spends Alice's offered HTLC too?
 
 This is not _trustless_! It fails the most important security feature. We need to fix this.
 
 The HTLC script must have an additional condition that binds each HTLC to a specific recipient. We do this by requiring a digital signature that matches the public key of each recipient, thereby preventing anyone else from spending that HTLC. Since only the designated recipient has the ability to produce a digital signature matching that public key, only the designated recipient can spend that HTLC.
 
-Let's look at the scripts again with this modification in mind. Alice's HTLC for Bob is modified to include Bob's Public Key and the +OP_CHECKSIG+ operator.
+Let's look at the scripts again with this modification in mind. Alice's HTLC for Bob is modified to include Bob's public key and the +OP_CHECKSIG+ operator.
 
 Here's the modified HTLC script:
 
@@ -489,7 +489,7 @@ OP_SHA256 <H> OP_EQUALVERIFY <Bob's Pub> OP_CHECKSIG
 
 [TIP]
 ====
-Notice that we also changed +OP_EQUAL+ to +OP_EQUALVERIFY+. When an operator has the suffix +VERIFY+ it does not return +TRUE+ or +FALSE+ on the stack. Instead it *halts* execution and fails the script if the result is false and continues without any stack output if it is true.
+Notice that we also changed +OP_EQUAL+ to +OP_EQUALVERIFY+. When an operator has the suffix +VERIFY+, it does not return +TRUE+ or +FALSE+ on the stack. Instead, it _halts_ execution and fails the script if the result is false and continues without any stack output if it is true.
 ====
 
 To redeem this HTLC, Bob has to present an unlocking script that includes a signature from Bob's private key as well as the secret payment pre-image, like this:
@@ -498,19 +498,19 @@ To redeem this HTLC, Bob has to present an unlocking script that includes a sign
 <Bob's Signature> <R>
 ----
 
-The unlocking and locking script are combined and evaluated by the scripting engine, as follows:
+The unlocking and locking scripts are combined and evaluated by the scripting engine, as follows:
 
 ----
 <Bob's Sig> <R> OP_SHA256 <H> OP_EQUALVERIFY <Bob's Pub> OP_CHECKSIG
 ----
 
-1. +<Bob's Sig>+ is pushed on to the stack
-2. +R+ is pushed on to the stack
-3. OP_SHA256 pops and hashes +R+ from the top of the stack and pushes H~R~ on to the stack
-4. +H+ is pushed on to the stack
-5. OP_EQUALVERIFY pops H and H~R~ and compares them. If they are not the same, execution halts. Otherwise, we continue without output to the stack
-6. +<Bob's Pub>+ key is pushed to the stack
-7. OP_CHECKSIG pops +<Bob's Sig>+ and +<Bob's Pub>+ and verifies the signature. The result (TRUE/FALSE) is pushed to the stack.
+1. +<Bob's Sig>+ is pushed on to the stack.
+2. +R+ is pushed on to the stack.
+3. +OP_SHA256+ pops and hashes +R+ from the top of the stack and pushes +H~R~+ on to the stack.
+4. +H+ is pushed on to the stack.
+5. +OP_EQUALVERIFY+ pops +H+ and +H~R~+ and compares them. If they are not the same, execution halts. Otherwise, we continue without output to the stack.
+6. +<Bob's Pub>+ key is pushed to the stack.
+7. +OP_CHECKSIG+ pops +<Bob's Sig>+ and +<Bob's Pub>+ and verifies the signature. The result (TRUE/FALSE) is pushed to the stack.
 
 As you can see, this is slightly more complicated, but now we have fixed the HTLC and made sure only the intended recipient can spend it.
 
@@ -522,7 +522,7 @@ Let's look at the first part of the HTLC script so far:
 OP_SHA256 <H> OP_EQUALVERIFY
 ----
 
-If we look at this in a symbolic representation above, it looks like the +OP_+ operators take up the most space. But that's not the case. Bitcoin Script is encoded in binary, with each operator representing one byte. Meanwhile, the +<H>+ value we use as a placeholder for the payment hash is a 32-byte (256-bit) value. You can find a listing of all the Bitcoin Script operators and their binary and hex encoding in https://en.bitcoin.it/wiki/Script[Bitcoin Wiki: Script], or in https://github.com/bitcoinbook/bitcoinbook/blob/develop/appdx-scriptops.asciidoc[Mastering Bitcoin Appendix: Transaction Script Language Operators, Constants, and Symbols].
+If we look at this in the preceding symbolic representation, it looks like the +OP_+ operators take up the most space. But that's not the case. Bitcoin Script is encoded in binary, with each operator representing one byte. Meanwhile, the +<H>+ value we use as a placeholder for the payment hash is a 32-byte (256-bit) value. You can find a listing of all the Bitcoin Script operators and their binary and hex encoding in https://en.bitcoin.it/wiki/Script[Bitcoin Wiki: Script], or in https://github.com/bitcoinbook/bitcoinbook/blob/develop/appdx-scriptops.asciidoc[_Mastering Bitcoin_ Appendix: Transaction Script Language Operators, Constants, and Symbols].
 
 Represented in hexadecimal, our HTLC script would look like this:
 
@@ -532,11 +532,11 @@ a8 0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3 88
 
 In hexadecimal encoding, +OP_SHA256+ is +a8+ and +OP_EQUALVERIFY+ is +88+. The total length of this script is 34 bytes, of which 32 bytes are the hash.
 
-As we've mentioned previously, any participant in the Lightning network should be able to take an off-chain transaction they hold and put it on-chain if they need to enforce their claim to funds. To take a transaction on-chain, they'd have to pay transaction fees to the miners and these fees are proportional to the *size in bytes* of the transaction.
+As we've mentioned previously, any participant in the Lightning Network should be able to take an off-chain transaction they hold and put it on-chain if they need to enforce their claim to funds. To take a transaction on-chain, they'd have to pay transaction fees to the miners, and these fees are proportional to the size in bytes of the transaction.
 
-Therefore, we want to find ways to minimize the on-chain "weight" of transactions by optimizing the script as much as possible. One way to do that is to add another hash function on top of the SHA256 algorithm, one that produces smaller hashes. The Bitcoin Script language provides the +OP_HASH160+ operator that "double hashes" a pre-image: first the pre-image is hashed with SHA256 and then the resulting hash is hashed again with the RIPEMD160 hash algorithm. The hash resulting from RIPEMD160 is 160 bits or 20 bytes, much more compact. In Bitcoin Script this is a very common optimization that is used in many of the common address formats.
+Therefore, we want to find ways to minimize the on-chain "weight" of transactions by optimizing the script as much as possible. One way to do that is to add another hash function on top of the SHA256 algorithm, one that produces smaller hashes. The Bitcoin Script language provides the +OP_HASH160+ operator that "double hashes" a pre-image: first the pre-image is hashed with SHA256, and then the resulting hash is hashed again with the RIPEMD160 hash algorithm. The hash resulting from RIPEMD160 is 160 bits or 20 bytes--much more compact. In Bitcoin Script this is a very common optimization that is used in many of the common address formats.
 
-So, let's use that optimization instead. Our SHA256 hash is +057596...69f6b3+. Putting that through another round of hasing with RIPEMD160 gives us the result:
+So, let's use that optimization instead. Our SHA256 hash is +057596...69f6b3+. Putting that through another round of hashing with RIPEMD160 gives us the result:
 
 ----
 R = "Dinas secret"
@@ -560,7 +560,7 @@ Encoded in hex this is:
 a9 9e017f6767971ed7cea17f98528d5f5c0ccb2c71 88
 ----
 
-Where OP_HASH160 is +a9+ and OP_EQUALVERIFY is +88+. This script is only 22 bytes long! We've saved 12 bytes from every transaction that redeems an HTLC on-chain.
+Where +OP_HASH160+ is +a9+ and +OP_EQUALVERIFY+ is +88+. This script is only 22 bytes long! We've saved 12 bytes from every transaction that redeems an HTLC on-chain.
 
 With that optimization, you now see how we arrive at the HTLC script shown in line 10 of <<received_htlc>>:
 
@@ -572,11 +572,11 @@ With that optimization, you now see how we arrive at the HTLC script shown in li
 
 ==== HTLC Cooperative and Timeout Failure
 
-So far we looked at the "Hash" part of HTLC, and how it would work if everyone cooperated and was online at the time of payment.
+So far we looked at the "hash" part of HTLC and how it would work if everyone cooperated and was online at the time of payment.
 
 What happens if someone goes offline or fails to cooperate? What happens if the payment cannot succeed?
 
-We need to ensure a way to "fail gracefully", because occasional routing failures are inevitable. There are two ways to fail: cooperatively and with a time-locked refund.
+We need to ensure a way to "fail gracefully," because occasional routing failures are inevitable. There are two ways to fail: cooperatively and with a time-locked refund.
 
 Cooperative failure is relatively simple: the HTLC is unwound by every participant in the route removing the HTLC output from their commitment transactions without changing the balance. We'll look at how that works in detail in <<channel_operation>>.
 
@@ -584,9 +584,9 @@ Let's look at how we can reverse an HTLC without the cooperation of one or more 
 
 To prevent this, every HTLC script includes a refund clause that is connected to a time-lock. Remember our original escrow contract? "Bob has 24 hours to show the secret after the contract is signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded"
 
-The time-locked refund is an important part of the script that ensures _atomicity_, so that the entire end-to-end payment either succeeds or fails gracefully. There is not "half paid" state to worry about. If there is a failure, every participant can either unwind the HTLC cooperatively with their channel partner, or put the time-locked refund transaction on-chain unilaterally to get their money back.
+The time-locked refund is an important part of the script that ensures _atomicity_, so that the entire end-to-end payment either succeeds or fails gracefully. There is no "half paid" state to worry about. If there is a failure, every participant can either unwind the HTLC cooperatively with their channel partner or put the time-locked refund transaction on-chain unilaterally to get their money back.
 
-To implement this refund in Bitcoin Script, we use a special operator +OP_CHECKLOCKTIMEVERIFY+ also known +OP_CLTV+ for short. Here's the script, as seen previously in line 13 of <<received_htlc>>:
+To implement this refund in Bitcoin Script, we use a special operator pass:[<code>O&#x2060;P&#x2060;_&#x2060;C&#x2060;H&#x2060;E&#x2060;C&#x2060;K&#x2060;L&#x2060;O&#x2060;C&#x2060;K&#x2060;T&#x2060;I&#x2060;M&#x2060;E&#x200b;V&#x2060;E&#x2060;R&#x2060;I&#x2060;F&#x2060;Y</code>] also known +OP_CLTV+ for short. Here's the script, as seen previously in line 13 of <<received_htlc>>:
 
 ----
 ...
@@ -595,26 +595,26 @@ To implement this refund in Bitcoin Script, we use a special operator +OP_CHECKL
 ...
 ----
 
-The +OP_CLTV+ operator takes an expiry time defined as the block height after which this transaction is valid. If the transaction timelock is not set the same as +<cltv_expiry>+, the evaluation of the script fails and the transaction is invalid. Otherwise, the script continues without any output to the stack. Remember, the +VERIFY+ suffix means this operator does not output +TRUE+ or +FALSE+, but instead either halts/fails, or continues without stack output.
+The +OP_CLTV+ operator takes an expiry time defined as the block height after which this transaction is valid. If the transaction time-lock is not set the same as +<cltv_expiry>+, the evaluation of the script fails and the transaction is invalid. Otherwise, the script continues without any output to the stack. Remember, the +VERIFY+ suffix means this operator does not output +TRUE+ or +FALSE+ but instead either halts/fails or continues without stack output.
 
-Essentially, the +OP_CLTV+ acts as a "gatekeeper" preventing the script from proceeding any further if the <cltv_expiry> block height has not been reached on the Bitcoin blockchain.
+Essentially, the +OP_CLTV+ acts as a "gatekeeper" preventing the script from proceeding any further if the +<cltv_expiry>+ block height has not been reached on the Bitcoin blockchain.
 
-The +OP_DROP+ operator simply drops the topmost item on the script stack. This is necessary in the beginning, because there is a "leftover" item from the previous script lines. It is necessary *after* +OP_CLTV+ in order to remove the +<cltv_expiry>+ item from the top of the stack as it is no longer necessary.
+The +OP_DROP+ operator simply drops the topmost item on the script stack. This is necessary in the beginning because there is a "leftover" item from the previous script lines. It is necessary _after_ +OP_CLTV+ to remove the +<cltv_expiry>+ item from the top of the stack because it is no longer necessary.
 
-Finally, once the stack has been cleaned up, there should be a public key and signature left behind, that +OP_CHECKSIG+ can verify. As we saw in <<preventing_theft>>, this is necessary to ensure that only the rightful owner of the funds can claim them, by binding this output to their public key and requiring a signature.
+Finally, once the stack has been cleaned up, there should be a public key and signature left behind that +OP_CHECKSIG+ can verify. As we saw in <<preventing_theft>>, this is necessary to ensure that only the rightful owner of the funds can claim them, by binding this output to their public key and requiring a signature.
 
 ==== Decrementing Time-Locks
 
-As the HTLCs are extended from Alice to Dina, the time-lock refund clause in each HTLC has a _different_ cltv_expiry value. We will see this in more detail as we talk about <<onion_routing>>. But suffice it to say that to ensure an orderly unwinding of a payment that fails, each hop needs to wait a bit less for their refund. The difference between time-locks for each hop is called the cltv_expiry_delta and is set by each node and advertized to the network as we will see in <<gossip>>.
+As the HTLCs are extended from Alice to Dina, the time-lock refund clause in each HTLC has a _different_ +cltv_expiry+ value. We will see this in more detail in <<onion_routing>>. But suffice it to say that to ensure an orderly unwinding of a payment that fails, each hop needs to wait a bit less for their refund. The difference between time-locks for each hop is called the +cltv_expiry_delta+ and is set by each node and advertised to the network as we will see in <<gossip>>.
 
-For example, Alice sets the refund time-lock on the first HTLC to a block height of current+500 blocks ("current" being the current block height). Bob would then set the time-lock cltv_expiry on the HTLC to Chan to current+450 blocks. Chan would set the time-lock to current+400 blocks from the current block height. This way, Chan can get a refund on the HTLC he offered to Dina _before_ Bob gets a refund on the HTLC he offered to Chan. Bob can get a refund of the HTLC he offered to Chan before Alice can get a refund for the HTLC she offered to Bob. The decrementing time-lock prevents race conditions and ensures the HTLC chain is unwound backwards, from the destination towards the origin.
+For example, Alice sets the refund time-lock on the first HTLC to a block height of current + 500 blocks ("current" being the current block height). Bob would then set the time-lock +cltv_expiry+ on the HTLC to Chan to current + 450 blocks. Chan would set the time-lock to current + 400 blocks from the current block height. This way, Chan can get a refund on the HTLC he offered to Dina _before_ Bob gets a refund on the HTLC he offered to Chan. Bob can get a refund of the HTLC he offered to Chan before Alice can get a refund for the HTLC she offered to Bob. The decrementing time-lock prevents race conditions and ensures the HTLC chain is unwound backward, from the destination toward the origin.
 
 === Conclusion
 
 In this chapter we saw how Alice can pay Dina even if she doesn't have a direct payment channel. Alice can find a path that connects her to Dina and route a payment across several payment channels so that it reaches Dina.
 
-To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, Alice must implement a fairness protocol in cooperation with all the intermediary nodes in the path. The fairness protocol is currently implemented as a _Hash Time-Locked Contract (HTLC)_, which commits funds to a payment hash derived from a secret payment pre-image.
+To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, Alice must implement a fairness protocol in cooperation with all the intermediary nodes in the path. The fairness protocol is currently implemented as an HTLC, which commits funds to a payment hash derived from a secret payment pre-image.
 
-Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment pre-image. Once an HTLC reaches Dina, she reveals the pre-image which flows backwards resolving all the HTLCs offered.
+Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment pre-image. Once an HTLC reaches Dina, she reveals the pre-image, which flows backward resolving all the HTLCs offered.
 
 Finally, we saw how a time-locked refund clause completes the HTLC, ensuring that every participant can get a refund if the payment fails but for whatever reason one of the participants doesn't cooperate in unwinding the HTLCs. By always having the option to go on-chain for a refund, the HTLC achieves the fairness goal of atomicity and trustless operation.
