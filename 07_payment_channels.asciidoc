@@ -541,16 +541,16 @@ OP_CHECKSIG
 
 This is a conditional script (see <<conditional_scripts>>), which means the output can be spent if _either_ of the two conditions is met. The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. The second clause is timelocked by +<to_self_delay>+ blocks and can only be spent after that many blocks by anyone who can sign for +<local_delayedpubkey>+. In our example, we had set the +<to_self_delay>+ timelock to 432 blocks, but this is a configurable delay that is negotiated by the two channel partners. The +to_self_delay+ timelock duration is usually chosen in proportion to the channel capacity, meaning that larger capacity channels (more funds), have longer +to_self_delay+ timelocks to protect the parties.
 
-The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. A critical requirement to the security of this script is that the remote party *cannot* unilaterally sign with the `revocationpubkey`. To see why this is important, consider the scenario where the remote party breaches a previously revoked commitment, if they can sign with this key, then they can simply take the revocation clause _themselves_ and steal all the funds in the channel. Instead, we derive the `revocationpubkey` for _each_ state based on information from _both_ the self (local) and remote party. A clever use of symmetric and asymmetric cryptography is used to allow both sides to compute the `revocationpubkey` public key, but only the honest self party to compute the private key given their secret information.
+The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. A critical requirement to the security of this script is that the remote party _cannot_ unilaterally sign with the `revocationpubkey`. To see why this is important, consider the scenario in which the remote party breaches a previously revoked commitment. If they can sign with this key, then they can simply take the revocation clause _themselves_ and steal all the funds in the channel. Instead, we derive the `revocationpubkey` for _each_ state based on information from _both_ the self (local) and remote party. A clever use of symmetric and asymmetric cryptography is used to allow both sides to compute the `revocationpubkey` public key, but only allow the honest self party to compute the private key given their secret information.
 [TIP]
 ====
-As shown above, each side sends a `revocation_basepoint` during the initial channel negotiation messages as well as a `first_per_commitment_point`. The `revocation_basepoint` is static for the lifetime of the channel, while each new channel state will be based off a new `first_per_commitment_point`.
+As shown previously, each side sends a `revocation_basepoint` during the initial channel negotiation messages as well as a `first_per_commitment_point`. The `revocation_basepoint` is static for the lifetime of the channel, while each new channel state will be based off a new `first_per_commitment_point`.
 
-Given this information, the `revocationpubkey` for each channel state is derived via the following series of Elliptic Curve and hashing operations: `revocationpubkey = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)`.
+Given this information, the `revocationpubkey` for each channel state is derived via the following series of elliptic curve and hashing operations: `revocationpubkey = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)`.
 
-Due to the commutative property of the Abelian groups that Elliptic Curves are defined over, once the `per_commitment_secret` (the private key for the `per_commitment_point`) is revealed by the remote party, self can derive the private key for the `revocationpubkey` with the following operation: `revocation_priv = (revocationbase_priv * sha256(revocation_basepoint || per_commitment_point)) + (per_commitment_secret * sha256(per_commitment_point || revocation_basepoint)) mod N`.
+Due to the commutative property of the abelian groups that elliptic curves are defined over, once the `per_commitment_secret` (the private key for the `per_commitment_point`) is revealed by the remote party, self can derive the private key for the `revocationpubkey` with the following operation: `revocation_priv = (revocationbase_priv * sha256(revocation_basepoint || per_commitment_point)) + (per_commitment_secret * sha256(per_commitment_point || revocation_basepoint)) mod N`.
 
-To see why this works in practice, notice that we can _re order_ (commute) and expand the public key computation of the original formula for `revocationpubkey`:
+To see why this works in practice, notice that we can _reorder_ (commute) and expand the public key computation of the original formula for `revocationpubkey`:
 ```
 revocationpubkey = G*(revocationbase_priv * sha256(revocation_basepoint || per_commitment_point) + G*(per_commitment_secret * sha256(per_commitment_point || revocation_basepoint))
                  = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint))
@@ -567,11 +567,11 @@ The timelock used in the commitment transaction with +CHECKSEQUENCEVERIFY+ is a 
 
 The second output (to_remote) output of the commitment transaction, is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#to_remote-output[BOLT #3 Commitment Transaction - to_remote Output] and in the simplest form is a Pay-to-Witness-Public-Key-Hash (P2WPKH) for +<remote_pubkey>+, meaning that it simply pays the owner who can sign for +<remote_pubkey>+.
 
-Now that we've defined the commitment transactions in detail, let's see how Alice and Bob advance the state of the channel, create and sign new commitment transactions and revoke old commitment transactions.
+Now that we've defined the commitment transactions in detail, let's see how Alice and Bob advance the state of the channel, create and sign new commitment transactions, and revoke old commitment transactions.
 
 === Advancing the Channel State
 
-To advance the state of the channel, Alice and Bob exchange two messages: +commitment_signed+ and +revoke_and_ack+. The +commitment_signed+ message can be sent by either channel partner when they have an update to the channel state. The other channel partner then may respond with +revoke_and_ack+ to _revoke_ the old commitment and _acknowledge_ the new commitment.
+To advance the state of the channel, Alice and Bob exchange two messages: +commitment_signed+ and +revoke_and_ack+ messages. The +commitment_signed+ message can be sent by either channel partner when they have an update to the channel state. The other channel partner then may respond with +revoke_and_ack+ to _revoke_ the old commitment and _acknowledge_ the new commitment.
 
 In <<commitment_message_flow>> we see the Alice and Bob exchanging two pairs of +commitment_signed+ and +revoke_and_ack+. The first flow shows a state update initiated by Alice (left to right +commitment_signed+), to which Bob responds (right to left +revoke_and_ack+). The second flow shows a state update initiated by Bob and responded to by Alice.
 
@@ -581,7 +581,7 @@ image::images/mtln_0711.png[Commitment and revocation message flow]
 
 ==== The Commitment_Signed Message
 
-The structure of the +commitment_signed+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#committing-updates-so-far-commitment_signed[BOLT #2 - Peer Protocol - commitment_signed] and shown here:
+The structure of the +commitment_signed+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#committing-updates-so-far-commitment_signed[BOLT #2-Peer Protocol -commitment_signed] and shown here:
 
 [[commitment_signed_message]]
 .The commitment_signed message
@@ -599,7 +599,7 @@ The structure of the +commitment_signed+ message is defined in https://github.co
 
 [NOTE]
 ====
-The use of HTLCs to commit updates will be explained in detail in <<htlcs>> and <<channel_operation>>
+The use of HTLCs to commit updates will be explained in detail in <<htlcs>> and <<channel_operation>>. 
 ====
 
 Alice's +commitment_signed+ message gives Bob the signature needed (Alice's part of the 2-of-2) for a new commitment transaction.
@@ -608,7 +608,7 @@ Alice's +commitment_signed+ message gives Bob the signature needed (Alice's part
 
 Now that Bob has a new commitment transaction, he can revoke the previous commitment by giving Alice a revocation key, and construct the new commitment with Alice's signature.
 
-The +revoke_and_ack+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#completing-the-transition-to-the-updated-state-revoke_and_ack[BOLT #2 - Peer Protocol - revoke_and_ack] and shown here:
+The +revoke_and_ack+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#completing-the-transition-to-the-updated-state-revoke_and_ack[BOLT #2-Peer Protocol-revoke_and_ack] and shown here:
 
 [[revoke_and_ack_message]]
 .The revoke_and_ack message
@@ -620,31 +620,31 @@ The +revoke_and_ack+ message is defined in https://github.com/lightningnetwork/l
 
 ----
 
-+channel_id+:: This is the identifier of the channel
++channel_id+:: This is the identifier of the channel.
 +per_commitment_secret+:: Used to generate a revocation key for the previous (old) commitment, effectively revoking it.
-+next_per_commitment_point+:: Used to build a revocation_pubkey for the new commitment, so that it can later be revoked.
++next_per_commitment_point+:: Used to build a `revocation_pubkey` for the new commitment, so that it can later be revoked.
 
 [[revocation]]
-==== Revoking and Re-Committing
+==== Revoking and Recommitting
 
 Let's look at this interaction between Alice and Bob more closely.
 
-Alice is giving Bob the means to create a new commitment. In return, Bob is revoking the old commitment to assure Alice that he won't use it. Alice can only trust the new commitment if she has the revocation key to punish Bob for publishing the old commitment. From Bob's perspective, he can safely "revoke" the old commitment by giving Alice the keys to penalize him, because he has a signature for a new commitment.
+Alice is giving Bob the means to create a new commitment. In return, Bob is revoking the old commitment to assure Alice that he won't use it. Alice can only trust the new commitment if she has the revocation key to punish Bob for publishing the old commitment. From Bob's perspective, he can safely revoke the old commitment by giving Alice the keys to penalize him, because he has a signature for a new commitment.
 
 When Bob responds with +revoke_and_ack+, he gives Alice a +per_commitment_secret+. This secret can be used to construct the revocation signing key for the old commitment, which allows Alice to seize all channel funds by exercising a penalty.
 
-As soon as Bob has given this secret to Alice, he *must not* ever broadcast that old commitment. If he does, he will give Alice the opportunity to penalize him by taking the funds. Essentially, Bob is giving Alice the ability to hold him accountable for broadcasting an old commitment and in effect he has "revoked" his ability to use that old commitment.
+As soon as Bob has given this secret to Alice, he _must not_ ever broadcast that old commitment. If he does, he will give Alice the opportunity to penalize him by taking the funds. Essentially, Bob is giving Alice the ability to hold him accountable for broadcasting an old commitment and in effect he has revoked his ability to use that old commitment.
 
-Once Alice has received the +revoke_and_ack+ from Bob she can be sure that Bob cannot broadcast the old commitment without being penalized. She now has the keys necessary to create a penalty transaction if Bob broadcasts an old commitment.
+Once Alice has received the +revoke_and_ack+ from Bob, she can be sure that Bob cannot broadcast the old commitment without being penalized. She now has the keys necessary to create a penalty transaction if Bob broadcasts an old commitment.
 
 [[revocation_secret_derivation]]
 ==== Cheating and Penalty in Practice
 
-In practice, both Alice and Bob have to monitor for "cheating". They are monitoring the Bitcoin blockchain for any commitment transactions related to any of the channels they are operating. If they see a commitment transaction confirmed on-chain they will check to see if it is the most recent commitment. If it is an "old" commitment, they must immediately construct and broadcast a penalty transaction. The penalty transaction spends *both* the +to_local+ and +to_remote+ outputs, closing the channel and sending both balances to the "cheated" channel partner.
+In practice, both Alice and Bob have to monitor for cheating. They are monitoring the Bitcoin blockchain for any commitment transactions related to any of the channels they are operating. If they see a commitment transaction confirmed on-chain, they will check to see if it is the most recent commitment. If it is an "old" commitment, they must immediately construct and broadcast a penalty transaction. The penalty transaction spends _both_ the +to_local+ and +to_remote+ outputs, closing the channel and sending both balances to the cheated channel partner.
 
-In order to more easily allow both sides to keep track of the commitment numbers of the passed revoke commitments, each commitment actually _encodes_ the number of the commitment within the lock time and sequence fields in a transition. Within the protocol, this special encoding is referred to as "state hints". Assuming a party knows the current commitment number, they're able to use the state hints to easily recognize if a broadcasted commitment was a revoked one, and if so, which commitment number was breached, as that number is used to easily look up which revocation secret should be used in the revocation secret tree (shachain).
+To more easily allow both sides to keep track of the commitment numbers of the passed revoke commitments, each commitment actually _encodes_ the number of the commitment within the lock time and sequence fields in a transition. Within the protocol, this special encoding is referred to as _state hints_. Assuming a party knows the current commitment number, they're able to use the state hints to easily recognize if a broadcasted commitment was a revoked one, and if so, which commitment number was breached, as that number is used to easily look up which revocation secret should be used in the revocation secret tree (shachain).
 
-Rather than encode the state hint in plain sight, an _obfuscated_ state hint is used in its place. This obfuscation is achieved by first XOR'ing the current commitment number with a set of random bytes generated deterministically using the funding public keys of both sides of the channel. A total of 6 bytes across the lock time and sequence (24 bits of the locktime and 24 bits of the sequence) are used to encode the state hint within the commitment transaction, so 6 random bytes are needed to use for XOR'ing. To obtain these 6 bytes, both sides obtain the SHA-256 hash of the initiator's funding key concatenated to the responder's funding key. Before encoding the current commitment height, the integer is XOR'd with this state hint obfuscater, and then encoded in the lower 24 bits of the locktime, and the upper 64 bits of the sequence.
+Rather than encode the state hint in plain sight, an _obfuscated_ state hint is used in its place. This obfuscation is achieved by first XORing the current commitment number with a set of random bytes generated deterministically using the funding public keys of both sides of the channel. A total of 6 bytes across the lock time and sequence (24 bits of the locktime and 24 bits of the sequence) are used to encode the state hint within the commitment transaction, so 6 random bytes are needed to use for XORing. To obtain these 6 bytes, both sides obtain the SHA-256 hash of the initiator's funding key concatenated to the responder's funding key. Before encoding the current commitment height, the integer is XORed with this state hint obfuscater, and then encoded in the lower 24 bits of the locktime, and the upper 64 bits of the sequence.
 
 Let's review our channel between Alice and Bob and show a specific example of a penalty transaction. In <<competing_commitments_2>> we see the four commitments on Alice and Bob's channel. Alice has made three payments to Bob:
 
@@ -656,11 +656,11 @@ Let's review our channel between Alice and Bob and show a specific example of a 
 .Revoked and current commitments
 image::images/mtln_0712.png[Revoked and current commitments]
 
-With each commitment, Alice has revoked the previous (older) commitment. The current state of the channel and the correct balance is represented by Commitment #3. All previous commitments have been revoked and Bob has the keys necessary to issue penalty transactions against them, in case Alice tries to broadcast one of them.
+With each commitment, Alice has revoked the previous (older) commitment. The current state of the channel and the correct balance is represented by Commitment #3. All previous commitments have been revoked, and Bob has the keys necessary to issue penalty transactions against them, in case Alice tries to broadcast one of them.
 
-Alice might have an incentive to cheat, because all the previous commitment transactions would give her a higher proportion of the channel balance than she is entitled. Let's say for example that Alice tried to broadcast Commitment #1. That commitment transaction would pay Alice 70,000 satoshis and Bob 70,000 satoshis. If Alice was able to broadcast and spend her to_local output she would effectively be stealing 30,000 satoshis from Bob by rolling back her last two payments to Bob.
+Alice might have an incentive to cheat because all the previous commitment transactions would give her a higher proportion of the channel balance than she is entitled to. Let's say for example that Alice tried to broadcast Commitment #1. That commitment transaction would pay Alice 70,000 satoshis and Bob 70,000 satoshis. If Alice was able to broadcast and spend her to_local output she would effectively be stealing 30,000 satoshis from Bob by rolling back her last two payments to Bob.
 
-Alice decides to take a huge risk and broadcast the revoked Commitment #1, to steal 30,000 satoshis from Bob. In <<cheating_commitment>> we see Alice's old commitment that she broadcasts to the Bitcoin blockchain:
+Alice decides to take a huge risk and broadcast the revoked Commitment #1, to steal 30,000 satoshis from Bob. In <<cheating_commitment>> we see Alice's old commitment that she broadcasts to the Bitcoin blockchain. 
 
 [[cheating_commitment]]
 .Alice cheating
@@ -670,7 +670,7 @@ As you can see, Alice's old commitment has two outputs, one paying herself 70,00
 
 Unfortunately for Alice, Bob's node is diligently monitoring the Bitcoin blockchain and sees an old commitment transaction broadcast and (eventually) confirmed on-chain.
 
-Bob's node will immediately broadcast a penalty transaction. Since this old commitment was revoked by Alice, Bob has the +per_commitment_secret+ that Alice sent him. He uses that secret to construct a signature for the +revocation_pubkey+. While Alice has to wait for 432 blocks, Bob can spend *both* outputs immediately. He can spend the +to_remote+ output with his private keys, because it was meant to pay him anyway. He can also spend the output meant for Alice with a signature from the revocation key. His node broadcasts the penalty transaction shown in <<penalty_transaction>>, below:
+Bob's node will immediately broadcast a penalty transaction. Since this old commitment was revoked by Alice, Bob has the +per_commitment_secret+ that Alice sent him. He uses that secret to construct a signature for the +revocation_pubkey+. While Alice has to wait for 432 blocks, Bob can spend _both_ outputs immediately. He can spend the +to_remote+ output with his private keys because it was meant to pay him anyway. He can also spend the output meant for Alice with a signature from the revocation key. His node broadcasts the penalty transaction shown in <<penalty_transaction>>. 
 
 [[penalty_transaction]]
 .Cheating and penalty
@@ -684,11 +684,11 @@ You may have noticed there is a special situation that needs to be dealt with: i
 
 === Closing the Channel (Cooperative Close)
 
-So far we've looked at the commitment transactions as one possible way to close a channel, unilaterally. This type of channel closure is not ideal, since it forces a timelock on the channel partner that uses it.
+So far we've looked at the commitment transactions as one possible way to close a channel, unilaterally. This type of channel closure is not ideal because it forces a timelock on the channel partner that uses it.
 
 A better way to close a channel is a cooperative close. In a cooperative close, the two channel partners negotiate a final commitment transaction called the _closing transaction_ that pays each party their balance immediately to the destination wallet of their choice. Then, the partner that initiated the channel closing flow will broadcast the closing transaction.
 
-The closing message flow is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#channel-close[BOLT #2 - Peer Protocol - Channel Close] and is shown in <<closing_message_flow>> below:
+The closing message flow is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#channel-close[BOLT #2-Peer Protocol-Channel Close] and is shown in <<closing_message_flow>>. 
 
 [[closing_message_flow]]
 .The channel close message flow
@@ -710,19 +710,19 @@ Channel closing starts with one of the two channel partners sending the +shutdow
 
 +channel_id+:: The channel identifier for the channel we want to close
 +len+:: The length of the script of the destination wallet that this channel partner wants to receive their balance.
-+scriptpubkey+:: A Bitcoin script of the destination wallet, in one of the "standard" Bitcoin address formats (P2PKH, P2SH, P2WPKH, P2WSH etc.)
++scriptpubkey+:: A Bitcoin script of the destination wallet, in one of the "standard" Bitcoin address formats (P2PKH, P2SH, P2WPKH, P2WSH, etc.)
 
-Let's say Alice sends the +shutdown+ message to Bob to close their channel. Alice will specify a Bitcoin script that corresponds to the Bitcoin address of her wallet. She's telling Bob - let's make a closing transaction that pays my balance to this wallet.
+Let's say Alice sends the +shutdown+ message to Bob to close their channel. Alice will specify a Bitcoin script that corresponds to the Bitcoin address of her wallet. She's telling Bob: let's make a closing transaction that pays my balance to this wallet.
 
 Bob will respond with his own +shutdown+ message indicating that he agrees to cooperatively close the channel. His +shutdown+ message includes the script for his wallet address.
 
-Now both Alice and Bob have each other's preferred wallet address, they can construct identical closing transactions to settle the channel balance.
+Now both Alice and Bob have each other's preferred wallet address, and they can construct identical closing transactions to settle the channel balance.
 
 ==== The closing_signed Message
 
 Assuming the channel has no outstanding commitments or updates and the channel partners have exchanged the +shutdown+ messages shown in the previous section, they can now finish this cooperative close.
 
-The *funder* of the channel (Alice in our example) starts by sending a +closing_signed+ message to Bob. This message proposes a transaction fee for the on-chain transaction, and Alice's signature (the 2-of-2 multisig) for the closing transaction. The +closing_signed+ message is shown here:
+The _funder_ of the channel (Alice in our example) starts by sending a +closing_signed+ message to Bob. This message proposes a transaction fee for the on-chain transaction, and Alice's signature (the 2-of-2 multisig) for the closing transaction. The +closing_signed+ message is shown here:
 
 [[closing_signed_message]]
 .The closing_signed message
@@ -744,11 +744,11 @@ Once Alice receives a +closing_signed+ message with the same fee as the one she 
 
 ==== The Cooperative Close Transaction
 
-The cooperative close transaction looks similar to the last commitment transaction that Alice and Bob had agreed on. However, unlike the last commitment transaction, it does not have timelocks or penalty revocation keys in the outputs. Since both parties cooperate to produce this transaction and they won't be making any further commitments, there is no need for the asymmetric, delayed and revocable elements in this transaction.
+The cooperative close transaction looks similar to the last commitment transaction that Alice and Bob had agreed on. However, unlike the last commitment transaction, it does not have timelocks or penalty revocation keys in the outputs. Since both parties cooperate to produce this transaction and they won't be making any further commitments, there is no need for the asymmetric, delayed, and revocable elements in this transaction.
 
-Typically the addresses used in this cooperative close transaction are generated freshly for each channel being closed. However, it's also possible for both sides to _lock in_ a "delivery" address to be used to send their cooperatively settled funds to. Within the TLV namespace of both the `open_channel` and `accept_channel` messages, both sides are free to specify an "upfront shutdown script". Commonly, this address is derived from keys that reside in cold storage. This practice serves to increase the security of channels: if a channel partner is somehow hacked, then the hacker isn't able to cooperatively close the channel using an address they control. Instead, the uncompromised honest channel partner will refuse to cooperate on a channel closure if the specified upfront shutdown address isn't used. This feature effectively creates a "closed loop", restricting the flow of funds out of a given channel.
+Typically the addresses used in this cooperative close transaction are generated freshly for each channel being closed. However, it's also possible for both sides to _lock in_ a "delivery" address to be used to send their cooperatively settled funds to. Within the TLV namespace of both the `open_channel` and `accept_channel` messages, both sides are free to specify an "upfront shutdown script." Commonly, this address is derived from keys that reside in cold storage. This practice serves to increase the security of channels: if a channel partner is somehow hacked, then the hacker isn't able to cooperatively close the channel using an address they control. Instead, the uncompromised honest channel partner will refuse to cooperate on a channel closure if the specified upfront shutdown address isn't used. This feature effectively creates a "closed loop," restricting the flow of funds out of a given channel.
 
-Alice broadcasts a transaction shown in <<closing_transaction>> below to close the channel:
+Alice broadcasts a transaction shown in <<closing_transaction>> to close the channel. 
 
 [[closing_transaction]]
 .The cooperative close transaction
@@ -758,10 +758,10 @@ As soon as this closing transaction is confirmed on the Bitcoin blockchain, the 
 
 === Conclusion
 
-In this section we looked at payment channels in much more detail. We examined three message flows used by Alice and Bob to negotiate funding, commitments and closing of the channel. We also showed the structure of the funding, commitment and closing transactions and looked at the revocation and penalty mechanisms.
+In this section we looked at payment channels in much more detail. We examined three message flows used by Alice and Bob to negotiate funding, commitments, and closing of the channel. We also showed the structure of the funding, commitment, and closing transactions and looked at the revocation and penalty mechanisms.
 
 As we will see in the next few chapters, HTLCs are used even for local payments between channel partners. They are not necessary, but the protocol is much simpler if local (one channel) and routed (many channels) payments are done in the same way.
 
-In a single payment channel, the number of payments per second is only bound by the network capacity between Alice and Bob. As long as the channel partners are able to send a few bytes of data back and forth to agree to a new channel balance they have effectively made a payment. This is why we can achieve a much greater throughput of payments on the Lighting Network (off-chain) than the transaction throughput that can be handled by the Bitcoin blockchain (on-chain).
+In a single payment channel, the number of payments per second is only bound by the network capacity between Alice and Bob. As long as the channel partners are able to send a few bytes of data back and forth to agree to a new channel balance, they have effectively made a payment. This is why we can achieve a much greater throughput of payments on the LN (off-chain) than the transaction throughput that can be handled by the Bitcoin blockchain (on-chain).
 
-In the next few sections we will discuss routing, HTLCs and their use in channel operations.
+In the next few chapters we will discuss routing, HTLCs, and their use in channel operations.
