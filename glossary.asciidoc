@@ -4,32 +4,6 @@
 
 This quick glossary contains many of the terms used in relation to Bitcoin. These terms are used throughout the book, so bookmark this for a quick reference.
 
-////
-TODO:
-
-Some additional definitions, to be cleaned up and moved into alphabetic order are in the commented-out area below
-
-
-
-
-* blockchain: a single distributed ledger agreed upon by a network of participating nodes. The Lightning Network does not use a blockchain to transact, but requires transactions recorded in a blockchain in order for bitcoin to enter and leave the network.
-* channel: a channel is a financial relationship between two nodes on the Lightning Network. Two users can open a channel with each other using a Bitcoin transaction, and transact with each other by moving bitcoin from one side of the channel to the other.
-* capacity: channels require bitcoin to be pre-loaded into them before they can be used. This becomes the maximum amount of bitcoin that can be transacted using this channel i.e. it's capacity.
-** in-bound capacity: the maximum amount of bitcoin that can be received using a channel. Your in-bound capacity is increased when a user opens a channel with you, or you make a payment to another user.
-** out-bound capacity: the maximum amount of bitcoin that can be sent using a channel. Your out-bound capacity is increased when you open a channel with another user, or you receive a payment from another user.
-* invoice: a request for payment from another user that can take the form of a text string or a QR code. Lightning Invoices can be specified with a description and an amount the invoicer is requesting.
-* node: a node is a participant on the Lightning Network. Nodes can open and close channels with each other, route payments from other nodes, and manage their own wallets. Typically a Lightning Network node user will also run a Bitcoin Node to keep track of the status of on-chain payments
-* on-chain/off-chain: a payment is considered "on-chain" if it is included in the Bitcoin (or other underlying) blockchain where it is publicly visible to all nodes. Payments that are not visible in the underlying blockchain are "off-chain"
-* route: when making a payment from one user to another, the payment will move along many intermediary nodes before reaching the receiver. This path from the sender to the receiver forms a route on the network.
-** routing fees: each intermediary node will request a fee for transmitting the payment. The sum of these are the routing fees paid by the sender
-* transaction: a payment from one user to another. Lightning Network transactions are Bitcoin transactions not yet recorded on the Bitcoin blockchain.
-** funding transaction: a transaction that locks bitcoin into a smart contract to open a channel.
-** settlement transaction: a transaction that closes a channel, and allocates the locked bitcoin to the channel owners according to the final balance of the channel.
-** penalty transaction: if one user tries to "cheat" by claiming a prior state of the channel, the other user can publish a penalty transaction to the Bitcoin blockchain, which allocates all bitcoin in that channel to them.
-* wallet: an application that manages private keys in order to send and receive bitcoin. Lightning Wallets have additional features over and above Bitcoin Wallets in that they can open and close channels, and send and receive Lightning payments.
-
-////
-
 address::
     Bitcoin invoice addresses compactly encode the information necessary to pay a receiver. A modern address consists of a string of letters and numbers that starts with bc1 and looks like +bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4+. An address is shorthand for a receiver's locking script which can be used by a sender to sign over funds to the receiver. Most addresses either represent the receiver's public key or some form of redeemscript that defines more complex spending conditions. The above example is a bech32 address encoding a witness program locking funds to the hash of a public key (Pay to Witness Public Key Hash). There are also older address formats that start with 1 or 3 that use the base58check address encoding to represent public key hashes or script hashes.
 
@@ -132,7 +106,7 @@ Commitment Transaction::
      Every time a new transaction is made or forwarded using the channel, the channel balance will update, and a new commitment transaction will be signed by both parties.
      Importantly, for a channel between Alice and Bob, both Alice and Bob keep their own version of the commitment transaction, which is also signed by the other party.
      At any point, the channel can be closed by either Alice or Bob if they submit their commitment transaction to the Bitcoin blockchain.
-     Submitting an older (outdated) commitment transaction is considered "cheating" (i.e. a protocol breach) in the Lightning network and can be penalized by the other party, claiming all the funds in the channel for themselves.     
+     Submitting an older (outdated) commitment transaction is considered "cheating" (i.e. a protocol breach) in the Lightning network and can be penalized by the other party, claiming all the funds in the channel for themselves.
 
 confirmations::
     Once a transaction is included in a block, it has one confirmation. As soon as _another_ block is mined on the same blockchain, the transaction has two confirmations, and so on. Six or more confirmations are considered sufficient proof that a transaction cannot be reversed.
@@ -247,10 +221,10 @@ invoice::
     Invoices can also include a fallback Bitcoin address to which the payment can be made in case no route can be found, as well as hints for routing a payment through a private channel.
 
 JIT Routing::
-   "Just in Time" Routing. 
+   "Just in Time" Routing.
    An alternative to source-based routing was first proposed by co-author René Pickhardt.
-   With JIT routing, intermediary nodes along a path can pause an in-flight payment to rebalance their channels. 
-   This might allow them to successfully forward payments that might otherwise have failed due to a lack of outgoing capacity. 
+   With JIT routing, intermediary nodes along a path can pause an in-flight payment to rebalance their channels.
+   This might allow them to successfully forward payments that might otherwise have failed due to a lack of outgoing capacity.
 
 Lightning message::
    A Lightning message is an encrypted data string that can be sent between two peers on the Lightning Network. Similar to other communication protocols, Lightning messages consist of a header and a body. The header and the body have their own HMAC. This ensures that the headers of fixed length will also be encrypted and adversaries won't be able to deduce what messages are being sent by inspecting the length. Lightning Messages are the core building block that is defined in the Messaging layer.
@@ -263,7 +237,7 @@ Lightning Network, Lightning Network Protocol, Lightning Protocol::
 Lightning Network Protocol Suite::
    The Lightning Protocol Suite consists of 5 Layers which are responsible for various parts of the protocol.
    From bottom (the first layer) to the top (the fifth layer) these layers are called: Network Communication Layer, Messaging Layer, Peer 2 Peer Layer, Routing Layer, Payment Layer.
-   Various BOLTs define tasks on one or several layers. 
+   Various BOLTs define tasks on one or several layers.
 
 Lightning Network Node, Lightning Node::
     A participant on the Lightning Network.
@@ -287,16 +261,16 @@ Messaging Layer::
     It is responsible to ensure an encrypted and secure communication and exchange of information via the chosen Network Connection Layer protocol.
     The messaging layer defines the framing and format of Lightning Messages as defined in BOLT 01.
     The feature bits defined in BOLT 09 are also part of this layer.
-    
+
 
 millisatoshi::
     The smallest unit of account on the Lightning Network. A millisatoshi is one hundred billionth of a single bitcoin. A millisatoshi is one thousandth of one Satoshi. Millisatoshis do not exist, nor can they be settled on the Bitcoin network.
 
-mpp::
+MPP::
 A multipart payment (which is often also referred to as multipath payment) is a method for payments where the sender can split the payment amount into multiple smaller parts and deliver them potentially along multiple potentially disjoint paths. As the MPP strategies do not require one to send the smaller splits along different paths the term multipart payment is more accurate than multipath payment. In computer science multipart paryments are modelled as network flows.
 
-multisignature::
-    Multisignature (multisig) refers to requiring more than one key to authorize a Bitcoin transaction.
+multi-signature::
+    Mult-isignature (multisig) refers to requiring more than one key to authorize a Bitcoin transaction.
     Payment channels are always encoded as multisignature addresses requiring one signature from each peer of the payment channel.
     In the standard case of a two-party payment channel, a 2-of-2 multisignature address is used.
 
@@ -304,7 +278,7 @@ node::
     See _Lightning Network Node_
 
 network capacity::
-    Lightning network capacity is the total amount of bitcoin locked and circulated inside the Lightning Network. 
+    Lightning network capacity is the total amount of bitcoin locked and circulated inside the Lightning Network.
     It is the sum of capacities of each public channel.
     It reflects the usage of the Lightning Network to some extent because we expect that people lock bitcoin into Lightning channels in order to spend it or forward other users' payments.
     Hence the higher the amount of bitcoin locked in channels, the higher the expected usage of the Lightning Network.
@@ -321,7 +295,7 @@ Noise_XK::
     K means that the public key of the receiver needs to be known.
     More particular (from: http://www.noiseprotocol.org/noise.html) the protocol enables encryption to a known recipient and strong forward secrecy. This payload is encrypted based on an ephemeral-ephemeral DH as well as an ephemeral-static DH with the recipient's static key pair. Assuming the ephemeral private keys are secure, and the recipient is not being actively impersonated by an attacker that has stolen its static private key, this payload cannot be decrypted. Sender authentication is resistant to key-compromise impersonation (KCI). The sender authentication is based on an ephemeral-static DH ("es" or "se") between the sender's static key pair and the recipient's ephemeral key pair. Assuming the corresponding private keys are secure, this authentication cannot be forged.
     // the noise protocol documentation is according to their IPR section public domain. The author is Trevor Perrin (noise@trevp.net)
-    
+
 
 onion routing::
     Onion routing is a technique for anonymous communication over a computer network.
@@ -338,21 +312,21 @@ output::
     A typical bitcoin output will require the signature of the owner to be spent, but outputs can require the fulfillment of more complex scripts.
     For example, a multisignature script requires that two or more users to sign before an output can be spent, which is a fundamental building block of the Lightning Network.
 
-P2PKH::
+Pay To Public Key Hash (P2PKH)::
     P2PKH or Pay-to-PubKey-Hash is a type of transaction that pays a Bitcoin address that contains P2PKH scripts.
     An output locked by a P2PKH script can be unlocked (spent) by presenting a public key and a digital signature created by the corresponding private key.
 
-P2SH::
+Pay To Script Hash (P2SH)::
     P2SH or Pay-to-Script-Hash is a powerful type of transaction that greatly simplifies the use of complex transaction scripts. With P2SH the complex script that details the conditions for spending the output (redeem script) is not presented in the locking script. Instead, only a hash of it is in the locking script.
 
 P2SH address::
     P2SH addresses are Base58Check encodings of the 20-byte hash of a script, P2SH addresses use the version prefix "5", which results in Base58Check-encoded addresses that start with a "3". P2SH addresses hide all of the complexity, so that the person making a payment does not see the script.
 
-P2WPKH::
-    The signature of a P2WPKH (Pay-to-Witness-Public-Key-Hash) contains the same information as a P2PKH spending, but is located in the witness field instead of the scriptSig field. The scriptPubKey is also modified.
+Pay To Witness Public Key Hash (P2WPKH)::
+    The signature of a Pay-to-Witness-Public-Key-Hash (P2WPKH) contains the same information as a P2PKH spending, but is located in the witness field instead of the scriptSig field. The scriptPubKey is also modified.
 
-P2WSH::
-    The difference between P2SH and P2WSH (Pay-to-Witness-Script-Hash) is the location change of the cryptographic proof from the scriptSig field to the witness field and the modification of the scriptPubKey.
+Pay To Witness Script Hash (P2WSH)::
+    The difference between Pay-to-Script-Hash (P2SH) and Pay-to-Witness-Script-Hash (P2WSH) is the location change of the cryptographic proof from the scriptSig field to the witness field and the modification of the scriptPubKey.
 
 payment::
     A payment occurs if bitcoin is transferred within the Lightning Network.
@@ -363,7 +337,7 @@ payment::
 
 payment channel::
     A payment channel is a financial relationship between two nodes on the Lightning Network, created using a multisignature bitcoin transaction.
-    The channel partners can use the channel to send bitcoin back and forth between each other without committing all of the transactions to the Bitcoin blockchain. 
+    The channel partners can use the channel to send bitcoin back and forth between each other without committing all of the transactions to the Bitcoin blockchain.
     In a typical payment channel only two transactions, the funding transaction and the commitment transaction, are added to the blockchain.
     The other transactions are not included in the blockchain and are said to occur "off-chain".
     There are various methods of constructing a payment channel discussed further in the chapter on channel construction.
@@ -378,13 +352,13 @@ peer::
     Two parties which form a payment channel are called peers.
     In particular, they are connected via an encrypted, authenticated communication over a TCP Socket.
 
-Peer 2 Peer Layer::
+Peer-to-Peer Layer::
     The Peer to Peer layer is the third layer of the Lightning Network Protocol Suite and works on top of the Messaging Layer.
     It is responsible to define the syntax and semantics of Information exchanged between peers via Lightning Messages.
     This consists of Control messages as defined in BOLT #9, Channel esablishment, operation and closing messages as defined in BOLT #2 as well as Gossip and Routing Messages as defined in BOLT #7.
 
 private channel::
-    A channel not announced to the rest of the network. 
+    A channel not announced to the rest of the network.
     Technically "private" is a misnomer as these channels can still be identified through routing hints and commitment transactions.
     They are better described as "unannounced" channels.
     With an unannounced channel, the channel partners can send and receive payments between each other as normal.
@@ -444,7 +418,7 @@ topology::
     Also, the topology is important for features such as the autopilot.
 
 satoshi::
-    A satoshi is the smallest denomination of bitcoin that can be recorded on the blockchain. It is the equivalent of 0.00000001 bitcoin and is named after the creator of Bitcoin, Satoshi Nakamoto. 
+    A satoshi is the smallest denomination of bitcoin that can be recorded on the blockchain. It is the equivalent of 0.00000001 bitcoin and is named after the creator of Bitcoin, Satoshi Nakamoto.
 
 Satoshi Nakamoto::
     Satoshi Nakamoto is the name used by the person or group of people who designed Bitcoin and created its original reference implementation, Bitcoin Core. As a part of the implementation, they also devised the first blockchain database. In the process, they were the first to solve the double-spending problem for digital currency. Their real identity remains unknown.
@@ -528,7 +502,7 @@ unspent transaction output (UTXO)::
 
 wallet::
     A wallet is a piece of software that holds Bitcoin addresses and secret keys. It is used to send, receive, and store bitcoin. In the context of the Lightning Network it should also hold revocation secrets of old channels state and the latest presigned commitment transactions.
-    
+
 watchtower::
     Watchtowers are a security service on the Lightning network that monitor channels.
     In the case that one of the channel partners goes offline or loses their backup, a watchtower keeps their own backups and can restore their channel information.
@@ -536,5 +510,5 @@ watchtower::
 
     Watchtowers can be run by the channel partners themselves, or as a paid service offered by a third party.
     Watchtowers have no control over the funds in the channels themselves.
-    
+
 Some contributed definitions have been sourced under a CC-BY license from the https://en.bitcoin.it/wiki/Main_Page[Bitcoin Wiki], https://en.wikipedia.org[Wikipedia], https://github.com/bitcoinbook/bitconbook[Mastering Bitcoin] or from other open source documentation sources.
