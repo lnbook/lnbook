@@ -1,6 +1,4 @@
-[[brontide]]
 [[encrypted_message_transport]]
-[[encrypted_transport]]
 == Lightning's Encrypted Message Transport
 
 In this chapter we will review the Lightning Network's _Encrypted Message
@@ -19,7 +17,7 @@ The _Encrypted Transport_ component of the Lightning Network and its several com
 
 [[LN_protocol_encrypted_transport_highlight]]
 .The Lightning Network Protocol Suite
-image::images/LN_protocol_encrypted_transport_highlight.png["The Lightning Network Protocol Suite"]
+image::images/mtln_1401.png["The Lightning Network Protocol Suite"]
 
 === Introduction
 
@@ -134,7 +132,7 @@ Lightning Network, the flavor of the Noise protocol used is sometimes referred t
 as "Brontide". A brontide is a low billowing noise, similar to what one would
 hear during a thunderstorm when very far away.
 
-=== Lightning Encrypted Transport in detail
+=== Lightning Encrypted Transport in Detail
 
 In this section we will break down the Lightning Encrypted Transport protocol and delve into the details of the cryptographic algorithms and protocol used to establish encrypted, authenticated and integrity-assured communications between peers. Feel free to skip this section if you find this level of detail daunting.
 
@@ -144,7 +142,7 @@ The Noise protocol is extremely flexible in that it advertises several
 handshakes, each with different security and privacy properties for a would be
 protocol implementer to select from. A deep exploration of each of the
 handshakes, and their various trade-offs is out of the scope of this chapter.
-With that said, the Lighting Network uses a specific handshake referred to as
+With that said, the Lightning Network uses a specific handshake referred to as
 `Noise_XK`. The unique property provided by this handshake is "identity
 hiding": in order for a node to initiate a connection with another node, it
 must first know it's public key. Mechanically, this means that the public key
@@ -284,7 +282,7 @@ handshake as:
 
   * `a || b` denotes the concatenation of two byte strings `a` and `b`
 
-===== Handshake Session State Initialization
+===== Handshake session state initialization
 
 Before starting the handshake process, both sides need to initialize the
 starting state that they'll use to advance the handshake process. To start,
@@ -316,7 +314,7 @@ does indeed know the public key of the responder.
    Bitcoin's compressed format:
    * `h = SHA-256(h || ls.pub.serializeCompressed())`
 
-===== Handshake Acts
+===== Handshake acts
 
 After the initial handshake initialization, we can begin the actual execution
 of the handshake process. The handshake is compromised of a series of
@@ -523,7 +521,7 @@ construction, and 16 bytes for a final authenticating tag.
 10. `rn = 0, sn = 0`
      * The sending and receiving nonces are initialized to 0.
 
-===== Transport Message Encryption
+===== Transport message encryption
 
 At the conclusion of Act Three, both sides have derived the encryption keys, which
 will be used to encrypt and decrypt messages for the remainder of the
@@ -547,7 +545,7 @@ The structure of packets on the wire resembles the following:
 
 [[noise_encrypted_packet]]
 .Encrypted Packet Structure
-image::images/noise_encrypted_packet.png["Encrypted Packet Structure"]
+image::images/mtln_1402.png["Encrypted Packet Structure"]
 
 The prefixed message length is encoded as a 2-byte big-endian integer, for a
 total maximum packet length of `2 + 16 + 65535 + 16` = `65569` bytes.
@@ -590,7 +588,7 @@ steps are completed:
     plaintext packet `p`.
     * The nonce `rn` MUST be incremented after this step.
 
-===== Lightning Message Key Rotation
+===== Lightning message key rotation
 
 Changing keys regularly and forgetting previous keys is useful to prevent the
 decryption of old messages, in the case of later key leakage (i.e.  backwards

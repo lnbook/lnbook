@@ -9,13 +9,13 @@ to being able to write a custom wire protocol parser, a reader of this chapter
 will gain a deep understanding with respect of the various upgrade mechanisms
 that have been built into the protocol.
 
-=== Messaging Layer in the Lightning protocol suite
+=== Messaging Layer in the Lightning Protocol Suite
 
 The messaging layer, which is detailed in this chapter, consists of _Message Framing and Format_, _Type Length Value (TLV)_ encoding, and _Feature Bits_. These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_wire_message_highlight>>:
 
 [[LN_protocol_wire_message_highlight]]
 .The Lightning Network Protocol Suite
-image::images/LN_protocol_wire_message_highlight.png["The Lightning Network Protocol Suite"]
+image::images/mtln_1301.png["The Lightning Network Protocol Suite"]
 
 === Wire Framing
 
@@ -206,14 +206,14 @@ integer follows one of the four following options:
 4. Otherwise, we just encode the value as a full-size 64-bit integer.
 
 
-====  TLV encoding constraints
+====  TLV Encoding Constraints
 
 Within the context of a TLV message, record types below `2^16` are said to be _reserved_ for future use. Types beyond this
 range are to be used for "custom" message extensions used by higher-level application protocols.
 
 The `value` of a record depends on the `type`. In other words, it can take any form as parsers will attempt to interpret it depending on the context of the type itself.
 
-==== TLV canonical encoding
+==== TLV Canonical Encoding
 
 One issue with the Protobuf format is that encodings of the same message may
 output an entirely different set of bytes when encoded by two different
@@ -258,7 +258,7 @@ designers of the original Lightning Network knew that there were many possible f
 extensibility mechanisms within the system, which can be used to upgrade it partially or fully in a decoupled, desynchronized, and decentralized
 manner.
 
-==== Feature Bits as an Upgrade Discoverability Mechanism
+==== Feature Bits As an Upgrade Discoverability Mechanism
 
 An astute reader may have noticed the various locations that "feature bits" are
 included within the Lightning Protocol. A "feature bit" is a bitfield that can
@@ -315,7 +315,7 @@ not. The feature bits within the `init` message allow peers to understand if
 they can maintain a connection, and also which features are negotiated for the
 lifetime of a given connection.
 
-==== TLV for forwards & backwards compatibility
+==== TLV for Forward and Backward Compatibility
 
 As we learned earlier in the chapter, Type-Length-Value, or TLV records can be
 used to extend messages in a forwards and backwards compatible manner.
@@ -339,14 +339,14 @@ consensus in order to adopt. Instead, at minimum, only two peers within the
 network need to understand a new upgrade in order to start using it. Commonly these two peers may be the recipient and sender of a
 payment, or may be the channel partners of a new payment channel.
 
-==== A taxonomy of upgrade mechanisms
+==== A Taxonomy of Upgrade Mechanisms
 
 Rather than there being a single widely utilized upgrade mechanism within the
 network (such as soft-forks for Bitcoin), there exist several possible upgrade mechanisms within the Lighting Network. In this
 section, we enumerate these upgrade mechanisms, and
 provide a real-world example of their use in the past.
 
-===== Internal Network Upgrades
+===== Internal network upgrades
 
 We start with the upgrade type that requires the most protocol-level
 coordination: internal network upgrades. An internal network upgrade is
@@ -370,7 +370,7 @@ network upgrade, in that if a payment wasn't using any new feature beyond
 that new routing information encoding, then a payment could be transmitted
 using a mixed set of nodes.
 
-===== End-to-End Upgrades
+===== End-to-end upgrades
 
 To contrast the internal network upgrade, in this section we describe the
 _end to end_ network upgrade. This upgrade mechanism differs from the internal
