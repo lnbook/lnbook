@@ -445,7 +445,7 @@ If more than one commitment transactions are broadcast, there are many factors t
 
 Let's look more carefully at the commitment transactions in <<competing_commitments_1>>. All four commitment transactions are signed and valid. But only the last one accurately reflects the most recent channel balances. In this particular scenario, Alice has an opportunity to cheat by broadcasting an older commitment and getting it confirmed on the Bitcoin blockchain. Let's say Alice transmits Commitment #0 and gets it confirmed: she will effectively close the channel and take all 140,000 satoshis herself. In fact, in this particular example any commitment but Commitment #3 improves Alice's position and allows her to "cancel" at least part of the payments reflected in the channel.
 
-In the next section we will see how the Lightning Network resolves this problem—preventing older commitment transactions from being used by the channel partners by a mechanism of revocation and penalties. There are other ways to prevent the transmission of older commitment transactions, such as eltoo channels, but they require an upgrade to Bitcoin called input rebinding.
+In the next section we will see how the Lightning Network resolves this problem—preventing older commitment transactions from being used by the channel partners by a mechanism of revocation and penalties. There are other ways to prevent the transmission of older commitment transactions, such as eltoo channels, but they require an upgrade to Bitcoin called input rebinding (see <<bitcoin_prot_17>>).
 
 ==== Revoking Old Commitment Transactions
 
@@ -503,7 +503,7 @@ That means that if Alice closes the channel by broadcasting and confirming the c
 
 The delay is there for one reason: to allow the _remote_ party to exercise a penalty option if an old (revoked) commitment should be broadcast by the other channel partner. Let's look at the revocation keys and penalty option next.
 
-The delay is negotiated by Alice and Bob, during the initial channel construction message flow, as a field called +to_self_delay+. To ensure the security of the channel, the delay is scaled to the capacity of the channel—meaning a channel with more funds has longer delays in the +to_self+ outputs in commitments. Alice's node includes a desired +to_self_delay+ in the +open_channel+ message. If Bob finds this acceptable, his node includes the same value for +to_self_delay+ in the +accept_channel+ message. If they do not agree, then the channel is rejected (see +shutdown+ message).
+The delay is negotiated by Alice and Bob, during the initial channel construction message flow, as a field called +to_self_delay+. To ensure the security of the channel, the delay is scaled to the capacity of the channel—meaning a channel with more funds has longer delays in the +to_self+ outputs in commitments. Alice's node includes a desired +to_self_delay+ in the +open_channel+ message. If Bob finds this acceptable, his node includes the same value for +to_self_delay+ in the +accept_channel+ message. If they do not agree, then the channel is rejected (see <<theShutdownmessage>>).
 
 ==== Revocation Keys
 
@@ -541,10 +541,12 @@ OP_CHECKSIG
 
 This is a conditional script (see <<conditional_scripts>>), which means the output can be spent if _either_ of the two conditions is met. The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. The second clause is timelocked by +<to_self_delay>+ blocks and can only be spent after that many blocks by anyone who can sign for +<local_delayedpubkey>+. In our example, we had set the +<to_self_delay>+ timelock to 432 blocks, but this is a configurable delay that is negotiated by the two channel partners. The +to_self_delay+ timelock duration is usually chosen in proportion to the channel capacity, meaning that larger capacity channels (more funds), have longer +to_self_delay+ timelocks to protect the parties.
 
-The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. A critical requirement to the security of this script is that the remote party _cannot_ unilaterally sign with the `revocationpubkey`. To see why this is important, consider the scenario in which the remote party breaches a previously revoked commitment. If they can sign with this key, then they can simply take the revocation clause _themselves_ and steal all the funds in the channel. Instead, we derive the `revocationpubkey` for _each_ state based on information from _both_ the self (local) and remote party. A clever use of symmetric and asymmetric cryptography is used to allow both sides to compute the `revocationpubkey` public key, but only allow the honest self party to compute the private key given their secret information.
-[TIP]
-====
-As shown previously, each side sends a `revocation_basepoint` during the initial channel negotiation messages as well as a `first_per_commitment_point`. The `revocation_basepoint` is static for the lifetime of the channel, while each new channel state will be based off a new `first_per_commitment_point`.
+The first clause allows the output to be spent by anyone who can sign for +<revocationpubkey>+. A critical requirement to the security of this script is that the remote party _cannot_ unilaterally sign with the `revocationpubkey`. To see why this is important, consider the scenario in which the remote party breaches a previously revoked commitment. If they can sign with this key, then they can simply take the revocation clause _themselves_ and steal all the funds in the channel. Instead, we derive the `revocationpubkey` for _each_ state based on information from _both_ the self (local) and remote party. A clever use of symmetric and asymmetric cryptography is used to allow both sides to compute the `revocationpubkey` public key, but only allow the honest self party to compute the private key given their secret information, as detailed in <<revocation_sidebar>>.
+
+[[revocation_sidebar]]
+.Revocation and Commitment Secret Derivations
+****
+Each side sends a `revocation_basepoint` during the initial channel negotiation messages as well as a `first_per_commitment_point`. The `revocation_basepoint` is static for the lifetime of the channel, while each new channel state will be based off a new `first_per_commitment_point`.
 
 Given this information, the `revocationpubkey` for each channel state is derived via the following series of elliptic curve and hashing operations: `revocationpubkey = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)`.
 
@@ -557,7 +559,7 @@ revocationpubkey = G*(revocationbase_priv * sha256(revocation_basepoint || per_c
 ```
 
 In other words, the `revocationbase_priv` can only be derived (and used to sign for the `revocationpubkey` by the party that knows _both_ the `revocationbase_priv` _and_ the `per_commitment_secret`. This little trick is what makes the public-key based revocation system used in the Lightning Network secure.
-====
+****
 
 
 [TIP]
@@ -694,6 +696,7 @@ The closing message flow is defined in https://github.com/lightningnetwork/light
 .The channel close message flow
 image::images/mtln_0715.png[The channel close message flow]
 
+[[theShutdownmessage]]
 ==== The Shutdown Message
 
 Channel closing starts with one of the two channel partners sending the +shutdown+ message. The contents of this message are shown here:
@@ -710,7 +713,7 @@ Channel closing starts with one of the two channel partners sending the +shutdow
 
 +channel_id+:: The channel identifier for the channel we want to close
 +len+:: The length of the script of the destination wallet that this channel partner wants to receive their balance.
-+scriptpubkey+:: A Bitcoin script of the destination wallet, in one of the "standard" Bitcoin address formats (P2PKH, P2SH, P2WPKH, P2WSH, etc.)
++scriptpubkey+:: A Bitcoin script of the destination wallet, in one of the "standard" Bitcoin address formats (P2PKH, P2SH, P2WPKH, P2WSH, etc.; see <<glossary>>)
 
 Let's say Alice sends the +shutdown+ message to Bob to close their channel. Alice will specify a Bitcoin script that corresponds to the Bitcoin address of her wallet. She's telling Bob: let's make a closing transaction that pays my balance to this wallet.
 
