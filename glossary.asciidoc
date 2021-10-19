@@ -5,7 +5,7 @@
 This quick glossary contains many of the terms used in relation to Bitcoin and the Lightning Network. These terms are used throughout the book, so bookmark this for a quick reference.
 
 address::
-    Bitcoin addresses compactly encode the information necessary to pay a receiver. A modern address consists of a string of letters and numbers that starts with bc1 and looks like +bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4+. An address is shorthand for a receiver's locking script which can be used by a sender to sign over funds to the receiver. Most addresses either represent the receiver's public key or some form of script that defines more complex spending conditions. The above example is a bech32 address encoding a witness program locking funds to the hash of a public key (See _Pay to Witness Public Key Hash_). There are also older address formats that start with 1 or 3 that use the base58check address encoding to represent public key hashes or script hashes.
+    Bitcoin addresses compactly encode the information necessary to pay a receiver. A modern address consists of a string of letters and numbers that starts with bc1 and looks like +bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4+. An address is shorthand for a receiver's locking script which can be used by a sender to sign over funds to the receiver. Most addresses either represent the receiver's public key or some form of script that defines more complex spending conditions. The preceding example is a bech32 address encoding a witness program locking funds to the hash of a public key (See _Pay to Witness Public Key Hash_). There are also older address formats that start with 1 or 3 that use the base58check address encoding to represent public key hashes or script hashes.
 
 
 Asymmetric Cryptographic System::
@@ -29,7 +29,7 @@ balance::
     See _capacity_.
 
 bech32::
-    Bech32 refers to a generic check-summed base32-encoded format featuring strong error-detection guarantees. While bech32 was originally developed to be used as the address format for native Segwit outputs (BIP-173), it is also used to encode lightning invoices (BOLT #11). While native Segwit version 0 outputs (P2WPKH and P2WSH) use bech32, higher native Segwit output versions (e.g. Pay-to-Taproot or P2TR) use the improved variant bech32m (BIP-350). Bech32(m) addresses are sometimes referred to as "bc1" addresses,  reflecting the prefix of such addresses. Native segwit outputs are more blockspace-efficient than older addresses and therefore may reduce transaction fees for the owner of such an address.
+    Bech32 refers to a generic check-summed base32-encoded format featuring strong error-detection guarantees. While bech32 was originally developed to be used as the address format for native Segwit outputs (BIP-173), it is also used to encode lightning invoices (BOLT #11). While native Segwit version 0 outputs (P2WPKH and P2WSH) use bech32, higher native Segwit output versions (e.g., Pay-to-Taproot or P2TR) use the improved variant bech32m (BIP-350). Bech32(m) addresses are sometimes referred to as "bc1" addresses,  reflecting the prefix of such addresses. Native segwit outputs are more blockspace-efficient than older addresses and therefore may reduce transaction fees for the owner of such an address.
 
 Bitcoin Improvement Proposal (BIP)::
     A proposal that members of the Bitcoin community have submitted to improve Bitcoin. For example, BIP-21 is a proposal to improve the Bitcoin uniform resource identifier (URI) scheme. BIPs can be found at https://github.com/bitcoin/bips.
@@ -39,7 +39,7 @@ bitcoin, Bitcoin::
 
 Bitcoin mining::
     Bitcoin mining is the process of constructing a block from recent Bitcoin transactions and then solving a computational problem required as proof of work.
-    It is the process by which the shared bitcoin ledger (i.e. the bitcoin blockchain) is updated and by which new transactions are included in the ledger.
+    It is the process by which the shared bitcoin ledger (i.e., the bitcoin blockchain) is updated and by which new transactions are included in the ledger.
     It is also the process by which new bitcoin is issued.
     Every time a new block is created, the mining node will receive new bitcoin created within the coinbase transaction of that block.
 
@@ -64,7 +64,7 @@ BOLT::
 capacity::
     The capacity of a payment channel is equivalent to the amount of bitcoin provided by the funding transaction.
     As the funding transaction is publicly visible on the blockchain, and the channel is announced via the gossip protocol, the capacity is public information.
-    It does not reveal any information about how much bitcoin each of the channel partners owns in the channel, i.e. the balance.
+    It does not reveal any information about how much bitcoin each of the channel partners owns in the channel, i.e., the balance.
     A high capacity does not guarantee that the channel can be used for routing in both directions.
 
 c-lightning::
@@ -98,14 +98,14 @@ commitment transaction::
      Every time a new payment is made or forwarded using the channel, the channel balance will update, and a new commitment transaction will be signed by both parties.
      Importantly, in a channel between Alice and Bob, both Alice and Bob keep their own version of the commitment transaction, which is also signed by the other party.
      At any point, the channel can be closed by either Alice or Bob if they submit their commitment transaction to the Bitcoin blockchain.
-     Submitting an older (outdated) commitment transaction is considered "cheating" (i.e. a protocol breach) in the Lightning network and can be penalized by the other party, claiming all the funds in the channel for themselves, via a penalty transaction.
+     Submitting an older (outdated) commitment transaction is considered "cheating" (i.e., a protocol breach) in the Lightning network and can be penalized by the other party, claiming all the funds in the channel for themselves, via a penalty transaction.
 
 confirmations::
     Once a transaction is included in a block, it has one confirmation. As soon as _another_ block is mined on the blockchain, the transaction has two confirmations, and so on. Six or more confirmations are considered sufficient proof that a transaction cannot be reversed.
 
 contract::
-    A contract is a set of Bitcoin transactions which together result in a certain desired behavior.
-    Examples are RSMCs to create a trustless, bi-directional payment channel or HTLCs to create a mechanism which allows trustless forwarding of payments through third parties.
+    A contract is a set of Bitcoin transactions that together result in a certain desired behavior.
+    Examples are RSMCs to create a trustless, bidirectional payment channel, or HTLCs to create a mechanism that allows trustless forwarding of payments through third parties.
 
 Diffie Hellman Key Exchange (DHKE)::
     On the Lightning Network, the Elliptic Curve Diffie-Hellman (ECDH) method is used.
@@ -143,8 +143,8 @@ ephemeral key::
 
 feature bits::
     A binary string that Lightning nodes use to communicate to each other which features they support.
-    Feature bits are included in many Lightning Messages as well as BOLT 11.
-    They can be decoded using BOLT 9, and will tell nodes which features the node has enabled, and whether these are backward compatible.
+    Feature bits are included in many Lightning Messages as well as BOLT #11.
+    They can be decoded using BOLT #9, and will tell nodes which features the node has enabled, and whether these are backward compatible.
     Also known as feature flags.
 
 fees::
@@ -166,7 +166,7 @@ global features (field: +globalfeatures+)::
 gossip protocol::
     Lightning Network nodes send and receive information about the topology of the Lightning Network through gossip messages which are exchanged with their peers.
     The gossip protocol is mainly defined in BOLT #7 and defines the format of the _node_announcement_, _channel_announcement_ and _channel_update messages_.
-    In order to prevent spam, node announcement messages will only be forwarded if the node already has a channel and channel announcement messages will only be forwarded if the funding transaction of the channel has been confirmed by the Bitcoin network.
+    In order to prevent spam, node announcement messages will only be forwarded if the node already has a channel, and channel announcement messages will only be forwarded if the funding transaction of the channel has been confirmed by the Bitcoin network.
     Usually, Lightning nodes connect with their channel partners, but it is fine to connect with any other Lightning node in order to process gossip messages.
 
 hardware wallet::
@@ -189,8 +189,8 @@ hashlocks::
     A hashlock is a Bitcoin Script spending condition that restricts the spending of an output until a specified piece of data is revealed. Hashlocks have the useful property that once any hashlock is revealed through spending, any other hashlock secured using the same key can also be spent. This makes it possible to create multiple outputs that are all encumbered by the same hashlock and which all become spendable at the same time.
 
 Hash Time-Locked Contract (HTLC)::
-    A Hash Time-Locked Contract or HTLC is a Bitcoin Script that consists of hashlocks and timelocks to require that the recipient of a payment either spends the payment prior to a deadline by presenting the has pre-image or the sender can claim a refund after the timelock expires.
-    On the Lightning Network HTLCs are outputs in the commitment transaction of a payment channel and are used to enable the trustless routing of payments.
+    A Hash Time-Locked Contract (HTLC) is a Bitcoin Script that consists of hashlocks and timelocks to require that the recipient of a payment either spends the payment prior to a deadline by presenting the has preimage or the sender can claim a refund after the timelock expires.
+    On the Lightning Network, HTLCs are outputs in the commitment transaction of a payment channel and are used to enable the trustless routing of payments.
 
 invoice::
     The payment process on the Lightning Network is initiated by the recipient (payee) who issues an invoice, also known as a _payment request_.
@@ -225,7 +225,7 @@ lnd::
     It is written in Go. Source code is at https://github.com/lightningnetwork/lnd.
 
 Local features (field: +localfeatures+)::
-    Localfeatures of a Lightning Network node are the configurable features of direct interest the its peers.
+    Localfeatures of a Lightning Network node are the configurable features of direct interest to its peers.
     They are announced in the `_init_` message of the peer protocol as well as the `_channel_announcement_` and `_node_announcement_` messages of the gossip protocol.
 
 Locktime::
@@ -241,12 +241,12 @@ Messaging Layer::
 millisatoshi::
     The smallest unit of account on the Lightning Network. A millisatoshi is one hundred billionth of a single bitcoin. A millisatoshi is one thousandth of one satoshi. Millisatoshis do not exist on, nor can they be settled on, the Bitcoin network.
 
-Multi-Part Payment (MPP))::
- 	A Multi-Part Payment (MPP), often also referred to as  a Multi-Path Payment) is a method for splitting the payment amount into multiple smaller parts and delivering them along one or more paths. Since MPP can send many or all parts over a single path the term Multi-Part Payment is more accurate than Multi-Path Payment. In computer science Multi-Part Payments are modelled as network flows.
+multipart payment (MPP))::
+ 	A multipart payment (MPP), often also referred to as a multipath payment, is a method for splitting the payment amount into multiple smaller parts and delivering them along one or more paths. Since MPP can send many or all parts over a single path, the term multipart payment is more accurate than multipath payment. In computer science, multipart payments are modeled as network flows.
 
 multisignature::
-    Multi-signature (multisig) refers to a script that requires more than one signature to authorize spending.
-    Payment channels are always encoded as mutlisig addresses requiring one signature from each partner of the payment channel.
+    Multisignature (multisig) refers to a script that requires more than one signature to authorize spending.
+    Payment channels are always encoded as multisig addresses requiring one signature from each partner of the payment channel.
     In the standard case of a two-party payment channel, a 2-of-2 multisig address is used.
 
 node::
@@ -261,7 +261,7 @@ network capacity::
 
 Network Connection Layer::
     The lowest layer of the Lightning Network Protocol Suite.
-    Its responsibility is to support internet protocols like IPv4, IPv6, TOR2, and TOR3, and use them to establish a secure cryptographic communication channel as defined in BOLT 8, or to speak DNS for the bootstrapping of the network as defined in BOLT 10.
+    Its responsibility is to support internet protocols like IPv4, IPv6, TOR2, and TOR3, and use them to establish a secure cryptographic communication channel as defined in BOLT #8, or to speak DNS for the bootstrapping of the network as defined in BOLT #10.
 
 Noise_XK::
     The template of the Noise protocol framework to establish an authenticated and encrypted communication channel between two peers of the Lightning Network.
@@ -293,16 +293,16 @@ P2SH address::
     P2SH addresses are Base58Check encodings of the 20-byte hash of a script. P2SH addresses start with a "3". P2SH addresses hide all of the complexity, so that the sender of a payment does not see the script.
 
 Pay To Witness Public Key Hash (P2WPKH)::
-	P2WPKH is the Segwit equivalent of P2PKH, using a segregated witness. The signature to spend a P2WPKH output is put in the witness tree instead of the scriptSig field. See _Segwit_
+	P2WPKH is the Segwit equivalent of P2PKH, using a segregated witness. The signature to spend a P2WPKH output is put in the witness tree instead of the scriptSig field. See _Segwit_.
 
 P2WPKH address::
-	The "native Segwit v0" address format, P2WPKH addresses are bech32 encoded and start with "bc1q"
+	The "native Segwit v0" address format, P2WPKH addresses are bech32-encoded and start with "bc1q".
 
 Pay To Witness Script Hash (P2WSH)::
-    P2WSH is the Segwit equivalent of P2SH, using a segregated witness. The signature and script to spend a P2WSH output is put in the witness tree instead of the scriptSig field. See _Segwit_
+    P2WSH is the Segwit equivalent of P2SH, using a segregated witness. The signature and script to spend a P2WSH output is put in the witness tree instead of the scriptSig field. See _Segwit_.
 
 P2WSH address::
-	The "native Segwi v0" script address format, P2WSH addresses are bech32 encoded and start with "bc1q"
+	The "native Segwi v0" script address format, P2WSH addresses are bech32-encoded and start with "bc1q".
 
 Pay To Taproot (P2TR)::
 	Activating in November 2021, Taproot is a new output type that locks bitcoin to a tree of spending conditions, or a single root condition.
@@ -369,7 +369,7 @@ RIPEMD-160::
 Routing Layer::
     The fourth Layer of the Lightning Network Protocol Suite operates on top of the Peer-to-Peer layer.
     Its responsibility is to define the cryptographic primitives and necessary communication protocol to allow the secure and atomic transport of bitcoin from a sending node to a recipient node.
-    While BOLT 4 defines the onion format that is used to communicate transport information to remote peers with whom no direct connections exist, the actual transport of the Onions and cryptographic primitives are defined in BOLT 2.
+    While BOLT #4 defines the onion format that is used to communicate transport information to remote peers with whom no direct connections exist, the actual transport of the Onions and cryptographic primitives are defined in BOLT #2.
 
 topology::
     The topology of the Lightning Network describes the shape of the Lightning Network as a mathematical graph. Nodes of the graph are the Lightning nodes (network participants/peers). The edges of the graph are the payment channels.
@@ -396,11 +396,7 @@ ScriptSig (aka signature script)::
     ScriptSig or signature script is the data generated by a spender, which are almost always used as variables to satisfy a pubkey script.
 
 secret key (aka private key)::
-    The secret number that unlocks bitcoin sent to the corresponding address. pass:[<span class="keep-together">A secret</span>] key looks like the following:
-----
-5J76sF8L5jTtzE96r66Sf8cka9y44wdp
-JjMwCxR3tzLh3ibVPxh
-----
+    The secret number that unlocks bitcoin sent to the corresponding address. pass:[<span class="keep-together">A secret</span>] key looks like this: `5J76sF8L5jTtzE96r66Sf8cka9y44wdpJjMwCxR3tzLh3ibVPxh`.
 
 Segregated Witness, Segwit::
     Segregated Witness, or Segwit, is an upgrade to the Bitcoin protocol introduced in 2017 that adds a new witness for signatures and other transaction authorization proofs. This new witness field is exempt from the calculation of the transaction ID, which solves most classes of 3rd-party transaction malleability. Segregated Witness was deployed as a soft fork and is a change that technically makes Bitcoin’s protocol rules more restrictive.
@@ -411,7 +407,7 @@ SHA::
 short channel id (scid)::
     Once a channel is established, the index of the funding transaction on the blockchain is used as the short channel id to uniquely identify the channel.
     The short channel id consists of 8 bytes referring to 3 numbers.
-    In its serialized form it depicts these 3 numbers as decimal values separated by the letter **x** (eg. +600123x01x00+)
+    In its serialized form it depicts these 3 numbers as decimal values separated by the letter **x** (e.g., +600123x01x00+)
     The first number (4 bytes) is the block height.
     The second number (2 bytes) is the index of the funding transaction with the blocks.
     The last number (2 bytes) is the transaction output.
@@ -426,13 +422,13 @@ source-based routing::
     Source-based routing is fundamentally different to how routing works on the Internet Protocol.
 
 soft fork::
-    Soft fork, or Soft-Forking Change, is a protocol upgrade that's forwards & backwards compatible so it allows both old nodes and new nodes to continue using the same chain.
+    Soft fork, or soft-forking change, is a protocol upgrade that's forward- and backward-compatible so it allows both old nodes and new nodes to continue using the same chain.
 
 SPHINX Mix Format::
     A particular technique for Onion Routing used in the Lightning Network and invented by George Danezis and Ian Goldberg in 2009.
     With the SPHINX Mix Format, each message of the onion package is padded with some random data so that no single hop can estimate how far along the route it has traveled.
     While the privacy of the sender and receiver of the payment is protected, each node is still able to return an error message along the path to the originator of the message.
-    The paper can be found at https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf
+    The paper can be found at https://cypherpunks.ca/~iang/pubs/Sphinx_Oakland09.pdf[].
 
 submarine swap::
     A submarine swap is a trustless atomic swap between on-chain Bitcoin addresses and off-chain Lightning Network payments. Just as LN payments use HTLCs that make the final claim on funds conditional on the recipient revealing a secret (hash preimage), submarine swaps use the same mechanism to transfer funds across the on-chain/off-chain barrier with minimal trust. Reverse submarine swaps allow swaps in the opposite direction, from an off-chain LN payment to an on-chain Bitcoin address.
@@ -456,7 +452,7 @@ transport layer::
     The transport layer provides communication services between computers such as flow control, verification, and multiplexing (to allow multiple applications to work on a computer at the same time).
 
 Unspent Transaction Output (UTXO)::
-    See _output_
+    See _output_.
 
 wallet::
     A wallet is a piece of software that holds Bitcoin private keys. It is used to create and sign Bitcoin transactions. In the context of the Lightning Network it also holds revocation secrets of old channel state and the latest pre-signed commitment transactions.
