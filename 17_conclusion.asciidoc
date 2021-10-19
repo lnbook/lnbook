@@ -6,10 +6,10 @@ In just a few years, the Lightning Network has gone from a whitepaper to a rapid
 Innovation in the Lightning Network is happening in several different levels:
 
 * At Bitcoin's Core protocol, providing use and demand for new Bitcoin Script opcodes, signing algorithms, and optimizations
-* At the Lightning protocol level with new features deployed rapidly network-wide.
+* At the Lightning protocol level with new features deployed rapidly network-wide
 * At the payment channel level, with new channel constructs and enhancements
-* As distinct opt-in features deployed end-to-end by independent implementations that senders and recipients can use if they want.
-* With new and exciting Lightning Applications (LApps) build on top of the clients and protocols.
+* As distinct opt-in features deployed end-to-end by independent implementations that senders and recipients can use if they want
+* With new and exciting Lightning Applications (LApps) build on top of the clients and protocols
 
 Let's look at how these innovations are changing Lightning now and in the near future.
 
@@ -21,7 +21,7 @@ Not only is Lightning advancing rapidly, but it is creating demand for new featu
 
 ==== Bitcoin Protocol and Bitcoin Script Innovation
 
-The Bitcoin system is, by necessity, a conservative system that has to preserve compatibility with consensus rules to avoid unplanned forks of the blockchain or partitions of the P2P network. As a result, new features require a lot of coordination and testing before they are implemented in "mainnet", the live production system.
+The Bitcoin system is, by necessity, a conservative system that has to preserve compatibility with consensus rules to avoid unplanned forks of the blockchain or partitions of the P2P network. As a result, new features require a lot of coordination and testing before they are implemented in mainnet, the live production system.
 
 Here are some of the current or proposed innovations in Bitcoin that are motivated by use cases in the Lightning Network:
 
@@ -29,17 +29,17 @@ Neutrino:: A lightweight client protocol with improved privacy features over the
 
 Schnorr signatures:: Introduced as part of the _Taproot_ soft fork, Schnorr signatures will enable flexible Point Time-Locked Contracts (PTLC) for channel construction in Lightning. This might in particular make use of revocable signatures instead of revocable transactions.
 
-Taproot:: Also part of the November 2021 soft-fork that introduces Schnorr signatures, Taproot allows complex scripts to appear as single-payer, single-payee payments, and indistinguishable from the most common type of payment on Bitcoin. This will allow Lightning channel cooperative (mutual) closure transactions to appear indistinguishable from simple payments and increase privacy for LN users.
+Taproot:: Also part of the November 2021 soft fork that introduces Schnorr signatures, Taproot allows complex scripts to appear as single-payer, single-payee payments, and indistinguishable from the most common type of payment on Bitcoin. This will allow Lightning channel cooperative (mutual) closure transactions to appear indistinguishable from simple payments and increase privacy for LN users.
 
-Input re-binding:: Also known by the names SIGHAS_NOINPUT, or SIGHASH_ANYPREVOUT, this planned upgrade to the Bitcoin Script language is primarily motivated by advanced smart contracts such as the eltoo channel protocol.
+Input rebinding:: Also known by the names SIGHAS_NOINPUT or SIGHASH_ANYPREVOUT, this planned upgrade to the Bitcoin Script language is primarily motivated by advanced smart contracts such as the eltoo channel protocol.
 
-Covenants:: Currently in the early stages of research, coventants allow transactions to create outputs that constrain future transactions which spend them. This mechanism could increase security for Lightning channels, by making it possible to enforce address whitelisting in commitment transactions.
+Covenants:: Currently in the early stages of research, coventants allow transactions to create outputs that constrain future transactions which spend them. This mechanism could increase security for Lightning channels by making it possible to enforce address whitelisting in commitment transactions.
 
 ==== Lightning Protocol Innovation
 
-The Lightning P2P protocol is highly extensible and has undergone a lot of change since its inception. The "It's OK to be odd" rule used in feature bits (see <<feature_bits>>) ensure that nodes can negotiate the features they support, enabling multiple independent upgrades to the protocol.
+The Lightning P2P protocol is highly extensible and has undergone a lot of change since its inception. The "It's OK to be odd" rule used in feature bits (see <<feature_bits>>) ensures that nodes can negotiate the features they support, enabling multiple independent upgrades to the protocol.
 
-===== TLV extensibility
+==== TLV Extensibility
 
 The Type-Length-Value (see <<tlv>>) mechanism for extending the messaging protocol is extremely powerful and has already enabled the introduction of several new capabilities in Lightning while maintaining both forward and backward compatibility.
 A prominent example, which is currently being developed and makes use of this, is path blinding and trampoline payments. This allows a recipient to hide itself from the sender, but also allows mobile clients to send payments without the necessity of storing the full channel graph on their devices by using a third party to which they don't need to reveal the final recipient.
@@ -48,23 +48,23 @@ A prominent example, which is currently being developed and makes use of this, i
 
 Payment channels are an abstraction that is operated by two channel partners. As long as those two are willing to run new code, they can implement a variety of channel mechanisms simultaneously. In fact, recent research suggests that channels could even be upgraded to a new mechanism dynamically, without closing the old channel and opening a new channel type.
 
-Eltoo:: A proposed channel mechanism that uses input-rebinding to significantly simplify the operation of payment channels and remove the need for the penalty mechanism. It needs a new Bitcoin signature type before it can be implemented
+eltoo:: A proposed channel mechanism that uses input-rebinding to significantly simplify the operation of payment channels and remove the need for the penalty mechanism. It needs a new Bitcoin signature type before it can be implemented
 
 ==== Opt-In End-to-End Features
 
-Point Time-Locked Contracts (PTLCs):: A different approach to HTLCs, PTLCs can increase privacy, reduce information leaked to intermediary nodes and operate more efficiently than HTLC-based channels.
+Point Time-Locked Contracts (PTLCs):: A different approach to HTLCs, PTLCs can increase privacy, reduce information leaked to intermediary nodes, and operate more efficiently than HTLC-based channels.
 
-Large channels:: Large or "Wumbo" channels were introduced in a dynamic way to the network without requiring coordination. Channels that support large payments are advertized as part of the channel announcement messages and can be used in an opt-in manner.
+Large channels:: Large or _Wumbo_ channels were introduced in a dynamic way to the network without requiring coordination. Channels that support large payments are advertized as part of the channel announcement messages and can be used in an opt-in manner.
 
-Multi-Part Payments (MPP):: MPP was also introduced in an opt-in manner, but even better only requires the sender and recipient of a payment to be able to do MPP. The rest of the network simply routes HTLCs as if they are single-part payments.
+Multipart payments (MPP):: MPP was also introduced in an opt-in manner, but even better only requires the sender and recipient of a payment to be able to do MPP. The rest of the network simply routes HTLCs as if they are single-part payments.
 
 JIT-Routing:: An optional method that can be used by routing nodes to increase their reliability and to protect themselves from being spammed.
 
 Keysend:: An upgrade introduced independently by Lightning client implementations, it allows the sender to send money in an "unsolicited" and asynchronous way without requiring an invoice first.
 
-HODL invoices:: Payments where the final HTLC is not collected, committing the sender to the payment, but allowing the recipient to delay collection until some other condition is satisfied, or cancel the invoice without collection. This was also implemented independently by different Lightning clients and can be used opt-in.
+HODL invoicesfootnote:[The word _HODL_ comes from an excited misspelling of the word "HOLD" shouted in a forum to encourage people not to sell bitcoin in a panic.]:: Payments where the final HTLC is not collected, committing the sender to the payment, but allowing the recipient to delay collection until some other condition is satisfied, or cancel the invoice without collection. This was also implemented independently by different Lightning clients and can be used in an opt-in manner.
 
-Onion routed message services:: The onion routing mechanism, and the underlying public key databse of nodes can be used to send data that is unrelated to payments, such as text messages or forum posts. The use of Lightning to enable paid messaging as a solution to spam posts and sybil attacks (spam) is another innovation that was implemented independently of the core protocol.
+Onion routed message services:: The onion routing mechanism and the underlying public key databse of nodes can be used to send data that is unrelated to payments, such as text messages or forum posts. The use of Lightning to enable paid messaging as a solution to spam posts and Sybil attacks (spam) is another innovation that was implemented independently of the core protocol.
 
 Offers:: Currently proposed as BOLT #12 but already implemented by some nodes, this is a communication protocol to request (recurring) invoices from remote nodes via Onion messages.
 
@@ -73,8 +73,8 @@ Offers:: Currently proposed as BOLT #12 but already implemented by some nodes, t
 
 While still in their infancy, we are already seeing the emergence of interesting Lightning Applications. Broadly defined as an application that uses the Lightning Protocol or a Lightning client as a component, LApps are the application layer of Lightning.
 A prominent example is LNURL, which provides a similar functionality as BOLT #12 Offers, but just over http and Lightning addresses. It works on top of Offers to provide users with an email-style address to which others can send funds while the software in the background requests an invoice against the LNURL endpoint of the node.
-Further LApps are being built for simple games, messaging applications, micro-services, payable-APIs, paid dispensers (eg. fuel pumps), derivative trading systems, and much more.
+Further LApps are being built for simple games, messaging applications, microservices, payable APIs, paid dispensers (e.g., fuel pumps), derivative trading systems, and much more.
 
 === Ready, Set, Go!
 
-The future is looking bright. The Lightning Network is taking Bitcoin to new unexplored markets and applications. Equipped with the knowledge in this book, you can explore this new frontier, or maybe even join as a pioneer and forge a new path.
+The future is looking bright. The Lightning Network is taking Bitcoin to new unexplored markets and applications. Equipped with the knowledge in this book, you can explore this new frontier or maybe even join as a pioneer and forge a new path.
