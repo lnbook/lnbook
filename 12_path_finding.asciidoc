@@ -7,7 +7,7 @@ In this chapter we will examine the problem of path finding, understand how unce
 
 === Path Finding in the Lightning Protocol Suite
 
-Path finding, path selection, multipath payments (MPP), and the payment attempt trial and error loop occupy the majority of the "Payment Layer" at the top of the protocol suite.
+Path finding, path selection, multipart payments (MPP), and the payment attempt trial and error loop occupy the majority of the "Payment Layer" at the top of the protocol suite.
 
 These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_pathfinding_highlight>>.
 
@@ -147,7 +147,7 @@ We can group these steps into three primary activities:
 * Path finding (filtered and ordered by some heuristics)
 * Payment attempt(s)
 
-These three activities can be repeated in a _payment round_ if we use the failure returns to update the graph, or if we are doing multipath payments (see <<mpp>>).
+These three activities can be repeated in a _payment round_ if we use the failure returns to update the graph, or if we are doing multipart payments (see <<mpp>>).
 
 In the next sections we will look at each of these steps in more detail, as well as more advanced payment strategies.
 
@@ -233,7 +233,7 @@ To quantify the uncertainty of a channel's liquidity, we can apply probability t
 
 * The more channels (hops), the lower the chance of success.
 
-While these may be obvious, they have important implications, especially for the use of multipath payments (see <<mpp>>). The math is not difficult to follow.
+While these may be obvious, they have important implications, especially for the use of multipart payments (see <<mpp>>). The math is not difficult to follow.
 
 Let's use probability theory to see how we arrived at these conclusions.
 
@@ -350,15 +350,15 @@ However, this knowledge becomes somewhat "stale" as the other nodes send or rout
 Therefore, Selena's node must consider how long to keep this knowledge before assuming that it is stale and no longer useful.
 
 [[mpp]]
-=== Multipath Payments (MPP)
+=== Multipart Payments (MPP)
 
-_Multipath payments (MPP)_ are a feature that was introduced in the Lightning Network in 2020 and is already very widely available. Multipath payments allow a payment to be split into multiple _parts_ which are sent as HTLCs over several different paths to the intended recipient, preserving the _atomicity_ of the overall payment. In this context, atomicity means that either all the HTLC parts of a payment are eventually fulfilled or the  entire payment fails and all the HTLC parts fail. There is no possibility of a partially successful payment.
+_Multipart payments (MPP)_ are a feature that was introduced in the Lightning Network in 2020 and is already very widely available. Multipart payments allow a payment to be split into multiple _parts_ which are sent as HTLCs over several different paths to the intended recipient, preserving the _atomicity_ of the overall payment. In this context, atomicity means that either all the HTLC parts of a payment are eventually fulfilled or the  entire payment fails and all the HTLC parts fail. There is no possibility of a partially successful payment.
 
-Multipath payments are a significant improvement in the Lightning Network because they make it possible to send amounts that won't "fit" in any single channel by splitting them into smaller amounts for which there is sufficient liquidity. Furthermore, multipath payments have been shown to increase the probability of a successful payment, as compared to a single-path payment.
+Multipart payments are a significant improvement in the Lightning Network because they make it possible to send amounts that won't "fit" in any single channel by splitting them into smaller amounts for which there is sufficient liquidity. Furthermore, multipart payments have been shown to increase the probability of a successful payment, as compared to a single-path payment.
 
 [TIP]
 ====
-Now that MPP is available it is best to think of a single-path payment as a subcategory of an MPP. Essentially, a single-path is just a multipath of size one. All payments can be considered as multipath payments unless the size of the payment and liquidity available make it possible to deliver with a single part.
+Now that MPP is available it is best to think of a single-path payment as a subcategory of an MPP. Essentially, a single-path is just a multipart of size one. All payments can be considered as multipart payments unless the size of the payment and liquidity available make it possible to deliver with a single part.
 ====
 
 ==== Using MPP
@@ -371,7 +371,7 @@ In our example we can see some immediate improvements to our path finding proble
 
 The fundamental question is how to split the payments. More specifically, what are the optimal number of splits and the optimal amounts for each split?
 
-This is an area of ongoing research where novel strategies are emerging. Multipath payments lead to a different algorithmic approach than single-path payments, even though single-path solutions can emerge from a multipath optimization (i.e., a single path may be the optimal solution suggested by a multipath path finding algorithm).
+This is an area of ongoing research where novel strategies are emerging. Multipart payments lead to a different algorithmic approach than single-path payments, even though single-path solutions can emerge from a multipart optimization (i.e., a single path may be the optimal solution suggested by a multipart path finding algorithm).
 
 If you recall, we found that the uncertainty of liquidity/balances leads to some (somewhat obvious) conclusions that we can apply in MPP path finding, namely:
 
@@ -395,14 +395,14 @@ To read more about the optimization problem known as minimum-cost flows involved
 In our example, Selena's node will attempt to split the 1M satoshi payment into two parts with 600k and 400k satoshi, respectively, and send them on two different paths. This is shown in <<mpp_paths>>.
 
 [[mpp_paths]]
-.Sending two parts of a multipath payment
+.Sending two parts of a multipart payment
 image::images/mtln_1209.png[]
 
 Because the S->X channel can now be utilized, and (luckily for Selena), the B->R channel has sufficient liquidity for 600k satoshis, the two parts are successful along paths that were previously not possible.
 
 ==== Trial-And-Error Over Multiple "Rounds"
 
-Multipath payments lead to a somewhat modified trial-and-error loop for payment delivery. Because we are attempting multiple paths in each attempt, we have four possible outcomes:
+Multipart payments lead to a somewhat modified trial-and-error loop for payment delivery. Because we are attempting multiple paths in each attempt, we have four possible outcomes:
 
 * All parts succeed, the payment is successful
 * Some parts succeed, some fail with errors returned
@@ -438,4 +438,4 @@ In this chapter we looked at path finding and payment delivery. We saw how to us
 
 We also examined the uncertainty of channel liquidity (from the perspective of the sender) and the implications that has for path finding. We saw how we can quantify the uncertainty and use probability theory to draw some useful conclusions. We also saw how we can reduce uncertainty by learning from both successful and failed payments.
 
-Finally, we saw how the newly deployed multipath payments feature allows us to split payments into parts, increasing the probability of success even for larger payments.
+Finally, we saw how the newly deployed multipart payments feature allows us to split payments into parts, increasing the probability of success even for larger payments.
