@@ -548,9 +548,17 @@ The first clause allows the output to be spent by anyone who can sign for +<revo
 ****
 Each side sends a `revocation_basepoint` during the initial channel negotiation messages as well as a `first_per_commitment_point`. The `revocation_basepoint` is static for the lifetime of the channel, while each new channel state will be based off a new `first_per_commitment_point`.
 
-Given this information, the `revocationpubkey` for each channel state is derived via the following series of elliptic curve and hashing operations: `revocationpubkey = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)`.
+Given this information, the `revocationpubkey` for each channel state is derived via the following series of elliptic curve and hashing operations: 
 
-Due to the commutative property of the abelian groups that elliptic curves are defined over, once the `per_commitment_secret` (the private key for the `per_commitment_point`) is revealed by the remote party, self can derive the private key for the `revocationpubkey` with the following operation: `revocation_priv = (revocationbase_priv * sha256(revocation_basepoint || per_commitment_point)) + (per_commitment_secret * sha256(per_commitment_point || revocation_basepoint)) mod N`.
+----
+revocationpubkey = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)
+----
+
+Due to the commutative property of the abelian groups that elliptic curves are defined over, once the `per_commitment_secret` (the private key for the `per_commitment_point`) is revealed by the remote party, self can derive the private key for the `revocationpubkey` with the following operation: 
+
+----
+revocation_priv = (revocationbase_priv * sha256(revocation_basepoint || per_commitment_point)) + (per_commitment_secret * sha256(per_commitment_point || revocation_basepoint)) mod N
+----
 
 To see why this works in practice, notice that we can _reorder_ (commute) and expand the public key computation of the original formula for `revocationpubkey`:
 ```
