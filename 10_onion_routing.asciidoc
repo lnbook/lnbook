@@ -43,7 +43,7 @@ Let's see how Alice can use this path without revealing information to intermedi
 .Source-based routing
 ****
 Source-based routing is not how packets are typically routed on the internet today, though source routing was possible in the early days.
-Internet routing is based on _packet switching_ at each intermediary routing node. An IPv4 packet, for example, includes the sender, and recipient's IP address, and every other IP routing node decides how to forward each packet toward the destination.
+Internet routing is based on _packet switching_ at each intermediary routing node. An IPv4 packet, for example, includes the sender, and recipient's IP addresses, and every other IP routing node decides how to forward each packet toward the destination.
 However, the lack of privacy in such a routing mechanism, where every intermediary node sees the sender and recipient, make this a poor choice for use in a payment network.
 ****
 
@@ -287,7 +287,7 @@ One important detail that seems almost magical is the ability for Alice to creat
 [[ecdh_explained]]
 .Elliptic Curve Diffie-Hellman (ECDH) explained
 ****
-Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, Alice and Bob each multiply their private key by the generator point +G+ to produce their public keys +A+ and +B+ respectively:
+Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, Alice and Bob each multiply their private key by the generator point +G+ to produce their public keys +A+ and +B+, respectively:
 
  A = aG
 
@@ -295,7 +295,7 @@ Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Ellipt
 
 Now Alice and Bob can use _Elliptic Curve Diffie-Hellman Key Exchange_ to create a shared secret +ss+, a value that they can both calculate independently without exchanging any information
 
-The shared secret +ss+ is calculated by each by multiplying their own private key with the *other's* public key, such that:
+The shared secret +ss+ is calculated by each by multiplying their own private key with the _other's_ public key, such that:
 
  ss = aB = bA
 
@@ -310,7 +310,7 @@ calculated by Alice who knows both +a+ (her private key) and +B+ (Bob's public k
 
  = a(bG)
 
-because we know that B = bG, we substitute
+because we know that `B = bG`, we substitute
 
  = (ab)G
 
@@ -326,9 +326,9 @@ because of associativity, we can move the parentheses
 
  = bA
 
- because A = aG, we can substitute
+because A = aG, we can substitute
 
-The result bA can be calculated independently by Bob who knows +b+ (his private key) and +A+ (Alice's public key).
+The result `bA` can be calculated independently by Bob who knows +b+ (his private key) and +A+ (Alice's public key).
 
 We have therefore shown that
 
@@ -339,24 +339,24 @@ Thus, they can each independently calculate +ss+ which they can use as a shared 
 
 ****
 
-A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, clever _blinding_ scheme is used deterministically randomize the session key at each hop.
+A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, a clever _blinding_ scheme is used to deterministically randomize the session key at each hop.
 
 In practice, this little trick allows us to keep the onion packet as compact as possible while still retaining the desired security properties.
 
-The session key for hop `i` is derived using the node public key, and derived shared secret of hop `i-1`:
+The session key for hop `i` is derived using the node public key, and derived shared secret of hop `i – 1`:
 ```
 session_key_i = session_key_{i-1} * SHA256(node_pubkey_{i-1} || shared_secret_{i-1})
 ```
 
-In other words, we take the session key of the prior hop, and multiply it by a value derived from the public key and derived shared secret for that hop.
+In other words, we take the session key of the prior hop, and multiply it by a value derived from the public key and the derived shared secret for that hop.
 
-As EC multiplication can be performed on a public key without knowledge of the private key, each hop is able to re-randomize the session key for the next hop in a deterministic fashion.
+As Elliptic Curve multiplication can be performed on a public key without knowledge of the private key, each hop is able to re-randomize the session key for the next hop in a deterministic fashion.
 
-The creator of the onion packet knows all the shared secrets (as they're encrypted the packet uniquely for each hop), and thus are able to derive all the blinding factors.
+The creator of the onion packet knows all the shared secrets (as they've encrypted the packet uniquely for each hop), and thus are able to derive all the blinding factors.
 
 This knowledge allows them to derive all the session keys used up front during packet generation.
 
-Note that the very first hop uses the original session key generated, as this key is used to kick off the session key blinding by each subsequent hop.
+Note that the very first hop uses the original session key generated because this key is used to kick off the session key blinding by each subsequent hop.
 
 
 [[wrapping_the_onion]]
