@@ -136,8 +136,8 @@ $ dig @8.8.8.8 test.nodes.lightning.directory SRV
 We use the +@+ argument to force resolution via Google's nameserver (with IP address 8.8.8.8) because they do not filter large SRV query responses. At the end of the command, we specify that we only want +SRV+ records to be returned. A sample response looks something like <<ex1101>>.
 
 [[ex1101]]
-====
 .Title here
+====
 ----
 $ dig @8.8.8.8 test.nodes.lightning.directory SRV
 
@@ -184,8 +184,8 @@ Decoding this bech32 string we obtain the following valid
 Now that we have the raw public key, we'll ask the DNS server to _resolve_ the virtual host given so we can obtain the IP information (+A+ record) for the node, as shown in <<ex1102>>.
 
 [[ex1102]]
-====
 .Title here
+====
 ----
 $ dig ln1qfkxfad87fxx7lcwr4hvsalj8vhkwta539nuy4zlyf7hqcmrjh40xx5frs7.test.nodes.lightning.directory A
 
@@ -211,8 +211,11 @@ ln1qfkxfad87fxx7lcwr4hvsalj8vhkwta539nuy4zlyf7hqcmrjh40xx5frs7.test.nodes.lightn
 <1> The DNS server returns an IP Address _X.X.X.X_. We've replaced it with X's in the text here so as to avoid presenting a real IP address.
 ====
 
-In the preceding command, we've queried the server so we can obtain an +IPv4+ (+A+ record) address for our target node (replaced by _X.X.X.X_ in the preceding example). Now that we have the raw public key, IP address, and TCP port, we can connect to the node transport protocol at
-+026c64f5a7f24c6f7f0e1d6ec877f23b2f672fb48967c2545f227d706&#x200b;36395eaf3@X.X.X.X:9735+.
+In the preceding command, we've queried the server so we can obtain an +IPv4+ (+A+ record) address for our target node (replaced by _X.X.X.X_ in the preceding example). Now that we have the raw public key, IP address, and TCP port, we can connect to the node transport protocol at:
+
+----
+026c64f5a7f24c6f7f0e1d6ec877f23b2f672fb48967c2545f227d70636395eaf3@X.X.X.X:9735
+----
 
 Querying the current DNS +A+ record for a given node can also be used to look up the _latest_ set of addresses. Such queries can be used to more quickly sync the latest addressing information for a node, compared to waiting for address updates on the gossip network (see <<node_announcement>>).
 
