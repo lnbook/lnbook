@@ -1,9 +1,9 @@
 [[gossip]]
 == Gossip and the Channel Graph
 
-In this chapter we will describe the Lightning Network's _Gossip Protocol_ and how it is used by nodes to construct and maintain a _Channel Graph_. We will also review the _DNS Bootstrap_ mechanism used to find peers to "gossip" with.
+In this chapter we will describe the Lightning Network's gossip protocol and how it is used by nodes to construct and maintain a channel graph. We will also review the DNS bootstrap mechanism used to find peers to "gossip" with.
 
-The gossip protocol and routing information section is highlighted by a double outline spanning the "Routing Layer" and "Peer 2 Peer Layer" of <<LN_protocol_gossip_highlight>>:
+The gossip protocol and routing information section is highlighted by a double outline spanning the "Routing Layer" and "Peer 2 Peer Layer" of <<LN_protocol_gossip_highlight>>.
 
 [[LN_protocol_gossip_highlight]]
 .The Lightning Network Protocol Suite
@@ -11,35 +11,35 @@ image::images/mtln_1101.png["The Lightning Network Protocol Suite"]
 
 As we've learned already, the Lightning Network uses a source-based onion routing protocol to deliver a payment from a sender to the recipient.
 To do this, the sending node must be able to construct a path of payment channels that connects it with the recipient, as we will see in <<path_finding>>.
-Thus, the sender has to be able to map the Lightning Network, by constructing a _Channel Graph_.
-The channel graph is the interconnected set of publicly advertised channels, and the nodes that these channels interlink.
+Thus, the sender has to be able to map the Lightning Network by constructing a channel graph.
+The _channel graph_ is the interconnected set of publicly advertised channels and the nodes that these channels interlink.
 
-As channels are backed by a funding transaction that is happening on-chain, one might falsely believe that Lightning Nodes could just extract the existing channels from the Bitcoin Blockchain.
+As channels are backed by a funding transaction that is happening on-chain, one might falsely believe that Lightning nodes could just extract the existing channels from the Bitcoin blockchain.
 However this is only possible to a certain extent.
-The funding transactions are Pay-to-Witness-Script-Hash (P2WSH) addresses and the nature of the script (a 2-of-2 multisig) will only be revealed once the funding transaction output is spent.
-Even if the nature of the script was known it's important to remember that not all 2-of-2 multisig scripts correspond to payment channels.
+The funding transactions are Pay-to-Witness-Script-Hash (P2WSH) addresses, and the nature of the script (a 2-of-2 multisig) will only be revealed once the funding transaction output is spent.
+Even if the nature of the script were known, it's important to remember that not all 2-of-2 multisig scripts correspond to payment channels.
 
 There are even more reasons why looking at the Bitcoin blockchain might not be helpful.
-For example on the Lightning Network the Bitcoin keys that are used for signing are rotated by the nodes for every channel and update.
-Thus even if we could reliably detect funding transactions on the Bitcoin blockchain we would not know which two nodes on the Lightning Network own that particular channel.
+For example, on the Lightning Network the Bitcoin keys that are used for signing are rotated by the nodes for every channel and update.
+Thus, even if we could reliably detect funding transactions on the Bitcoin blockchain, we would not know which two nodes on the Lightning Network own that particular channel.
 
 The Lightning Network solves this problem by implementing a _gossip protocol_.
 Gossip protocols are typical for peer-to-peer (P2P) networks and allow nodes to share information with the whole network with just a few direct connections to peers.
 Lightning nodes open encrypted peer-to-peer connections to each other and share (gossip) information that they have received from other peers.
 As soon as a node wants to share some information, for example about a newly created channel, it sends a message to all its peers.
 Upon receiving a message a node decides if the received message was novel and, if so, forwards the information to its peers.
-In this way if the peer-to-peer network is well connected, all new information that is necessary for the operation of the network will eventually be propagated to all other peers.
+In this way, if the peer-to-peer network is well connected, all new information that is necessary for the operation of the network will eventually be propagated to all other peers.
 
-Obviously if a new peer joins the network for the first time, it needs to know some other peers on the network, so it can connect to others and participate in the network.
+Obviously, if a new peer joins the network for the first time, it needs to know some other peers on the network, so it can connect to others and participate in the network.
 
 In this chapter, we'll explore exactly _how_ Lightning nodes discover each other, discover and update their node status, and communicate with one another.
 
-When most refer to the _network_ part of the Lightning Network, they're referring to the channel graph which itself is a unique authenticated data structure _anchored_ in the base Bitcoin
+When most refer to the _network_ part of the Lightning Network, they're referring to the _channel graph_ which itself is a unique authenticated data structure _anchored_ in the base Bitcoin
 blockchain.
 
-However, the Lightning network is also a peer-to-peer network of nodes that gossip information about payment channels and nodes. Usually for two peers to maintain a payment channel they need to talk to each other directly which means that there will be a peer connection between them.
-This suggests that the channel graph is a subnetwork of the peer to peer network.
-However this is not true because payment channels can remain open even if one or both peers go temporarily offline.
+However, the Lightning Network is also a peer-to-peer network of nodes that gossip information about payment channels and nodes. Usually for two peers to maintain a payment channel they need to talk to each other directly, which means that there will be a peer connection between them.
+This suggests that the channel graph is a subnetwork of the peer-to-peer network.
+However, this is not true because payment channels can remain open even if one or both peers go temporarily offline.
 
 Let's revisit some of the terminology that we have used throughout the book, specifically looking at what they mean in terms of the channel graph and the peer-to-peer network (see <<network_terminology>>).
 
@@ -56,19 +56,19 @@ Let's revisit some of the terminology that we have used throughout the book, spe
 | payment |  message
 |===
 
-As the Lightning Network is a peer-to-peer network, some initial bootstrapping is required in order for peers to discover each other.  Within this chapter we'll follow the story of a new peer connecting to the network for the first time, and examine each step in the bootstrapping process from initial peer discovery to channel graph syncing and validation.
+Because the Lightning Network is a peer-to-peer network, some initial bootstrapping is required in order for peers to discover each other.  Within this chapter we'll follow the story of a new peer connecting to the network for the first time and examine each step in the bootstrapping process from initial peer discovery to channel graph syncing and validation.
 
 As an initial step, our new node needs to somehow _discover_ at least _one_ peer that is already connected to the network and has a full channel graph (as we'll see later, there's no canonical version of the channel graph). Using one of many initial bootstrapping protocols to find that first peer, after a connection is established, our new
 peer now needs to _download_ and _validate_ the channel graph. Once the channel graph has been fully validated, our new peer is ready to start opening channels and sending payments on the network.
 
-After initial bootstrap, a node on the network needs to continue to maintain its view of the channel graph by: processing new channel routing policy updates, discovering and validating new channels, removing channels that have been closed on-chain, and finally pruning channels that fail to send out a proper "heartbeat" every 2 weeks or so.
+After initial bootstrap, a node on the network needs to continue to maintain its view of the channel graph by processing new channel routing policy updates, discovering and validating new channels, removing channels that have been closed on-chain, and finally pruning channels that fail to send out a proper "heartbeat" every two weeks or so.
 
 Upon completion of this chapter, you will understand a key component of
-the peer-to-peer Lightning Network: namely how peers discover each other and maintain a local copy (perspective) of the channel graph. We'll begin by exploring the story of a new node that has just booted up, and needs to find other peers to connect to on the network.
+the peer-to-peer Lightning Network: namely how peers discover each other and maintain a local copy (perspective) of the channel graph. We'll begin by exploring the story of a new node that has just booted up and needs to find other peers to connect to on the network.
 
 === Peer Discovery
 
-In this section, we'll begin to follow a new Lightning node that wishes to join the network through 3 steps:
+In this section, we'll begin to follow a new Lightning node that wishes to join the network through three steps:
 
 . Discover a set of bootstrap peers
 . Download and validate the channel graph
@@ -77,19 +77,19 @@ In this section, we'll begin to follow a new Lightning node that wishes to join 
 
 ==== P2P Bootstrapping
 
-Before doing any thing else, our new node first needs to discover a set of peers who are already part of the network. We call this process initial peer bootstrapping, and it's something that every peer to peer network needs to implement properly in order to ensure a robust, healthy network.
+Before doing any thing else, our new node first needs to discover a set of peers who are already part of the network. We call this process initial peer bootstrapping, and it's something that every peer-to-peer network needs to implement properly to ensure a robust, healthy network.
 
-Bootstrapping new peers to existing peer to peer networks is a very well studied problem with several known solutions, each with their own distinct trade offs. The simplest solution to this problem is simply to package a set of _hard coded_ bootstrap peers into the packaged p2p node software. This is simple in that each new node has a list of bootstrap peers in the software they're running, but rather fragile given that if the set of bootstrap peers goes offline, then no new nodes will be able to join the network. Due to this fragility, this
-option is usually used as a fallback in case none of the other p2p bootstrapping mechanisms work properly.
+Bootstrapping new peers to existing peer-to-peer networks is a very well studied problem with several known solutions, each with their own distinct trade-offs. The simplest solution to this problem is simply to package a set of _hardcoded_ bootstrap peers into the packaged P2P node software. This is simple in that each new node has a list of bootstrap peers in the software they're running, but rather fragile given that if the set of bootstrap peers goes offline, then no new nodes will be able to join the network. Due to this fragility, this
+option is usually used as a fallback in case none of the other P2P bootstrapping mechanisms work properly.
 
-Rather than hard coding the set of bootstrap peers within the software/binary itself, we can instead allow peers to dynamically obtain a fresh/new set of bootstrap peers they can use to join the network. We'll call this process _initial peer discovery_. Typically we'll leverage
-existing Internet protocols to maintain and distribute a set of bootstrapping peers. A non-exhaustive list of protocols that have been used in the past to accomplish initial peer discovery include:
+Rather than hardcoding the set of bootstrap peers within the software/binary itself, we can instead allow peers to dynamically obtain a fresh/new set of bootstrap peers they can use to join the network. We'll call this process _initial peer discovery_. Typically we'll leverage
+existing internet protocols to maintain and distribute a set of bootstrapping peers. A nonexhaustive list of protocols that have been used in the past to accomplish initial peer discovery includes:
 
   * Domain Name Service (DNS)
   * Internet Relay Chat (IRC)
   * Hyper-Text Transfer Protocol (HTTP)
 
-Similar to the Bitcoin protocol, the primary initial peer discovery mechanism used in the Lightning Network happens via DNS. As initial peer discovery is a critical and universal task for the network, the process has been _standardized_ in https://github.com/lightningnetwork/lightning-rfc/blob/master/10-dns-bootstrap.md[BOLT #10 - DNS Bootstrap].
+Similar to the Bitcoin protocol, the primary initial peer discovery mechanism used in the Lightning Network happens via DNS. Because initial peer discovery is a critical and universal task for the network, the process has been _standardized_ in https://github.com/lightningnetwork/lightning-rfc/blob/master/10-dns-bootstrap.md[BOLT #10: DNS Bootstrap].
 
 ==== DNS Bootstrapping
 
