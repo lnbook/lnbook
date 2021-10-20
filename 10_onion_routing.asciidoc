@@ -244,15 +244,15 @@ Like a chopped onion, the following technical details may bring tears to your ey
 
 The basis for all the keys used in the onion is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie-Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named rho, mu, um, and pad:
 
-rho:: Used to generate a stream of random bytes from a stream cipher (used as a
+++__rho__++:: Used to generate a stream of random bytes from a stream cipher (used as a
 CSPRNG). These bytes are used to encrypt/decrypt the message body as well as
 filler zero bytes during sphinx packet processing.
 
-mu:: Used in the hash-based message authentication Code (HMAC) for integrity/authenticity verification.
++__mu__++:: Used in the hash-based message authentication Code (HMAC) for integrity/authenticity verification.
 
-um:: Used in error reporting.
++__um__++:: Used in error reporting.
 
-pad:: Used to generate filler bytes for padding the onion to a fixed length.
++__pad__++:: Used to generate filler bytes for padding the onion to a fixed length.
 
 The relationship between the various keys and how they are generated diagrammed <<onion_keygen>>. 
 
@@ -418,7 +418,7 @@ For each hop the sender (Alice) repeats the same process:
 
 6. Alice inserts the length + hop payload + HMAC at the front of the payload field in the space made from shifting the filler.
 
-7. Alice uses the rho key to generate a 1,300-byte one-time-pad.
+7. Alice uses the ++__rho__++ key to generate a 1,300-byte one-time-pad.
 
 8. Alice obfuscates the entire onion payload by XORing with the bytes generated from rho.
 
@@ -430,7 +430,7 @@ For each hop the sender (Alice) repeats the same process:
 
 12. Alice deterministically re-blinds the session key using a value derived by hashing the shared secret and prior hop's public key.
 
-Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front, and the whole onion payload is encrypted with the rho byte stream for the next hop.
+Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front, and the whole onion payload is encrypted with the ++__rho__++ byte stream for the next hop.
 
 For the final hop, the HMAC included in Step #3 over the plain-text instructions is actually _all zero_.
 The final hop uses this signal to determine that it is indeed the final hop in the route.
@@ -469,20 +469,20 @@ Next row down we see the result: the 1,300 byte onion payload contains Dina's ho
 
 Next, Alice obfuscates the entire onion payload so that _only Dina_ can read it.
 
-To do this, Alice generates a byte-stream using the +rho+ key (which Dina also knows). Alice uses a bitwise exclusive-or (XOR) between the bits of the onion payload and the byte-stream created from +rho+. The result appears like a random (or encrypted) byte stream of 1,300 bytes length. This step is shown in <<onion_obfuscate_dina>>. 
+To do this, Alice generates a byte-stream using the ++__rho__++ key (which Dina also knows). Alice uses a bitwise exclusive-or (XOR) between the bits of the onion payload and the byte-stream created from ++__rho__++. The result appears like a random (or encrypted) byte stream of 1,300 bytes length. This step is shown in <<onion_obfuscate_dina>>. 
 
 [[onion_obfuscate_dina]]
 .Obfuscating the onion payload
 image::images/mtln_1018.png[]
 
-One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in the "unwrapping" section, if Dina applies the same XOR operation with the byte-stream generated from +rho+, it will reveal the original onion payload.
+One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in <<bobDeobfuscates>>, if Dina applies the same XOR operation with the byte-stream generated from ++__rho__++, it will reveal the original onion payload.
 
 [TIP]
 ====
 XOR is an _involutory_ function which means that if it is applied twice it undoes itself. Specifically XOR(XOR(a, b), b) = a. This property is used extensively in symmetric-key cryptography.
 ====
 
-Because only Alice and Dina have the +rho+ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
+Because only Alice and Dina have the ++__rho__++ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
 
 Finally, Alice calculates a hash-based message authentication code (HMAC) for Dina's payload, which uses the _mu_ key as it's initialization key. This is shown in <<dina_hop_payload_hmac>>. 
 
@@ -541,7 +541,7 @@ In this case, Chan's _inner_ HMAC is actually Dina's _outer_ HMAC.
 
 Now Chan's payload is in the front of the onion. When Chan sees this he has no idea how many payloads came before or after. It looks like the first of 20 hops always!
 
-Next, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan +rho+ key. Only Alice and Chan have this +rho+ key and only they can produce the byte stream to obfuscate and deobfuscate the onion.
+Next, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan ++__rho__++ key. Only Alice and Chan have this ++__rho__++ key and only they can produce the byte stream to obfuscate and deobfuscate the onion.
 Finally, as we did in the earlier step, we compute Chan's outer HMAC, which is what she'll use to verify the integrity of the encrypted onion packet.
 
 ==== Wrapping Bob's Hop Payload
@@ -560,7 +560,7 @@ Obtain the session key for this hop dervied from the blinding factor generated b
 Include the prior hop's outer HMAC as this hop's inner HMAC.
 Insert Bob's hop payload at the beginning and shift everything else over to the right, dropping a Bob-hop-payload-size chunk from the end (it was filler anyway).
 
-Obfuscate the whole thing XOR with the rho key from the Alice-Bob shared secret so that only Bob can unwrap this.
+Obfuscate the whole thing XOR with the ++__rho__++ key from the Alice-Bob shared secret so that only Bob can unwrap this.
 
 Calculate the outer HMAC and stick it on the end of Bob's hop payload.
 
@@ -639,25 +639,26 @@ Bob generates filler in a slightly different way than Alice, but following the s
 First, Bob _extends_ the onion payload by 1,300 bytes and fills them with +0+ values. Now the onion packet is 2,600 bytes long, with the first half containing the data Alice sent and the next half containing zeroes. This operation is shown in <<bob_extends>>. 
 
 [[bob_extends]]
-.Bob extends the onion payload by 1300 (zero-filled) bytes
-image::images/mtln_1023.png[Bob extends the onion payload by 1,300 (zero-filled) bytes]
+.Bob extends the onion payload by 1,300 (zero-filled) bytes
+image::images/mtln_1023.png["Bob extends the onion payload by 1,300 (zero-filled) bytes"]
 
 This empty space will become obfuscated and turn into "filler", by the same process that Bob uses to deobfuscate his own hop payload. Let's see how that works.
 
+[[bobDeobfuscates]]
 ==== Bob De-Obfuscates His Hop Payload
 
-Next, Bob will generate the +rho+ key from the Alice-Bob shared key. He will use this to generate a 2,600 byte stream, using the ChaCha20 algorithm.
+Next, Bob will generate the ++__rho__++ key from the Alice-Bob shared key. He will use this to generate a 2,600 byte stream, using the ChaCha20 algorithm.
 
 [TIP]
 ====
-The first 1,300 bytes of the byte stream generated by Bob are exactly the same as those generated by Alice using the +rho+ key.
+The first 1,300 bytes of the byte stream generated by Bob are exactly the same as those generated by Alice using the ++__rho__++ key.
 ====
 
-Next, Bob applies the 2,600 bytes of the +rho+ byte stream to the 2,600-byte onion payload with a bitwise XOR operation.
+Next, Bob applies the 2,600 bytes of the ++__rho__++ byte stream to the 2,600-byte onion payload with a bitwise XOR operation.
 
 The first 1,300 bytes will become deobfuscated by this XOR operation, because it is the same operation Alice applied and XOR is involutory. So Bob will _reveal_ his hop payload followed by some data that seems scrambled.
 
-At the same time, applying the +rho+ byte stream to the 1,300 zeroes that were added to the onion payload will turn them into seemingly random filler data. This operation is shown in <<bob_deobfuscates>>.
+At the same time, applying the ++__rho__++ byte stream to the 1,300 zeroes that were added to the onion payload will turn them into seemingly random filler data. This operation is shown in <<bob_deobfuscates>>.
 
 [[bob_deobfuscates]]
 .Bob de-obfuscates the onion, obfuscates the filler
@@ -738,7 +739,7 @@ Chan repeats the exact same process as Bob:
 
 4. Chan extends the onion payload by 1,300 extra bytes, filling it with zeroes.
 
-5. Chan uses the +rho+ key to produce 2,600 bytes.
+5. Chan uses the ++__rho__++ key to produce 2,600 bytes.
 
 6. Chan uses the generated byte stream to XOR and deobfuscate the onion payload. Simultaneously the XOR operation obfuscates the extra 1,300 zeroes, turning them into filler. 
 
@@ -816,7 +817,7 @@ The top byte of the +failure_code+ is a set of binary flags that can be combined
 0x1000 (UPDATE):: New channel update enclosed
 
 
-The following failure types are currently defined:
+The failure types shown in <<failure_types_table>> are currently defined.
 
 include::failure_types_table.asciidoc[]
 
