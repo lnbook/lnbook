@@ -242,7 +242,7 @@ Like a chopped onion, the following technical details may bring tears to your ey
 ====
 
 
-The basis for all the keys used in the onion is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie-Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named rho, mu, um, and pad:
+The basis for all the keys used in the onion is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie-Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named ++__rho__++, ++__mu__++, ++__um__++, and ++__pad__++:
 
 ++__rho__++:: Used to generate a stream of random bytes from a stream cipher (used as a
 CSPRNG). These bytes are used to encrypt/decrypt the message body as well as
@@ -444,7 +444,7 @@ The inner HMAC is then revealed during the inverse of the "shift and encrypt" ro
 
 As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
 
-Alice starts with an empty 1,300-byte field, the fixed-length _onion payload_. Then, Alice fills the onion payload with a pseudorandom byte stream "filler," that is generated from the +pad+ key.
+Alice starts with an empty 1,300-byte field, the fixed-length _onion payload_. Then, Alice fills the onion payload with a pseudorandom byte stream "filler," that is generated from the ++__pad__++ key.
 
 [NOTE]
 ====
@@ -484,7 +484,7 @@ XOR is an _involutory_ function which means that if it is applied twice it undoe
 
 Because only Alice and Dina have the ++__rho__++ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
 
-Finally, Alice calculates a hash-based message authentication code (HMAC) for Dina's payload, which uses the ++__mu__++ key as it's initialization key. This is shown in <<dina_hop_payload_hmac>>. 
+Finally, Alice calculates a hash-based message authentication code (HMAC) for Dina's payload, which uses the ++__mu__++ key as its initialization key. This is shown in <<dina_hop_payload_hmac>>. 
 
 [[dina_hop_payload_hmac]]
 .Adding an HMAC integrity checksum to Dina's hop payload
@@ -626,7 +626,7 @@ Bob will unwrap the onion he received from Alice as follows:
 
 1. Bob takes the session key from the onion packet and derives the Alice-Bob shared secret.
 
-2. Bob generates the +mu+ key from the shared secret and uses it to verify the onion packet HMAC checksum.
+2. Bob generates the ++__mu__++ key from the shared secret and uses it to verify the onion packet HMAC checksum.
 
 Now that Bob has generated the shared key and verified the HMAC, he can start unwrapping the 1,300 byte onion payload inside the onion packet. The goal is for Bob to retrieve his own hop payload and then forward the remaining onion to the next hop.
 
@@ -733,7 +733,7 @@ Chan repeats the exact same process as Bob:
 
 1. Chan receives the +update_add_htlc+ and processes the HTLC request, adding it to commitment transactions.
 
-2. Chan generates the Alice-Chan shared key and the +mu+ subkey
+2. Chan generates the Alice-Chan shared key and the ++__mu__++ subkey
 
 3. Chan verifies the onion packet HMAC, then extracts the 1,300-byte onion payload
 
@@ -786,7 +786,7 @@ Errors are encoded by the returning node (the one that discovered an error) enco
     [pad_len*byte:pad]
 ----
 
-The return packet HMAC verification checksum is calculated with the +um+ key, generated from the shared secret established by the onion.
+The return packet HMAC verification checksum is calculated with the ++__um__++ key, generated from the shared secret established by the onion.
 
 [TIP]
 ====
@@ -799,7 +799,7 @@ Finally the return node sends the return packet to the hop from which it receive
 
 Each hop receiving an error will generate an +ammag+ key and obfuscate the return packet again using an XOR operation with the byte-stream from +ammag+.
 
-Eventually, the sender (origin node) receives a return packet. It will then generate +ammag+ and +um+ keys for each hop and XOR deobfuscate the return error iteratively until it reveals the return packet.
+Eventually, the sender (origin node) receives a return packet. It will then generate +ammag+ and ++__um__++ keys for each hop and XOR deobfuscate the return error iteratively until it reveals the return packet.
 
 [[failure_messages]]
 ==== Failure Messages
