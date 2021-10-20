@@ -248,11 +248,11 @@ The basis for all the keys used in the onion is a _shared secret_ that Alice and
 CSPRNG). These bytes are used to encrypt/decrypt the message body as well as
 filler zero bytes during sphinx packet processing.
 
-+__mu__++:: Used in the hash-based message authentication Code (HMAC) for integrity/authenticity verification.
+++__mu__++:: Used in the hash-based message authentication Code (HMAC) for integrity/authenticity verification.
 
-+__um__++:: Used in error reporting.
+++__um__++:: Used in error reporting.
 
-+__pad__++:: Used to generate filler bytes for padding the onion to a fixed length.
+++__pad__++:: Used to generate filler bytes for padding the onion to a fixed length.
 
 The relationship between the various keys and how they are generated diagrammed <<onion_keygen>>. 
 
@@ -406,13 +406,13 @@ Here is the process of wrapping the onion, outlined in the following. Come back 
 
 For each hop the sender (Alice) repeats the same process:
 
-1. Alice generates the per-hop shared secret and the rho, mu, and pad keys
+1. Alice generates the per-hop shared secret and the ++__rho__++, ++__mu__++, and ++__pad__++ keys.
 
 2. Alice generates 1,300 bytes of filler and fills the 1,300-byte onion payload field with this filler.
 
 3. Alice calculates the HMAC for the hop payload (zeros for the final hop).
 
-4. Alice calculates the length of the hop payload + HMAC + space to store the length itself
+4. Alice calculates the length of the hop payload + HMAC + space to store the length itself.
 
 5. Alice _right shifts_ the onion payload by the calculated space needed to fit the hop payload. The rightmost "filler" data is discarded, making enough space on the left for the payload.
 
@@ -420,11 +420,11 @@ For each hop the sender (Alice) repeats the same process:
 
 7. Alice uses the ++__rho__++ key to generate a 1,300-byte one-time-pad.
 
-8. Alice obfuscates the entire onion payload by XORing with the bytes generated from rho.
+8. Alice obfuscates the entire onion payload by XORing with the bytes generated from ++__rho__++.
 
-9. Alice calculates the HMAC of the onion payload, using the mu key.
+9. Alice calculates the HMAC of the onion payload, using the ++__mu__++ key.
 
-10. Alice adds the session public key (so that the hop can calculate the shared secret)
+10. Alice adds the session public key (so that the hop can calculate the shared secret).
 
 11. Alice adds the version number.
 
@@ -436,7 +436,7 @@ For the final hop, the HMAC included in Step #3 over the plain-text instructions
 The final hop uses this signal to determine that it is indeed the final hop in the route.
 Alternatively, the fact that the `short_chan_id` included in the payload to denote the "next hop" is all zero can be used as well.
 
-Note that at each phase the _mu_ key is used to generate an HMAC over the _encrypted_ (from the point of view of the node processing the payload) onion packet, as well as over the contents of the packet with a single layer of encryption removed.
+Note that at each phase the ++__mu__++ key is used to generate an HMAC over the _encrypted_ (from the point of view of the node processing the payload) onion packet, as well as over the contents of the packet with a single layer of encryption removed.
 This outer HMAC allows the node processing the packet to verify the integrity of the onion packet (no bytes modified).
 The inner HMAC is then revealed during the inverse of the "shift and encrypt" routine described previously, which serves as the _outer_ HMAC for the next hop.
 
@@ -484,7 +484,7 @@ XOR is an _involutory_ function which means that if it is applied twice it undoe
 
 Because only Alice and Dina have the ++__rho__++ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
 
-Finally, Alice calculates a hash-based message authentication code (HMAC) for Dina's payload, which uses the _mu_ key as it's initialization key. This is shown in <<dina_hop_payload_hmac>>. 
+Finally, Alice calculates a hash-based message authentication code (HMAC) for Dina's payload, which uses the ++__mu__++ key as it's initialization key. This is shown in <<dina_hop_payload_hmac>>. 
 
 [[dina_hop_payload_hmac]]
 .Adding an HMAC integrity checksum to Dina's hop payload
@@ -571,7 +571,7 @@ The final onion payload is ready to be sent to Bob. Alice doesn't need to add an
 
 Alice calculates an HMAC for the onion payload to cryptographically secure it with a checksum that Bob can verify.
 
-Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the rho, mu, and pad keys.
+Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the ++__rho__++, ++__mu__++, and ++__pad__++ keys.
 
 Finally Alice puts the onion version number (+0+ currently) in the front.
 
@@ -790,7 +790,7 @@ The return packet HMAC verification checksum is calculated with the +um+ key, ge
 
 [TIP]
 ====
-The "um" key name is the reverse of the "mu" name, indicating the same use but in the opposite direction (back-propagation). 
+The ++__um__++ key name is the reverse of the ++__mu__++ name, indicating the same use but in the opposite direction (back-propagation). 
 ====
 
 Next, the returning node generates an +ammag+ (inverse of the word "gamma") key and obfuscates the return packet using an XOR operation with a byte-stream generated from +ammag+.
