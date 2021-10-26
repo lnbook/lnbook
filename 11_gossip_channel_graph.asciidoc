@@ -351,7 +351,7 @@ mobile nodes (which typically use light clients to connect to the Bitcoin P2P ne
 
 ===== Unannounced (private) channels
 
-An unannounced channel isn't part of the known public channel graph, but can still be used to send/receive payments. An astute reader may now be wondering how a channel which isn't part of the public channel graph is able to receive payments. The solution to this problem is a set of "path finding helpers" that we call routing hints. As we'll see in <<invoices>>, invoices created by nodes with unadvertised channels will include information to help the sender route to them assuming the node has at least a single channel with an existing public routing node.
+An unannounced channel isn't part of the known public channel graph, but can still be used to send/receive payments. An astute reader may now be wondering how a channel which isn't part of the public channel graph is able to receive payments. The solution to this problem is a set of "pathfinding helpers" that we call routing hints. As we'll see in <<invoices>>, invoices created by nodes with unadvertised channels will include information to help the sender route to them assuming the node has at least a single channel with an existing public routing node.
 
 Due to the existence of unadvertised channels, the _true_ size of the channel graph (both the public and private components) is unknown.
 
@@ -471,17 +471,17 @@ The +channel_update+ message contains the following fields:
 
 +htlc_maximum_msat+ (+option_channel_htlc_max+):: The maximum amount that will be routed
 
-A node that receives the +channel_update+ message can attach this metadata to the channel graph edge to enable path finding,  as we will see in <<path_finding>>.
+A node that receives the +channel_update+ message can attach this metadata to the channel graph edge to enable pathfinding,  as we will see in <<path_finding>>.
 
 === Ongoing Channel Graph Maintenance
 
 The construction of a channel graph is not a one-time event, but rather an ongoing activity. As a node bootstraps into the network it will start receiving "gossip," in the form of the three update messages. It will use these messages to immediately start building a validated channel graph.
 
-The more information a node receives, the better its "map" of the Lightning Network becomes and the more effective it can be at path finding and payment delivery.
+The more information a node receives, the better its "map" of the Lightning Network becomes and the more effective it can be at pathfinding and payment delivery.
 
 A node won't only add information to the channel graph. It will also keep track of the last time a channel was updated and will delete "stale" channels that have not been updated in more than two weeks. Finally, if it sees that some node no longer has any channels, it will also remove that node.
 
-The information collected from the gossip protocol is not the only information that can be stored in the channel graph. Different Lightning node implementations may attach other metadata to nodes and channels. For example, some node implementations calculate a "score" that evaluates a node's "quality" as a routing peer. This score is used as part of path finding to prioritize or deprioritize paths.
+The information collected from the gossip protocol is not the only information that can be stored in the channel graph. Different Lightning node implementations may attach other metadata to nodes and channels. For example, some node implementations calculate a "score" that evaluates a node's "quality" as a routing peer. This score is used as part of pathfinding to prioritize or deprioritize paths.
 
 === Conclusion
 In this chapter, we've learned how Lightning nodes discover each
