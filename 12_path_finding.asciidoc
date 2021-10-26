@@ -1,13 +1,13 @@
 [[path_finding]]
-== Path Finding and Payment Delivery
+== Pathfinding and Payment Delivery
 
-Payment delivery on the Lightning Network depends on finding a path from the sender to the recipient, a process called _path finding_. Since the routing is done by the sender, the sender must find a suitable path to reach the destination. This path is then encoded in an onion, as we saw in <<onion_routing>>.
+Payment delivery on the Lightning Network depends on finding a path from the sender to the recipient, a process called _pathfinding_. Since the routing is done by the sender, the sender must find a suitable path to reach the destination. This path is then encoded in an onion, as we saw in <<onion_routing>>.
 
-In this chapter we will examine the problem of path finding, understand how uncertainty about channel balances complicates this problem, and look at how a typical path finding implementation attempts to solve it.
+In this chapter we will examine the problem of pathfinding, understand how uncertainty about channel balances complicates this problem, and look at how a typical pathfinding implementation attempts to solve it.
 
-=== Path Finding in the Lightning Protocol Suite
+=== Pathfinding in the Lightning Protocol Suite
 
-Path finding, path selection, multipart payments (MPP), and the payment attempt trial and error loop occupy the majority of the "Payment Layer" at the top of the protocol suite.
+Pathfinding, path selection, multipart payments (MPP), and the payment attempt trial and error loop occupy the majority of the "Payment Layer" at the top of the protocol suite.
 
 These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_pathfinding_highlight>>.
 
@@ -17,15 +17,15 @@ image::images/mtln_1201.png["The Lightning Network Protocol Suite"]
 
 ==== Where Is the BOLT?
 
-So far we've looked at several technologies that are part of the Lightning Network and we have seen their exact specification as part of a BOLT standard. You may be surprised to find that path finding is not part of the BOLTs!
+So far we've looked at several technologies that are part of the Lightning Network and we have seen their exact specification as part of a BOLT standard. You may be surprised to find that pathfinding is not part of the BOLTs!
 
-That's because path finding isn't an activity that requires any form of coordination or interoperability between different implementations. As we've seen, the path is selected by the sender. Even though the routing details are specified in detail in the BOLTs, the path discovery and selection are left entirely up to the sender. So each node implementation can choose a different strategy/algorithm to find paths. In fact, the different node/client and wallet implementations can even compete and use their path finding algorithm as a point of differentiation.
+That's because pathfinding isn't an activity that requires any form of coordination or interoperability between different implementations. As we've seen, the path is selected by the sender. Even though the routing details are specified in detail in the BOLTs, the path discovery and selection are left entirely up to the sender. So each node implementation can choose a different strategy/algorithm to find paths. In fact, the different node/client and wallet implementations can even compete and use their pathfinding algorithm as a point of differentiation.
 
-=== Path Finding: What Problem Are We Solving?
+=== Pathfinding: What Problem Are We Solving?
 
-The term path finding may be somewhat misleading because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
+The term pathfinding may be somewhat misleading because it implies a search for _a single path_ connecting two nodes. In the beginning, when the Lightning Network was small and not well interconnected, the problem was indeed about finding a way to join payment channels to reach the recipient.
 
-But, as the Lightning Network has grown explosively, the path finding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2,000 channels _each_. A visualization of just a small subset of the LN channel graph is shown in <<lngraph>>.
+But, as the Lightning Network has grown explosively, the pathfinding problem's nature has shifted. In mid-2021, as we finish this book, the Lightning Network consists of 20,000 nodes connected by at least 55,000 public channels with an aggregate capacity of almost 2,000 BTC. A node has on average 8.8 channels, while the top 10 most connected nodes have between 400 and 2,000 channels _each_. A visualization of just a small subset of the LN channel graph is shown in <<lngraph>>.
 
 [[lngraph]]
 .A visualization of part of the Lightning Network as of July 2021
@@ -48,12 +48,12 @@ To select the best path, we have to first define what we mean by "best." There m
 
 * Paths with short timelocks. We may want to avoid locking our funds for too long and therefore select paths with shorter timelocks.
 
-All of these criteria may be desirable to some extent, and selecting paths that are favorable across many dimensions is not an easy task. Optimization problems like this may be too complex to solve for the "best" solution, but often can be solved for some approximation of the optimal, which is good news because otherwise path finding would be an intractable problem.
+All of these criteria may be desirable to some extent, and selecting paths that are favorable across many dimensions is not an easy task. Optimization problems like this may be too complex to solve for the "best" solution, but often can be solved for some approximation of the optimal, which is good news because otherwise pathfinding would be an intractable problem.
 
 
-==== Path Finding in Math and Computer Science
+==== Pathfinding in Math and Computer Science
 
-Path finding in the Lightning Network falls under a general category of _graph theory_ in mathematics and the more specific category of _graph traversal_ in computer science.
+Pathfinding in the Lightning Network falls under a general category of _graph theory_ in mathematics and the more specific category of _graph traversal_ in computer science.
 
 A network such as the Lightning Network can be represented as a mathematical construct called a _graph_, where _nodes_ are connected to each other by _edges_ (equivalent to the payment channels). The Lightning Network forms a _directed graph_ because the nodes are linked _asymmetrically_, since the channel balance is split between the two channel partners and the payment liquidity is different in each direction. A directed graph with numerical capacity constraints on its edges is called a _flow network_, a mathematical construct used to optimize transportation and other similar networks. Flow networks can be used as a framework when solutions need to achieve a specific flow while minimizing cost, known as the minimum cost flow problem (MCFP).
 
@@ -78,9 +78,9 @@ liquidity(A) = balance(A) - channel_reserve(A) - pending_HTLCs(A)
 
 ==== Uncertainty of Balances
 
-If we knew the exact channel balances of every channel, we could compute one or more payment paths using any of the standard path finding algorithms taught in good computer science programs. But we don't know the channel balances; we only know the aggregate channel capacity, which is advertised by nodes in channel announcements. In order for a payment to succeed, there must be adequate balance on the sending side of the channel. If we don't know how the capacity is distributed between the channel partners, we don't know if there is enough balance in the direction we are trying to send the payment.
+If we knew the exact channel balances of every channel, we could compute one or more payment paths using any of the standard pathfinding algorithms taught in good computer science programs. But we don't know the channel balances; we only know the aggregate channel capacity, which is advertised by nodes in channel announcements. In order for a payment to succeed, there must be adequate balance on the sending side of the channel. If we don't know how the capacity is distributed between the channel partners, we don't know if there is enough balance in the direction we are trying to send the payment.
 
-Balances are not announced in channel updates for two reasons: privacy and scalability. First, announcing balances would reduce the privacy of the Lightning Network because it would allow surveillance of payment by statistical analysis of the changes in balances. Second, if nodes announced balances (globally) with every payment, the Lightning Network's scaling would be as bad as that of on-chain Bitcoin transactions which are broadcast to all participants. Therefore, balances are not announced. To solve the path finding problem in the face of uncertainty of balances, we need innovative path finding strategies. These strategies must relate closely to the routing algorithm that is used, which is source-based onion routing in which it is the responsibility of the sender to find a path through the network.
+Balances are not announced in channel updates for two reasons: privacy and scalability. First, announcing balances would reduce the privacy of the Lightning Network because it would allow surveillance of payment by statistical analysis of the changes in balances. Second, if nodes announced balances (globally) with every payment, the Lightning Network's scaling would be as bad as that of on-chain Bitcoin transactions which are broadcast to all participants. Therefore, balances are not announced. To solve the pathfinding problem in the face of uncertainty of balances, we need innovative pathfinding strategies. These strategies must relate closely to the routing algorithm that is used, which is source-based onion routing in which it is the responsibility of the sender to find a path through the network.
 
 The uncertainty problem can be described mathematically as a _range of liquidity_, indicating the lower and upper bounds of liquidity based on the information that is known. Since we know the capacity of the channel and we know the channel reserve balance (the minimum allowed balance on each end), the liquidity can be defined as:
 
@@ -97,17 +97,17 @@ channel_reserve <= liquidity <= (capacity – channel_reserve)
 
 Our channel liquidity uncertainty range is the range between the minimum and maximum possible liquidity. This is unknown to the network, except the two channel partners. However, as we will see, we can use failed HTLCs returned from our payment attempts to update our liquidity estimate and reduce uncertainty. If for example we get an HTLC failure code that tells us that a channel cannot fulfill an HTLC that is smaller than our estimate for maximum liquidity, that means the maximum liquidity can be updated to the amount of the failed HTLC. In simpler terms, if we think the liquidity can handle an HTLC of _N_ satoshis and we find out it fails to deliver _M_ satoshis (where _M_ is smaller), then we can update our estimate to __M__–1 as the upper bound. We tried to find the ceiling and bumped against it, so it's lower than we thought!
 
-==== Path Finding Complexity
+==== Pathfinding Complexity
 
 Finding a path through a graph is a problem modern computers can solve rather efficiently.
 Developers mainly choose breadth-first search if the edges are all of equal weight.
 In cases where the edges are not of equal weight, an algorithm based on Dijkstra's algorithm is used, such as https://en.wikipedia.org/wiki/A*_search_algorithm[A* (pronounced "A-star")].
 In our case the weights of the edges can represent the routing fees.
 Only edges with a capacity larger than the amount to be sent will be included in the search.
-In this basic form, path finding in the Lightning Network is very simple and straightforward.
+In this basic form, pathfinding in the Lightning Network is very simple and straightforward.
 
 However, channel liquidity is unknown to the sender. This turns our easy theoretical computer science problem into a rather complex real-world problem.
-We now have to solve a path finding problem with only partial knowledge.
+We now have to solve a pathfinding problem with only partial knowledge.
 For example, we suspect which edges might be able to forward a payment because their capacity seems big enough.
 But we can't be certain unless we try it out or ask the channel owners directly.
 Even if we were able to ask the channel owners directly, their balance might change by the time we have asked others, computed a path, constructed an onion, and sent it along.
@@ -115,7 +115,7 @@ Not only do we have limited information but the information we have is highly dy
 
 ==== Keeping It Simple
 
-The path finding mechanism implemented in Lightning nodes is to first create a list of candidate paths, filtered and sorted by some function. Then, the node or wallet will probe paths (by attempting to deliver a payment) in a trial-and-error loop until a path is found that successfully delivers the payment.
+The pathfinding mechanism implemented in Lightning nodes is to first create a list of candidate paths, filtered and sorted by some function. Then, the node or wallet will probe paths (by attempting to deliver a payment) in a trial-and-error loop until a path is found that successfully delivers the payment.
 
 [NOTE]
 ====
@@ -127,9 +127,9 @@ While blind probing is not optimal and leaves ample room for improvement, it sho
 
 Most Lightning node and wallet implementations improve on this approach by ordering/weighting the list of candidate paths. Some implementations order the candidate paths by cost (fees) or some combination of cost and capacity.
 
-=== Path Finding and Payment Delivery Process
+=== Pathfinding and Payment Delivery Process
 
-Path finding and payment delivery involves several steps, which we list here. Different implementations may use different algorithms and strategies, but the basic steps are likely to be very similar:
+Pathfinding and payment delivery involves several steps, which we list here. Different implementations may use different algorithms and strategies, but the basic steps are likely to be very similar:
 
 . Create a _channel graph_ from announcements and updates containing the capacity of each channel and filter the graph ignoring any channels with insufficient capacity for the amount we want to send.
 
@@ -144,7 +144,7 @@ Path finding and payment delivery involves several steps, which we list here. Di
 We can group these steps into three primary activities:
 
 * Channel graph construction
-* Path finding (filtered and ordered by some heuristics)
+* Pathfinding (filtered and ordered by some heuristics)
 * Payment attempt(s)
 
 These three activities can be repeated in a _payment round_ if we use the failure returns to update the graph, or if we are doing multipart payments (see <<mpp>>).
@@ -163,7 +163,7 @@ In <<gossip>> we covered the three main messages that nodes use in their gossip:
 
 In terms of a mathematical graph, the +node_announcement+ is the information needed to create the nodes or _vertices_ of the graph. The +channel_announcement+ allows us to create the _edges_ of the graph representing the payment channels. Since each direction of the payment channel has its own balance, we create a directed graph. The +channel_update+ allows us to incorporate fees and timelocks to set the _cost_ or _weight_ of the graph edges.
 
-Depending on the algorithm we will use for path finding, we may establish a number of different cost functions for the edges of the graph.
+Depending on the algorithm we will use for pathfinding, we may establish a number of different cost functions for the edges of the graph.
 
 For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the +node_announcement+ and +channel_announcement+ messages.
 
@@ -365,15 +365,15 @@ Now that MPP is available it is best to think of a single-path payment as a subc
 
 MPP is not something that a user will select, but rather it is a node pathfinding and payment delivery strategy. The same basic steps are implemented: create a graph, select paths, and the trial-and-error loop. The difference is that during path selection we must also consider how to split the payment to optimize delivery.
 
-In our example we can see some immediate improvements to our path finding problem that become possible with MPP. First, we can utilize the S->X channel that has known insufficient liquidity to transport 1M satoshis plus fees. By sending a smaller part along that channel, we can use paths that were previously unavailable. Second, we have the unknown liquidity of the B->R channel, which is insufficient to transport the 1M amount, but might be sufficient to transport a smaller amount.
+In our example we can see some immediate improvements to our pathfinding problem that become possible with MPP. First, we can utilize the S->X channel that has known insufficient liquidity to transport 1M satoshis plus fees. By sending a smaller part along that channel, we can use paths that were previously unavailable. Second, we have the unknown liquidity of the B->R channel, which is insufficient to transport the 1M amount, but might be sufficient to transport a smaller amount.
 
 ===== Splitting payments
 
 The fundamental question is how to split the payments. More specifically, what are the optimal number of splits and the optimal amounts for each split?
 
-This is an area of ongoing research where novel strategies are emerging. Multipart payments lead to a different algorithmic approach than single-path payments, even though single-path solutions can emerge from a multipart optimization (i.e., a single path may be the optimal solution suggested by a multipart path finding algorithm).
+This is an area of ongoing research where novel strategies are emerging. Multipart payments lead to a different algorithmic approach than single-path payments, even though single-path solutions can emerge from a multipart optimization (i.e., a single path may be the optimal solution suggested by a multipart pathfinding algorithm).
 
-If you recall, we found that the uncertainty of liquidity/balances leads to some (somewhat obvious) conclusions that we can apply in MPP path finding, namely:
+If you recall, we found that the uncertainty of liquidity/balances leads to some (somewhat obvious) conclusions that we can apply in MPP pathfinding, namely:
 
 * Smaller payments have a higher chance of succeeding.
 
@@ -411,9 +411,9 @@ Multipart payments lead to a somewhat modified trial-and-error loop for payment 
 
 In the second case, where some parts fail with errors returned and some parts succeed, we can now _repeat_ the trial-and-error loop, but _only for the residual amount_.
 
-Let's assume for example that Selena had a much larger channel graph with hundreds of possible paths to reach Rashid. Her path finding algorithm might find an optimal payment split consisting of 26 parts of varying sizes. After attempting to send all 26 parts in the first round, three of those parts failed with errors.
+Let's assume for example that Selena had a much larger channel graph with hundreds of possible paths to reach Rashid. Her pathfinding algorithm might find an optimal payment split consisting of 26 parts of varying sizes. After attempting to send all 26 parts in the first round, three of those parts failed with errors.
 
-If those three parts consisted of, say 155k satoshis, then Selena would restart the path finding effort, only for 155k satoshis. The next round could find completely different paths (optimized for the residual amount of 155k), and split the 155k amount into completely different splits!
+If those three parts consisted of, say 155k satoshis, then Selena would restart the pathfinding effort, only for 155k satoshis. The next round could find completely different paths (optimized for the residual amount of 155k), and split the 155k amount into completely different splits!
 
 [TIP]
 ====
@@ -422,7 +422,7 @@ While it seems like 26 split parts are a lot, tests on the Lightning Network hav
 
 Furthermore, Selena's node would update the channel graph using the information gleaned from the successes and errors of the first round to find the most optimal paths and splits for the second round.
 
-Let's say that Selena's node calculates that the best way to send the 155k residual is six parts split as 80k, 42k, 15k, 11k, 6.5k, and 500 satoshis. In the next round, Selena gets only one error, indicating that the 11k satoshi part failed. Again, Selena updates the channel graph based on the information gleaned and runs the path finding again to send the 11k residual. This time, she succeeds with 2 parts of 6k and 5k satoshis, respectively.
+Let's say that Selena's node calculates that the best way to send the 155k residual is six parts split as 80k, 42k, 15k, 11k, 6.5k, and 500 satoshis. In the next round, Selena gets only one error, indicating that the 11k satoshi part failed. Again, Selena updates the channel graph based on the information gleaned and runs the pathfinding again to send the 11k residual. This time, she succeeds with 2 parts of 6k and 5k satoshis, respectively.
 
 This multiround example of sending a payment using MPP is shown in <<mpp_rounds>>.
 
@@ -430,12 +430,12 @@ This multiround example of sending a payment using MPP is shown in <<mpp_rounds>
 .Sending a payment in multiple rounds with MPP
 image::images/mtln_1210.png[]
 
-In the end, Selena's node used three rounds of path finding to send the 1M satoshis in 30 parts.
+In the end, Selena's node used three rounds of pathfinding to send the 1M satoshis in 30 parts.
 
 === Conclusion
 
-In this chapter we looked at path finding and payment delivery. We saw how to use the channel graph to find paths from a sender to a recipient. We also saw how the sender will attempt to deliver payments on a candidate path and repeat in a trial-and-error loop.
+In this chapter we looked at pathfinding and payment delivery. We saw how to use the channel graph to find paths from a sender to a recipient. We also saw how the sender will attempt to deliver payments on a candidate path and repeat in a trial-and-error loop.
 
-We also examined the uncertainty of channel liquidity (from the perspective of the sender) and the implications that has for path finding. We saw how we can quantify the uncertainty and use probability theory to draw some useful conclusions. We also saw how we can reduce uncertainty by learning from both successful and failed payments.
+We also examined the uncertainty of channel liquidity (from the perspective of the sender) and the implications that has for pathfinding. We saw how we can quantify the uncertainty and use probability theory to draw some useful conclusions. We also saw how we can reduce uncertainty by learning from both successful and failed payments.
 
 Finally, we saw how the newly deployed multipart payments feature allows us to split payments into parts, increasing the probability of success even for larger payments.
