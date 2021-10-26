@@ -1,7 +1,7 @@
 [[channel_operation]]
 == Channel Operation and Payment Forwarding
 
-In this chapter we will bring together payment channels and Hash Time-Locked Contracts (HTLCs). In <<payment_channels>> we explained the way Alice and Bob construct a payment channel between their two nodes. We also looked at the commitment and penalty mechanisms that secure the payment channel. In <<routing>> we looked at Hash Time-Locked Contracts (HTLCs) and how these can be used to route a payment across a path made of multiple payment channels. In this chapter we bring the two concepts together by looking at how HTLCs are managed on each payment channel, how the HTLCs are committed to the channel state, and how they are settled to update the channel balances.
+In this chapter we will bring together payment channels and hash time-locked contracts (HTLCs). In <<payment_channels>> we explained the way Alice and Bob construct a payment channel between their two nodes. We also looked at the commitment and penalty mechanisms that secure the payment channel. In <<routing>> we looked at hash time-locked contracts (HTLCs) and how these can be used to route a payment across a path made of multiple payment channels. In this chapter we bring the two concepts together by looking at how HTLCs are managed on each payment channel, how the HTLCs are committed to the channel state, and how they are settled to update the channel balances.
 
 Specifically, we will be discussing "Adding, Settling, Failing HTLCs" and the "Channel State Machine" that form the overlap between the Peer-2-Peer layer and the Routing layer, as highlighted by a double outline in <<LN_protocol_channelops_highlight>>. 
 
@@ -117,7 +117,7 @@ OP_ELSE
 OP_ENDIF
 ----
 <1> The first clause of the `OP_IF` conditional is redeemable by Alice with a revocation key. If this commitment is later revoked, Alice will have a revocation key to claim this output in a penalty transaction, taking the whole channel balance.
-<2>  The second clause is redeemable by the pre-image (payment secret, or in our example Dina's secret) if it is revealed. This allows Bob to claim this output if he has the secret from Dina, meaning he has successfully delivered the payment to Dina.
+<2>  The second clause is redeemable by the preimage (payment secret, or in our example Dina's secret) if it is revealed. This allows Bob to claim this output if he has the secret from Dina, meaning he has successfully delivered the payment to Dina.
 <3> The third and final clause is a refund of the HTLC to Alice, if the HTLC expires without reaching Dina. It is timelocked with the expiration +cltv_expiry+. This ensures that Alice's balance is not "stuck" in an HTLC that can't be routed to Dina.
 ====
 
@@ -242,7 +242,7 @@ However, the HTLCs are now set up in a way that secure settlement in exchange fo
 
 Let's assume that Bob continues the chain and sets up an HTLC with Chan for 50,100 satoshis. The process will be exactly the same as we just saw between Alice and Bob. Bob will send +update_add_htlc+ to Chan, then they will exchange commitment_signed and +revoke_and_ack+ messages in two rounds, progressing their channel to the next state.
 
-Next, Chan will do the same with Dina: offer a 50,000 satoshi HTLC, commit, and revoke, etc. However, Dina is the final recipient of the HTLC. Dina is the only one that knows the payment secret (the pre-image of the payment hash). Therefore, Dina can fulfill the HTLC with Chan immediately!
+Next, Chan will do the same with Dina: offer a 50,000 satoshi HTLC, commit, and revoke, etc. However, Dina is the final recipient of the HTLC. Dina is the only one that knows the payment secret (the preimage of the payment hash). Therefore, Dina can fulfill the HTLC with Chan immediately!
 
 ==== Dina Fulfills the HTLC with Chan
 
@@ -272,13 +272,13 @@ H = RIPEMD160( SHA256 (R) )
 
 If the result +H+ matches the payment hash in the HTLC, Chan can do a little dance of celebration. This long-awaited secret can be used to redeem the HTLC, and will be passed back along the chain of payment channels all the way to Alice, resolving every HTLC that was part of this payment to Dina.
 
-Let's go back to Alice and Bob's channel and watch them unwind the HTLC. To get there, let's assume Dina sent the +update_fulfill_htlc+ to Chan, Chan sent +update_fulfill_htlc+ to Bob, and Bob sent +update_fulfill_htlc+ to Alice. The payment pre-image has propagated all the way back to Alice.
+Let's go back to Alice and Bob's channel and watch them unwind the HTLC. To get there, let's assume Dina sent the +update_fulfill_htlc+ to Chan, Chan sent +update_fulfill_htlc+ to Bob, and Bob sent +update_fulfill_htlc+ to Alice. The payment preimage has propagated all the way back to Alice.
 
 ==== Bob Settles the HTLC with Alice
 
 When Bob sends +update_fulfill_htlc+ to Alice, it will contain the same payment_preimage that Dina selected for her invoice. That +payment_preimage+ has traveled backward along the payment path. At each step, the +channel_id+ will be different and +id+ (HTLC ID) may be different. But the preimage is the same!
 
-Alice will also validate the +payment_preimage+ received from Bob. She will compare its hash to the HTLC payment hash in the HTLC she offered Bob. She will also find this pre-image matches the hash in Dina's invoice. This is proof that Dina was paid.
+Alice will also validate the +payment_preimage+ received from Bob. She will compare its hash to the HTLC payment hash in the HTLC she offered Bob. She will also find this preimage matches the hash in Dina's invoice. This is proof that Dina was paid.
 
 The message flow between Alice and Bob is shown in <<htlc_fulfillment_message_flow>>. 
 
@@ -336,7 +336,7 @@ At this point, you will easily understand why HTLCs are used for both remote and
 . Alice constructs an HTLC from that payment hash.
 . Alice offers the HTLC to Bob with +update_add_htlc+.
 . Alice and Bob exchange commitments and revocations adding the HTLC to their commitment transactions.
-. Bob sends +update_fulfill_htlc+ to Alice with the payment pre-image.
+. Bob sends +update_fulfill_htlc+ to Alice with the payment preimage.
 . Alice and Bob exchange commitments and revocations removing the HTLC and updating the channel balances.
 
 Whether an HTLC is forwarded across many channels or just fulfilled in a single channel "hop," the process is exactly the same
