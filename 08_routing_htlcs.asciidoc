@@ -32,15 +32,15 @@ This enables fans to use intermediary nodes to pay Dina, without leaking private
 
 This process of connecting a series of payment channels with end-to-end security, and the incentive structure for nodes to _forward_ payments, is one of the key innovations of the Lightning Network.
 
-In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in which payments flow through the network. First, we will clarify the concept of routing and compare it to that of path finding because these are often confused and used interchangeably. Next, we will construct the fairness protocol: an atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between four people. Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a Hash Time-Locked Contract (HTLC).
+In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in which payments flow through the network. First, we will clarify the concept of routing and compare it to that of pathfinding because these are often confused and used interchangeably. Next, we will construct the fairness protocol: an atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between four people. Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a hash time-locked contract (HTLC).
 
-=== Routing Versus Path Finding
+=== Routing Versus Pathfinding
 
-It's important to note that we separate the concept of _routing_ from the concept of _path finding_. These two concepts are often confused, and the term _routing_ is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
+It's important to note that we separate the concept of _routing_ from the concept of _pathfinding_. These two concepts are often confused, and the term _routing_ is often used to describe both concepts. Let's remove the ambiguity, before we proceed any further.
 
-Path finding, which is covered in <<path_finding>>, is the process of finding and choosing a contiguous path made of payment channels that connects sender A to recipient B. The sender of a payment does the path finding by examining the _channel graph_ that they have assembled from channel announcements gossiped by other nodes.
+Pathfinding, which is covered in <<path_finding>>, is the process of finding and choosing a contiguous path made of payment channels that connects sender A to recipient B. The sender of a payment does the pathfinding by examining the _channel graph_ that they have assembled from channel announcements gossiped by other nodes.
 
-Routing refers to the series of interactions across the network that attempt to forward a payment from some point A to another point B, across the path previously selected by path finding. Routing is the active process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
+Routing refers to the series of interactions across the network that attempt to forward a payment from some point A to another point B, across the path previously selected by pathfinding. Routing is the active process of sending a payment on a path, which involves the cooperation of all the intermediary nodes along that path.
 
 An important rule of thumb is that it's possible for a _path_ to exist between Alice and Bob (perhaps even more than one), yet there may not be an active _route_ on which to send the payment. One example is the scenario in which all the nodes connecting Alice and Bob are currently offline. In this example, one can examine the channel graph and connect a series of payment channels from Alice to Bob, hence a _path_ exists. However, because the intermediary nodes are offline, the payment cannot be sent and so no _route_ exists.
 
@@ -135,7 +135,7 @@ latexmath:[\(H = SHA256(R)\)]
 We call this hash of the payment's secret the _payment hash_.
 The secret that "unlocks" the payment is called the _payment secret_.
 
-For now, we keep things simple and assume that Dina's secret is simply the text line: `Dinas secret`. This secret message is called the _payment secret_ or _payment pre-image_.
+For now, we keep things simple and assume that Dina's secret is simply the text line: `Dinas secret`. This secret message is called the _payment secret_ or _payment preimage_.
 
 To "commit" to this secret, Dina computes the SHA256 hash, which when encoded in hexadecimal, can be displayed as follows: `0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3`.
 
@@ -182,7 +182,7 @@ Everything is now in place.
 Alice has a contract with Bob and has placed 12 gold coins in escrow.
 Bob has a contract with Chan and has placed 11 gold coins in escrow.
 Chan has a contract with Dina and has placed 10 gold coins in escrow.
-It is now up to Dina to reveal the secret, which is the pre-image to the hash she has established as proof of payment.
+It is now up to Dina to reveal the secret, which is the preimage to the hash she has established as proof of payment.
 
 Dina now sends +Dinas secret+ to Chan.
 
@@ -198,7 +198,7 @@ Alice has paid a total of 12 gold coins, 1 of which was received by Bob, 1 of wh
 With a chain of contracts like this in place, Bob and Chan could not run away with the money because they deposited it in escrow first.
 
 However, one issue still remains.
-If Dina refused to release her secret pre-image, then Chan, Bob, and Alice would all have their coins stuck in escrow but wouldn't be reimbursed.
+If Dina refused to release her secret preimage, then Chan, Bob, and Alice would all have their coins stuck in escrow but wouldn't be reimbursed.
 And similarly if anyone else along the chain failed to pass on the secret, the same thing would happen.
 So while no one can steal money from Alice, everyone would still have their money stuck in escrow permanently.
 
@@ -267,13 +267,13 @@ Atomicity:: Either the payment is fully executed, or it fails and everyone is re
 
 Multihop:: The security of the system extends end-to-end for payments routed through multiple payment channels, just as it is for a payment between the two ends of a single payment channel.
 
-An optional, additional property is the ability to split payments into multiple parts while maintaining atomicity for the entire payment. These are called _Multi-Part Payments_ (_MPP_) and are explored further in <<mpp>>.
+An optional, additional property is the ability to split payments into multiple parts while maintaining atomicity for the entire payment. These are called _multipart payments_ (_MPP_) and are explored further in <<mpp>>.
 
 ==== Implementing Atomic Trustless Multihop Payments
 
 Bitcoin Script is flexible enough that there are dozens of ways to implement a fairness protocol that has the properties of atomicity, trustless operation, and multihop security. Choosing a specific implementation is dependent on certain trade-offs between privacy, efficiency, and complexity.
 
-The fairness protocol for routing used in the Lightning Network today is called a Hash Time-Locked Contract (HTLC). HTLCs use a hash pre-image as the secret that unlocks a payment, as we saw in the gold coin example in this chapter. The recipient of a payment generates a random secret number and calculates its hash. The hash becomes the condition of payment, and once the secret is revealed, all the participants can redeem their incoming payments. HTLCs offer atomicity, trustless operation, and multihop security.
+The fairness protocol for routing used in the Lightning Network today is called a hash time-locked contract (HTLC). HTLCs use a hash preimage as the secret that unlocks a payment, as we saw in the gold coin example in this chapter. The recipient of a payment generates a random secret number and calculates its hash. The hash becomes the condition of payment, and once the secret is revealed, all the participants can redeem their incoming payments. HTLCs offer atomicity, trustless operation, and multihop security.
 
 Another proposed mechanism for implementing routing is a _Point Time-Locked Contract_ (_PTLC_). PTLCs also achieve atomicity, trustless operation, and multihop security, but do so with increased efficiency and better privacy.  Efficient implementation of PTLCs depends on a new digital signature algorithm called _Schnorr signatures_, which is expected to be activated in Bitcoin in 2021.
 
@@ -301,7 +301,7 @@ As we saw in previous examples, we assume that Alice does not have a direct paym
 Remember how Bob and Chan might expect a small compensation for routing the payment through their nodes? Alice wants to pay Dina 50,000 satoshis, but as you will see in the following sections she will send Bob 50,200 satoshis. The extra 200 satoshis will pay Bob and Chan 100 satoshis each, as a routing fee.
 ====
 
-Now, Alice's node can construct a Lightning payment. In the next few sections, we will see how Alice's node constructs a Hash Time-Locked Contract (HTLC) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
+Now, Alice's node can construct a Lightning payment. In the next few sections, we will see how Alice's node constructs a hash time-locked contract (HTLC) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
 
 
 ==== On-Chain Versus Off-Chain Settlement of HTLCs
@@ -317,15 +317,15 @@ In all the examples that follow, we will assume that any of these transactions c
 
 In this section we explain how HTLCs work.
 
-The first part of an HTLC is the _hash_. This refers to the use of a cryptographic hash algorithm to commit to a randomly generated secret. Knowledge of the secret allows redemption of the payment. The cryptographic hash function, guarantees that while it's infeasible for anyone to guess the secret pre-image, it's easy for anyone to verify the hash, and there's only one possible pre-image that resolves the payment condition.
+The first part of an HTLC is the _hash_. This refers to the use of a cryptographic hash algorithm to commit to a randomly generated secret. Knowledge of the secret allows redemption of the payment. The cryptographic hash function, guarantees that while it's infeasible for anyone to guess the secret preimage, it's easy for anyone to verify the hash, and there's only one possible preimage that resolves the payment condition.
 
-In <<alice_dina_invoice_2>> we see Alice getting a Lightning invoice from Dina. Inside that invoice Dina has encoded a _payment hash_, which is the cryptographic hash of a secret that Dina's node produced. Dina's secret is called the _payment pre-image_. The payment hash acts as an identifier that can be used to route the payment to Dina. The payment pre-image acts as a receipt and proof of payment once the payment is complete.
+In <<alice_dina_invoice_2>> we see Alice getting a Lightning invoice from Dina. Inside that invoice Dina has encoded a _payment hash_, which is the cryptographic hash of a secret that Dina's node produced. Dina's secret is called the _payment preimage_. The payment hash acts as an identifier that can be used to route the payment to Dina. The payment preimage acts as a receipt and proof of payment once the payment is complete.
 
 [[alice_dina_invoice_2]]
 .Alice gets a payment hash from Dina
 image::images/mtln_0808.png["Alice gets a payment hash from Dina"]
 
-In the Lightning Network, Dina's payment pre-image won't be a phrase like +Dinas secret+ but a random number generated by Dina's node. Let's call that random number +R+.
+In the Lightning Network, Dina's payment preimage won't be a phrase like +Dinas secret+ but a random number generated by Dina's node. Let's call that random number +R+.
 
 Dina's node will calculate a cryptographic hash of +R+, such that:
 
@@ -335,7 +335,7 @@ Dina's node will calculate a cryptographic hash of +R+, such that:
 H = SHA256(R)
 ----
 
-In this code, +H+ is the hash, or _payment hash_ and +R+ is the secret or _payment pre-image_.
+In this code, +H+ is the hash, or _payment hash_ and +R+ is the secret or _payment preimage_.
 
 The use of a cryptographic hash function is one element that guarantees _trustless operation_. The payment intermediaries do not need to trust each other because they know that no one can guess the secret or fake it.
 
@@ -382,9 +382,9 @@ In the following sections, we will focus on the main elements of the script and 
 
 The main part of the HTLC is in line 10 of <<received_htlc>>. Let's build it up from scratch!
 
-==== Payment Pre-Image and Hash Verification
+==== Payment Preimage and Hash Verification
 
-The core of an HTLC is the hash, where payment can be made if the recipient knows the payment pre-image. Alice locks the payment to a specific payment hash, and Bob has to present a payment pre-image to claim the funds. The Bitcoin system can verify that Bob's payment pre-image is correct by hashing it and comparing the result to the payment hash that Alice used to lock the funds.
+The core of an HTLC is the hash, where payment can be made if the recipient knows the payment preimage. Alice locks the payment to a specific payment hash, and Bob has to present a payment preimage to claim the funds. The Bitcoin system can verify that Bob's payment preimage is correct by hashing it and comparing the result to the payment hash that Alice used to lock the funds.
 
 This part of an HTLC can be implemented in Bitcoin Script as follows:
 
@@ -401,7 +401,7 @@ OP_SHA256 0575...f6b3 OP_EQUAL
 
 Bob can't spend this HTLC until he knows Dina's secret, so spending the HTLC is conditional on Bob's fulfillment of the payment all the way to Dina.
 
-Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secret pre-image value +R+
+Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secret preimage value +R+
 
 The unlocking script combined with the locking script would produce:
 
@@ -492,7 +492,7 @@ OP_SHA256 <H> OP_EQUALVERIFY <Bob's Pub> OP_CHECKSIG
 Notice that we also changed +OP_EQUAL+ to +OP_EQUALVERIFY+. When an operator has the suffix +VERIFY+, it does not return +TRUE+ or +FALSE+ on the stack. Instead, it _halts_ execution and fails the script if the result is false and continues without any stack output if it is true.
 ====
 
-To redeem this HTLC, Bob has to present an unlocking script that includes a signature from Bob's private key as well as the secret payment pre-image, like this:
+To redeem this HTLC, Bob has to present an unlocking script that includes a signature from Bob's private key as well as the secret payment preimage, like this:
 
 ----
 <Bob's Signature> <R>
@@ -534,7 +534,7 @@ In hexadecimal encoding, +OP_SHA256+ is +a8+ and +OP_EQUALVERIFY+ is +88+. The t
 
 As we've mentioned previously, any participant in the Lightning Network should be able to take an off-chain transaction they hold and put it on-chain if they need to enforce their claim to funds. To take a transaction on-chain, they'd have to pay transaction fees to the miners, and these fees are proportional to the size in bytes of the transaction.
 
-Therefore, we want to find ways to minimize the on-chain "weight" of transactions by optimizing the script as much as possible. One way to do that is to add another hash function on top of the SHA256 algorithm, one that produces smaller hashes. The Bitcoin Script language provides the +OP_HASH160+ operator that "double hashes" a pre-image: first the pre-image is hashed with SHA256, and then the resulting hash is hashed again with the RIPEMD160 hash algorithm. The hash resulting from RIPEMD160 is 160 bits or 20 bytes--much more compact. In Bitcoin Script this is a very common optimization that is used in many of the common address formats.
+Therefore, we want to find ways to minimize the on-chain "weight" of transactions by optimizing the script as much as possible. One way to do that is to add another hash function on top of the SHA256 algorithm, one that produces smaller hashes. The Bitcoin Script language provides the +OP_HASH160+ operator that "double hashes" a preimage: first the preimage is hashed with SHA256, and then the resulting hash is hashed again with the RIPEMD160 hash algorithm. The hash resulting from RIPEMD160 is 160 bits or 20 bytes--much more compact. In Bitcoin Script this is a very common optimization that is used in many of the common address formats.
 
 So, let's use that optimization instead. Our SHA256 hash is +057596...69f6b3+. Putting that through another round of hashing with RIPEMD160 gives us the result:
 
@@ -613,8 +613,8 @@ For example, Alice sets the refund time-lock on the first HTLC to a block height
 
 In this chapter we saw how Alice can pay Dina even if she doesn't have a direct payment channel. Alice can find a path that connects her to Dina and route a payment across several payment channels so that it reaches Dina.
 
-To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, Alice must implement a fairness protocol in cooperation with all the intermediary nodes in the path. The fairness protocol is currently implemented as an HTLC, which commits funds to a payment hash derived from a secret payment pre-image.
+To ensure that the payment is _atomic_ and _trustless_ across _multiple hops_, Alice must implement a fairness protocol in cooperation with all the intermediary nodes in the path. The fairness protocol is currently implemented as an HTLC, which commits funds to a payment hash derived from a secret payment preimage.
 
-Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment pre-image. Once an HTLC reaches Dina, she reveals the pre-image, which flows backward resolving all the HTLCs offered.
+Each of the participants in the payment route can extend an HTLC to the next participant, without worrying about theft or stuck funds. The HTLC can be redeemed by revealing the secret payment preimage. Once an HTLC reaches Dina, she reveals the preimage, which flows backward resolving all the HTLCs offered.
 
 Finally, we saw how a time-locked refund clause completes the HTLC, ensuring that every participant can get a refund if the payment fails but for whatever reason one of the participants doesn't cooperate in unwinding the HTLCs. By always having the option to go on-chain for a refund, the HTLC achieves the fairness goal of atomicity and trustless operation.
