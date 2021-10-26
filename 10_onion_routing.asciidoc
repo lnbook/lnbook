@@ -40,7 +40,7 @@ image::images/mtln_1002.png["Alice to Bob to Chan to Dina"]
 
 Let's see how Alice can use this path without revealing information to intermediaries Bob and Chan.
 
-.Source-based routing
+.Source-Based Routing
 ****
 Source-based routing is not how packets are typically routed on the internet today, though source routing was possible in the early days.
 Internet routing is based on _packet switching_ at each intermediary routing node. An IPv4 packet, for example, includes the sender, and recipient's IP addresses, and every other IP routing node decides how to forward each packet toward the destination.
@@ -454,7 +454,7 @@ Random byte stream generation uses the ChaCha20 algorithm, as a cryptographic se
 This is shown in <<onion_payload_filler>>. 
 
 [[onion_payload_filler]]
-.Filling the onion payload with a random byte-stream
+.Filling the onion payload with a random byte stream
 image::images/mtln_1016.png[]
 
 Alice will now insert Dina's hop payload into the left side of the 1,300-byte array, shifting the filler to the right and discarding anything that overflows. This is visualized in <<onion_add_dina>>. 
@@ -465,17 +465,17 @@ image::images/mtln_1017.png[]
 
 Another way to look at this is that Alice measures the length of Dina's hop payload, shifts the filler right to create an equal space in the left side of the onion payload, and inserts Dina's payload in that space.
 
-Next row down we see the result: the 1,300 byte onion payload contains Dina's hop payload and then the filler byte-stream filling up the rest of the space.
+Next row down we see the result: the 1,300 byte onion payload contains Dina's hop payload and then the filler byte stream filling up the rest of the space.
 
 Next, Alice obfuscates the entire onion payload so that _only Dina_ can read it.
 
-To do this, Alice generates a byte-stream using the ++__rho__++ key (which Dina also knows). Alice uses a bitwise exclusive-or (XOR) between the bits of the onion payload and the byte-stream created from ++__rho__++. The result appears like a random (or encrypted) byte stream of 1,300 bytes length. This step is shown in <<onion_obfuscate_dina>>. 
+To do this, Alice generates a byte stream using the ++__rho__++ key (which Dina also knows). Alice uses a bitwise exclusive-or (XOR) between the bits of the onion payload and the byte stream created from ++__rho__++. The result appears like a random (or encrypted) byte stream of 1,300 bytes length. This step is shown in <<onion_obfuscate_dina>>. 
 
 [[onion_obfuscate_dina]]
 .Obfuscating the onion payload
 image::images/mtln_1018.png[]
 
-One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in <<bobDeobfuscates>>, if Dina applies the same XOR operation with the byte-stream generated from ++__rho__++, it will reveal the original onion payload.
+One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in <<bobDeobfuscates>>, if Dina applies the same XOR operation with the byte stream generated from ++__rho__++, it will reveal the original onion payload.
 
 [TIP]
 ====
@@ -541,7 +541,7 @@ In this case, Chan's _inner_ HMAC is actually Dina's _outer_ HMAC.
 
 Now Chan's payload is in the front of the onion. When Chan sees this he has no idea how many payloads came before or after. It looks like the first of 20 hops always!
 
-Next, Alice obfuscates the entire payload by XOR with the byte-stream generated from the Alice-Chan ++__rho__++ key. Only Alice and Chan have this ++__rho__++ key and only they can produce the byte stream to obfuscate and deobfuscate the onion.
+Next, Alice obfuscates the entire payload by XOR with the byte stream generated from the Alice-Chan ++__rho__++ key. Only Alice and Chan have this ++__rho__++ key and only they can produce the byte stream to obfuscate and deobfuscate the onion.
 Finally, as we did in the earlier step, we compute Chan's outer HMAC, which is what she'll use to verify the integrity of the encrypted onion packet.
 
 ==== Wrapping Bob's Hop Payload
@@ -793,11 +793,11 @@ The return packet HMAC verification checksum is calculated with the ++__um__++ k
 The ++__um__++ key name is the reverse of the ++__mu__++ name, indicating the same use but in the opposite direction (back-propagation). 
 ====
 
-Next, the returning node generates an +ammag+ (inverse of the word "gamma") key and obfuscates the return packet using an XOR operation with a byte-stream generated from +ammag+.
+Next, the returning node generates an +ammag+ (inverse of the word "gamma") key and obfuscates the return packet using an XOR operation with a byte stream generated from +ammag+.
 
 Finally the return node sends the return packet to the hop from which it received the original onion.
 
-Each hop receiving an error will generate an +ammag+ key and obfuscate the return packet again using an XOR operation with the byte-stream from +ammag+.
+Each hop receiving an error will generate an +ammag+ key and obfuscate the return packet again using an XOR operation with the byte stream from +ammag+.
 
 Eventually, the sender (origin node) receives a return packet. It will then generate +ammag+ and ++__um__++ keys for each hop and XOR deobfuscate the return error iteratively until it reveals the return packet.
 
@@ -828,7 +828,7 @@ In the current implementation of the Lightning Network there is a possibility th
 
 However, this means that the sender of the HTLC has to wait until expiry, and the funds committed to that HTLC remain unavailable until the HTLC expires. Furthermore, the sender _cannot retry_ that same payment, because if they do they run the risk of _both_ the original and the retried payment succeeding-the recipient gets paid twice. This is because once sent an HTLC cannot be "cancelled" by the sender-it either has to fail or expire. Stuck payments, while rare, create an unwanted user experience, where the user's wallet cannot pay or cancel a payment.
 
-One proposed solution to this problem is called _stuckless payments_, and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e., point addition on the elliptic curve instead of a hash and secret pre-image). PTLCs are cumbersome using ECDSA but much easier with Bitcoin's Taproot and Schnorr signature features, which were recently locked in for activation in November 2021. It is expected that PTLCs will be implemented in the Lightning Network after these Bitcoin features become activated.
+One proposed solution to this problem is called _stuckless payments_, and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e., point addition on the elliptic curve instead of a hash and secret preimage). PTLCs are cumbersome using ECDSA but much easier with Bitcoin's Taproot and Schnorr signature features, which were recently locked in for activation in November 2021. It is expected that PTLCs will be implemented in the Lightning Network after these Bitcoin features become activated.
 
 [[keysend]]
 === Keysend Spontaneous Payments
@@ -872,14 +872,14 @@ otherwise.
 ==== Sending and Receiving Keysend Payments
 
 A `keysend` payment inverts the typical flow of an HTLC where the receiver
-reveals a secret pre-image to the sender. Instead, the sender includes the
-pre-image _within_ the onion to the receiver and routes the HTLC to the
+reveals a secret preimage to the sender. Instead, the sender includes the
+preimage _within_ the onion to the receiver and routes the HTLC to the
 receiver. The receiver then decrypts the onion payload, and uses the included
-pre-image (which _must_ match the payment hash of the HTLC) to settle the
+preimage (which _must_ match the payment hash of the HTLC) to settle the
 payment. As a result, `keysend` payments can be carried out without first
-obtaining an invoice from the receiver, as the pre-image is "pushed" over to
+obtaining an invoice from the receiver, as the preimage is "pushed" over to
 the receiver. A `keysend` payment uses a TLV custom record type of `5482373484`
-to encode a 32-byte pre-image value.
+to encode a 32-byte preimage value.
 
 ==== Keysend and Custom Records in Lightning Applications
 
