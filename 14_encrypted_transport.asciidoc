@@ -85,7 +85,7 @@ understand many of the prior iterations of the protocol to communicate
 with a large portion of the public internet, further increasing implementation
 complexity.
 
-In the past several memory safety vulnerabilities have been discovered in
+In the past, several memory safety vulnerabilities have been discovered in
 widely used implementations of SSL/TLS. Packaging such a protocol within every
 Lightning node would serve to increase the attack surface of nodes exposed to the public peer-to-peer network. To increase the security of the
 network as a whole and minimize exploitable attack surface, the creators of
@@ -113,7 +113,7 @@ will be used to encrypt and authenticate messages sent to each other. A flavor
 of an authenticated key agreement is used to arrive at a final shared key
 between the two parties. In the context of the Noise protocol, this
 authenticated key agreement is referred to as a _handshake_. Once that
-handshake has been completed, both nodes can now being to send each other
+handshake has been completed, both nodes can now begin to send each other
 encrypted messages. Each time peers need to connect or reconnect to each
 other, a fresh iteration of the handshake protocol is executed, ensuring that
 forward secrecy is achieved (leaking the key of a prior transcript doesn't compromise any
@@ -251,7 +251,7 @@ handshake as:
       ** The returned value is the SHA256 of the compressed format of the
 	    generated point.
 
-`HKDF(salt,ikm)`:: A function defined in `RFC 5869`,
+`HKDF(salt, ikm)`:: A function defined in `RFC 5869`,
     evaluated with a zero-length `info` field
 +
       ** All invocations of `HKDF` implicitly return 64 bytes of
@@ -371,7 +371,7 @@ Receiver actions:
       bytes of `m`, and `c` is the last 16 bytes of `m`
     * The raw bytes of the remote party's ephemeral public key (`re`) are to be
       deserialized into a point on the curve using affine coordinates as encoded
-      by the key's serialized composed format.
+      by the key's serialized compressed format.
 3. If `v` is an unrecognized handshake version, then the responder must
     abort the connection attempt.
 4. `h = SHA-256(h || re.serializeCompressed())`
@@ -438,7 +438,7 @@ Receiver actions:
     * where `re` is the responder's ephemeral public key
     * The raw bytes of the remote party's ephemeral public key (`re`) are to be
       deserialized into a point on the curve using affine coordinates as encoded
-      by the key's serialized composed format.
+      by the key's serialized compressed format.
 6. `ck, temp_k2 = HKDF(ck, ee)`
      * A new temporary encryption key is generated, which is
        used to generate the authenticating MAC.
@@ -458,7 +458,7 @@ Receiver actions:
 Act Three is the final phase in the authenticated key agreement described in
 this section. This act is sent from the initiator to the responder as a
 concluding step. Act Three is executed _if and only if_ Act Two was successful.
-During Act Three, the initiator transports its static public key to the
+During Act Three, the initiator transmits its static public key to the
 responder encrypted with _strong_ forward secrecy, using the accumulated `HKDF`
 derived secret key at this point of the handshake.
 
