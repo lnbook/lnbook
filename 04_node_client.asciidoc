@@ -202,7 +202,7 @@ Balance: 50.00000000
 
 ----
 
-As you can see, bitcoind starts up and mines 101 simulated blocks to get the chain started. This is because under the Bitcoin consensus rules, newly mined bitcoin is not spendable until 100 blocks have elapsed. By mining 101 blocks, we make the first block's coinbase spendable. After that initial mining activity, six new blocks are mined every 10 seconds to keep the chain moving forward.
+As you can see, +bitcoind+ starts up and mines 101 simulated blocks to get the chain started. This is because under the Bitcoin consensus rules, newly mined bitcoin is not spendable until 100 blocks have elapsed. By mining 101 blocks, we make the first block's coinbase spendable. After that initial mining activity, six new blocks are mined every 10 seconds to keep the chain moving forward.
 
 For now, there are no transactions. But we have some test bitcoin that has been mined in the wallet and is available to spend. When we connect some Lightning nodes to this chain, we will send some bitcoin to their wallets so that we can open some Lightning channels between the Lightning nodes.
 
@@ -258,15 +258,15 @@ As you will see in the following sections, we can run several containers at the 
 
 === The c-lightning Lightning Node Project
 
-c-lightning is a lightweight, highly customizable, and standard-compliant implementation of the LN protocol, developed by Blockstream as part of the Elements Project. The project is open source and developed collaboratively on https://github.com/ElementsProject/lightning[GitHub].
+`c-lightning` is a lightweight, highly customizable, and standard-compliant implementation of the LN protocol, developed by Blockstream as part of the Elements Project. The project is open source and developed collaboratively on https://github.com/ElementsProject/lightning[GitHub].
 
-In the following sections, we will build a Docker container that runs a c-lightning node connecting to the +bitcoind+ container we built previously. We will also show you how to configure and built the c-lightning software directly from the source code.
+In the following sections, we will build a Docker container that runs a `c-lightning` node connecting to the +bitcoind+ container we built previously. We will also show you how to configure and built the `c-lightning` software directly from the source code.
 
 ==== Building c-lightning As a Docker Container
 
-The c-lightning software distribution has a Docker container, but it is designed for running c-lightning in production systems and along side a +bitcoind+ node. We will be using a somewhat simpler container configured to run c-lightning for demonstration purposes.
+The `c-lightning` software distribution has a Docker container, but it is designed for running `c-lightning` in production systems and along side a +bitcoind+ node. We will be using a somewhat simpler container configured to run `c-lightning` for demonstration purposes.
 
-Let's pull the c-lightning container from the book's Docker Hub repository:
+Let's pull the `c-lightning` container from the book's Docker Hub repository:
 
 [source,bash]
 ----
@@ -283,7 +283,7 @@ docker.io/lnbook/c-lightning:latest
 ----
 
 
-Alternatively, we can build the c-lightning Docker container from the book's files which you previously downloaded into a directory named +lnbook+. As before, we will use the +docker build+ command in the +code/docker+ subdirectory. We will tag the container image with the tag +lnbook/c-lightning+ like this:
+Alternatively, we can build the `c-lightning` Docker container from the book's files which you previously downloaded into a directory named +lnbook+. As before, we will use the +docker build+ command in the +code/docker+ subdirectory. We will tag the container image with the tag +lnbook/c-lightning+ like this:
 
 [source,bash]
 ----
@@ -306,7 +306,7 @@ Successfully tagged lnbook/c-lightning:latest
 
 ----
 
-Our container is now built and ready to run. However, before we run the c-lightning container, we need to start the +bitcoind+ container in another terminal because c-lightning depends on +bitcoind+. We will also need to set up a Docker network that allows the containers to connect to each other as if residing on the same local area network.
+Our container is now built and ready to run. However, before we run the `c-lightning` container, we need to start the +bitcoind+ container in another terminal because `c-lightning` depends on +bitcoind+. We will also need to set up a Docker network that allows the containers to connect to each other as if residing on the same local area network.
 
 [TIP]
 ====
@@ -333,14 +333,14 @@ As you can see, running +docker network ls+ gives us a listing of the Docker net
 
 ==== Running the bitcoind and c-lightning Containers
 
-The next step is to start the +bitcoind+ and c-lightning containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the [.keep-together]#+network+# argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start +bitcoind+ like this:
+The next step is to start the +bitcoind+ and `c-lightning` containers and connect them to the +lnbook+ network. To run a container in a specific network, we must pass the [.keep-together]#+network+# argument to +docker run+. To make it easy for containers to find each other, we will also give each one a name with the +name+ argument. We start +bitcoind+ like this:
 
 [source,bash]
 ----
 $ docker run -it --network lnbook --name bitcoind lnbook/bitcoind
 ----
 
-You should see +bitcoind+ start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command with the +network+ and +name+ arguments to start c-lightning as follows:
+You should see +bitcoind+ start up and start mining blocks every 10 seconds. Leave it running and open a new terminal window to start c-lightning. We use a similar +docker run+ command with the +network+ and +name+ arguments to start `c-lightning` as follows:
 
 [source,bash]
 ----
@@ -358,9 +358,9 @@ lightningd: Opened log file /lightningd/lightningd.log
 
 ----
 
-The c-lightning container starts up and connects to the +bitcoind+ container over the Docker network. First, our c-lightning node will wait for +bitcoind+ to start and then it will wait until +bitcoind+ has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the +bitcoind+ node, which creates a transaction that funds the c-lightning wallet with 10 test BTC. Now our c-lightning node is not only running, but it even has some test bitcoin to play with!
+The `c-lightning` container starts up and connects to the +bitcoind+ container over the Docker network. First, our `c-lightning` node will wait for +bitcoind+ to start and then it will wait until +bitcoind+ has mined some bitcoin into its wallet. Finally, as part of the container startup, a script will send an RPC command to the +bitcoind+ node, which creates a transaction that funds the `c-lightning` wallet with 10 test BTC. Now our `c-lightning` node is not only running, but it even has some test bitcoin to play with!
 
-As we demonstrated with the +bitcoind+ container, we can issue commands to our c-lightning container in another terminal to extract information, open channels, etc. The command that allows us to issue command-line instructions to the c-lightning node is called +lightning-cli+. This +lightning-cli+ command is also aliased as +cli+ inside this container. To get the c-lightning node's information, use the following +docker exec+ command in another terminal window:
+As we demonstrated with the +bitcoind+ container, we can issue commands to our `c-lightning` container in another terminal to extract information, open channels, etc. The command that allows us to issue command-line instructions to the `c-lightning` node is called +lightning-cli+. This +lightning-cli+ command is also aliased as +cli+ inside this container. To get the `c-lightning` node's information, use the following +docker exec+ command in another terminal window:
 
 [source,bash]
 ----
@@ -386,7 +386,7 @@ $ docker exec c-lightning cli getinfo
 
 We now have our first Lightning node running on a virtual network and communicating with a test Bitcoin blockchain. Later in this chapter we will start more nodes and connect them to each other to make some Lightning payments.
 
-In the next section we will also look at how to download, configure, and compile c-lightning directly from the source code. This is an optional and advanced step that will teach you how to use the build tools and allow you to make modifications to [.keep-together]#c-lightning# source code. With this knowledge you can write some code, fix some bugs, or create a plug-in for c-lightning.
+In the next section we will also look at how to download, configure, and compile `c-lightning` directly from the source code. This is an optional and advanced step that will teach you how to use the build tools and allow you to make modifications to [.keep-together]#c-lightning# source code. With this knowledge you can write some code, fix some bugs, or create a plug-in for c-lightning.
 
 [NOTE]
 ====
@@ -395,11 +395,11 @@ If you are not planning on diving into the source code or programming of a Light
 
 ==== Installing c-lightning from Source Code
 
-The c-lightning developers have provided detailed instructions for building c-lightning from source code. We will be following the instructions https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md[from GitHub].
+The `c-lightning` developers have provided detailed instructions for building `c-lightning` from source code. We will be following the instructions https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md[from GitHub].
 
 ==== Installing Prerequisite Libraries and Packages
 
-These installation instructions assume you are building c-lightning on a Linux or similar system with GNU build tools. If that is not the case, look for the instructions for your operating system in the Elements Project repository.
+These installation instructions assume you are building `c-lightning` on a Linux or similar system with GNU build tools. If that is not the case, look for the instructions for your operating system in the Elements Project repository.
 
 The common first step is the installation of prerequisite libraries. We use the +apt+ package manager to install these:
 
@@ -442,7 +442,7 @@ After a few minutes and a lot of on-screen activity, you will have installed all
 
 ==== Copying the c-lightning Source Code
 
-Next, we will copy the latest version of c-lightning from the source code repository. To do this, we will use the +git clone+ command, which clones a version-controlled copy onto your local machine, thereby allowing you to keep it synchronized with subsequent changes without having to download the whole repository again:
+Next, we will copy the latest version of `c-lightning` from the source code repository. To do this, we will use the +git clone+ command, which clones a version-controlled copy onto your local machine, thereby allowing you to keep it synchronized with subsequent changes without having to download the whole repository again:
 
 [source,bash]
 ----
@@ -459,7 +459,7 @@ $ cd lightning
 
 ----
 
-We now have a copy of c-lightning cloned into the +lightning+ subfolder, and we have used the +cd+ (change directory) command to enter that subfolder.
+We now have a copy of `c-lightning` cloned into the +lightning+ subfolder, and we have used the +cd+ (change directory) command to enter that subfolder.
 
 ==== Compiling the c-lightning Source Code
 
@@ -512,7 +512,7 @@ Setting TEST_NETWORK... regtest
 $
 ----
 
-Next, we use the +make+ command to build the libraries, components, and executables of the c-lightning project. This part will take several minutes to complete and will use your computer's CPU and disk heavily. Expect some noise from the fans! Run +make+:
+Next, we use the +make+ command to build the libraries, components, and executables of the `c-lightning` project. This part will take several minutes to complete and will use your computer's CPU and disk heavily. Expect some noise from the fans! Run +make+:
 
 [source,bash]
 ----
@@ -526,7 +526,7 @@ cc   -Og  ccan-asort.o ccan-autodata.o ccan-bitmap.o ccan-bitops.o ccan-...
 
 ----
 
-If all goes well, you will not see any +ERROR+ message stopping the execution of the preceding command. The c-lightning software package has been compiled from source, and we are now ready to install the executable components we created in the previous step:
+If all goes well, you will not see any +ERROR+ message stopping the execution of the preceding command. The `c-lightning` software package has been compiled from source, and we are now ready to install the executable components we created in the previous step:
 
 ----
 $ sudo make install
@@ -553,7 +553,7 @@ $ lightning-cli --version
 v0.10.1-34-gfe86c11
 ----
 
-The version consists of the latest release version (v0.10.1) followed by the number of changes since the release (34) and finally a hash identifying exactly which revision (fe86c11). You may see a different version from that shown previously as the software continues to evolve long after this book is published. However, no matter what version you see, the fact that the commands execute and respond with version information means that you have succeeded in building the c-lightning software.
+The version consists of the latest release version (v0.10.1) followed by the number of changes since the release (34) and finally a hash identifying exactly which revision (fe86c11). You may see a different version from that shown previously as the software continues to evolve long after this book is published. However, no matter what version you see, the fact that the commands execute and respond with version information means that you have succeeded in building the `c-lightning` software.
 
 === The Lightning Network Daemon (LND) Node Project
 
@@ -603,7 +603,7 @@ Successfully tagged lnbook/lnd:latest
 
 ----
 
-Our container is now ready to run. As with the c-lightning container we built previously, the LND container also depends on a running instance of Bitcoin Core. As before, we need to start the +bitcoind+ container in another terminal and connect LND to it via a docker network. We have already set up a docker network called +lnbook+ previously and will be using that again here.
+Our container is now ready to run. As with the `c-lightning` container we built previously, the LND container also depends on a running instance of Bitcoin Core. As before, we need to start the +bitcoind+ container in another terminal and connect LND to it via a docker network. We have already set up a docker network called +lnbook+ previously and will be using that again here.
 
 [TIP]
 ====
@@ -653,9 +653,9 @@ $ docker exec lnd cli getinfo
 }
 ----
 
-We now have another Lightning node running on the +lnbook+ network and communicating with +bitcoind+. If you are still running the c-lightning container, then there are now two nodes running. They're not yet connected to each other, but we will be connecting them to each other soon.
+We now have another Lightning node running on the +lnbook+ network and communicating with +bitcoind+. If you are still running the `c-lightning` container, then there are now two nodes running. They're not yet connected to each other, but we will be connecting them to each other soon.
 
-If desired, you can run any combination of LND and c-lightning nodes on the same Lightning Network. For example, to run a second LND node you would issue the +docker run+ command with a different container name like so:
+If desired, you can run any combination of LND and `c-lightning` nodes on the same Lightning Network. For example, to run a second LND node you would issue the +docker run+ command with a different container name like so:
 
 [source,bash]
 ----
@@ -673,7 +673,7 @@ If you are not planning on diving into the source code or programming of a Light
 
 ==== Installing LND from Source Code
 
-In this section we will build LND from scratch. LND is written in the Go programming language. If you want to find out more about Go, search for +golang+ instead of +go+ to avoid irrelevant results. Because it is written in Go and not C or C++, it uses a different "build" framework than the GNU autotools/make framework we saw used in c-lightning previously. Don't fret though, it is quite easy to install and use the golang tools, and we will show each step here. Go is a fantastic language for collaborative software development because it produces very consistent, precise, and easy-to-read code regardless of the number of authors. Go is focused and "minimalist" in a way that encourages consistency across versions of the language. As a compiled language, it is also quite efficient. Let's dive in.
+In this section we will build LND from scratch. LND is written in the Go programming language. If you want to find out more about Go, search for +golang+ instead of +go+ to avoid irrelevant results. Because it is written in Go and not C or C++, it uses a different "build" framework than the GNU autotools/make framework we saw used in `c-lightning` previously. Don't fret though, it is quite easy to install and use the golang tools, and we will show each step here. Go is a fantastic language for collaborative software development because it produces very consistent, precise, and easy-to-read code regardless of the number of authors. Go is focused and "minimalist" in a way that encourages consistency across versions of the language. As a compiled language, it is also quite efficient. Let's dive in.
 
 We will follow the installation instructions found in the https://github.com/lightningnetwork/lnd/blob/master/docs/INSTALL.md[LND project documentation].
 
@@ -739,7 +739,7 @@ You will likely see a different version from that shown previously, as the softw
 
 Eclair (French for Lightning) is a Scala implementation of the Lightning Network made by ACINQ. Eclair is also one of the most popular and pioneering mobile Lightning wallets, which we used to demonstrate a Lightning payment in <<getting-started>>. In this section we examine the Eclair server project, which runs a Lightning node. Eclair is an open source project and can be found on https://github.com/ACINQ/eclair[GitHub].
 
-In the next few sections we will build a Docker container to run Eclair, as we did previously with c-lightning and LND. We will also build Eclair directly from the source code.
+In the next few sections we will build a Docker container to run Eclair, as we did previously with `c-lightning` and LND. We will also build Eclair directly from the source code.
 
 ==== The Eclair Docker Container
 
@@ -787,7 +787,7 @@ Successfully tagged lnbook/eclair:latest
 
 Our image is now ready to run. The Eclair container also depends on a running instance of Bitcoin Core. As before, we need to start the +bitcoind+ container in another terminal and connect Eclair to it via a Docker network. We have already set up a Docker network called +lnbook+, and will be reusing it here.
 
-One notable difference between Eclair and LND or c-lightning is that Eclair doesn't contain a separate bitcoin wallet but instead relies directly on the bitcoin wallet in Bitcoin Core. Recall that using LND we funded its bitcoin wallet by executing a transaction to transfer bitcoin from Bitcoin Core's wallet to LND's bitcoin wallet. This step is not necessary using Eclair. When running Eclair, the Bitcoin Core wallet is used directly as the source of funds to open channels. As a result, unlike the LND or c-lightning containers, the Eclair container does not contain a script to transfer bitcoin into its wallet on startup.
+One notable difference between Eclair and LND or `c-lightning` is that Eclair doesn't contain a separate bitcoin wallet but instead relies directly on the bitcoin wallet in Bitcoin Core. Recall that using LND we funded its bitcoin wallet by executing a transaction to transfer bitcoin from Bitcoin Core's wallet to LND's bitcoin wallet. This step is not necessary using Eclair. When running Eclair, the Bitcoin Core wallet is used directly as the source of funds to open channels. As a result, unlike the LND or `c-lightning` containers, the Eclair container does not contain a script to transfer bitcoin into its wallet on startup.
 
 ==== Running the bitcoind and Eclair Containers
 
@@ -843,7 +843,7 @@ $ docker exec eclair cli getinfo
 
 ----
 
-We now have another Lightning node running on the +lnbook+ network and communicating with +bitcoind+. You can run any number and any combination of Lightning nodes on the same Lightning network. Any number of Eclair, LND, and c-lightning nodes can coexist. For example, to run a second Eclair node you would issue the +docker run+ command with a different container name as follows:
+We now have another Lightning node running on the +lnbook+ network and communicating with +bitcoind+. You can run any number and any combination of Lightning nodes on the same Lightning network. Any number of Eclair, LND, and `c-lightning` nodes can coexist. For example, to run a second Eclair node you would issue the +docker run+ command with a different container name as follows:
 
 [source,bash]
 ----
@@ -990,7 +990,7 @@ services:
     container_name: Alice
 ----
 
-The preceding fragment defines a network called +lnnet+ and a container called +bitcoind+ which will attach to the +lnnet+ network. The container is the same one we built at the beginning of this chapter. We expose three of the container's ports, allowing us to send commands to it and monitor blocks and transactions. Next, the configuration specifies an LND container called "Alice." Further down you will also see specifications for containers called "Bob" (c-lightning), "Chan" (Eclair), and "Dina" (LND again).
+The preceding fragment defines a network called +lnnet+ and a container called +bitcoind+ which will attach to the +lnnet+ network. The container is the same one we built at the beginning of this chapter. We expose three of the container's ports, allowing us to send commands to it and monitor blocks and transactions. Next, the configuration specifies an LND container called "Alice." Further down you will also see specifications for containers called "Bob" (`c-lightning`), "Chan" (Eclair), and "Dina" (LND again).
 
 Since all these diverse implementations follow the Basis of Lightning Technologies (BOLT) specification and have been extensively tested for interoperability, they have no difficulty working together to build a Lightning network.
 
