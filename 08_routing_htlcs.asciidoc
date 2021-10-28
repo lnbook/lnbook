@@ -130,7 +130,11 @@ Dina generates this secret value +R+ from a random number generator.
 
 The secret could then be committed to the contract by including the SHA-256 hash of the secret in the contract itself, as follows:
 
-latexmath:[\(H = SHA-256(R)\)]
+++++
+<ul class="simplelist">
+<li><em>H</em> = SHA-256(<em>R</em>)</li>
+</ul>
+++++
 
 We call this hash of the payment's secret the _payment hash_.
 The secret that "unlocks" the payment is called the _payment secret_.
@@ -348,7 +352,7 @@ In our gold coin example, Alice had a contract enforced by escrow like the one i
 _Alice will reimburse Bob with 12 gold coins if you can show a valid message that hashes to:_ +0575...f6b3+. _Bob has 24 hours to show the secret after the contract was signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
 ====
 
-Let's see how we would implement this as an HTLC in Bitcoin Script. In <<received_htlc>> we see an HTLC Bitcoin Script as currently used in the Lightning Network. You can find this definition in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT3: Transactions]:
+Let's see how we would implement this as an HTLC in Bitcoin Script. In <<received_htlc>> we see an HTLC Bitcoin Script as currently used in the Lightning Network. You can find this definition in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT3: Transactions].
 
 [[received_htlc]]
 .HTLC implemented in Bitcoin Script (BOLT3)
@@ -401,7 +405,7 @@ OP_SHA256 0575...f6b3 OP_EQUAL
 
 Bob can't spend this HTLC until he knows Dina's secret, so spending the HTLC is conditional on Bob's fulfillment of the payment all the way to Dina.
 
-Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secret preimage value +R+
+Once Bob has Dina's secret, Bob can spend this output with an unlocking script containing the secret preimage value _R_.
 
 The unlocking script combined with the locking script would produce:
 
