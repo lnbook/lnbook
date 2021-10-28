@@ -289,42 +289,72 @@ One important detail that seems almost magical is the ability for Alice to creat
 ****
 Assume Alice's private key is _a_ and Bob's private key is _b_. Using the elliptic curve, Alice and Bob each multiply their private key by the generator point _G_ to produce their public keys _A_ and _B_, respectively:
 
- _A_ = _aG_
-
- _B_ = _bG_
+++++
+<ul class="simplelist">
+<li><em>A</em> = <em>aG</em></li>
+<li><em>B</em> = <em>bG</em></li>
+</ul>
+++++
 
 Now Alice and Bob can use _Elliptic Curve Diffie-Hellman Key Exchange_ to create a shared secret _ss_, a value that they can both calculate independently without exchanging any information
 
 The shared secret _ss_ is calculated by each by multiplying their own private key with the _other's_ public key, such that:
 
- _ss_ = _aB_ = _bA_
+++++
+<ul class="simplelist">
+<li><em>ss_ = <em>aB</em> = <em>bA</em></li>
+</ul>
+++++
 
 But why would these two multiplications result in the same value _ss_?
 Follow along, as we demonstrate the math that proves this is possible:
 
- _ss_
-
- = _aB_
+++++
+<ul class="simplelist">
+<li><em>ss</em></li>
+<li>= <em>aB</em></li>
+</ul>
+++++
 
 calculated by Alice who knows both _a_ (her private key) and _B_ (Bob's public key)
 
- = _a_(_bG_)
+++++
+<ul class="simplelist">
+<li><em>= <em>a</em>(<em>bG</em>)</li>
+</ul>
+++++
 
 because we know that _B_ = _bG_, we substitute
 
- = (_ab_)_G_
+++++
+<ul class="simplelist">
+<li> = (<em>ab</em>)<em>G</em></li>
+</ul>
+++++
 
 because of associativity, we can move the parentheses
 
- = (_ba_)_G_
+++++
+<ul class="simplelist">
+<li>= (<em>ba</em>)<em>G</em></li>
+</ul>
+++++
 
 because _xy_ = _yx_ (the curve is an abelian group)
 
- = _b_(_aG_)
+++++
+<ul class="simplelist">
+<li>= <em>b</em>(<em>aG</em>)</li>
+</ul>
+++++
 
 because of associativity, we can move the parentheses
 
- = _bA_
+++++
+<ul class="simplelist">
+<li>= <em>bA</em></li>
+</ul>
+++++
 
 because _A_ = _aG_, we can substitute
 
@@ -332,8 +362,12 @@ The result _bA_ can be calculated independently by Bob who knows _b_ (his privat
 
 We have therefore shown that
 
- _ss_ = _aB_ (Alice can calculate this)
- _ss_ = _bA_ (Bob can calculate this)
+++++
+<ul class="simplelist">
+<li><em>ss</em> = <em>aB</em> (Alice can calculate this)</li>
+<li><em>ss</em> = <em>bA</em> (Bob can calculate this)</li>
+</ul>
+++++
 
 Thus, they can each independently calculate _ss_ which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
 
