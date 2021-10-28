@@ -483,17 +483,17 @@ Alice and Bob hold two different variations of this transaction, as shown in <<a
 .Asymmetric commitment transactions
 image::images/mtln_0708.png[Asymmetric commitment transactions]
 
-By convention, within the Lightning protocol, we refer to the two channel partners as _self_ (also known as _local_) and _remote_, depending on which side we're looking at. The outputs that pay each channel partner are called `to_local` and `to_remote`, respectively.
+By convention, within the Lightning protocol, we refer to the two channel partners as `self` (also known as `local`) and `remote`, depending on which side we're looking at. The outputs that pay each channel partner are called `to_local` and `to_remote`, respectively.
 
-In <<asymmetric_1>> we see that Alice holds a transaction that pays 60,000 satoshis _to_self_ (can be spent by Alice's keys), and 80,000 satoshis _to_remote_ (can be spent by Bob's keys).
+In <<asymmetric_1>> we see that Alice holds a transaction that pays 60,000 satoshis `to_self` (can be spent by Alice's keys), and 80,000 satoshis `to_remote` (can be spent by Bob's keys).
 
-Bob holds the mirror-image of that transaction, where the first output is 80,000 satoshis _to_self_ (can be spent by Bob's keys), and 60,000 satoshis _to_remote_ (can be spent by Alice's keys).
+Bob holds the mirror-image of that transaction, where the first output is 80,000 satoshis `to_self` (can be spent by Bob's keys), and 60,000 satoshis `to_remote` (can be spent by Alice's keys).
 
 ==== Delayed (Timelocked) Spending to_self
 
-Using asymmetric transactions allows the protocol to easily ascribe _blame_ to the cheating party. An invariant that the _broadcasting_ party must always wait ensures that the "honest" party has time to refute the claim and revoke their funds. This asymmetry is manifested in the form of differing outputs for each side: the _to_local_ output is always timelocked and can't be spent immediately, whereas the _to_remote_ output is not timelocked and can be spent immediately.
+Using asymmetric transactions allows the protocol to easily ascribe _blame_ to the cheating party. An invariant that the _broadcasting_ party must always wait ensures that the "honest" party has time to refute the claim and revoke their funds. This asymmetry is manifested in the form of differing outputs for each side: the `to_local` output is always timelocked and can't be spent immediately, whereas the `to_remote` output is not timelocked and can be spent immediately.
 
-In the commitment transaction held by Alice, for example, the _to_local_ output that pays her is timelocked for 432 blocks, whereas the _to_remote_ output that pays Bob can be spent immediately (see Figure 7-9). Bob's commitment transaction for Commitment #2 is the mirror image: his own (_to_local_) output is timelocked and Alice's _to_remote_ output can be spent immediately.
+In the commitment transaction held by Alice, for example, the `to_local` output that pays her is timelocked for 432 blocks, whereas the `to_remote` output that pays Bob can be spent immediately (see Figure 7-9). Bob's commitment transaction for Commitment #2 is the mirror image: his own (`to_local`) output is timelocked and Alice's `to_remote` output can be spent immediately.
 
 [[asymmetric_delayed_1]]
 .Asymmetric and delayed commitment transactions
@@ -511,9 +511,9 @@ As we discussed previously, the word "revocation" is a bit misleading because it
 
 In fact, the revoked transaction can be used, but if it is used, and it has been revoked, then one of the channel partners can take all of the channel funds by creating a penalty transaction.
 
-The way this works is that the _to_local_ output is not only timelocked, but it also has two spending conditions in the script: It can be spent by _self_ after the timelock delay *or* it can be spent by _remote_ immediately with a revocation key for this commitment.
+The way this works is that the `to_local` output is not only timelocked, but it also has two spending conditions in the script: It can be spent by _self_ after the timelock delay *or* it can be spent by _remote_ immediately with a revocation key for this commitment.
 
-So, in our example, each side holds a commitment transaction that includes a revocation option in the _to_local_ output, as shown in <<asymmetric_delayed_revocable_1>>. 
+So, in our example, each side holds a commitment transaction that includes a revocation option in the `to_local` output, as shown in <<asymmetric_delayed_revocable_1>>. 
 
 [[asymmetric_delayed_revocable_1]]
 .Asymmetric, delayed, and revocable commitments
@@ -524,7 +524,7 @@ image::images/mtln_0710.png["Asymmetric, delayed and revocable commitments"]
 
 Now that we understand the structure of commitment transactions and why we need asymmetric, delayed, revocable commitments, let's look at the Bitcoin Script that implements this.
 
-The first (_to_local_) output of a commitment transaction is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#to_local-output[BOLT #3 Commitment Transaction - to_local Output], as follows:
+The first (`to_local`) output of a commitment transaction is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#to_local-output[BOLT #3 Commitment Transaction - to_local Output], as follows:
 
 ----
 OP_IF
@@ -668,7 +668,7 @@ image::images/mtln_0712.png[Revoked and current commitments]
 
 With each commitment, Alice has revoked the previous (older) commitment. The current state of the channel and the correct balance is represented by Commitment #3. All previous commitments have been revoked, and Bob has the keys necessary to issue penalty transactions against them, in case Alice tries to broadcast one of them.
 
-Alice might have an incentive to cheat because all the previous commitment transactions would give her a higher proportion of the channel balance than she is entitled to. Let's say for example that Alice tried to broadcast Commitment #1. That commitment transaction would pay Alice 70,000 satoshis and Bob 70,000 satoshis. If Alice was able to broadcast and spend her to_local output she would effectively be stealing 30,000 satoshis from Bob by rolling back her last two payments to Bob.
+Alice might have an incentive to cheat because all the previous commitment transactions would give her a higher proportion of the channel balance than she is entitled to. Let's say for example that Alice tried to broadcast Commitment #1. That commitment transaction would pay Alice 70,000 satoshis and Bob 70,000 satoshis. If Alice was able to broadcast and spend her +to_local+ output she would effectively be stealing 30,000 satoshis from Bob by rolling back her last two payments to Bob.
 
 Alice decides to take a huge risk and broadcast the revoked Commitment #1, to steal 30,000 satoshis from Bob. In <<cheating_commitment>> we see Alice's old commitment that she broadcasts to the Bitcoin blockchain. 
 
@@ -676,7 +676,7 @@ Alice decides to take a huge risk and broadcast the revoked Commitment #1, to st
 .Alice cheating
 image::images/mtln_0713.png[Alice cheating]
 
-As you can see, Alice's old commitment has two outputs, one paying herself 70,000 satoshis (to_local output) and one paying Bob 70,000 satoshis. Alice can't yet spend her 70,000 to_local output because it has a 432 block (3 day) timelock. She is now hoping that Bob doesn't notice for three days.
+As you can see, Alice's old commitment has two outputs, one paying herself 70,000 satoshis (+to_local+ output) and one paying Bob 70,000 satoshis. Alice can't yet spend her 70,000 +to_local+ output because it has a 432 block (3 day) timelock. She is now hoping that Bob doesn't notice for three days.
 
 Unfortunately for Alice, Bob's node is diligently monitoring the Bitcoin blockchain and sees an old commitment transaction broadcast and (eventually) confirmed on-chain.
 
