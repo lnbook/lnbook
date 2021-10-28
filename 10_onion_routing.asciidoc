@@ -287,7 +287,7 @@ One important detail that seems almost magical is the ability for Alice to creat
 [[ecdh_explained]]
 .Elliptic Curve Diffie-Hellman (ECDH) explained
 ****
-Assume Alice's private key is +a+ and Bob's private key is +b+. Using the Elliptic Curve, Alice and Bob each multiply their private key by the generator point +G+ to produce their public keys +A+ and +B+, respectively:
+Assume Alice's private key is +a+ and Bob's private key is +b+. Using the elliptic curve, Alice and Bob each multiply their private key by the generator point +G+ to produce their public keys +A+ and +B+, respectively:
 
  A = aG
 
@@ -345,12 +345,12 @@ In practice, this little trick allows us to keep the onion packet as compact as 
 
 The session key for hop `i` is derived using the node public key, and derived shared secret of hop `i – 1`:
 ```
-session_key_i = session_key_{i-1} * SHA256(node_pubkey_{i-1} || shared_secret_{i-1})
+session_key_i = session_key_{i-1} * SHA-256(node_pubkey_{i-1} || shared_secret_{i-1})
 ```
 
 In other words, we take the session key of the prior hop, and multiply it by a value derived from the public key and the derived shared secret for that hop.
 
-As Elliptic Curve multiplication can be performed on a public key without knowledge of the private key, each hop is able to re-randomize the session key for the next hop in a deterministic fashion.
+As elliptic curve multiplication can be performed on a public key without knowledge of the private key, each hop is able to re-randomize the session key for the next hop in a deterministic fashion.
 
 The creator of the onion packet knows all the shared secrets (as they've encrypted the packet uniquely for each hop), and thus are able to derive all the blinding factors.
 
@@ -612,7 +612,7 @@ id:: The ID of this HTLC in this channel, starting at +0+.
 
 amount_msat:: The amount of the HTLC, 50,200,000 milli-satoshis.
 
-payment_hash:: The RIPEMD160(SHA256) payment hash, +9e017f6767971ed7cea17f98528d5f5c0ccb2c71+.
+payment_hash:: The RIPEMD160(SHA-256) payment hash, +9e017f6767971ed7cea17f98528d5f5c0ccb2c71+.
 
 cltv_expiry:: The expiry timelock for the HTLC will be 700,058. Alice adds 20 blocks to the expiry set in Bob's payload according to Bob's negotiated +cltv_expiry_delta+.
 
@@ -685,11 +685,11 @@ No one can tell the difference between filler put there by Alice and filler put 
 
 ==== Bob Constructs the New Onion Packet
 
-Bob now copies the onion payload into the onion packet, appends the outer HMAC for chan, re-randomizes the session key (the same way Alice the sender does) with the Elliptic Curve multiplication operation, and appends a fresh version byte.
+Bob now copies the onion payload into the onion packet, appends the outer HMAC for chan, re-randomizes the session key (the same way Alice the sender does) with the elliptic curve multiplication operation, and appends a fresh version byte.
 
 To re-randomize the session key, bob first computes the blinding factor for his hop, using his node public key and the shared secret he derived:
 ```
-b_bob = SHA256(P_bob || shared_secret_bob)
+b_bob = SHA-256(P_bob || shared_secret_bob)
 ```
 
 With this generated, Bob now re-randomizes the session key by performing an EC multiplication using his session key and the blinding factor:
@@ -721,7 +721,7 @@ id:: The ID of this HTLC in this channel, starting at +0+.
 
 amount_msat:: The amount of the HTLC, 50,100,000 millisatoshis.
 
-payment_hash:: The RIPEMD160(SHA256) payment hash, +9e017f6767971ed7cea17f98528d5f5c0ccb2c71+. This is the same as the payment hash from Alice's HTLC.
+payment_hash:: The RIPEMD160(SHA-256) payment hash, +9e017f6767971ed7cea17f98528d5f5c0ccb2c71+. This is the same as the payment hash from Alice's HTLC.
 
 cltv_expiry:: The expiry timelock for the HTLC will be 700,038.
 
