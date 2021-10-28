@@ -76,7 +76,7 @@ Alice sends the `update_add_HTLC` Lightning message to Bob. This message is defi
 
 +amount_msat+:: This is the amount (value) of the HTLC in millisatoshis. In our example this is 50,200,000 millisatoshis (i.e., 50,200 satoshis).
 
-+payment_hash+:: This is the payment hash calculated from Dina's invoice. It is +H = RIPEMD160(SHA256(R))+, where `R` is Dina's secret that is known only by Dina and will be revealed if Dina is paid.
++payment_hash+:: This is the payment hash calculated from Dina's invoice. It is +H = RIPEMD160(SHA-256(R))+, where `R` is Dina's secret that is known only by Dina and will be revealed if Dina is paid.
 
 +cltv_expiry+:: This is the expiry time for this HTLC, which will be encoded as a timelocked refund in case the HTLC fails to reach Dina in this time.
 
@@ -267,7 +267,7 @@ It's a really simple message:
 When Chan receives this message, he will immediately check if the payment_preimage (let's call it +R+) produces the payment hash (let's call it +H+) in the HTLC that he offered to Dina. He hashes it like this:
 
 ----
-H = RIPEMD160( SHA256 (R) )
+H = RIPEMD160( SHA-256 (R) )
 ----
 
 If the result +H+ matches the payment hash in the HTLC, Chan can do a little dance of celebration. This long-awaited secret can be used to redeem the HTLC, and will be passed back along the chain of payment channels all the way to Alice, resolving every HTLC that was part of this payment to Dina.
