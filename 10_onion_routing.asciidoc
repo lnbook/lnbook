@@ -287,55 +287,55 @@ One important detail that seems almost magical is the ability for Alice to creat
 [[ecdh_explained]]
 .Elliptic Curve Diffie-Hellman (ECDH) Explained
 ****
-Assume Alice's private key is +a+ and Bob's private key is +b+. Using the elliptic curve, Alice and Bob each multiply their private key by the generator point +G+ to produce their public keys +A+ and +B+, respectively:
+Assume Alice's private key is _a_ and Bob's private key is _b_. Using the elliptic curve, Alice and Bob each multiply their private key by the generator point _G_ to produce their public keys _A_ and _B_, respectively:
 
- A = aG
+ _A_ = _aG_
 
- B = bG
+ _B_ = _bG_
 
-Now Alice and Bob can use _Elliptic Curve Diffie-Hellman Key Exchange_ to create a shared secret +ss+, a value that they can both calculate independently without exchanging any information
+Now Alice and Bob can use _Elliptic Curve Diffie-Hellman Key Exchange_ to create a shared secret _ss_, a value that they can both calculate independently without exchanging any information
 
-The shared secret +ss+ is calculated by each by multiplying their own private key with the _other's_ public key, such that:
+The shared secret _ss_ is calculated by each by multiplying their own private key with the _other's_ public key, such that:
 
- ss = aB = bA
+ _ss_ = _aB_ = _bA_
 
-But why would these two multiplications result in the same value +ss+?
+But why would these two multiplications result in the same value _ss_?
 Follow along, as we demonstrate the math that proves this is possible:
 
- ss
+ _ss_
 
- = aB
+ = _aB_
 
-calculated by Alice who knows both +a+ (her private key) and +B+ (Bob's public key)
+calculated by Alice who knows both _a_ (her private key) and _B_ (Bob's public key)
 
- = a(bG)
+ = _a_(_bG_)
 
-because we know that `B = bG`, we substitute
+because we know that _B_ = _bG_, we substitute
 
- = (ab)G
-
-because of associativity, we can move the parentheses
-
- = (ba)G
-
-because xy = yx (the curve is an abelian group)
-
- = b(aG)
+ = (_ab_)_G_
 
 because of associativity, we can move the parentheses
 
- = bA
+ = (_ba_)_G_
 
-because A = aG, we can substitute
+because _xy_ = _yx_ (the curve is an abelian group)
 
-The result `bA` can be calculated independently by Bob who knows +b+ (his private key) and +A+ (Alice's public key).
+ = _b_(_aG_)
+
+because of associativity, we can move the parentheses
+
+ = _bA_
+
+because _A_ = _aG_, we can substitute
+
+The result _bA_ can be calculated independently by Bob who knows _b_ (his private key) and _A_ (Alice's public key).
 
 We have therefore shown that
 
- ss = aB (Alice can calculate this)
- ss = bA (Bob can calculate this)
+ _ss_ = _aB_ (Alice can calculate this)
+ _ss_ = _bA_ (Bob can calculate this)
 
-Thus, they can each independently calculate +ss+ which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
+Thus, they can each independently calculate _ss_ which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
 
 ****
 
@@ -479,7 +479,7 @@ One of the properties of XOR is that if you do it twice you get back to the orig
 
 [TIP]
 ====
-XOR is an _involutory_ function which means that if it is applied twice it undoes itself. Specifically XOR(XOR(a, b), b) = a. This property is used extensively in symmetric-key cryptography.
+XOR is an _involutory_ function which means that if it is applied twice it undoes itself. Specifically XOR(XOR(_a_, _b_), _b_) = _a_. This property is used extensively in symmetric-key cryptography.
 ====
 
 Because only Alice and Dina have the ++__rho__++ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
