@@ -1,7 +1,7 @@
 [[wire_protocol]]
 == Wire Protocol: Framing and Extensibility
 
-In this chapter, we dive into the wire protocol of the Lightning Network
+((("wire protocol", id="ix_13_wire_protocol-asciidoc0", range="startofrange")))In this chapter, we dive into the wire protocol of the Lightning Network
 and also cover all the various extensibility levers that have been built into
 the protocol. By the end of this chapter, an ambitious reader should be able to
 write their very own wire protocol parser for the Lightning Network. In addition
@@ -11,7 +11,7 @@ that have been built into the protocol.
 
 === Messaging Layer in the Lightning Protocol Suite
 
-The messaging layer, which is detailed in this chapter, consists of "Framing and message format," "Type Length Value (TLV)" encoding, and "Feature bits." These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_wire_message_highlight>>.
+((("Lightning Network Protocol","messaging layer")))((("wire protocol","messaging layer in the Lightning Protocol Suite")))The messaging layer, which is detailed in this chapter, consists of "Framing and message format," "Type Length Value (TLV)" encoding, and "Feature bits." These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_wire_message_highlight>>.
 
 [[LN_protocol_wire_message_highlight]]
 .The Lightning Network protocol suite
@@ -19,7 +19,7 @@ image::images/mtln_1301.png["The Lightning Network Protocol Suite"]
 
 === Wire Framing
 
-We begin by describing the high-level structure of the wire _framing_
+((("wire framing", id="ix_13_wire_protocol-asciidoc1", range="startofrange")))((("wire protocol","wire framing", id="ix_13_wire_protocol-asciidoc2", range="startofrange")))We begin by describing the high-level structure of the wire _framing_
 within the protocol. When we say framing, we mean the way that the bytes are
 packed on the wire to _encode_ a particular protocol message. Without knowledge
 of the framing system used in the protocol, a string of bytes on the wire would
@@ -39,7 +39,7 @@ them on the wire (encoding).
 
 ==== High-Level Wire Framing
 
-With that said, we're ready to describe the high-level schema used to
+((("wire framing","high-level schema")))With that said, we're ready to describe the high-level schema used to
 encode messages on the wire:
 
   * Messages on the wire begin with a _2-byte_ type field, followed by a
@@ -66,7 +66,7 @@ allows the protocol to achieve _forward_ compatibility as well.
 
 ==== Type Encoding
 
-With this high-level background provided, we now start at the most primitive
+((("wire framing","type encoding")))With this high-level background provided, we now start at the most primitive
 layer: parsing primitive types. In addition to encoding integers, the Lightning
 Protocol also allows for encoding of a vast array of types including variable
 length byte slices, elliptic curve public keys, Bitcoin addresses, and
@@ -101,12 +101,12 @@ high-level routine used to encode/decode the type.
 
 In the next section, we describe the structure of each of the wire messages
 including the prefix type of the message along with the contents of its message
-body.
+body.(((range="endofrange", startref="ix_13_wire_protocol-asciidoc2")))(((range="endofrange", startref="ix_13_wire_protocol-asciidoc1")))
 
 [[tlv_message_extensions]]
 === Type Length Value (TLV) Message Extensions
 
-Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
+((("Type-Length-Value (TLV) message extensions","message extensions in wire protocol")))((("wire protocol","TLV message extensions")))Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
 and if while parsing a message, extra bytes are left over, then those bytes
 are to be ignored. At an initial glance, this requirement may appear to be
 somewhat arbitrary; however, this requirement allows for decoupled desynchronized evolution of the Lightning
@@ -115,7 +115,7 @@ the end of a message can be used for.
 
 ==== The Protocol Buffers Message Format
 
-The Protocol Buffers (Protobuf) message serialization format started out as an
+((("Protocol Buffers (Protobuf) message serialization format")))((("Type-Length-Value (TLV) message extensions","Protocol Buffers message format")))The Protocol Buffers (Protobuf) message serialization format started out as an
 internal format used at Google and has blossomed into one of the most popular
 message serialization formats used by developers globally. The Protobuf format
 describes how a message (usually some sort of data structure related to an API)
@@ -137,7 +137,7 @@ parse some portion of the newer message format.
 
 ==== Forward and Backward Compatibility
 
-Protobufs are extremely popular amongst developers because they have built in
+((("Protocol Buffers (Protobuf) message serialization format")))((("Type-Length-Value (TLV) message extensions","forward/backward compatibility")))Protobufs are extremely popular amongst developers because they have built in
 support for both forward and backward compatibility. Most developers are
 likely familiar with the concept of backward compatibility. In simple terms,
 the principle states that any changes to a message format or API should be
@@ -155,7 +155,7 @@ aren't using those new features.
 [[tlv]]
 === Type-Length-Value (TLV) Format
 
-To be able to upgrade messages in a manner that is both forward and backward
+((("Type-Length-Value (TLV) format", id="ix_13_wire_protocol-asciidoc3", range="startofrange")))((("Type-Length-Value (TLV) format","wire protocol and", id="ix_13_wire_protocol-asciidoc4", range="startofrange")))((("wire protocol","TLV format", id="ix_13_wire_protocol-asciidoc5", range="startofrange")))To be able to upgrade messages in a manner that is both forward and backward
 compatible, in addition to feature bits (more on that later), the Lightning Network utilizes a custom message serialization format plainly called Type-Length-Value, or TLV for short. The format was inspired by the widely used Protobuf
 format and borrows many concepts by significantly simplifying the
 implementation as well as the software that interacts with message parsing. A
@@ -181,7 +181,7 @@ Both the `type` and `length` are encoded using a variable sized integer that's i
 
 ==== BigSize Integer Encoding
 
-In its fullest form, a `BigSize`
+((("BigSize integer encoding")))((("Type-Length-Value (TLV) format","BigSize integer encoding")))In its fullest form, a `BigSize`
 integer can represent value up to 64 bits. In contrast to Bitcoin's varint
 format, the `BigSize` format instead encodes integers using a big-endian byte
 ordering.
@@ -204,7 +204,7 @@ integer follows one of the four following options:
 
 ====  TLV Encoding Constraints
 
-Within the context of a TLV message, record types below `2^16` are said to be _reserved_ for future use. Types beyond this
+((("Type-Length-Value (TLV) format","encoding constraints")))Within the context of a TLV message, record types below `2^16` are said to be _reserved_ for future use. Types beyond this
 range are to be used for "custom" message extensions used by higher-level application protocols.
 
 The `value` of a record depends on the `type`. In other words, it can take any form because parsers will attempt to interpret it depending on the context of the type itself.
@@ -233,12 +233,12 @@ constraints are defined when encoding:
 In addition to these encoding constraints, a series of higher-level
 interpretation requirements is also defined based on the _arity_ of a given `type` integer. We dive further into these details toward the end of the
 chapter once we describe how the Lightning Protocol is upgraded in practice and
-in theory.
+in theory.(((range="endofrange", startref="ix_13_wire_protocol-asciidoc5")))(((range="endofrange", startref="ix_13_wire_protocol-asciidoc4")))(((range="endofrange", startref="ix_13_wire_protocol-asciidoc3")))
 
 [[feature_bits]]
 === Feature Bits and Protocol Extensibility
 
-Because the Lightning Network is a decentralized system, no single entity can enforce a
+((("feature bits", id="ix_13_wire_protocol-asciidoc6", range="startofrange")))((("wire protocol","feature bits/protocol extensibility", id="ix_13_wire_protocol-asciidoc7", range="startofrange")))Because the Lightning Network is a decentralized system, no single entity can enforce a
 protocol change or modification upon all the users of the system. This
 characteristic is also seen in other decentralized networks such as Bitcoin.
 However, unlike Bitcoin, overwhelming consensus _is not_ required to change a
@@ -256,7 +256,7 @@ manner.
 
 ==== Feature Bits As an Upgrade Discoverability Mechanism
 
-An astute reader may have noticed the various locations that feature bits are
+((("feature bits","upgrade discoverability mechanism")))An astute reader may have noticed the various locations that feature bits are
 included within the Lightning Protocol. A _feature bit_ is a bitfield that can
 be used to advertise understanding or adherence to a possible network protocol
 update. Feature bits are commonly assigned in pairs, meaning that each
@@ -314,7 +314,7 @@ lifetime of a given connection.
 
 ==== TLV for Forward and Backward Compatibility
 
-As we learned earlier in the chapter, TLV records can be
+((("feature bits","TLV for forward/backward compatibility")))((("Type-Length-Value (TLV) format","forward/backward compatibility and")))((("wire protocol","TLV for forward/backward compatibility")))As we learned earlier in the chapter, TLV records can be
 used to extend messages in a forward and backward compatible manner.
 Over time, these records have been used to extend existing messages without
 breaking the protocol by utilizing the "undefined" area within a message beyond
@@ -338,14 +338,14 @@ payment, or may be the channel partners of a new payment channel.
 
 ==== A Taxonomy of Upgrade Mechanisms
 
-Rather than there being a single widely utilized upgrade mechanism within the
+((("Lightning Network (generally)","taxonomy of upgrade mechanisms", id="ix_13_wire_protocol-asciidoc8", range="startofrange")))((("upgrades","taxonomy of upgrade mechanisms", id="ix_13_wire_protocol-asciidoc9", range="startofrange")))((("wire protocol","taxonomy of upgrade mechanisms", id="ix_13_wire_protocol-asciidoc10", range="startofrange")))Rather than there being a single widely utilized upgrade mechanism within the
 network (such as soft forks for Bitcoin), there exist several possible upgrade mechanisms within the Lightning Network. In this
 section, we enumerate these upgrade mechanisms and
 provide a real-world example of their use in the past.
 
 ===== Internal network upgrades
 
-We start with the upgrade type that requires the most protocol-level
+((("upgrades","internal network")))We start with the upgrade type that requires the most protocol-level
 coordination: internal network upgrades. An internal network upgrade is
 characterized by one that requires _every single node_ within a prospective payment path to understand the new feature. Such an upgrade is similar to any
 upgrade within the internet that requires hardware-level upgrades within
@@ -369,7 +369,7 @@ using a mixed set of nodes.
 
 ===== End-to-end upgrades
 
-To contrast the internal network upgrade, in this section we describe the
+((("upgrades","end-to-end")))To contrast the internal network upgrade, in this section we describe the
 _end-to-end_ network upgrade. This upgrade mechanism differs from the internal
 network upgrade in that it only requires the "ends" of the payment, the sender
 and recipient, to upgrade.
@@ -396,7 +396,7 @@ are able to fully unwrap the onion to uncover the payment preimage.
 
 ==== Channel Construction Level Updates
 
-The final broad category of updates are those that happen at
+((("wire protocol","channel construction level updates")))The final broad category of updates are those that happen at
 the channel construction level, but which don't modify the structure of the HTLC used widely within the network. When we say channel construction, we mean
 how the channel is funded or created. As an example, the eltoo channel type
 can be rolled out within the network using a new `node_announcement` level
@@ -406,8 +406,8 @@ features. This channel pair can then be used to forward any payment type
 granted the channel supports it.
 
 Another is the _anchor outputs_ channel format which allows the commitment fee to be
-bumped via Bitcoin's Child-Pays-For-Parent (CPFP) fee management mechanism.
+bumped via Bitcoin's Child-Pays-For-Parent (CPFP) fee management mechanism(((range="endofrange", startref="ix_13_wire_protocol-asciidoc10")))(((range="endofrange", startref="ix_13_wire_protocol-asciidoc9")))(((range="endofrange", startref="ix_13_wire_protocol-asciidoc8"))).(((range="endofrange", startref="ix_13_wire_protocol-asciidoc7")))(((range="endofrange", startref="ix_13_wire_protocol-asciidoc6")))
 
 === Conclusion
 
-Lightning's wire protocol is incredibly flexible and allows for rapid innovation and interoperability without strict consensus. It is one of the reasons that the Lightning Network is experiencing much faster development and is attractive to many developers, who might otherwise find Bitcoin's development style too conservative and slow.
+Lightning's wire protocol is incredibly flexible and allows for rapid innovation and interoperability without strict consensus. It is one of the reasons that the Lightning Network is experiencing much faster development and is attractive to many developers, who might otherwise find Bitcoin's development style too conservative and slow.(((range="endofrange", startref="ix_13_wire_protocol-asciidoc0")))

@@ -1,8 +1,8 @@
 [[encrypted_message_transport]]
 == Lightning's Encrypted Message Transport
 
-In this chapter we will review the Lightning Network's _encrypted message
-transport_, sometimes referred to as the _Brontide Protocol_, which allows peers to
+((("Lightning encrypted transport protocol", id="ix_14_encrypted_transport-asciidoc0", range="startofrange")))In this chapter we will review the Lightning Network's _encrypted message
+transport_, sometimes referred to as the ((("Brontide Protocol")))_Brontide Protocol_, which allows peers to
 establish end-to-end encrypted communication, authentication, and integrity
 checking.
 
@@ -13,7 +13,7 @@ Part of this chapter includes some highly technical detail about the encryption 
 
 === Encrypted Transport in the Lightning Protocol Suite
 
-The transport component of the Lightning Network and its several components are shown in the leftmost part of the network connection layer in  <<LN_protocol_encrypted_transport_highlight>>.
+((("Lightning encrypted transport protocol","Lightning Protocol Suite and")))The transport component of the Lightning Network and its several components are shown in the leftmost part of the network connection layer in  <<LN_protocol_encrypted_transport_highlight>>.
 
 [[LN_protocol_encrypted_transport_highlight]]
 .The Lightning Network protocol suite
@@ -37,7 +37,7 @@ that requires encrypted communication between two parties.
 
 === The Channel Graph as Decentralized Public Key Infrastructure
 
-As we learned in the chapter on multihop forwarding, every node has a long-term
+((("channel graph","decentralized public key infrastructure")))((("Lightning encrypted transport protocol","channel graph as decentralized public key infrastructure")))((("PKI (public key infrastructure)")))((("public key infrastructure (PKI)")))As we learned in the chapter on multihop forwarding, every node has a long-term
 identity that is used as the identifier for a vertex during pathfinding and
 also used in the asymmetric cryptographic operations related to the creation of
 onion encrypted routing packets. This public key, which serves as a node's
@@ -66,7 +66,7 @@ with TLS, the Transport Layer Security protocol.
 
 === Why Not TLS?
 
-Readers familiar with the TLS system may be wondering at this point: why wasn't
+((("Lightning encrypted transport protocol","TLS vulnerabilities/limitations")))((("TLS (Transport Layer Security protocol)")))((("Transport Layer Security protocol (TLS)")))Readers familiar with the TLS system may be wondering at this point: why wasn't
 TLS used in spite of the drawbacks of the existing PKI system? It is indeed a
 fact that "self signed certificates" can be used to effectively sidestep the
 existing global PKI system by simply asserting to the identity of a given
@@ -97,7 +97,7 @@ simplified protocol that retains all the added benefits of TLS.
 
 === The Noise Protocol Framework
 
-The Noise Protocol Framework is a modern, extensible, and flexible message
+((("Lightning encrypted transport protocol","Noise Protocol Framework")))((("Noise Protocol Framework","encrypted message transport and")))The Noise Protocol Framework is a modern, extensible, and flexible message
 encryption protocol designed by the creators of the Signal Protocol. The Signal Protocol is one of the most widely used message encryption protocols in the
 world. It's used by both Signal and Whatsapp, which cumulatively are used by
 over a billion people around the world. The Noise framework is the result of
@@ -109,7 +109,7 @@ each other.
 A communication session using Noise has two distinct phases: the handshake
 phase and the messaging phase. Before two parties can communicate with each
 other, they first need to arrive at a shared secret known only to them which
-will be used to encrypt and authenticate messages sent to each other. A flavor
+will be used to encrypt and authenticate messages sent to each other. ((("handshake","defined")))A flavor
 of an authenticated key agreement is used to arrive at a final shared key
 between the two parties. In the context of the Noise protocol, this
 authenticated key agreement is referred to as a _handshake_. Once that
@@ -124,22 +124,22 @@ cryptographic primitives such as symmetric encryption and public key
 cryptography, it's customary that each flavor of the Noise Protocol is referred
 to by a unique name. In the spirit of "Noise," each flavor of the protocol
 selects a name derived from some sort of "noise." In the context of the
-Lightning Network, the flavor of the Noise protocol used is sometimes referred to
+((("Brontide Protocol")))Lightning Network, the flavor of the Noise protocol used is sometimes referred to
 as Brontide. A _brontide_ is a low billowing noise, similar to what one would
 hear during a thunderstorm when very far away.
 
 === Lightning Encrypted Transport in Detail
 
-In this section we will break down the Lightning encrypted transport protocol and delve into the details of the cryptographic algorithms and protocol used to establish encrypted, authenticated, and integrity-assured communications between peers. Feel free to skip this section if you find this level of detail daunting.
+((("Lightning encrypted transport protocol","elements of", id="ix_14_encrypted_transport-asciidoc1", range="startofrange")))In this section we will break down the Lightning encrypted transport protocol and delve into the details of the cryptographic algorithms and protocol used to establish encrypted, authenticated, and integrity-assured communications between peers. Feel free to skip this section if you find this level of detail daunting.
 
 ==== Noise XK: Lightning Network's Noise Handshake
 
-The Noise Protocol is extremely flexible in that it advertises several
+((("Lightning encrypted transport protocol")))((("Lightning encrypted transport protocol","Noise XK")))((("Noise Protocol Framework","Noise XK")))((("Noise_XK")))The Noise Protocol is extremely flexible in that it advertises several
 handshakes, each with different security and privacy properties for a would-be
 protocol implementer to select from. A deep exploration of each of the
 handshakes and their various trade-offs is out of the scope of this chapter.
 With that said, the Lightning Network uses a specific handshake referred to as
-`Noise_XK`. The unique property provided by this handshake is __identity hiding__: in order for a node to initiate a connection with another node, it
+`Noise_XK`. ((("identity hiding")))The unique property provided by this handshake is __identity hiding__: in order for a node to initiate a connection with another node, it
 must first know its public key. Mechanically, this means that the public key
 of the responder is actually never transmitted during the context of the
 handshake. Instead, a clever series of Elliptic Curve Diffie–Hellman (ECDH) and
@@ -148,7 +148,7 @@ responder.
 
 ==== Handshake Notation and Protocol Flow
 
-Each handshake typically consists of several steps. At each step some
+((("handshake","notation and protocol flow")))((("Lightning encrypted transport protocol","handshake notation and protocol flow")))((("Noise_XK","handshake notation and protocol flow")))Each handshake typically consists of several steps. At each step some
 (possibly) encrypted material is sent to the opposite party, an ECDH (or
 several) is performed, with the result of the handshake being "mixed" into a
 protocol _transcript_. This transcript serves to authenticate each step of the
@@ -167,7 +167,7 @@ between two ephemeral keys.
 
 ==== High-Level Overview
 
-Using the notation laid out earlier, we can succinctly describe the `Noise_XK`
+((("Lightning encrypted transport protocol","high-level overview")))((("Noise_XK","high-level overview")))Using the notation laid out earlier, we can succinctly describe the `Noise_XK`
 as follows:
 ```
     Noise_XK(s, rs):
@@ -185,7 +185,7 @@ material sent across the wire and the keys sent/used are incrementally
 hashed into a _handshake digest_, `h`. This digest is never sent across the
 wire during the handshake, and is instead used as the "associated data" when
 AEAD (authenticated encryption with associated data) is sent across the wire.
-_Associated data_ (AD) allows an encryption protocol to authenticate additional
+((("AD (associated data)")))((("associated data (AD)")))_Associated data_ (AD) allows an encryption protocol to authenticate additional
 information alongside a cipher text packet. In other domains, the AD may be a
 domain name, or plain-text portion of the packet.
 
@@ -212,7 +212,7 @@ string describing the protocol is `Noise_XK_secp256k1_ChaChaPoly_SHA256`.
 
 ==== Handshake in Three Acts
 
-The handshake portion can be separated into three distinct "acts."
+((("Lightning encrypted transport protocol","handshake in three &ldquo;acts&rdquo;", id="ix_14_encrypted_transport-asciidoc2", range="startofrange")))((("Noise_XK","handshake in three &ldquo;acts&rdquo;", id="ix_14_encrypted_transport-asciidoc3", range="startofrange")))The handshake portion can be separated into three distinct "acts."
 The entire handshake takes 1.5 round trips between the initiator and responder.
 At each act, a single message is sent between both parties. The handshake
 message is a fixed-size payload prefixed by the protocol version.
@@ -249,7 +249,7 @@ handshake as:
     `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key
 +
       ** The returned value is the SHA-256 of the compressed format of the
-	    generated point.
+      generated point.
 
 `HKDF(salt,ikm)`:: A function defined in `RFC 5869`,
     evaluated with a zero-length `info` field
@@ -284,7 +284,7 @@ handshake as:
 
 ===== Handshake session state initialization
 
-Before starting the handshake process, both sides need to initialize the
+((("handshake","session state initialization")))((("Lightning encrypted transport protocol","handshake session state initialization")))((("Noise_XK","handshake session state initialization")))Before starting the handshake process, both sides need to initialize the
 starting state that they'll use to advance the handshake process. To start,
 both sides need to construct the initial handshake digest `h`.
 
@@ -315,13 +315,13 @@ does indeed know the public key of the responder.
 
 ===== Handshake acts
 
-After the initial handshake initialization, we can begin the actual execution
+((("handshake","acts", id="ix_14_encrypted_transport-asciidoc4", range="startofrange")))((("Lightning encrypted transport protocol","handshake acts", id="ix_14_encrypted_transport-asciidoc5", range="startofrange")))((("Noise_XK","handshake acts", id="ix_14_encrypted_transport-asciidoc6", range="startofrange")))After the initial handshake initialization, we can begin the actual execution
 of the handshake process. The handshake is composed of a series of
 three messages sent between the initiator and responder, henceforth referred to as
 "acts." Because each act is a single message sent between the parties, a handshake
 is completed in a total of 1.5 round trips (0.5 for each act).
 
-The first act completes the initial portion of the incremental triple Diffie–Hellman (DH) key exchange (using a new ephemeral key generated by the initiator)
+((("Diffie-Hellman Key Exchange (DHKE)")))The first act completes the initial portion of the incremental triple Diffie–Hellman (DH) key exchange (using a new ephemeral key generated by the initiator)
 and also ensures that the initiator actually knows the long-term public key of
 the responder. During the second act, the responder transmits the ephemeral key
 they wish to use for the session to the initiator, and once again incrementally
@@ -517,11 +517,11 @@ Receiver actions:
      * The final encryption keys, to be used for sending and
        receiving messages for the duration of the session, are generated.
 10. `rn = 0, sn = 0`
-     * The sending and receiving nonces are initialized to 0.
+     * The sending and receiving nonces are initialized to 0.(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc6")))(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc5")))(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc4")))
 
 ===== Transport message encryption
 
-At the conclusion of Act Three, both sides have derived the encryption keys, which
+((("Lightning encrypted transport protocol","transport message encryption")))((("Noise_XK","transport message encryption")))At the conclusion of Act Three, both sides have derived the encryption keys, which
 will be used to encrypt and decrypt messages for the remainder of the
 session.
 
@@ -588,7 +588,7 @@ steps are completed:
 
 ===== Lightning message key rotation
 
-Changing keys regularly and forgetting previous keys is useful to prevent the
+((("Lightning encrypted transport protocol","Lightning message key rotation")))((("Noise_XK","Lightning message key rotation")))Changing keys regularly and forgetting previous keys is useful to prevent the
 decryption of old messages, in the case of later key leakage (i.e.,  backward
 secrecy).
 
@@ -597,7 +597,7 @@ is to be rotated after a party encrypts or decrypts 1,000 times with it (i.e.,
 every 500 messages).  This can be properly accounted for by rotating the key
 once the nonce dedicated to it exceeds 1,000.
 
-Key rotation for a key `k` is performed according to the following steps:
+Key rotation for a key `k` is performed according to the following steps(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc3")))(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc2"))):(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc1")))
 
 1. Let `ck` be the chaining key obtained at the end of Act Three.
 2. `ck', k' = HKDF(ck, k)`
@@ -611,4 +611,4 @@ Lightning's underlying transport encryption is based on the Noise Protocol and o
 
 Unlike Bitcoin where peers often communicate "in the clear" (without encryption), all Lightning communications are encrypted peer-to-peer. In addition to transport encryption (peer-to-peer), in the LN payments are _also_ encrypted into onion packets (hop-to-hop) and payment details are sent out-of-band between the sender and recipient (end-to-end). The combination of all these security mechanisms is cumulative and provides layered defense against deanonymization, man-in-the-middle attacks, and network surveillance.
 
-Of course, no security is perfect and we will see in <<security_and_privacy>> that these properties can be degraded and attacked. However, the Lightning Network significantly improves upon the privacy of Bitcoin.
+Of course, no security is perfect and we will see in <<security_and_privacy>> that these properties can be degraded and attacked. However, the Lightning Network significantly improves upon the privacy of Bitcoin.(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc0")))

@@ -1,11 +1,11 @@
 [[invoices]]
 == Lightning Payment Requests
 
-In this chapter we will look at _Lightning payment requests_ or as they are more commonly known _Lightning invoices_.
+((("Lightning invoices", id="ix_15_payment_requests-asciidoc0", range="startofrange")))In this chapter we will look at _Lightning payment requests_ or as they are more commonly known _Lightning invoices_.
 
 === Invoices in the Lightning Protocol Suite
 
-_Payment requests_, aka _invoices_, are part of the payment layer and are show in the upper left of <<LN_payment_request_highlight>>.
+((("Lightning invoices","Lightning Protocol suite and")))((("Lightning Network Protocol","Lightning invoices in")))_Payment requests_, aka _invoices_, are part of the payment layer and are show in the upper left of <<LN_payment_request_highlight>>.
 
 [[LN_payment_request_highlight]]
 .The Lightning Network protocol suite
@@ -26,7 +26,7 @@ make the encoding more fully featured.
 
 === Lightning Payment Requests versus Bitcoin Addresses
 
-A commonly asked question when people first encounter a Lightning Payment
+((("Bitcoin addresses, Lightning invoices versus")))((("Lightning invoices","Bitcoin addresses versus")))A commonly asked question when people first encounter a Lightning Payment
 request is: why can't a normal static address format be used instead?
 
 To answer this question, you must first internalize how Lightning
@@ -59,7 +59,7 @@ degree of payment request reuse.
 
 === BOLT #11: Lightning Payment Request Serialization and Interpretation
 
-In this section, we'll describe the mechanism used to encode the set of
+((("BOLT (Basis of Lightning Technology) standards documents","Lightning payment request serialization/interpretation")))((("Lightning invoices","payment request serialization/interpretation")))In this section, we'll describe the mechanism used to encode the set of
 information required to complete a payment on the Lightning Network. As
 mentioned earlier, the payment hash and destination is the minimum amount of
 information required to complete a payment. However, in practice, more
@@ -68,7 +68,7 @@ possibly an on-chain fallback address are also communicated. The full specificat
 
 ==== Payment Request Encoding in Practice
 
-First, let's examine what a real payment request looks like in practice. The
+((("Lightning invoices","payment request encoding in practice")))First, let's examine what a real payment request looks like in practice. The
 following is a valid payment request that could have been used to complete a
 payment on the mainnet Lightning Network at the time it was created:
 ```
@@ -77,7 +77,7 @@ lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxx
 
 ==== The Human-Readable Prefix
 
-Looking at the string, we can tease out a portion that we can parse with our
+((("human-readable prefixes")))((("Lightning invoices","human-readable prefix")))Looking at the string, we can tease out a portion that we can parse with our
 eyes, while the rest of it just looks like a random set of strings. The part
 that is somewhat parsable by a human is referred to as the _human-readable prefix_. It allows a human to quickly extract some relevant information from a
 payment request at a glance. In this case, we can see that this payment is for
@@ -127,8 +127,8 @@ A full list of the currently defined multipliers is given in <<table1502>>.
 
 ==== Bech32 and the Data Segment
 
-If the "unreadable" portion looks familiar, then that's because it uses the
-very same encoding scheme as SegWit compatible Bitcoin addresses use today,
+((("bech32, Lightning invoices and")))((("Lightning invoices","bech32 and data segment")))If the "unreadable" portion looks familiar, then that's because it uses the
+savery same encoding scheme as SegWit compatible Bitcoin addresses use today,
 namely bech32. Describing the bech32 encoding scheme is outside the scope
 of this chapter. In brief, it's a sophisticated way to encode short strings
 that has very good error correction as well as detection properties.
@@ -162,7 +162,7 @@ the invoice.
 
 ===== Tagged invoice fields
 
-The tagged invoice fields are encoded in the main body of the invoice. These
+((("Lightning invoices","tagged invoice fields")))The tagged invoice fields are encoded in the main body of the invoice. These
 fields represent different key-value pairs that express either additional
 information that may help complete the payment or information which is
 _required_ to complete the payment. Because a slight variant of bech32 is
@@ -215,4 +215,4 @@ understand that feature to complete the payment.
 
 === Conclusion
 
-As we have seen, invoices are a lot more than just a request for an amount. They contain critical information about _how_ to make the payment, such as routing hints, the destination node's public key, ephemeral keys to increase security, and much more.
+As we have seen, invoices are a lot more than just a request for an amount. They contain critical information about _how_ to make the payment, such as routing hints, the destination node's public key, ephemeral keys to increase security, and much more.(((range="endofrange", startref="ix_15_payment_requests-asciidoc0")))

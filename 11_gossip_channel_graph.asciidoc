@@ -1,7 +1,7 @@
 [[gossip]]
 == Gossip and the Channel Graph
 
-In this chapter we will describe the Lightning Network's gossip protocol and how it is used by nodes to construct and maintain a channel graph. We will also review the DNS bootstrap mechanism used to find peers to "gossip" with.
+((("channel graph", id="ix_11_gossip_channel_graph-asciidoc0", range="startofrange")))((("gossip protocol", id="ix_11_gossip_channel_graph-asciidoc1", range="startofrange")))In this chapter we will describe the Lightning Network's gossip protocol and how it is used by nodes to construct and maintain a channel graph. We will also review the DNS bootstrap mechanism used to find peers to "gossip" with.
 
 The "Routing fees and Gossip relaying" section is highlighted by a double outline spanning the routing layer and peer 2 peer layer of <<LN_protocol_gossip_highlight>>.
 
@@ -16,7 +16,7 @@ The _channel graph_ is the interconnected set of publicly advertised channels an
 
 As channels are backed by a funding transaction that is happening on-chain, one might falsely believe that Lightning nodes could just extract the existing channels from the Bitcoin blockchain.
 However this is only possible to a certain extent.
-The funding transactions are Pay-to-Witness-Script-Hash (P2WSH) addresses, and the nature of the script (a 2-of-2 multisig) will only be revealed once the funding transaction output is spent.
+((("P2WSH (Pay-to-Witness-Script-Hash)")))((("Pay-to-Witness-Script-Hash (P2WSH)")))The funding transactions are Pay-to-Witness-Script-Hash (P2WSH) addresses, and the nature of the script (a 2-of-2 multisig) will only be revealed once the funding transaction output is spent.
 Even if the nature of the script were known, it's important to remember that not all 2-of-2 multisig scripts correspond to payment channels.
 
 There are even more reasons why looking at the Bitcoin blockchain might not be helpful.
@@ -64,11 +64,11 @@ peer now needs to _download_ and _validate_ the channel graph. Once the channel 
 After initial bootstrap, a node on the network needs to continue to maintain its view of the channel graph by processing new channel routing policy updates, discovering and validating new channels, removing channels that have been closed on-chain, and finally pruning channels that fail to send out a proper "heartbeat" every two weeks or so.
 
 Upon completion of this chapter, you will understand a key component of
-the peer-to-peer Lightning Network: namely how peers discover each other and maintain a local copy (perspective) of the channel graph. We'll begin by exploring the story of a new node that has just booted up and needs to find other peers to connect to on the network.
+the peer-to-peer Lightning Network: namely how peers discover each other and maintain a local copy (perspective) of the channel graph. We'll begin by exploring the story of a new node that has just booted up and needs to find other peers to connect to on the network.(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc1")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc0")))
 
 === Peer Discovery
 
-In this section, we'll begin to follow a new Lightning node that wishes to join the network through three steps:
+((("gossip protocol","peer discovery", id="ix_11_gossip_channel_graph-asciidoc2", range="startofrange")))((("peer discovery", id="ix_11_gossip_channel_graph-asciidoc3", range="startofrange")))In this section, we'll begin to follow a new Lightning node that wishes to join the network through three steps:
 
 . Discover a set of bootstrap peers
 . Download and validate the channel graph
@@ -77,12 +77,12 @@ In this section, we'll begin to follow a new Lightning node that wishes to join 
 
 ==== P2P Bootstrapping
 
-Before doing any thing else, our new node first needs to discover a set of peers who are already part of the network. We call this process initial peer bootstrapping, and it's something that every peer-to-peer network needs to implement properly to ensure a robust, healthy network.
+((("bootstrapping","P2P")))((("initial peer bootstrapping")))((("P2P bootstrapping")))((("peer discovery","P2P bootstrapping")))Before doing any thing else, our new node first needs to discover a set of peers who are already part of the network. We call this process initial peer bootstrapping, and it's something that every peer-to-peer network needs to implement properly to ensure a robust, healthy network.
 
 Bootstrapping new peers to existing peer-to-peer networks is a very well studied problem with several known solutions, each with their own distinct trade-offs. The simplest solution to this problem is simply to package a set of _hardcoded_ bootstrap peers into the packaged P2P node software. This is simple in that each new node has a list of bootstrap peers in the software they're running, but rather fragile given that if the set of bootstrap peers goes offline, then no new nodes will be able to join the network. Due to this fragility, this
 option is usually used as a fallback in case none of the other P2P bootstrapping mechanisms work properly.
 
-Rather than hardcoding the set of bootstrap peers within the software/binary itself, we can instead allow peers to dynamically obtain a fresh/new set of bootstrap peers they can use to join the network. We'll call this process _initial peer discovery_. Typically we'll leverage
+((("initial peer discovery")))Rather than hardcoding the set of bootstrap peers within the software/binary itself, we can instead allow peers to dynamically obtain a fresh/new set of bootstrap peers they can use to join the network. We'll call this process _initial peer discovery_. Typically we'll leverage
 existing internet protocols to maintain and distribute a set of bootstrapping peers. A nonexhaustive list of protocols that have been used in the past to accomplish initial peer discovery includes:
 
   * Domain Name Service (DNS)
@@ -93,7 +93,7 @@ Similar to the Bitcoin protocol, the primary initial peer discovery mechanism us
 
 ==== DNS Bootstrapping
 
-The https://github.com/lightningnetwork/lightning-rfc/blob/master/10-dns-bootstrap.md[BOLT #10] document describes a standardized way of implementing peer
+((("bootstrapping","DNS", id="ix_11_gossip_channel_graph-asciidoc4", range="startofrange")))((("DNS bootstrapping", id="ix_11_gossip_channel_graph-asciidoc5", range="startofrange")))((("peer discovery","DNS bootstrapping", id="ix_11_gossip_channel_graph-asciidoc6", range="startofrange")))The https://github.com/lightningnetwork/lightning-rfc/blob/master/10-dns-bootstrap.md[BOLT #10] document describes a standardized way of implementing peer
 discovery using the DNS. Lightning's flavor of DNS based bootstrapping uses up to three distinct record types:
 
   * +SRV+ records for discovering a set of _node public keys_.
@@ -225,7 +225,7 @@ Querying the current DNS +A+ record for a given node can also be used to look up
 At this point in our journey, our new Lightning node has found its first
 peer and established its first connection! Now we can begin the second phase of new peer bootstrapping: channel graph synchronization and validation.
 
-First, we'll explore more of the intricacies of BOLT #10 itself to take a deeper look into how things work under the hood.
+First, we'll explore more of the intricacies of BOLT #10 itself to take a deeper look into how things work under the hood.(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc6")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc5")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc4")))
 
 ==== SRV Query Options
 
@@ -256,7 +256,7 @@ insights:
   * +a2+: The query only wants IPv4 addresses to be returned
   * +n10+: The query requests
 
-Try some combinations of the various flags using the +dig+ DNS command-line tool yourself:
+Try some combinations of the various flags using the +dig+ DNS command-line tool yourself(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc3")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc2"))):
 
 ----
 dig @8.8.8.8 r0.a6.nodes.lightning.directory SRV
@@ -264,11 +264,11 @@ dig @8.8.8.8 r0.a6.nodes.lightning.directory SRV
 
 === The Channel Graph
 
-Now that our new node is able to use the DNS bootstrapping protocol to connect to their very first peer, it can start to sync the channel graph! However, before we sync the channel graph, we'll need to learn exactly _what_ we mean by the channel graph. In this section we'll explore the precise _structure_ of the channel graph and examine the unique aspects of the channel graph compared to the typical abstract "graph" data structure which is well known/used in the field of computer science.
+((("channel graph","structure of")))Now that our new node is able to use the DNS bootstrapping protocol to connect to their very first peer, it can start to sync the channel graph! However, before we sync the channel graph, we'll need to learn exactly _what_ we mean by the channel graph. In this section we'll explore the precise _structure_ of the channel graph and examine the unique aspects of the channel graph compared to the typical abstract "graph" data structure which is well known/used in the field of computer science.
 
 ==== A Directed Graph
 
-A _graph_ in computer science is a special data structure composed of vertices (typically referred to as nodes) and edges (also known as links). Two nodes may be connected by one or more edges. The channel graph is also _directed_ given that a payment is able to flow in either direction over a given edge (a channel). An example of a _directed graph_ is shown in <<directed_graph>>.
+((("channel graph","directed graph")))((("directed graph")))A _graph_ in computer science is a special data structure composed of vertices (typically referred to as nodes) and edges (also known as links). Two nodes may be connected by one or more edges. The channel graph is also _directed_ given that a payment is able to flow in either direction over a given edge (a channel). An example of a _directed graph_ is shown in <<directed_graph>>.
 
 [[directed_graph]]
 .A directed graph (Source: Wikimedia Commons)
@@ -281,7 +281,7 @@ base Bitcoin blockchain means that it's impossible to _fake_ a valid channel gra
 
 === Gossip Protocol Messages
 
-The channel graph information is propagated across the Lightning P2P Network as three messages, which are described in https://github.com/lightningnetwork/lightning-rfc/blob/master/07-routing-gossip.md[BOLT #7]:
+((("channel graph","gossip protocol messages", id="ix_11_gossip_channel_graph-asciidoc7", range="startofrange")))((("gossip protocol","messages", id="ix_11_gossip_channel_graph-asciidoc8", range="startofrange")))The channel graph information is propagated across the Lightning P2P Network as three messages, which are described in https://github.com/lightningnetwork/lightning-rfc/blob/master/07-routing-gossip.md[BOLT #7]:
 
 +node_announcement+:: The vertex in our graph which communicates the public key of a node, as well as how to reach the node over the internet and some additional metadata describing the set of _features_ the node supports.
 
@@ -297,7 +297,7 @@ With the high-level structure of the channel graph laid out, we'll now dive down
 [[node_announcement]]
 ==== The node_announcement Message
 
-First, we have the +node_announcement+ message, which serves two primary
+((("gossip protocol","node_announcement message", id="ix_11_gossip_channel_graph-asciidoc9", range="startofrange")))((("node_announcement message", id="ix_11_gossip_channel_graph-asciidoc10", range="startofrange")))First, we have the +node_announcement+ message, which serves two primary
 purposes:
 
  1. To advertise connection information so other nodes can connect to a node either to bootstrap to the network or to attempt to establish a  new payment channel with that node.
@@ -310,7 +310,7 @@ only considered valid if they have propagated with a corresponding channel annou
 
 ===== The node_announcement message structure
 
-The +node_announcement+ is comprised of
+((("node_announcement message","structure")))The +node_announcement+ is comprised of
 the following fields:
 
  +signature+:: A valid ECDSA signature that covers the serialized digest of all fields listed below. This signature must correspond to the public key of the advertised node.
@@ -329,7 +329,7 @@ the following fields:
 
 ===== Validating node announcements
 
-Validating an incoming +node_announcement+ is straightforward. The following assertions should be upheld when examining a node announcement:
+((("node_announcement message","validating")))Validating an incoming +node_announcement+ is straightforward. The following assertions should be upheld when examining a node announcement:
 
   * If an existing +node_announcement+ for that node is already known, then the +timestamp+ field of a new incoming +node_announcement+ must be greater than the prior one.
 
@@ -341,23 +341,23 @@ Validating an incoming +node_announcement+ is straightforward. The following ass
 
   * All included +addresses+ must be sorted in ascending order based on their address identifier.
 
-  * The included +alias+ bytes must be a valid UTF-8 string.
+  * The included +alias+ bytes must be a valid UTF-8 string.(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc10")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc9")))
 
 ==== The channel_announcement Message
 
-Next, we have the +channel_announcement+ message, which is used to _announce_ a new _public_ channel to the wider network. Note that announcing a channel is _optional_. A channel only needs to be announced if it is intended to be used for routing by the Lightning Network. Active routing nodes may wish to announce all their channels. However, certain nodes like mobile nodes likely don't have the
+((("channel_announcement message", id="ix_11_gossip_channel_graph-asciidoc11", range="startofrange")))((("gossip protocol","channel_announcement message", id="ix_11_gossip_channel_graph-asciidoc12", range="startofrange")))Next, we have the +channel_announcement+ message, which is used to _announce_ a new _public_ channel to the wider network. Note that announcing a channel is _optional_. A channel only needs to be announced if it is intended to be used for routing by the Lightning Network. Active routing nodes may wish to announce all their channels. However, certain nodes like mobile nodes likely don't have the
 uptime or desire to be an active routing node. As a result, these
 mobile nodes (which typically use light clients to connect to the Bitcoin P2P network) instead may have purely _unannounced_ (private) channels.
 
 ===== Unannounced (private) channels
 
-An unannounced channel isn't part of the known public channel graph, but can still be used to send/receive payments. An astute reader may now be wondering how a channel which isn't part of the public channel graph is able to receive payments. The solution to this problem is a set of "pathfinding helpers" that we call routing hints. As we'll see in <<invoices>>, invoices created by nodes with unadvertised channels will include information to help the sender route to them assuming the node has at least a single channel with an existing public routing node.
+((("channel_announcement message","unannounced (private) channels")))((("unannounced channels")))An unannounced channel isn't part of the known public channel graph, but can still be used to send/receive payments. An astute reader may now be wondering how a channel which isn't part of the public channel graph is able to receive payments. The solution to this problem is a set of "pathfinding helpers" that we call routing hints. As we'll see in <<invoices>>, invoices created by nodes with unadvertised channels will include information to help the sender route to them assuming the node has at least a single channel with an existing public routing node.
 
 Due to the existence of unadvertised channels, the _true_ size of the channel graph (both the public and private components) is unknown.
 
 ===== Locating a channel on the bitcoin blockchain
 
-As mentioned earlier, the channel graph is authenticated due to its usage of public key cryptography, as well as the Bitcoin blockchain as a spam prevention system. To have a node accept a new +channel_announcement+, the advertisement must _prove_ that the channel actually exists in the Bitcoin blockchain. This proof system adds an upfront cost to adding a new entry to the channel graph (the on-chain fees one must pay to create the UTXO of the channel). As a result, we mitigate spam and ensure that a dishonest node on the network can't fill up the memory of an honest node at no cost with bogus channels.
+((("blockchain","locating a channel on the Bitcoin blockchain")))((("channel_announcement message","locating a channel on the Bitcoin blockchain")))As mentioned earlier, the channel graph is authenticated due to its usage of public key cryptography, as well as the Bitcoin blockchain as a spam prevention system. To have a node accept a new +channel_announcement+, the advertisement must _prove_ that the channel actually exists in the Bitcoin blockchain. This proof system adds an upfront cost to adding a new entry to the channel graph (the on-chain fees one must pay to create the UTXO of the channel). As a result, we mitigate spam and ensure that a dishonest node on the network can't fill up the memory of an honest node at no cost with bogus channels.
 
 Given that we need to construct a proof of the existence of a channel, a
 natural question that arises is: how do we "point to" or reference a given channel for the verifier? Given that a payment channel is anchored in an unspent transaction output (see <<utxo>>), an initial thought might be to first attempt to advertise the full outpoint (+txid:index+) of the channel. Given the outpoint is globally unique and confirmed in the chain, this sounds like a good idea; however, it has a drawback: the verifier must maintain a full copy of the UTXO set to verify channels. This works fine for Bitcoin full nodes, but clients that rely on lightweight verification don't typically maintain a full UTXO set. Because we want to ensure we can support mobile nodes in the Lightning Network, we're forced to find another solution.
@@ -369,7 +369,7 @@ The +scid+ is used both in +channel_announcement+ (and +channel_update+) as well
 [[scid]]
 ===== The short channel id
 
-Based on the preceding information, we have three pieces of information we need to encode to uniquely reference a given channel. Because we want a compact representation, we'll attempt to encode the information into a _single_ integer. Our integer format of choice is an unsigned 64-bit integer, comprised of 8 bytes.
+((("blockchain","short channel ID")))Based on the preceding information, we have three pieces of information we need to encode to uniquely reference a given channel. Because we want a compact representation, we'll attempt to encode the information into a _single_ integer. Our integer format of choice is an unsigned 64-bit integer, comprised of 8 bytes.
 
 First, the block height: Using 3 bytes (24 bits) we can encode 16,777,216 blocks. That leaves 5 bytes for us to encode the transaction index and the output index, respectively. We'll use the next 3
 bytes to encode the transaction index _within_ a block. This is more than enough given that it's only possible to fix tens of thousands of transactions in a block at current block sizes. This leaves 2 bytes left for us to encode the output index of the channel within the transaction.
@@ -388,7 +388,7 @@ Now that we're able to succinctly point to a given channel funding output in the
 
 ===== The channel_announcement message structure
 
-A +channel_announcement+ primarily communicates two things:
+((("channel_announcement message","message structure")))A +channel_announcement+ primarily communicates two things:
 
  1. A proof that a channel exists between node A and node B with both nodes controlling the mulitsig keys in that channel output.
 
@@ -424,7 +424,7 @@ With that said, a +channel_announcement+ message has the following fields:
 
 ===== Channel announcement validation
 
-Now that we know what a +channel_announcement+ contains, we can look at how to verify the channel's existence on-chain.
+((("channel_announcement message","validation")))Now that we know what a +channel_announcement+ contains, we can look at how to verify the channel's existence on-chain.
 
 Armed with the information in the +channel_announcement+, any Lightning node (even one without a full copy of the Bitcoin blockchain) can verify the existence and authenticity of the payment channel.
 
@@ -438,11 +438,11 @@ Next, the verifier will extract the Pay-to-Witness-Script-Hash output referenced
 
 Finally, the verifier will reconstruct the multisig script from +bitcoin_key_1+ and +bitcoin_key_2+ and confirm that it produces the same address as in the output.
 
-The verifier has now independently verified that the payment channel in the announcement is funded and confirmed on the Bitcoin blockchain!
+The verifier has now independently verified that the payment channel in the announcement is funded and confirmed on the Bitcoin blockchain!(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc12")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc11")))
 
 ==== The channel_update Message
 
-The third and final message used in the gossip protocol is the +channel_update+ message. Two of these are generated for each payment channel (one by each channel partner) announcing their routing fees, timelock expectations, and capabilities.
+((("channel_update message")))((("gossip protocol","channel_update message")))The third and final message used in the gossip protocol is the +channel_update+ message. Two of these are generated for each payment channel (one by each channel partner) announcing their routing fees, timelock expectations, and capabilities.
 
 The +channel_update+ message also contains a timestamp, allowing a node to update its routing fees and other expectations and capabilities by sending a new +channel_update+ message with a higher (later) timestamp that supersedes any older updates.
 
@@ -471,11 +471,11 @@ The +channel_update+ message contains the following fields:
 
 +htlc_maximum_msat+ (+option_channel_htlc_max+):: The maximum amount that will be routed
 
-A node that receives the +channel_update+ message can attach this metadata to the channel graph edge to enable pathfinding,  as we will see in <<path_finding>>.
+A node that receives the +channel_update+ message can attach this metadata to the channel graph edge to enable pathfinding,  as we will see in <<path_finding>>.(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc8")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc7")))
 
 === Ongoing Channel Graph Maintenance
 
-The construction of a channel graph is not a one-time event, but rather an ongoing activity. As a node bootstraps into the network it will start receiving "gossip," in the form of the three update messages. It will use these messages to immediately start building a validated channel graph.
+((("channel graph","ongoing maintenance")))The construction of a channel graph is not a one-time event, but rather an ongoing activity. As a node bootstraps into the network it will start receiving "gossip," in the form of the three update messages. It will use these messages to immediately start building a validated channel graph.
 
 The more information a node receives, the better its "map" of the Lightning Network becomes and the more effective it can be at pathfinding and payment delivery.
 

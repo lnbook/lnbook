@@ -1,7 +1,7 @@
 [[onion_routing]]
 == Onion Routing
 
-In this chapter we will describe the Lightning Network's onion routing_ mechanism. The invention of _onion routing_ precedes the Lightning Network by 25 years! Onion routing was invented by U.S. Navy researchers as a communications security protocol. Onion routing is most famously used by Tor, the onion routed internet overlay that allows researchers, activists, intelligence agents, and everyone else to use the internet privately and anonymously.
+((("onion routing", id="ix_10_onion_routing-asciidoc0", range="startofrange")))In this chapter we will describe the Lightning Network's onion routing_ mechanism. The invention of _onion routing_ precedes the Lightning Network by 25 years! Onion routing was invented by U.S. Navy researchers as a communications security protocol. Onion routing is most famously used by Tor, the onion routed internet overlay that allows researchers, activists, intelligence agents, and everyone else to use the internet privately and anonymously.
 
 In this chapter we are focusing on the "Source-based onion routing (SPHINX)" part of the Lightning protocol architecture, highlighted by a double outline in the center (routing layer) of <<LN_protocol_onion_highlight>>. 
 
@@ -19,13 +19,13 @@ The implementation of onion routing in the Lightning Network is defined in https
 
 === A Physical Example Illustrating Onion Routing
 
-There are many ways to describe onion routing, but one of the easiest is to use the physical equivalent of sealed envelopes. An envelope represents a layer of encryption, allowing only the named recipient to open it and read the contents.
+((("onion routing","physical example", id="ix_10_onion_routing-asciidoc1", range="startofrange")))There are many ways to describe onion routing, but one of the easiest is to use the physical equivalent of sealed envelopes. An envelope represents a layer of encryption, allowing only the named recipient to open it and read the contents.
 
 Let's say Alice wants to send a secret letter to Dina, indirectly via some intermediaries.
 
 ==== Selecting a Path
 
-The Lightning Network uses _source routing_, which means that the payment path is selected and specified by the sender, and only the sender. In this example, Alice's secret letter to Dina will be the equivalent of a payment. To make sure the letter reaches Dina, Alice will create a path from her to Dina, using Bob and Chan as intermediaries.
+((("onion routing","selecting a path")))The Lightning Network uses _source routing_, which means that the payment path is selected and specified by the sender, and only the sender. In this example, Alice's secret letter to Dina will be the equivalent of a payment. To make sure the letter reaches Dina, Alice will create a path from her to Dina, using Bob and Chan as intermediaries.
 
 [TIP]
 ====
@@ -42,14 +42,14 @@ Let's see how Alice can use this path without revealing information to intermedi
 
 .Source-Based Routing
 ****
-Source-based routing is not how packets are typically routed on the internet today, though source routing was possible in the early days.
+((("source-based routing")))Source-based routing is not how packets are typically routed on the internet today, though source routing was possible in the early days.
 Internet routing is based on _packet switching_ at each intermediary routing node. An IPv4 packet, for example, includes the sender, and recipient's IP addresses, and every other IP routing node decides how to forward each packet toward the destination.
 However, the lack of privacy in such a routing mechanism, where every intermediary node sees the sender and recipient, make this a poor choice for use in a payment network.
 ****
 
 ==== Building the Layers
 
-Alice starts by writing a secret letter to Dina.  She then seals the letter inside an envelope and writes "To Dina" on the outside (see <<dina_envelope>>). The envelope represents encryption with Dina's public key so that only Dina can open the envelope and read the letter.
+((("onion routing","building the layers", id="ix_10_onion_routing-asciidoc2", range="startofrange")))Alice starts by writing a secret letter to Dina.  She then seals the letter inside an envelope and writes "To Dina" on the outside (see <<dina_envelope>>). The envelope represents encryption with Dina's public key so that only Dina can open the envelope and read the letter.
 
 [[dina_envelope]]
 .Dina's secret letter, sealed in an envelope
@@ -67,7 +67,7 @@ Now, this letter will be delivered to Chan by Bob. So Alice puts it inside an en
 .Bob's envelope, containing Chan's sealed envelope
 image::images/mtln_1005.png["Bob's envelope, containing Chan's sealed envelope"]
 
-Now, if we could look through the envelopes (with X-rays!) we would see the envelopes nested one inside the other, as shown in <<nested_envelopes>>. 
+Now, if we could look through the envelopes (with X-rays!) we would see the envelopes nested one inside the other, as shown in <<nested_envelopes>>. (((range="endofrange", startref="ix_10_onion_routing-asciidoc2")))
 
 [[nested_envelopes]]
 .Nested envelopes
@@ -75,7 +75,7 @@ image::images/mtln_1006.png[Nested envelopes]
 
 ==== Peeling the Layers
 
-Alice now has an envelope that says "To Bob" on the outside. It represents an encrypted message that only Bob can open (decrypt). Alice will now begin the process by sending this to Bob. The entire process is shown in <<sending_nested_envelopes>>. 
+((("onion routing","peeling the layers")))Alice now has an envelope that says "To Bob" on the outside. It represents an encrypted message that only Bob can open (decrypt). Alice will now begin the process by sending this to Bob. The entire process is shown in <<sending_nested_envelopes>>. 
 
 [[sending_nested_envelopes]]
 .Sending the envelopes
@@ -89,23 +89,23 @@ Dina receives an envelope from Chan. Opening it she finds a letter inside, so no
 
 This is the essence of onion routing. The sender wraps a message in layers, specifying exactly how it will be routed and preventing any of the intermediaries from gaining any information about the path or payload. Each intermediary peels one layer, sees only a forwarding address, and doesn't know anything other than the previous and next hop in the path.
 
-Now, let's look at the details of the onion routing implementation in the Lightning Network.
+Now, let's look at the details of the onion routing implementation in the Lightning Network.(((range="endofrange", startref="ix_10_onion_routing-asciidoc1")))
 
 === Introduction to Onion Routing of HTLCs
 
-Onion routing in the Lightning Network appears complex at first glance, but once you understand the basic concept, it is really quite simple.
+((("hash time-locked contracts (HTLCs)","onion routing basics", id="ix_10_onion_routing-asciidoc3", range="startofrange")))((("onion routing","HTLCs", id="ix_10_onion_routing-asciidoc4", range="startofrange")))Onion routing in the Lightning Network appears complex at first glance, but once you understand the basic concept, it is really quite simple.
 
 From a practical perspective, Alice is telling every intermediary node what HTLC to set up with the next node in the path.
 
-The first node, which is the payment sender or Alice in our example, is called the _origin node_.  The last node, which is the payment recipient or Dina in our example, is called the _final node_.
+((("origin node")))The first node, which is the payment sender or Alice in our example, is called the _origin node_.  ((("final node")))The last node, which is the payment recipient or Dina in our example, is called the _final node_.
 
-Each intermediary node, or Bob and Chan in our example, is called a _hop_. Every hop must set up an _outgoing HTLC_ to the next hop. The information communicated to each hop by Alice is called the _hop payload_ or _hop data_. The message that is routed from Alice to Dina is called an _onion_ and consists of encrypted _hop payload_ or _hop data_ messages encrypted to each hop.
+((("hop")))Each intermediary node, or Bob and Chan in our example, is called a _hop_. Every hop must set up an _outgoing HTLC_ to the next hop. The information communicated to each hop by Alice is called the _hop payload_ or _hop data_. The message that is routed from Alice to Dina is called an _onion_ and consists of encrypted _hop payload_ or _hop data_ messages encrypted to each hop.
 
 Now that we know the terminology used in Lightning Onion Routing, let's restate Alice's task: Alice must construct an onion with hop data, telling each hop how to construct an outgoing HTLC to send a payment to the final node (Dina).
 
 ==== Alice Selects the Path
 
-From <<routing>> we know that Alice will send a 50,000 satoshi payment to Dina via Bob and Chan. This payment is transmitted via a series of HTLCs, as shown in <<alice_dina_htlc_path>>. 
+((("onion routing","selecting a path")))From <<routing>> we know that Alice will send a 50,000 satoshi payment to Dina via Bob and Chan. This payment is transmitted via a series of HTLCs, as shown in <<alice_dina_htlc_path>>. 
 
 [[alice_dina_htlc_path]]
 .Payment path with HTLCs from Alice to Dina
@@ -133,7 +133,7 @@ Alice already knows her own channel to Bob and therefore doesn't need this info 
 
 ==== Alice Constructs the Payloads
 
-There are two possible formats that Alice can use for the information communicated to each hop: A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will.
+((("onion routing","payload construction", id="ix_10_onion_routing-asciidoc5", range="startofrange")))There are two possible formats that Alice can use for the information communicated to each hop: ((("hop data")))((("hop payload")))A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will.
 
 [NOTE]
 ====
@@ -144,7 +144,7 @@ Alice will start building the hop data from the end of the path backwards: Dina,
 
 ===== Final node payload for dina
 
-Alice first builds the payload that will be delivered to Dina. Dina will not be constructing an "outgoing HTLC," because Dina is the final node and payment recipient. For this reason, the payload for Dina is different than all the others (uses all zeros for the `short_channel_id`), but only Dina will know this because it will be encrypted in the innermost layer of the onion. Essentially, this is the "secret letter to Dina" we saw in our physical envelope example.
+((("final node")))Alice first builds the payload that will be delivered to Dina. Dina will not be constructing an "outgoing HTLC," because Dina is the final node and payment recipient. For this reason, the payload for Dina is different than all the others (uses all zeros for the `short_channel_id`), but only Dina will know this because it will be encrypted in the innermost layer of the onion. Essentially, this is the "secret letter to Dina" we saw in our physical envelope example.
 
 The hop payload for Dina must match the information in the invoice generated by Dina for Alice and will contain (at least) the following fields in TLV format:
 
@@ -158,7 +158,7 @@ total_msat:: The total amount matching the invoice. This may be omitted if there
 
 The invoice Alice received from Dina specified the amount as 50,000 satoshis, which is 50,000,000 milli-satoshis. Dina specified the minimum expiry for the payment +min_final_cltv_expiry+ as 18 blocks (3 hours, given 10-minute on average Bitcoin blocks). At the time Alice is attempting to make the payment, let's say the Bitcoin blockchain has recorded 700,000 blocks. So Alice must set the +outgoing_cltv_value+ to a _minimum_ block height of 700,018.
 
-Alice constructs the hop payload for Dina as follows:
+((("hop payload", id="ix_10_onion_routing-asciidoc6", range="startofrange")))Alice constructs the hop payload for Dina as follows:
 
 ----
 amt_to_forward : 50,000,000
@@ -218,7 +218,7 @@ image::images/mtln_1012.png[Bob's payload is constructed by Alice]
 
 ===== Finished hop payloads
 
-Alice has now built the three hop payloads that will be wrapped in an onion. A simplified view of the payloads is shown in <<onion_hop_payloads>>. 
+Alice has now built the three hop payloads that will be wrapped in an onion. A simplified view of the payloads is shown in <<onion_hop_payloads>>.(((range="endofrange", startref="ix_10_onion_routing-asciidoc6"))) (((range="endofrange", startref="ix_10_onion_routing-asciidoc5")))
 
 [[onion_hop_payloads]]
 .Hop payloads for all the hops
@@ -226,7 +226,7 @@ image::images/mtln_1013.png[Hop payloads for all the hops]
 
 ==== Key Generation
 
-Alice must now generate several keys that will be used to encrypt the various layers in the onion.
+((("keys","generating for onion routing", id="ix_10_onion_routing-asciidoc7", range="startofrange")))((("keys","onion routing and", id="ix_10_onion_routing-asciidoc8", range="startofrange")))((("onion routing","key generation", id="ix_10_onion_routing-asciidoc9", range="startofrange")))Alice must now generate several keys that will be used to encrypt the various layers in the onion.
 
 With these keys, Alice can achieve a high degree of privacy and integrity:
 
@@ -242,7 +242,7 @@ Like a chopped onion, the following technical details may bring tears to your ey
 ====
 
 
-The basis for all the keys used in the onion is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie-Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named ++__rho__++, ++__mu__++, ++__um__++, and ++__pad__++:
+((("shared secret (ss)")))The basis for all the keys used in the onion is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie-Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named ++__rho__++, ++__mu__++, ++__um__++, and ++__pad__++:
 
 ++__rho__++:: Used to generate a stream of random bytes from a stream cipher (used as a
 CSPRNG). These bytes are used to encrypt/decrypt the message body as well as
@@ -263,7 +263,7 @@ image::images/mtln_1014.png[Onion Key Generation]
 [[session_key]]
 ===== Alice's session key
 
-To avoid revealing her identity, Alice does not use her own node's public key in building the onion. Instead, Alice creates a temporary 32-byte (256-bit) key called the _session private key_ and corresponding _session public key_. This serves as a temporary "identity" and key _for this onion only_. From this session key, Alice will build all the other keys that will be used in this onion.
+((("session key")))To avoid revealing her identity, Alice does not use her own node's public key in building the onion. Instead, Alice creates a temporary 32-byte (256-bit) key called the _session private key_ and corresponding _session public key_. This serves as a temporary "identity" and key _for this onion only_. From this session key, Alice will build all the other keys that will be used in this onion.
 
 [[keygen_details]]
 ===== Key generation details
@@ -278,7 +278,7 @@ For simplicity and to avoid getting too technical, we have not included these de
 [[shared_secret]]
 ===== Shared secret generation
 
-One important detail that seems almost magical is the ability for Alice to create a _shared secret_ with another node simply by knowing their public keys. This is based on the invention of Diffie-Hellman key exchange (DH) in the 1970s that revolutionized cryptography. Lightning onion routing uses Elliptic Curve Diffie–Hellman (ECDH) on Bitcoin's +secp256k1+ curve. It's such a cool trick that we try to explain it in simple terms in <<ecdh_explained>>. 
+((("shared secret (ss)")))One important detail that seems almost magical is the ability for Alice to create a _shared secret_ with another node simply by knowing their public keys. ((("Diffie-Hellman Key Exchange (DHKE)", id="ix_10_onion_routing-asciidoc10", range="startofrange")))This is based on the invention of Diffie-Hellman key exchange (DH) in the 1970s that revolutionized cryptography. Lightning onion routing uses Elliptic Curve Diffie–Hellman (ECDH) on Bitcoin's +secp256k1+ curve. It's such a cool trick that we try to explain it in simple terms in <<ecdh_explained>>. 
 
 
 // To editor: Maybe put this in an appendix instead of a sidebar?
@@ -287,7 +287,7 @@ One important detail that seems almost magical is the ability for Alice to creat
 [[ecdh_explained]]
 .Elliptic Curve Diffie-Hellman (ECDH) Explained
 ****
-Assume Alice's private key is _a_ and Bob's private key is _b_. Using the elliptic curve, Alice and Bob each multiply their private key by the generator point _G_ to produce their public keys _A_ and _B_, respectively:
+((("ECDH (Elliptic Curve Diffie–Hellman)")))((("Elliptic Curve Diffie–Hellman (ECDH)")))Assume Alice's private key is _a_ and Bob's private key is _b_. Using the elliptic curve, Alice and Bob each multiply their private key by the generator point _G_ to produce their public keys _A_ and _B_, respectively:
 
 ++++
 <ul class="simplelist">
@@ -369,11 +369,11 @@ We have therefore shown that
 </ul>
 ++++
 
-Thus, they can each independently calculate _ss_ which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.
+Thus, they can each independently calculate _ss_ which they can use as a shared key to symmetrically encrypt secrets between the two of them without communicating the shared secret.(((range="endofrange", startref="ix_10_onion_routing-asciidoc10")))
 
 ****
 
-A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, a clever _blinding_ scheme is used to deterministically randomize the session key at each hop.
+A unique trait of Sphinx as a mix-net packet format is that rather than include a distinct session key for each hop in the route, which would increase the size of the mix-net packet dramatically, ((("blinding scheme")))a clever _blinding_ scheme is used to deterministically randomize the session key at each hop.
 
 In practice, this little trick allows us to keep the onion packet as compact as possible while still retaining the desired security properties.
 
@@ -390,13 +390,13 @@ The creator of the onion packet knows all the shared secrets (as they've encrypt
 
 This knowledge allows them to derive all the session keys used up front during packet generation.
 
-Note that the very first hop uses the original session key generated because this key is used to kick off the session key blinding by each subsequent hop.
+Note that the very first hop uses the original session key generated because this key is used to kick off the session key blinding by each subsequent hop(((range="endofrange", startref="ix_10_onion_routing-asciidoc9")))(((range="endofrange", startref="ix_10_onion_routing-asciidoc8")))(((range="endofrange", startref="ix_10_onion_routing-asciidoc7"))).(((range="endofrange", startref="ix_10_onion_routing-asciidoc4")))(((range="endofrange", startref="ix_10_onion_routing-asciidoc3")))
 
 
 [[wrapping_the_onion]]
 === Wrapping the Onion Layers
 
-The process of wrapping the onion is detailed in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4-Onion Routing-Packet Construction].
+((("onion routing","wrapping the onion layers", id="ix_10_onion_routing-asciidoc11", range="startofrange")))The process of wrapping the onion is detailed in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4-Onion Routing-Packet Construction].
 
 In this section we will describe this process at a high and somewhat simplified level-omitting certain details.
 
@@ -404,7 +404,7 @@ In this section we will describe this process at a high and somewhat simplified 
 [[fixed_length_onions]]
 ==== Fixed-Length Onions
 
-We've mentioned the fact that none of the "hop" nodes know how long the path is, or where they are in the path. How is this possible?
+((("onion routing","fixed-length onions")))We've mentioned the fact that none of the "hop" nodes know how long the path is, or where they are in the path. How is this possible?
 
 If you have a set of directions, even if encrypted, can't you tell how far you are from the beginning or end simply by looking at _where_ in the list of directions you are?
 
@@ -436,7 +436,7 @@ In practice, this little trick allows us to keep the onion packet as compact as 
 
 ==== Wrapping the Onion (Outlined)
 
-Here is the process of wrapping the onion, outlined in the following. Come back to this list as we explore each step with our real-world example.
+((("onion routing","outline of wrapping process")))Here is the process of wrapping the onion, outlined in the following. Come back to this list as we explore each step with our real-world example.
 
 For each hop the sender (Alice) repeats the same process:
 
@@ -476,7 +476,7 @@ The inner HMAC is then revealed during the inverse of the "shift and encrypt" ro
 
 ==== Wrapping Dina's Hop Payload
 
-As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
+((("onion routing","wrapping hop payloads", id="ix_10_onion_routing-asciidoc12", range="startofrange")))As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
 
 Alice starts with an empty 1,300-byte field, the fixed-length _onion payload_. Then, Alice fills the onion payload with a pseudorandom byte stream "filler," that is generated from the ++__pad__++ key.
 
@@ -526,11 +526,11 @@ image::images/mtln_1019.png[]
 
 ===== Onion routing replay protection and detection
 
-The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
-Note that we compute the HMAC over the _encrypted_ data rather then over the plain-text data.
+((("onion routing","replay protection/detection")))The HMAC acts as a secure checksum and helps Dina verify the integrity of the hop payload. The 32-byte HMAC is appended to Dina's hop payload.
+((("encrypt-then-mac")))Note that we compute the HMAC over the _encrypted_ data rather then over the plain-text data.
 This is known as _encrypt-then-mac_ and is the recommended way to use a MAC, as it provides both plain-text _and_ cihpertext integrity.
 
-Modern authenticated encryption also allows for the use of an optional set of plaintext bytes to also be authenticated known as _associated data._
+((("AD (associated data)")))((("associated data (AD)")))Modern authenticated encryption also allows for the use of an optional set of plaintext bytes to also be authenticated known as _associated data._
 In practice, this is usually something like a plain-text packet header or other auxiliary information.
 By including this associated data in the payload to be authenticated (MAC'ed), the verifier of the MAC ensures that this associated data hasn't been tampered with (e.g., swapping out the plain-text header on an encrypted packet).
 
@@ -596,12 +596,12 @@ Insert Bob's hop payload at the beginning and shift everything else over to the 
 
 Obfuscate the whole thing XOR with the ++__rho__++ key from the Alice-Bob shared secret so that only Bob can unwrap this.
 
-Calculate the outer HMAC and stick it on the end of Bob's hop payload.
+Calculate the outer HMAC and stick it on the end of Bob's hop payload.(((range="endofrange", startref="ix_10_onion_routing-asciidoc12")))
 
 
 ==== The Final Onion Packet
 
-The final onion payload is ready to be sent to Bob. Alice doesn't need to add any more hop payloads.
+((("onion routing","final onion packet")))The final onion payload is ready to be sent to Bob. Alice doesn't need to add any more hop payloads.
 
 Alice calculates an HMAC for the onion payload to cryptographically secure it with a checksum that Bob can verify.
 
@@ -611,7 +611,7 @@ Finally Alice puts the onion version number (+0+ currently) in the front.
 
 This allows for future upgrades of the onion packet format.
 
-The result can be seen in <<onion_packet_2>>. 
+The result can be seen in <<onion_packet_2>>. (((range="endofrange", startref="ix_10_onion_routing-asciidoc11")))
 
 [[onion_packet_2]]
 .The onion packet
@@ -619,11 +619,11 @@ image::images/mtln_1015.png[]
 
 === Sending the Onion
 
-In this section we will look at how the onion packet is forwarded and how HTLCs are deployed along the path.
+((("onion routing","sending the onion", id="ix_10_onion_routing-asciidoc13", range="startofrange")))In this section we will look at how the onion packet is forwarded and how HTLCs are deployed along the path.
 
 ==== The update_add_htlc Message
 
-Onion packets are sent as part of the +update_add_htlc+ message. If you recall from <<update_add_htlc>>, in <<channel_operation>>, we saw the contents of the +update_add_htlc+ message were as follows:
+((("onion routing","update_add_htlc message")))((("update_add_htlc message")))Onion packets are sent as part of the +update_add_htlc+ message. If you recall from <<update_add_htlc>>, in <<channel_operation>>, we saw the contents of the +update_add_htlc+ message were as follows:
 
 ----
 [channel_id:channel_id]
@@ -793,11 +793,11 @@ Chan repeats the exact same process as Bob:
 
 When Dina receives the +update_add_htlc+ message from Chan, she knows from the +payment_hash+ that this is a payment for her. She knows she is the last hop in the onion.
 
-Dina follows the exact same process as Bob and Chan to verify and unwrap the onion, except she doesn't construct new filler and doesn't forward anything. Instead, Dina responds to Chan with +update_fulfill_htlc+ to redeem the HTLC. The +update_fulfill_htlc+ will flow backward along the path until it reaches Alice. All the HTLCs are redeemed and channel balances are updated. The payment is complete!
+Dina follows the exact same process as Bob and Chan to verify and unwrap the onion, except she doesn't construct new filler and doesn't forward anything. Instead, Dina responds to Chan with +update_fulfill_htlc+ to redeem the HTLC. The +update_fulfill_htlc+ will flow backward along the path until it reaches Alice. All the HTLCs are redeemed and channel balances are updated. The payment is complete!(((range="endofrange", startref="ix_10_onion_routing-asciidoc13")))
 
 === Returning Errors
 
-This far we've looked at the forward propagation of the onion establishing the HTLCs and the backward propagation of the payment secret unwinding the HTLCs once payment is successful.
+((("error return","onion routing and", id="ix_10_onion_routing-asciidoc14", range="startofrange")))((("onion routing","returning errors", id="ix_10_onion_routing-asciidoc15", range="startofrange")))This far we've looked at the forward propagation of the onion establishing the HTLCs and the backward propagation of the payment secret unwinding the HTLCs once payment is successful.
 
 There is another very important function of onion routing: _error return_. If there is a problem with the payment, onion, or hops, we must propagate an error backwards to inform all nodes of the failure and unwind any HTLCs.
 
@@ -838,7 +838,7 @@ Eventually, the sender (origin node) receives a return packet. It will then gene
 [[failure_messages]]
 ==== Failure Messages
 
-The +failuremsg+ is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#failure-messages[BOLT #4-Onion Routing-Failure Messages].
+((("error return","failure messages", id="ix_10_onion_routing-asciidoc16", range="startofrange")))((("failure messages, onion routing and", id="ix_10_onion_routing-asciidoc17", range="startofrange")))The +failuremsg+ is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#failure-messages[BOLT #4-Onion Routing-Failure Messages].
 
 A failure message consists of a 2-byte +failure code+ followed by the data applicable to that failure type.
 
@@ -858,16 +858,16 @@ include::failure_types_table.asciidoc[]
 [[stuck_payments]]
 ===== Stuck payments
 
-In the current implementation of the Lightning Network there is a possibility that a payment attempt becomes _stuck_, neither fulfilled nor cancelled by an error. This can happen due to a bug on an intermediary node, a node going offline while handling HTLCs, or a malicious node holding HTLCs without reporting an error. In all of these cases, the HTLC cannot be resolved until it expires. The timelock (CLTV) that is set on every HTLC helps resolve this condition (among other possible HTLC routing and channel failures).
+((("onion routing","stuck payments")))((("stuck payments")))In the current implementation of the Lightning Network there is a possibility that a payment attempt becomes _stuck_, neither fulfilled nor cancelled by an error. This can happen due to a bug on an intermediary node, a node going offline while handling HTLCs, or a malicious node holding HTLCs without reporting an error. In all of these cases, the HTLC cannot be resolved until it expires. The timelock (CLTV) that is set on every HTLC helps resolve this condition (among other possible HTLC routing and channel failures).
 
 However, this means that the sender of the HTLC has to wait until expiry, and the funds committed to that HTLC remain unavailable until the HTLC expires. Furthermore, the sender _cannot retry_ that same payment, because if they do they run the risk of _both_ the original and the retried payment succeeding-the recipient gets paid twice. This is because once sent an HTLC cannot be "cancelled" by the sender-it either has to fail or expire. Stuck payments, while rare, create an unwanted user experience, where the user's wallet cannot pay or cancel a payment.
 
-One proposed solution to this problem is called _stuckless payments_, and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e., point addition on the elliptic curve instead of a hash and secret preimage). PTLCs are cumbersome using ECDSA but much easier with Bitcoin's Taproot and Schnorr signature features, which were recently locked in for activation in November 2021. It is expected that PTLCs will be implemented in the Lightning Network after these Bitcoin features become activated.
+((("Point Time-Locked Contract (PTLC)")))((("PTLC (Point Time-Locked Contract)")))((("stuckless payments")))One proposed solution to this problem is called _stuckless payments_, and it depends on Point Time-Locked Contracts (PTLCs), which are payment contract that use a different cryptographic primitive than HTLCs (i.e., point addition on the elliptic curve instead of a hash and secret preimage). PTLCs are cumbersome using ECDSA but much easier with Bitcoin's Taproot and Schnorr signature features, which were recently locked in for activation in November 2021. It is expected that PTLCs will be implemented in the Lightning Network after these Bitcoin features become activated(((range="endofrange", startref="ix_10_onion_routing-asciidoc17")))(((range="endofrange", startref="ix_10_onion_routing-asciidoc16"))).(((range="endofrange", startref="ix_10_onion_routing-asciidoc15")))(((range="endofrange", startref="ix_10_onion_routing-asciidoc14")))
 
 [[keysend]]
 === Keysend Spontaneous Payments
 
-In the payment flow described earlier in the chapter, we assumed that Dina
+((("keysend spontaneous payments")))((("onion routing","keysend spontaneous payments")))In the payment flow described earlier in the chapter, we assumed that Dina
 received an invoice from Alice "out of band," or obtained it via some mechanism
 unrelated to the protocol (typically copy/paste or QR code scans). This trait
 means that the payment process always takes two steps: first, the sender
@@ -882,7 +882,7 @@ payments.
 
 ==== Custom Onion TLV Records
 
-The modern Lightning protocol uses the TLV (Type-Length-Value) encoding in
+((("onion routing","custom onion TLV records")))((("Type-Length-Value (TLV) format","custom onion TLV records")))The modern Lightning protocol uses the TLV (Type-Length-Value) encoding in
 the onion to encode information that tells each node _where_ and _how_ to
 forward the payment. Leveraging the TLV format, each piece of routing information
 (like the next node to which to pass the HTLC) is assigned a specific type (or key)
@@ -905,7 +905,7 @@ otherwise.
 
 ==== Sending and Receiving Keysend Payments
 
-A `keysend` payment inverts the typical flow of an HTLC where the receiver
+((("onion routing","sending/receiving keysend payments")))A `keysend` payment inverts the typical flow of an HTLC where the receiver
 reveals a secret preimage to the sender. Instead, the sender includes the
 preimage _within_ the onion to the receiver and routes the HTLC to the
 receiver. The receiver then decrypts the onion payload, and uses the included
@@ -917,7 +917,7 @@ to encode a 32-byte preimage value.
 
 ==== Keysend and Custom Records in Lightning Applications
 
-Many streaming Lightning applications use the `keysend` protocol to continually
+((("onion routing","keysend and custom records in Lightning applications")))Many streaming Lightning applications use the `keysend` protocol to continually
 stream satoshis to a destination identified by its public key in the network.
 Typically, an application will also include metadata such as a
 tipping/donation note or other application-level information in addition to
@@ -925,6 +925,6 @@ the `keysend` record.
 
 === Conclusion
 
-The Lightning Network's onion routing protocol is adapted from the Sphinx protocol to better serve the needs of a payment network. As such, it offers a huge improvement in privacy and counter-surveillance compared to the public and transparent Bitcoin blockchain.
+The Lightning Network's onion routing protocol is adapted from the Sphinx protocol to better serve the needs of a payment network. As such, it offers a huge improvement in privacy and counter-surveillance compared to the public and transparent Bitcoin blockchain.(((range="endofrange", startref="ix_10_onion_routing-asciidoc0")))
 
 In <<path_finding>> we will see how the combination of source routing and onion routing is used by Alice to find a good path and route the payment to Dina. To find a path, Alice first needs to learn about the network topology, which is the topic of <<gossip>>.
