@@ -79,7 +79,9 @@ In the physical world, contracts could be used for safely carrying out a series 
 
 Alice could negotiate a contract with Bob, which reads:
 
+____
 _I, Alice, will give you, Bob, 10 gold coins if you pass them on to Chan._
+____
 
 While this contract is nice in the abstract, in the real world, Alice runs the risk that Bob might breach the contract and hope not to get caught.
 Even if Bob is caught and prosecuted, Alice faces the risk that he might be bankrupt and be unable to return her 10 gold coins.
@@ -87,7 +89,9 @@ Assuming these issues are magically solved, it's still unclear how to leverage s
 
 Let's improve our contract to incorporate these considerations:
 
+____
 _I, Alice, will reimburse you, Bob, with 10 gold coins if you can prove to me (for example, via a receipt) that you have delivered 10 gold coins to Chan._
+____
 
 You might ask yourself why should Bob sign such a contract.
 He has to pay Chan but ultimately gets nothing out of the exchange, and he runs the risk that Alice might not reimburse him. Bob could offer Chan a similar contract to pay Dina, but similarly Chan has no reason to accept it either.
@@ -100,7 +104,9 @@ Alice can then make this attractive to both Bob and Chan by offering them fees o
 
 The contract would then read:
 
+____
 _I, Alice, will reimburse you, Bob, with 12 gold coins if you can prove to me (for example, via a receipt) that you have delivered 11 gold coins to Chan._
+____
 
 Alice now promises Bob 12 gold coins. There are 10 to be delivered to Dina and 2 for the fees. She promises 12 to Bob if he can prove that he has forwarded 11 to Chan.
 The difference of one gold coin is the fee that Bob will earn for helping out with this particular payment. In <<alice_dina_routing_2>> we see how this arrangement would get 10 gold coins to Dina via Bob and Chan.
@@ -142,9 +148,11 @@ image::images/mtln_0806.png["Dina sends the hashed secret to Alice"]
 
 Alice doesn't know the secret, but she can rewrite her contract to use the hash of the secret as a proof of payment:
 
+____
 _I, Alice, will reimburse you, Bob, with 12 gold coins if you can show me a valid message that hashes to:`057596...`.
 You can acquire this message by setting up a similar contract with Chan who has to set up a similar contract with Dina.
 To assure you that you will be reimbursed, I will provide the 12 gold coins to a trusted escrow before you set up your next contract._
+____
 
 This new contract now protects Alice from Bob not forwarding to Chan, protects Bob from not being reimbursed by Alice, and ensures that there will be proof that Dina was ultimately paid via the hash of Dina's secret.
 
@@ -155,14 +163,18 @@ Similarly, Chan will also demand a fee and will expect to receive 11 gold coins 
 
 Bob's contract with Chan will read:
 
+____
 _I, Bob, will reimburse you, Chan, with 11 gold coins if you can show me a valid message that hashes to:`057596...`.
 You can acquire this message by setting up a similar contract with Dina.
 To assure you that you will be reimbursed, I will provide the 11 gold coins to a trusted escrow before you set up your next contract._
+____
 
 Once Chan gets the message from the escrow that Bob has deposited the 11 gold coins, Chan sets up a similar contract with Dina:
 
+____
 _I, Chan, will reimburse you, Dina, with 10 gold coins if you can show me a valid message that hashes to:`057596...`.
 To assure you that you will be reimbursed after revealing the secret, I will provide the 10 gold coins to a trusted escrow._
+____
 
 Everything is now in place.
 Alice has a contract with Bob and has placed 12 gold coins in escrow.
@@ -197,21 +209,27 @@ The deposit is locked with the escrow service for a certain amount of time and i
 
 To factor this in, the contract between Alice and Bob is once again amended with a new clause:
 
+____
 _Bob has 24 hours to show the secret after the contract was signed.
 If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
+____
 
 Bob, of course, now has to make sure he receives the proof of payment within 24 hours.
 Even if he successfully pays Chan, if he receives the proof of payment later than 24 hours, he will not be reimbursed. To remove that risk, Bob must give Chan an even shorter deadline.
 
 In turn, Bob will alter his contract with Chan as follows:
 
+____
 _Chan has 22 hours to show the secret after the contract was signed.
 If he does not provide the secret by this time, Bob's deposit will be refunded by the escrow service and the contract becomes invalid._
+____
 
 As you might have guessed, Chan will also alter his contract with Dina:
 
+____
 _Dina has 20 hours to show the secret after the contract was signed.
 If she does not provide the secret by this time, Chan's deposit will be refunded by the escrow service and the contract becomes invalid._
+____
 
 With such a chain of contracts we can ensure that, after 24 hours, the payment will successfully go from Alice to Bob to Chan to Dina, or it will fail and everyone will be refunded.
 Either the contract fails or succeeds, there's no middle ground.
@@ -320,7 +338,9 @@ The use of a cryptographic hash function is one element that guarantees _trustle
 
 ((("Bitcoin script","HTLCs in")))((("hash time-locked contracts (HTLCs)","Bitcoin Script and")))In our gold coin example, Alice had a contract enforced by escrow like this:
 
+____
 _Alice will reimburse Bob with 12 gold coins if you can show a valid message that hashes to:_ +0575...f6b3+. _Bob has 24 hours to show the secret after the contract was signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
+____
 
 Let's see how we would implement this as an HTLC in Bitcoin Script. In <<received_htlc>> we see an HTLC Bitcoin Script as currently used in the Lightning Network. You can find this definition in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT #3, Transactions].
 
