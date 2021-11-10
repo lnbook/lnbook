@@ -1,21 +1,21 @@
 [[onion_routing]]
 == Onion Routing
 
-((("onion routing", id="ix_10_onion_routing-asciidoc0", range="startofrange")))In this chapter we will describe the Lightning Network's onion routing_ mechanism. The invention of _onion routing_ precedes the Lightning Network by 25 years! Onion routing was invented by U.S. Navy researchers as a communications security protocol. Onion routing is most famously used by Tor, the onion routed internet overlay that allows researchers, activists, intelligence agents, and everyone else to use the internet privately and anonymously.
+((("onion routing", id="ix_10_onion_routing-asciidoc0", range="startofrange")))In this chapter we will describe the Lightning Network's onion routing mechanism. The invention of _onion routing_ precedes the Lightning Network by 25 years! Onion routing was invented by U.S. Navy researchers as a communications security protocol. Onion routing is most famously used by Tor, the onion-routed internet overlay that allows researchers, activists, intelligence agents, and everyone else to use the internet privately and anonymously.
 
 In this chapter we are focusing on the "Source-based onion routing (SPHINX)" part of the Lightning protocol architecture, highlighted by a double outline in the center (routing layer) of <<LN_protocol_onion_highlight>>. 
 
 [[LN_protocol_onion_highlight]]
-.The Lightning Network protocol suite
-image::images/mtln_1001.png["The Lightning Network Protocol Suite"]
+.Onion routing in the Lightning protocol suite
+image::images/mtln_1001.png["Onion routing in the Lightning protocol suite"]
 
 Onion routing describes a method of encrypted communication where a message sender builds successive _nested layers of encryption_ that are "peeled" off by each intermediary node, until the innermost layer is delivered to the intended recipient. The name "onion routing" describes this use of layered encryption that is peeled off one layer at a time, like the skin of an onion.
 
-Each of the intermediary nodes can only "peel" one layer and see who is next in the communications path. Onion routing ensures that no one except the sender knows the destination or length of the communication path. Each intermediary only knows the previous and next hop.
+Each of the intermediary nodes can only "peel" one layer and see who is next in the communication path. Onion routing ensures that no one except the sender knows the destination or length of the communication path. Each intermediary only knows the previous and next hop.
 
-The Lightning Network uses an implementation of onion routing protocol based on _Sphinx_ footnote:[George Danezis and Ian Goldberg, "Sphinx: A Compact and Provably Secure Mix Format," in IEEE Symposium on Security and Privacy (New York: IEEE, 2009), 269–282.]] developed in 2009 by George Danezis and Ian Goldberg.
+The Lightning Network uses an implementation of onion routing protocol based on _Sphinx_footnote:[George Danezis and Ian Goldberg, "Sphinx: A Compact and Provably Secure Mix Format," in _IEEE Symposium on Security and Privacy_ (New York: IEEE, 2009), 269–282.] developed in 2009 by George Danezis and Ian Goldberg.
 
-The implementation of onion routing in the Lightning Network is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md[BOLT #4-Onion Routing Protocol]
+The implementation of onion routing in the Lightning Network is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md[BOLT #4: Onion Routing Protocol].
 
 === A Physical Example Illustrating Onion Routing
 
@@ -43,8 +43,8 @@ Let's see how Alice can use this path without revealing information to intermedi
 .Source-Based Routing
 ****
 ((("source-based routing")))Source-based routing is not how packets are typically routed on the internet today, though source routing was possible in the early days.
-Internet routing is based on _packet switching_ at each intermediary routing node. An IPv4 packet, for example, includes the sender, and recipient's IP addresses, and every other IP routing node decides how to forward each packet toward the destination.
-However, the lack of privacy in such a routing mechanism, where every intermediary node sees the sender and recipient, make this a poor choice for use in a payment network.
+Internet routing is based on _packet switching_ at each intermediary routing node. An IPv4 packet, for example, includes the sender and recipient's IP addresses, and every other IP routing node decides how to forward each packet toward the destination.
+However, the lack of privacy in such a routing mechanism, where every intermediary node sees the sender and recipient, makes this a poor choice for use in a payment network.
 ****
 
 ==== Building the Layers
@@ -101,7 +101,7 @@ From a practical perspective, Alice is telling every intermediary node what HTLC
 
 ((("hop")))Each intermediary node, or Bob and Chan in our example, is called a _hop_. Every hop must set up an _outgoing HTLC_ to the next hop. The information communicated to each hop by Alice is called the _hop payload_ or _hop data_. The message that is routed from Alice to Dina is called an _onion_ and consists of encrypted _hop payload_ or _hop data_ messages encrypted to each hop.
 
-Now that we know the terminology used in Lightning Onion Routing, let's restate Alice's task: Alice must construct an onion with hop data, telling each hop how to construct an outgoing HTLC to send a payment to the final node (Dina).
+Now that we know the terminology used in Lightning onion routing, let's restate Alice's task: Alice must construct an onion with hop data, telling each hop how to construct an outgoing HTLC to send a payment to the final node (Dina).
 
 ==== Alice Selects the Path
 
@@ -121,7 +121,7 @@ From the announcements and updates, Alice knows the following information about 
 
 * A +fee_base_msat+ and +fee_proportional_millionths+, which Alice can use to calculate the total routing fee expected by that node for relay on that channel.
 
-In practice, other information is also exchanged such as the largest (`htlc_maximum_msat`) and smallest (`htlc_minimum_msat`) HTLCs a channel will carry, but these aren't used as directly during onion route construction as the preceding fields are.
+In practice, other information is also exchanged, such as the largest (`htlc_maximum_msat`) and smallest (`htlc_minimum_msat`) HTLCs a channel will carry, but these aren't used as directly during onion route construction as the preceding fields are.
 
 This information is used by Alice to identify the nodes, channels, fees, and timelocks for the following detailed path, shown in <<alice_dina_path_detail>>. 
 
@@ -133,30 +133,30 @@ Alice already knows her own channel to Bob and therefore doesn't need this info 
 
 ==== Alice Constructs the Payloads
 
-((("onion routing","payload construction", id="ix_10_onion_routing-asciidoc5", range="startofrange")))There are two possible formats that Alice can use for the information communicated to each hop: ((("hop data")))A legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will.
+((("onion routing","payload construction", id="ix_10_onion_routing-asciidoc5", range="startofrange")))There are two possible formats that Alice can use for the information communicated to each hop: ((("hop data")))a legacy fixed-length format called the _hop data_ and a more flexible Type-Length-Value (TLV) based format called the _hop payload_. The TLV message format is explained in more detail in <<tlv>>. It offers flexibility by allowing fields to be added to the protocol at will.
 
 [NOTE]
 ====
-Both formats are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-structure[BOLT #4-Onion Routing-Packet Structure.]
+Both formats are specified in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-structure[BOLT #4: Onion Routing Protocol, Packet Structure].
 ====
 
 Alice will start building the hop data from the end of the path backwards: Dina, Chan, then Bob.
 
-===== Final node payload for dina
+===== Final node payload for Dina
 
 ((("final node")))Alice first builds the payload that will be delivered to Dina. Dina will not be constructing an "outgoing HTLC," because Dina is the final node and payment recipient. For this reason, the payload for Dina is different than all the others (uses all zeros for the `short_channel_id`), but only Dina will know this because it will be encrypted in the innermost layer of the onion. Essentially, this is the "secret letter to Dina" we saw in our physical envelope example.
 
 The hop payload for Dina must match the information in the invoice generated by Dina for Alice and will contain (at least) the following fields in TLV format:
 
-amt_to_forward:: The amount of this payment in milli-satoshis. If this is only one part of a multipart payment, the amount is less than the total. Otherwise, this is a single full payment and it is equal to the invoice amount and +total_msat+ value.
++amt_to_forward+:: The amount of this payment in millisatoshis. If this is only one part of a multipart payment, the amount is less than the total. Otherwise, this is a single, full payment and it is equal to the invoice amount and +total_msat+ value.
 
-outgoing_cltv_value:: The payment expiry timelock set to the value +min_final_cltv_expiry+ in the invoice.
++outgoing_cltv_value+:: The payment expiry time-lock set to the value +min_final_cltv_expiry+ in the invoice.
 
-payment_secret:: A special 256-bit secret value from the invoice, allowing Dina to recognize this incoming payment. This also prevents a class of probing that previously made 0-value invoices insecure. Probing by intermediate nodes is mitigated as this value is encrypted to _only_ the recipient, meaning they can't reconstruct a final packet that "looks" legitimate.
++payment_secret+:: A special 256-bit secret value from the invoice, allowing Dina to recognize this incoming payment. This also prevents a class of probing that previously made zero-value invoices insecure. Probing by intermediate nodes is mitigated as this value is encrypted to _only_ the recipient, meaning they can't reconstruct a final packet that "looks" legitimate.
 
-total_msat:: The total amount matching the invoice. This may be omitted if there is only one part, in which case it is assumed to match +amt_to_forward+ and must equal the invoice amount.
++total_msat+:: The total amount matching the invoice. This may be omitted if there is only one part, in which case it is assumed to match +amt_to_forward+ and must equal the invoice amount.
 
-The invoice Alice received from Dina specified the amount as 50,000 satoshis, which is 50,000,000 milli-satoshis. Dina specified the minimum expiry for the payment +min_final_cltv_expiry+ as 18 blocks (3 hours, given 10-minute on average Bitcoin blocks). At the time Alice is attempting to make the payment, let's say the Bitcoin blockchain has recorded 700,000 blocks. So Alice must set the +outgoing_cltv_value+ to a _minimum_ block height of 700,018.
+The invoice Alice received from Dina specified the amount as 50,000 satoshis, which is 50,000,000 millisatoshis. Dina specified the minimum expiry for the payment +min_final_cltv_expiry+ as 18 blocks (3 hours, given 10-minute on average Bitcoin blocks). At the time Alice is attempting to make the payment, let's say the Bitcoin blockchain has recorded 700,000 blocks. So Alice must set the +outgoing_cltv_value+ to a _minimum_ block height of 700,018.
 
 ((("hop payload", id="ix_10_onion_routing-asciidoc6", range="startofrange")))Alice constructs the hop payload for Dina as follows:
 
@@ -167,13 +167,13 @@ payment_secret: fb53d94b7b65580f75b98f10...03521bdab6d519143cd521d1b3826
 total_msat: 50,000,000
 ----
 
-Alice serializes it in TLV format as shown (simplified) in <<dina_onion_payload>>. 
+Alice serializes it in TLV format, as shown (simplified) in <<dina_onion_payload>>. 
 
 [[dina_onion_payload]]
 .Dina's payload is constructed by Alice
 image::images/mtln_1010.png[Dina's payload is constructed by Alice]
 
-===== Hop payload for chan
+===== Hop payload for Chan
 
 Next, Alice constructs the hop payload for Chan. This will tell Chan how to set up an outgoing HTLC to Dina.
 
@@ -191,7 +191,7 @@ Alice serializes this payload in TLV format, as shown (simplified) in <<chan_oni
 .Chan's payload is constructed by Alice
 image::images/mtln_1011.png[Chan's payload is constructed by Alice]
 
-===== Hop payload for bob
+===== Hop payload for Bob
 
 Finally, Alice constructs the hop payload for Bob, which also contains the same three fields as the hop payload for Chan, but with different values:
 
@@ -201,9 +201,9 @@ amt_to_forward: 50,100,000
 outgoing_cltv_value: 700,038
 ----
 
-As you can see, the +amt_to_forward+ field is 50,100,000 milli-satoshis, or 50,100 satoshis. That's because Chan expects a fee of 100 satoshis to route a payment to Dina. In order for Chan to "earn" that routing fee, Chan's incoming HTLC must be 100 satoshis more than Chan's outgoing HTLC. Since Chan's incoming HTLC is Bob's outgoing HTLC, the instructions to Bob reflect the fee Chan earns. In simple terms, Bob needs to be told to send 50,100 satoshi to Chan, so that Chan can send 50,000 satoshi and keep 100 satoshi.
+As you can see, the +amt_to_forward+ field is 50,100,000 millisatoshis, or 50,100 satoshis. That's because Chan expects a fee of 100 satoshis to route a payment to Dina. In order for Chan to "earn" that routing fee, Chan's incoming HTLC must be 100 satoshis more than Chan's outgoing HTLC. Since Chan's incoming HTLC is Bob's outgoing HTLC, the instructions to Bob reflect the fee Chan earns. In simple terms, Bob needs to be told to send 50,100 satoshi to Chan, so that Chan can send 50,000 satoshi and keep 100 satoshi.
 
-Similarly, Chan expects a timelock delta of 20 blocks. SO Chan's incoming HTLC must expire 20 blocks _later_ than Chan's outgoing HTLC. To achieve this, Alice tells Bob to make his outgoing HTLC to Chan expire at block height 700,038-20 blocks later than Chan's HTLC to Dina.
+Similarly, Chan expects a timelock delta of 20 blocks. So Chan's incoming HTLC must expire 20 blocks _later_ than Chan's outgoing HTLC. To achieve this, Alice tells Bob to make his outgoing HTLC to Chan expire at block height 700,038-20 blocks later than Chan's HTLC to Dina.
 
 [TIP]
 ====
@@ -238,23 +238,23 @@ With these keys, Alice can achieve a high degree of privacy and integrity:
 
 [WARNING]
 ====
-Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4-Onion Routing-Packet Construction], if you want to learn more.
+Like a chopped onion, the following technical details may bring tears to your eyes. Feel free to skip to the next section if you get confused. Come back to this and read https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#packet-construction[BOLT #4: Onion Routing, Packet Construction], if you want to learn more.
 ====
 
 
-((("shared secret (ss)")))The basis for all the keys used in the onion is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie-Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named ++__rho__++, ++__mu__++, ++__um__++, and ++__pad__++:
+((("shared secret (ss)")))The basis for all the keys used in the onion is a _shared secret_ that Alice and Bob can both generate independently using the Elliptic Curve Diffie–Hellman (ECDH) algorithm. From the shared secret (ss), they can independently generate four additional keys named ++rho++, ++mu++, ++um++, and ++pad++:
 
-++__rho__++:: Used to generate a stream of random bytes from a stream cipher (used as a
+++rho++:: Used to generate a stream of random bytes from a stream cipher (used as a
 CSPRNG). These bytes are used to encrypt/decrypt the message body as well as
-filler zero bytes during sphinx packet processing.
+filler zero bytes during Sphinx packet processing.
 
-++__mu__++:: Used in the hash-based message authentication Code (HMAC) for integrity/authenticity verification.
+++mu++:: Used in the hash-based message authentication code (HMAC) for integrity/authenticity verification.
 
-++__um__++:: Used in error reporting.
+++um++:: Used in error reporting.
 
-++__pad__++:: Used to generate filler bytes for padding the onion to a fixed length.
+++pad++:: Used to generate filler bytes for padding the onion to a fixed length.
 
-The relationship between the various keys and how they are generated diagrammed <<onion_keygen>>. 
+The relationship between the various keys and how they are generated is diagrammed in <<onion_keygen>>. 
 
 [[onion_keygen]]
 .Onion key generation
@@ -278,14 +278,14 @@ For simplicity and to avoid getting too technical, we have not included these de
 [[shared_secret]]
 ===== Shared secret generation
 
-((("shared secret (ss)")))One important detail that seems almost magical is the ability for Alice to create a _shared secret_ with another node simply by knowing their public keys. ((("Diffie-Hellman Key Exchange (DHKE)", id="ix_10_onion_routing-asciidoc10", range="startofrange")))This is based on the invention of Diffie-Hellman key exchange (DH) in the 1970s that revolutionized cryptography. Lightning onion routing uses Elliptic Curve Diffie–Hellman (ECDH) on Bitcoin's +secp256k1+ curve. It's such a cool trick that we try to explain it in simple terms in <<ecdh_explained>>. 
+((("shared secret (ss)")))One important detail that seems almost magical is the ability for Alice to create a _shared secret_ with another node simply by knowing their public keys. ((("Diffie-Hellman Key Exchange (DHKE)", id="ix_10_onion_routing-asciidoc10", range="startofrange")))This is based on the invention of Diffie–Hellman key exchange (DH) in the 1970s that revolutionized cryptography. Lightning onion routing uses Elliptic Curve Diffie–Hellman (ECDH) on Bitcoin's +secp256k1+ curve. It's such a cool trick that we try to explain it in simple terms in <<ecdh_explained>>. 
 
 
 // To editor: Maybe put this in an appendix instead of a sidebar?
 
 [[ecdh]]
 [[ecdh_explained]]
-.Elliptic Curve Diffie-Hellman (ECDH) Explained
+.Elliptic Curve Diffie–Hellman (ECDH) Explained
 ****
 ((("ECDH (Elliptic Curve Diffie–Hellman)")))((("Elliptic Curve Diffie–Hellman (ECDH)")))Assume Alice's private key is _a_ and Bob's private key is _b_. Using the elliptic curve, Alice and Bob each multiply their private key by the generator point _G_ to produce their public keys _A_ and _B_, respectively:
 
@@ -296,7 +296,7 @@ For simplicity and to avoid getting too technical, we have not included these de
 </ul>
 ++++
 
-Now Alice and Bob can use _Elliptic Curve Diffie-Hellman Key Exchange_ to create a shared secret _ss_, a value that they can both calculate independently without exchanging any information
+Now Alice and Bob can use _Elliptic Curve Diffie–Hellman Key Exchange_ to create a shared secret _ss_, a value that they can both calculate independently without exchanging any information
 
 The shared secret _ss_ is calculated by each by multiplying their own private key with the _other's_ public key, such that:
 
@@ -360,7 +360,7 @@ because _A_ = _aG_, we can substitute
 
 The result _bA_ can be calculated independently by Bob who knows _b_ (his private key) and _A_ (Alice's public key).
 
-We have therefore shown that
+We have therefore shown that:
 
 ++++
 <ul class="simplelist">
@@ -440,7 +440,7 @@ In practice, this little trick allows us to keep the onion packet as compact as 
 
 For each hop the sender (Alice) repeats the same process:
 
-1. Alice generates the per-hop shared secret and the ++__rho__++, ++__mu__++, and ++__pad__++ keys.
+1. Alice generates the per-hop shared secret and the ++rho++, ++mu++, and ++pad++ keys.
 
 2. Alice generates 1,300 bytes of filler and fills the 1,300-byte onion payload field with this filler.
 
@@ -452,11 +452,11 @@ For each hop the sender (Alice) repeats the same process:
 
 6. Alice inserts the length + hop payload + HMAC at the front of the payload field in the space made from shifting the filler.
 
-7. Alice uses the ++__rho__++ key to generate a 1,300-byte one-time-pad.
+7. Alice uses the ++rho++ key to generate a 1,300-byte one-time-pad.
 
-8. Alice obfuscates the entire onion payload by XORing with the bytes generated from ++__rho__++.
+8. Alice obfuscates the entire onion payload by XORing with the bytes generated from ++rho++.
 
-9. Alice calculates the HMAC of the onion payload, using the ++__mu__++ key.
+9. Alice calculates the HMAC of the onion payload, using the ++mu++ key.
 
 10. Alice adds the session public key (so that the hop can calculate the shared secret).
 
@@ -464,13 +464,13 @@ For each hop the sender (Alice) repeats the same process:
 
 12. Alice deterministically re-blinds the session key using a value derived by hashing the shared secret and prior hop's public key.
 
-Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front, and the whole onion payload is encrypted with the ++__rho__++ byte stream for the next hop.
+Next, Alice repeats the process. The new keys are calculated, the onion payload is shifted (dropping more junk), the new hop payload is added to the front, and the whole onion payload is encrypted with the ++rho++ byte stream for the next hop.
 
 For the final hop, the HMAC included in Step #3 over the plain-text instructions is actually _all zero_.
 The final hop uses this signal to determine that it is indeed the final hop in the route.
 Alternatively, the fact that the `short_chan_id` included in the payload to denote the "next hop" is all zero can be used as well.
 
-Note that at each phase the ++__mu__++ key is used to generate an HMAC over the _encrypted_ (from the point of view of the node processing the payload) onion packet, as well as over the contents of the packet with a single layer of encryption removed.
+Note that at each phase the ++mu++ key is used to generate an HMAC over the _encrypted_ (from the point of view of the node processing the payload) onion packet, as well as over the contents of the packet with a single layer of encryption removed.
 This outer HMAC allows the node processing the packet to verify the integrity of the onion packet (no bytes modified).
 The inner HMAC is then revealed during the inverse of the "shift and encrypt" routine described previously, which serves as the _outer_ HMAC for the next hop.
 
@@ -478,7 +478,7 @@ The inner HMAC is then revealed during the inverse of the "shift and encrypt" ro
 
 ((("onion routing","wrapping hop payloads", id="ix_10_onion_routing-asciidoc12", range="startofrange")))As a reminder, the onion is wrapped by starting at the end of the path from Dina, the final node or recipient. Then the path is built in reverse all the way back to the sender, Alice.
 
-Alice starts with an empty 1,300-byte field, the fixed-length _onion payload_. Then, Alice fills the onion payload with a pseudorandom byte stream "filler," that is generated from the ++__pad__++ key.
+Alice starts with an empty 1,300-byte field, the fixed-length _onion payload_. Then, Alice fills the onion payload with a pseudorandom byte stream "filler," that is generated from the ++pad++ key.
 
 [NOTE]
 ====
@@ -503,22 +503,22 @@ Next row down we see the result: the 1,300 byte onion payload contains Dina's ho
 
 Next, Alice obfuscates the entire onion payload so that _only Dina_ can read it.
 
-To do this, Alice generates a byte stream using the ++__rho__++ key (which Dina also knows). Alice uses a bitwise exclusive-or (XOR) between the bits of the onion payload and the byte stream created from ++__rho__++. The result appears like a random (or encrypted) byte stream of 1,300 bytes length. This step is shown in <<onion_obfuscate_dina>>. 
+To do this, Alice generates a byte stream using the ++rho++ key (which Dina also knows). Alice uses a bitwise exclusive-or (XOR) between the bits of the onion payload and the byte stream created from ++rho++. The result appears like a random (or encrypted) byte stream of 1,300 bytes length. This step is shown in <<onion_obfuscate_dina>>. 
 
 [[onion_obfuscate_dina]]
 .Obfuscating the onion payload
 image::images/mtln_1018.png[]
 
-One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in <<bobDeobfuscates>>, if Dina applies the same XOR operation with the byte stream generated from ++__rho__++, it will reveal the original onion payload.
+One of the properties of XOR is that if you do it twice you get back to the original data. As we will see in <<bobDeobfuscates>>, if Dina applies the same XOR operation with the byte stream generated from ++rho++, it will reveal the original onion payload.
 
 [TIP]
 ====
 XOR is an _involutory_ function which means that if it is applied twice it undoes itself. Specifically XOR(XOR(_a_, _b_), _b_) = _a_. This property is used extensively in symmetric-key cryptography.
 ====
 
-Because only Alice and Dina have the ++__rho__++ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
+Because only Alice and Dina have the ++rho++ key (derived from Alice and Dina's shared secret), only they can do this. Effectively, this encrypts the onion payload for Dina's eyes only.
 
-Finally, Alice calculates a hash-based message authentication code (HMAC) for Dina's payload, which uses the ++__mu__++ key as its initialization key. This is shown in <<dina_hop_payload_hmac>>. 
+Finally, Alice calculates a hash-based message authentication code (HMAC) for Dina's payload, which uses the ++mu++ key as its initialization key. This is shown in <<dina_hop_payload_hmac>>. 
 
 [[dina_hop_payload_hmac]]
 .Adding an HMAC integrity checksum to Dina's hop payload
@@ -575,7 +575,7 @@ In this case, Chan's _inner_ HMAC is actually Dina's _outer_ HMAC.
 
 Now Chan's payload is in the front of the onion. When Chan sees this he has no idea how many payloads came before or after. It looks like the first of 20 hops always!
 
-Next, Alice obfuscates the entire payload by XOR with the byte stream generated from the Alice-Chan ++__rho__++ key. Only Alice and Chan have this ++__rho__++ key and only they can produce the byte stream to obfuscate and deobfuscate the onion.
+Next, Alice obfuscates the entire payload by XOR with the byte stream generated from the Alice-Chan ++rho++ key. Only Alice and Chan have this ++rho++ key and only they can produce the byte stream to obfuscate and deobfuscate the onion.
 Finally, as we did in the earlier step, we compute Chan's outer HMAC, which is what she'll use to verify the integrity of the encrypted onion packet.
 
 ==== Wrapping Bob's Hop Payload
@@ -594,7 +594,7 @@ Obtain the session key for this hop dervied from the blinding factor generated b
 Include the prior hop's outer HMAC as this hop's inner HMAC.
 Insert Bob's hop payload at the beginning and shift everything else over to the right, dropping a Bob-hop-payload-size chunk from the end (it was filler anyway).
 
-Obfuscate the whole thing XOR with the ++__rho__++ key from the Alice-Bob shared secret so that only Bob can unwrap this.
+Obfuscate the whole thing XOR with the ++rho++ key from the Alice-Bob shared secret so that only Bob can unwrap this.
 
 Calculate the outer HMAC and stick it on the end of Bob's hop payload.(((range="endofrange", startref="ix_10_onion_routing-asciidoc12")))
 
@@ -605,7 +605,7 @@ Calculate the outer HMAC and stick it on the end of Bob's hop payload.(((range="
 
 Alice calculates an HMAC for the onion payload to cryptographically secure it with a checksum that Bob can verify.
 
-Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the ++__rho__++, ++__mu__++, and ++__pad__++ keys.
+Alice adds a 33-byte public session key that will be used by each hop to generate a shared-secret and the ++rho++, ++mu++, and ++pad++ keys.
 
 Finally Alice puts the onion version number (+0+ currently) in the front.
 
@@ -644,7 +644,7 @@ channel_id:: This field will contain the Alice-Bob channel ID, which in our exam
 
 id:: The ID of this HTLC in this channel, starting at +0+.
 
-amount_msat:: The amount of the HTLC, 50,200,000 milli-satoshis.
+amount_msat:: The amount of the HTLC, 50,200,000 millisatoshis.
 
 payment_hash:: The RIPEMD160(SHA-256) payment hash, +9e017f6767971ed7cea17f98528d5f5c0ccb2c71+.
 
@@ -660,7 +660,7 @@ Bob will unwrap the onion he received from Alice as follows:
 
 1. Bob takes the session key from the onion packet and derives the Alice-Bob shared secret.
 
-2. Bob generates the ++__mu__++ key from the shared secret and uses it to verify the onion packet HMAC checksum.
+2. Bob generates the ++mu++ key from the shared secret and uses it to verify the onion packet HMAC checksum.
 
 Now that Bob has generated the shared key and verified the HMAC, he can start unwrapping the 1,300 byte onion payload inside the onion packet. The goal is for Bob to retrieve his own hop payload and then forward the remaining onion to the next hop.
 
@@ -681,18 +681,18 @@ This empty space will become obfuscated and turn into "filler", by the same proc
 [[bobDeobfuscates]]
 ==== Bob De-Obfuscates His Hop Payload
 
-Next, Bob will generate the ++__rho__++ key from the Alice-Bob shared key. He will use this to generate a 2,600 byte stream, using the ChaCha20 algorithm.
+Next, Bob will generate the ++rho++ key from the Alice-Bob shared key. He will use this to generate a 2,600 byte stream, using the ChaCha20 algorithm.
 
 [TIP]
 ====
-The first 1,300 bytes of the byte stream generated by Bob are exactly the same as those generated by Alice using the ++__rho__++ key.
+The first 1,300 bytes of the byte stream generated by Bob are exactly the same as those generated by Alice using the ++rho++ key.
 ====
 
-Next, Bob applies the 2,600 bytes of the ++__rho__++ byte stream to the 2,600-byte onion payload with a bitwise XOR operation.
+Next, Bob applies the 2,600 bytes of the ++rho++ byte stream to the 2,600-byte onion payload with a bitwise XOR operation.
 
 The first 1,300 bytes will become deobfuscated by this XOR operation, because it is the same operation Alice applied and XOR is involutory. So Bob will _reveal_ his hop payload followed by some data that seems scrambled.
 
-At the same time, applying the ++__rho__++ byte stream to the 1,300 zeroes that were added to the onion payload will turn them into seemingly random filler data. This operation is shown in <<bob_deobfuscates>>.
+At the same time, applying the ++rho++ byte stream to the 1,300 zeroes that were added to the onion payload will turn them into seemingly random filler data. This operation is shown in <<bob_deobfuscates>>.
 
 [[bob_deobfuscates]]
 .Bob de-obfuscates the onion, obfuscates the filler
@@ -767,13 +767,13 @@ Chan repeats the exact same process as Bob:
 
 1. Chan receives the +update_add_htlc+ and processes the HTLC request, adding it to commitment transactions.
 
-2. Chan generates the Alice-Chan shared key and the ++__mu__++ subkey
+2. Chan generates the Alice-Chan shared key and the ++mu++ subkey
 
 3. Chan verifies the onion packet HMAC, then extracts the 1,300-byte onion payload
 
 4. Chan extends the onion payload by 1,300 extra bytes, filling it with zeroes.
 
-5. Chan uses the ++__rho__++ key to produce 2,600 bytes.
+5. Chan uses the ++rho++ key to produce 2,600 bytes.
 
 6. Chan uses the generated byte stream to XOR and deobfuscate the onion payload. Simultaneously the XOR operation obfuscates the extra 1,300 zeroes, turning them into filler. 
 
@@ -820,11 +820,11 @@ Errors are encoded by the returning node (the one that discovered an error) enco
     [pad_len*byte:pad]
 ----
 
-The return packet HMAC verification checksum is calculated with the ++__um__++ key, generated from the shared secret established by the onion.
+The return packet HMAC verification checksum is calculated with the ++um++ key, generated from the shared secret established by the onion.
 
 [TIP]
 ====
-The ++__um__++ key name is the reverse of the ++__mu__++ name, indicating the same use but in the opposite direction (back-propagation). 
+The ++um++ key name is the reverse of the ++mu++ name, indicating the same use but in the opposite direction (back-propagation). 
 ====
 
 Next, the returning node generates an +ammag+ (inverse of the word "gamma") key and obfuscates the return packet using an XOR operation with a byte stream generated from +ammag+.
@@ -833,7 +833,7 @@ Finally the return node sends the return packet to the hop from which it receive
 
 Each hop receiving an error will generate an +ammag+ key and obfuscate the return packet again using an XOR operation with the byte stream from +ammag+.
 
-Eventually, the sender (origin node) receives a return packet. It will then generate +ammag+ and ++__um__++ keys for each hop and XOR deobfuscate the return error iteratively until it reveals the return packet.
+Eventually, the sender (origin node) receives a return packet. It will then generate +ammag+ and ++um++ keys for each hop and XOR deobfuscate the return error iteratively until it reveals the return packet.
 
 [[failure_messages]]
 ==== Failure Messages
