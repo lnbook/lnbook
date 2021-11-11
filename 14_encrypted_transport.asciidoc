@@ -8,7 +8,7 @@ checking.
 
 [NOTE]
 ====
-Part of this chapter includes some highly technical detail about the encryption protocol and encryption algorithms used in the Lightning encrypted transport. You may decide to skip that section, if you are not interested in those details.
+Part of this chapter includes some highly technical detail about the encryption protocol and encryption algorithms used in the Lightning encrypted transport. You may decide to skip that section if you are not interested in those details.
 ====
 
 === Encrypted Transport in the Lightning Protocol Suite
@@ -16,13 +16,13 @@ Part of this chapter includes some highly technical detail about the encryption 
 ((("Lightning encrypted transport protocol","Lightning Protocol Suite and")))The transport component of the Lightning Network and its several components are shown in the leftmost part of the network connection layer in  <<LN_protocol_encrypted_transport_highlight>>.
 
 [[LN_protocol_encrypted_transport_highlight]]
-.The Lightning Network protocol suite
-image::images/mtln_1401.png["The Lightning Network Protocol Suite"]
+.Encrypted message transport in the Lightning protocol suite
+image::images/mtln_1401.png["Encrypted message transport in the Lightning protocol suite"]
 
 === Introduction
 
 Unlike the vanilla Bitcoin P2P network, every node in the Lightning Network is
-identified by a unique public key which serves as it identity. By default, this
+identified by a unique public key which serves as its identity. By default, this
 public key is used to end-to-end encrypt _all_ communication within the
 network. Encryption by default at the lowest level of the protocol ensures that
 all messages are authenticated, are immune to man-in-the-middle (MITM) attacks and snooping by third parties, and ensures privacy at the fundamental transport
@@ -32,12 +32,12 @@ be familiar with the state of the art in encrypted messaging protocols, as well
 as the various properties such a protocol provides to the network. It's worth
 mentioning that the core of the encrypted message transport is _agnostic_ to
 its usage within the context of the Lightning Network. As a result, the
-custom encrypted message transport Lightning uses can be dropped into any context
+custom encrypted message transport that Lightning uses can be dropped into any context
 that requires encrypted communication between two parties.
 
 === The Channel Graph as Decentralized Public Key Infrastructure
 
-((("channel graph","decentralized public key infrastructure")))((("Lightning encrypted transport protocol","channel graph as decentralized public key infrastructure")))((("PKI (public key infrastructure)")))((("public key infrastructure (PKI)")))As we learned in the chapter on multihop forwarding, every node has a long-term
+((("channel graph","decentralized public key infrastructure")))((("Lightning encrypted transport protocol","channel graph as decentralized public key infrastructure")))((("PKI (public key infrastructure)")))((("public key infrastructure (PKI)")))As we learned in <<routing>> when discussing multihop forwarding, every node has a long-term
 identity that is used as the identifier for a vertex during pathfinding and
 also used in the asymmetric cryptographic operations related to the creation of
 onion encrypted routing packets. This public key, which serves as a node's
@@ -59,7 +59,7 @@ network. In place of a central party, the Lightning Network uses the Bitcoin
 blockchain as a Sybil mitigation mechanism because gaining an identity on the
 network has a tangible cost: the fee needed to create a channel in the
 blockchain, as well as the opportunity cost of the capital allocated to their
-channels. In the process of essentially rolling a domain specific PKI, the
+channels. In the process of essentially rolling a domain-specific PKI, the
 Lightning Network is able to significantly simplify its encrypted transport
 protocol as it doesn't need to deal with all the complexities that come along
 with TLS, the Transport Layer Security protocol.
@@ -68,7 +68,7 @@ with TLS, the Transport Layer Security protocol.
 
 ((("Lightning encrypted transport protocol","TLS vulnerabilities/limitations")))((("TLS (Transport Layer Security protocol)")))((("Transport Layer Security protocol (TLS)")))Readers familiar with the TLS system may be wondering at this point: why wasn't
 TLS used in spite of the drawbacks of the existing PKI system? It is indeed a
-fact that "self signed certificates" can be used to effectively sidestep the
+fact that "self-signed certificates" can be used to effectively sidestep the
 existing global PKI system by simply asserting to the identity of a given
 public key amongst a set of peers. However, even with the existing PKI system
 out of the way, TLS has several drawbacks that prompted the creators of the Lightning Network
@@ -77,7 +77,7 @@ to instead opt for a more compact custom encryption protocol.
 To start with, TLS is a protocol that has been around for several decades and
 as a result has evolved over time as new advances have been made in the space
 of transport encryption. However, over time this evolution has caused the
-protocol to balloon in size and complexity. Over the past few decades several
+protocol to balloon in size and complexity. Over the past few decades, several
 vulnerabilities in TLS have been discovered and patched, with each evolution
 further increasing the complexity of the protocol. As a result of the age of
 the protocol, several versions and iterations exist, meaning a client needs to
@@ -85,14 +85,14 @@ understand many of the prior iterations of the protocol to communicate
 with a large portion of the public internet, further increasing implementation
 complexity.
 
-In the past several memory safety vulnerabilities have been discovered in
+In the past, several memory safety vulnerabilities have been discovered in
 widely used implementations of SSL/TLS. Packaging such a protocol within every
 Lightning node would serve to increase the attack surface of nodes exposed to the public peer-to-peer network. To increase the security of the
 network as a whole and minimize exploitable attack surface, the creators of
 the Lightning Network instead opted to adopt the Noise Protocol Framework. Noise as a protocol
 internalizes several of the security and privacy lessons learned over time due
 to continual scrutiny of the TLS protocol over decades. In a way, the existence
-of Noise allows the community to effective "start over," with a more compact,
+of Noise allows the community to effectively "start over," with a more compact,
 simplified protocol that retains all the added benefits of TLS.
 
 === The Noise Protocol Framework
@@ -101,7 +101,7 @@ simplified protocol that retains all the added benefits of TLS.
 encryption protocol designed by the creators of the Signal Protocol. The Signal Protocol is one of the most widely used message encryption protocols in the
 world. It's used by both Signal and Whatsapp, which cumulatively are used by
 over a billion people around the world. The Noise framework is the result of
-decades of evolution both within academia as well as industry of message
+decades of evolution both within academia as well as the industry of message
 encryption protocols. Lightning uses the Noise Protocol Framework to implement
 a _message-oriented_ encryption protocol used by all nodes to communicate with
 each other.
@@ -120,11 +120,11 @@ forward secrecy is achieved (leaking the key of a prior transcript doesn't compr
 future transcripts).
 
 Because the Noise Protocol allows a protocol designer to choose from several
-cryptographic primitives such as symmetric encryption and public key
+cryptographic primitives, such as symmetric encryption and public key
 cryptography, it's customary that each flavor of the Noise Protocol is referred
 to by a unique name. In the spirit of "Noise," each flavor of the protocol
 selects a name derived from some sort of "noise." In the context of the
-((("Brontide Protocol")))Lightning Network, the flavor of the Noise protocol used is sometimes referred to
+((("Brontide Protocol")))Lightning Network, the flavor of the Noise Protocol used is sometimes referred to
 as Brontide. A _brontide_ is a low billowing noise, similar to what one would
 hear during a thunderstorm when very far away.
 
@@ -198,7 +198,7 @@ should be terminated.
 
 The protocol also adds a new piece of data to each handshake message: a protocol
 version. The initial protocol version is `0`. At the time of writing, no new
-protocol versions has been created. As a result, if a peer receives a version
+protocol versions have been created. As a result, if a peer receives a version
 other than `0`, then they should reject the handshake initiation attempt.
 
 As far as cryptographic primitives, `SHA-256` is used as the hash function of
@@ -236,7 +236,7 @@ initialize the following variables:
  `e`:: A party's _ephemeral keypair_. For each session, a node must generate a
    new ephemeral key with strong cryptographic randomness.
 
-`s`:: A party's _static keypair_ (`ls` for local, `rs` for remote)
+`s`:: A party's _static keypair_ (`ls` for local, `rs` for remote).
 
 Given this handshake plus messaging session state, we'll then define a series of
 functions that will operate on the handshake and messaging state. When
@@ -245,33 +245,33 @@ similar to pseudocode to reduce the verbosity of the explanation of
 each step in the protocol. We'll define the _functional_ primitives of the
 handshake as:
 
-`ECDH(k, rk)`:: Performs an Elliptic-Curve Diffie-Hellman operation using
-    `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key
+`ECDH(k, rk)`:: Performs an Elliptic Curve Diffie–Hellman operation using
+    `k`, which is a valid `secp256k1` private key, and `rk`, which is a valid public key.
 +
       ** The returned value is the SHA-256 of the compressed format of the
       generated point.
 
 `HKDF(salt,ikm)`:: A function defined in `RFC 5869`,
-    evaluated with a zero-length `info` field
+    evaluated with a zero-length `info` field.
 +
       ** All invocations of `HKDF` implicitly return 64 bytes of
        cryptographic randomness using the extract-and-expand component of the
        `HKDF`.
 
-`encryptWithAD(k, n, ad, plaintext)`:: Outputs `encrypt(k, n, ad, plaintext)`
+`encryptWithAD(k, n, ad, plaintext)`:: Outputs `encrypt(k, n, ad, plaintext)`.
 +
       ** Where `encrypt` is an evaluation of `ChaCha20-Poly1305` (Internet Engineering Task Force variant)
        with the passed arguments, with nonce `n` encoded as 32 zero bits,
        followed by a _little-endian_ 64-bit value. Note: this follows the Noise
        Protocol convention, rather than our normal endian.
 
-`decryptWithAD(k, n, ad, ciphertext)`:: Outputs `decrypt(k, n, ad, ciphertext)`
+`decryptWithAD(k, n, ad, ciphertext)`:: Outputs `decrypt(k, n, ad, ciphertext)`.
 +
       ** Where `decrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant)
        with the passed arguments, with nonce `n` encoded as 32 zero bits,
        followed by a _little-endian_ 64-bit value.
 
-`generateKey()`:: Generates and returns a fresh `secp256k1` keypair
+`generateKey()`:: Generates and returns a fresh `secp256k1` keypair.
 +
       ** Where the object returned by `generateKey` has two attributes:
          *** `.pub`, which returns an abstract object representing the public key
@@ -289,13 +289,13 @@ starting state that they'll use to advance the handshake process. To start,
 both sides need to construct the initial handshake digest `h`.
 
  1. ++h = SHA-256(__protocolName__)++
-    * where ++__protocolName__ = "Noise_XK_secp256k1_ChaChaPoly_SHA256"++ encoded as
-      an ASCII string
+    * Where ++__protocolName__ = "Noise_XK_secp256k1_ChaChaPoly_SHA256"++ encoded as
+      an ASCII string.
 
  2. `ck = h`
 
  3. ++h = SHA-256(h || __prologue__)++
-    * where ++__prologue__++ is the ASCII string: `lightning`
+    * Where ++__prologue__++ is the ASCII string: `lightning`.
 
 In addition to the protocol name, we also add in an extra "prologue" that is
 used to further bind the protocol context to the Lightning Network.
@@ -357,7 +357,7 @@ Sender actions:
      * A new temporary encryption key is generated, which is
        used to generate the authenticating MAC.
 5. `c = encryptWithAD(temp_k1, 0, h, zero)`
-     * where `zero` is a zero-length plain text
+     * Where `zero` is a zero-length plain text.
 6. `h = SHA-256(h || c)`
      * Finally, the generated ciphertext is accumulated into the authenticating
        handshake digest.
@@ -367,8 +367,8 @@ Receiver actions:
 
 1. Read _exactly_ 50 bytes from the network buffer.
 2. Parse the read message (`m`) into `v`, `re`, and `c`:
-    * where `v` is the _first_ byte of `m`, `re` is the next 33
-      bytes of `m`, and `c` is the last 16 bytes of `m`
+    * Where `v` is the _first_ byte of `m`, `re` is the next 33
+      bytes of `m`, and `c` is the last 16 bytes of `m`.
     * The raw bytes of the remote party's ephemeral public key (`re`) are to be
       deserialized into a point on the curve using affine coordinates as encoded
       by the key's serialized composed format.
@@ -413,13 +413,13 @@ Sender actions:
      * The newly generated ephemeral key is accumulated into the running
        handshake digest.
 3. `ee = ECDH(e.priv, re)`
-     * where `re` is the ephemeral key of the initiator, which was received
-       during Act One
+     * Where `re` is the ephemeral key of the initiator, which was received
+       during Act One.
 4. `ck, temp_k2 = HKDF(ck, ee)`
      * A new temporary encryption key is generated, which is
        used to generate the authenticating MAC.
 5. `c = encryptWithAD(temp_k2, 0, h, zero)`
-     * where `zero` is a zero-length plain text
+     * Where `zero` is a zero-length plain text.
 6. `h = SHA-256(h || c)`
      * Finally, the generated ciphertext is accumulated into the authenticating
        handshake digest.
@@ -429,13 +429,13 @@ Receiver actions:
 
 1. Read _exactly_ 50 bytes from the network buffer.
 2. Parse the read message (`m`) into `v`, `re`, and `c`:
-    * where `v` is the _first_ byte of `m`, `re` is the next 33
+    * Where `v` is the _first_ byte of `m`, `re` is the next 33
       bytes of `m`, and `c` is the last 16 bytes of `m`.
 3. If `v` is an unrecognized handshake version, then the responder must
     abort the connection attempt.
 4. `h = SHA-256(h || re.serializeCompressed())`
 5. `ee = ECDH(e.priv, re)`
-    * where `re` is the responder's ephemeral public key
+    * Where `re` is the responder's ephemeral public key.
     * The raw bytes of the remote party's ephemeral public key (`re`) are to be
       deserialized into a point on the curve using affine coordinates as encoded
       by the key's serialized composed format.
@@ -470,20 +470,20 @@ construction, and 16 bytes for a final authenticating tag.
 Sender actions:
 
 1. `c = encryptWithAD(temp_k2, 1, h, s.pub.serializeCompressed())`
-    * where `s` is the static public key of the initiator
+    * Where `s` is the static public key of the initiator.
 2. `h = SHA-256(h || c)`
 3. `se = ECDH(s.priv, re)`
-    * where `re` is the ephemeral public key of the responder
+    * Where `re` is the ephemeral public key of the responder.
 4. `ck, temp_k3 = HKDF(ck, se)`
     * The final intermediate shared secret is mixed into the running chaining key.
 5. `t = encryptWithAD(temp_k3, 0, h, zero)`
-     * where `zero` is a zero-length plain text
+     * Where `zero` is a zero-length plain text.
 6. `sk, rk = HKDF(ck, zero)`
-     * where `zero` is a zero-length plain text,
+     * Where `zero` is a zero-length plain text,
        `sk` is the key to be used by the initiator to encrypt messages to the
        responder,
        and `rk` is the key to be used by the initiator to decrypt messages sent by
-       the responder
+       the responder.
      * The final encryption keys, to be used for sending and
        receiving messages for the duration of the session, are generated.
 7. `rn = 0, sn = 0`
@@ -494,8 +494,8 @@ Receiver actions:
 
 1. Read _exactly_ 66 bytes from the network buffer.
 2. Parse the read message (`m`) into `v`, `c`, and `t`:
-    * where `v` is the _first_ byte of `m`, `c` is the next 49
-      bytes of `m`, and `t` is the last 16 bytes of `m`
+    * Where `v` is the _first_ byte of `m`, `c` is the next 49
+      bytes of `m`, and `t` is the last 16 bytes of `m`.
 3. If `v` is an unrecognized handshake version, then the responder must
     abort the connection attempt.
 4. `rs = decryptWithAD(temp_k2, 1, h, c)`
@@ -503,17 +503,17 @@ Receiver actions:
        initiator.
 5. `h = SHA-256(h || c)`
 6. `se = ECDH(e.priv, rs)`
-     * where `e` is the responder's original ephemeral key
+     * Where `e` is the responder's original ephemeral key.
 7. `ck, temp_k3 = HKDF(ck, se)`
 8. `p = decryptWithAD(temp_k3, 0, h, t)`
      * If the MAC check in this operation fails, then the responder must
        terminate the connection without any further messages.
 9. `rk, sk = HKDF(ck, zero)`
-     * where `zero` is a zero-length plain text,
+     * Where `zero` is a zero-length plain text,
        `rk` is the key to be used by the responder to decrypt the messages sent
        by the initiator,
        and `sk` is the key to be used by the responder to encrypt messages to
-       the initiator
+       the initiator.
      * The final encryption keys, to be used for sending and
        receiving messages for the duration of the session, are generated.
 10. `rn = 0, sn = 0`
@@ -529,8 +529,8 @@ The actual Lightning Protocol messages are encapsulated within AEAD ciphertexts.
 Each message is prefixed with another AEAD ciphertext, which encodes the total
 length of the following Lightning message (not including its MAC).
 
-The _maximum_ size of _any_ Lightning message must not exceed `65,535` bytes. A
-maximum size of `65,535` simplifies testing, makes memory management easier, and
+The _maximum_ size of _any_ Lightning message must not exceed 65,535 bytes. A
+maximum size of 65,535 simplifies testing, makes memory management easier, and
 helps mitigate memory-exhaustion attacks.
 
 To make traffic analysis more difficult, the length prefix for all
@@ -555,10 +555,10 @@ given a sending key (`sk`) and a nonce (`sn`), the following steps are
 completed:
 
 1. Let `l = len(m)`.
-    * where `len` obtains the length in bytes of the Lightning message
+    * Where `len` obtains the length in bytes of the Lightning message.
 2. Serialize `l` into 2 bytes encoded as a big-endian integer.
 3. Encrypt `l` (using `ChaChaPoly-1305`, `sn`, and `sk`), to obtain `lc`
-    (18 bytes)
+    (18 bytes).
     * The nonce `sn` is encoded as a 96-bit little-endian number. As the
       decoded nonce is 64 bits, the 96-bit nonce is encoded as 32 bits
       of leading zeros followed by a 64-bit value.
@@ -609,6 +609,6 @@ Key rotation for a key `k` is performed according to the following steps(((range
 
 Lightning's underlying transport encryption is based on the Noise Protocol and offers strong security guarantees of privacy, authenticity, and integrity for all communications between Lightning peers.
 
-Unlike Bitcoin where peers often communicate "in the clear" (without encryption), all Lightning communications are encrypted peer-to-peer. In addition to transport encryption (peer-to-peer), in the LN payments are _also_ encrypted into onion packets (hop-to-hop) and payment details are sent out-of-band between the sender and recipient (end-to-end). The combination of all these security mechanisms is cumulative and provides layered defense against deanonymization, man-in-the-middle attacks, and network surveillance.
+Unlike Bitcoin where peers often communicate "in the clear" (without encryption), all Lightning communications are encrypted peer-to-peer. In addition to transport encryption (peer-to-peer), in the Lightning Network, payments are _also_ encrypted into onion packets (hop-to-hop) and payment details are sent out-of-band between the sender and recipient (end-to-end). The combination of all these security mechanisms is cumulative and provides a layered defense against de-anonymization, man-in-the-middle attacks, and network surveillance.
 
 Of course, no security is perfect and we will see in <<security_and_privacy>> that these properties can be degraded and attacked. However, the Lightning Network significantly improves upon the privacy of Bitcoin.(((range="endofrange", startref="ix_14_encrypted_transport-asciidoc0")))
