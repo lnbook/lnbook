@@ -11,11 +11,11 @@ that have been built into the protocol.
 
 === Messaging Layer in the Lightning Protocol Suite
 
-((("Lightning Network Protocol","messaging layer")))((("wire protocol","messaging layer in the Lightning Protocol Suite")))The messaging layer, which is detailed in this chapter, consists of "Framing and message format," "Type Length Value (TLV)" encoding, and "Feature bits." These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_wire_message_highlight>>.
+((("Lightning Network Protocol","messaging layer")))((("wire protocol","messaging layer in the Lightning Protocol Suite")))The messaging layer, which is detailed in this chapter, consists of "Framing and message format," "Type-Length-Value (TLV)" encoding, and "Feature bits." These components are highlighted by a double outline in the protocol suite, shown in <<LN_protocol_wire_message_highlight>>.
 
 [[LN_protocol_wire_message_highlight]]
-.The Lightning Network protocol suite
-image::images/mtln_1301.png["The Lightning Network Protocol Suite"]
+.Messaging layer in the Lightning protocol suite
+image::images/mtln_1301.png["Messaging layer in the Lightning protocol suite"]
 
 === Wire Framing
 
@@ -53,28 +53,26 @@ encryption layer, we don't need an explicit length for each message type. This
 is due to the fact that transport encryption works at the _message_ level, so
 by the time we're ready to decode the next message, we already know the total
 number of bytes of the message itself. Using 2 bytes for the message type
-(encoded in big-endian) means that the protocol can have up to `2^16 – 1` or
-`65,535` distinct messages. Continuing, because we know all messages must be below
-65 KB, this simplifies our parsing as we can use a _fixed_ size buffer and
+(encoded in big-endian) means that the protocol can have up to 2^16 – 1 or
+65,535 distinct messages. Continuing, because we know all messages must be less than
+65 KB, this simplifies our parsing as we can use a _fixed-size_ buffer and
 maintain strong bounds on the total amount of memory required to parse an
 incoming wire message.
 
 The final bullet point allows for a degree of _backward_ compatibility  because new nodes are able to provide information in the wire messages that older nodes
 (which may not understand them) can safely ignore. As we see subsequently, this
-feature combined with a very flexible wire message extensibility format also
-allows the protocol to achieve _forward_ compatibility as well.
+feature, combined with a very flexible wire message extensibility format, allows the protocol to achieve _forward_ compatibility as well.
 
 ==== Type Encoding
 
 ((("wire framing","type encoding")))With this high-level background provided, we now start at the most primitive
 layer: parsing primitive types. In addition to encoding integers, the Lightning
-Protocol also allows for encoding of a vast array of types including variable
-length byte slices, elliptic curve public keys, Bitcoin addresses, and
+Protocol also allows for encoding of a vast array of types, including variable-length byte slices, elliptic curve public keys, Bitcoin addresses, and
 signatures. When we describe the _structure_ of wire messages later in this
 chapter, we refer to the high-level type (the abstract type) rather than the
 lower-level representation of said type. In this section, we peel back this
-abstraction layer to ensure our future wire parser is able to properly
-encoding/decode any of the higher-level types.
+abstraction layer to ensure that our future wire parser is able to properly
+encode/decode any of the higher-level types.
 
 In <<message_types>>, we map the name of a given message type to the
 high-level routine used to encode/decode the type.
@@ -90,21 +88,21 @@ high-level routine used to encode/decode the type.
 | `milli_satoshi` | An unsigned 64-bit integer (`uint64`) | Represents 1000th of a satoshi
 | `satoshi` | An unsigned 64-bit integer (`uint64`) | The base unit of bitcoin
 | `pubkey`  | An secp256k1 public key encoded in _compressed_ format, occupying 33 bytes | Occupies a fixed 33-byte length on the wire
-| `sig`     | An ECDSA signature of the secp256k1 elliptic curve. | Encoded as a _fixed_ 64-byte byte slice, packed as `R \|\| S`
+| `sig`     | An ECDSA signature of the secp256k1 elliptic curve | Encoded as a _fixed_ 64-byte byte slice, packed as `R \|\| S`
 | `uint8`   | An 8-bit integer  |
 | `uint16`  | A 16-bit integer  |
 | `uint64`  | A 64-bit integer  |
-| `[]byte`  | A variable length byte slice | Prefixed with a 16-bit integer denoting the length of the bytes
-| `color_rgb` | RGB color encoding | Encoded as a series if 8-bit integers
+| `[]byte`  | A variable-length byte slice | Prefixed with a 16-bit integer denoting the length of the bytes
+| `color_rgb` | RGB color encoding | Encoded as a series of 8-bit integers
 | `net_addr` | The encoding of a network address | Encoded with a 1-byte prefix that denotes the type of address, followed by the address body
 |===
 
-In the next section, we describe the structure of each of the wire messages
+In the next section, we describe the structure of each wire message,
 including the prefix type of the message along with the contents of its message
 body.(((range="endofrange", startref="ix_13_wire_protocol-asciidoc2")))(((range="endofrange", startref="ix_13_wire_protocol-asciidoc1")))
 
 [[tlv_message_extensions]]
-=== Type Length Value (TLV) Message Extensions
+=== Type-Length-Value (TLV) Message Extensions
 
 ((("Type-Length-Value (TLV) message extensions","message extensions in wire protocol")))((("wire protocol","TLV message extensions")))Earlier in this chapter we mentioned that messages can be up to 65 KB in size,
 and if while parsing a message, extra bytes are left over, then those bytes
@@ -137,7 +135,7 @@ parse some portion of the newer message format.
 
 ==== Forward and Backward Compatibility
 
-((("Protocol Buffers (Protobuf) message serialization format")))((("Type-Length-Value (TLV) message extensions","forward/backward compatibility")))Protobufs are extremely popular amongst developers because they have built in
+((("Protocol Buffers (Protobuf) message serialization format")))((("Type-Length-Value (TLV) message extensions","forward/backward compatibility")))Protobufs are extremely popular amongst developers because they have built-in
 support for both forward and backward compatibility. Most developers are
 likely familiar with the concept of backward compatibility. In simple terms,
 the principle states that any changes to a message format or API should be
@@ -159,11 +157,11 @@ aren't using those new features.
 compatible, in addition to feature bits (more on that later), the Lightning Network utilizes a custom message serialization format plainly called Type-Length-Value, or TLV for short. The format was inspired by the widely used Protobuf
 format and borrows many concepts by significantly simplifying the
 implementation as well as the software that interacts with message parsing. A
-curious reader might ask "why not just use Protobufs?" In response, the
+curious reader might ask, "why not just use Protobufs?" In response, the
 Lightning developers would respond that we're able to have the best of the
 extensibility of Protobufs while also having the benefit of a smaller
 implementation and thus smaller attack. As of version 3.15.6, the Protobuf
-compiler weighs in at over 656,671 lines of code.  In comparison LND's
+compiler weighs in at over 656,671 lines of code.  In comparison, LND's
 implementation of the TLV message format weighs in at only 2.3k lines of code
 (including tests).
 
@@ -173,11 +171,11 @@ individual TLV records. A single TLV record has three components: the type of
 the record, the length of the record, and finally the opaque value of the
 record:
 
-`type`:: An integer representing the name of the record being encoded.
-`length`:: The length of the record.
-`value`:: The opaque value of the record.
+`type`:: An integer representing the name of the record being encoded
+`length`:: The length of the record
+`value`:: The opaque value of the record
 
-Both the `type` and `length` are encoded using a variable sized integer that's inspired by the variable sized integer (varint) used in Bitcoin's P2P protocol, called `BigSize` for short.
+Both the `type` and `length` are encoded using a variable-sized integer that's inspired by the variable-sized integer (varint) used in Bitcoin's P2P protocol, called `BigSize` for short.
 
 ==== BigSize Integer Encoding
 
@@ -188,16 +186,16 @@ ordering.
 
 The `BigSize` varint has two components: the discriminant and the body. In the
 context of the `BigSize` integer, the discriminant communicates to the decoder
-the size of the variable sized integer that follows. Remember that the unique thing about
-variable sized integers is that they allow a parser to use fewer bytes to encode
+the size of the variable-sized integer that follows. Remember that the unique thing about
+variable-sized integers is that they allow a parser to use fewer bytes to encode
 smaller integers than larger ones, saving space. Encoding of a `BigSize`
 integer follows one of the four following options:
 
 1. If the value is less than `0xfd` (`253`): Then the discriminant isn't really used, and the encoding is simply the integer itself. This allows us to encode very small integers with no additional overhead.
 
-2. If the value is less than or equal to `0xffff` (`65535`):The discriminant is encoded as `0xfd`, which indicates that the value that follows is larger than `0xfd`, but smaller than `0xffff`). The number is then encoded as a 16-bit integer. Including the discriminant, then we can encode a value that is greater than 253, but less than 65,535 using 3 bytes.
+2. If the value is less than or equal to `0xffff` (`65535`): The discriminant is encoded as `0xfd`, which indicates that the value that follows is larger than `0xfd`, but smaller than `0xffff`. The number is then encoded as a 16-bit integer. Including the discriminant, we can encode a value that is greater than 253, but less than 65,535 using 3 bytes.
 
-3. If the value is less than `0xffffffff` (`4294967295`): The discriminant is encoded as `0xfe`. The body is encoded using 32-bit integer, including the discriminant, then we can encode a value that's less than `4,294,967,295` using 5 bytes.
+3. If the value is less than `0xffffffff` (`4294967295`): The discriminant is encoded as `0xfe`. The body is encoded using a 32-bit integer, including the discriminant, and we can encode a value that's less than `4,294,967,295` using 5 bytes.
 
 4. Otherwise, we just encode the value as a full-size 64-bit integer.
 
@@ -254,9 +252,9 @@ designers of the original Lightning Network knew that there were many possible f
 extensibility mechanisms within the system, which can be used to upgrade it partially or fully in a decoupled, desynchronized, and decentralized
 manner.
 
-==== Feature Bits As an Upgrade Discoverability Mechanism
+==== Feature Bits as an Upgrade Discoverability Mechanism
 
-((("feature bits","upgrade discoverability mechanism")))An astute reader may have noticed the various locations that feature bits are
+((("feature bits","upgrade discoverability mechanism")))An astute reader may have noticed the various locations where feature bits are
 included within the Lightning Protocol. A _feature bit_ is a bitfield that can
 be used to advertise understanding or adherence to a possible network protocol
 update. Feature bits are commonly assigned in pairs, meaning that each
@@ -284,15 +282,15 @@ From this simplified compatibility matrix, we can see that as long as the other
 party knows about our feature bit, then we can interact with them using the
 protocol. If the party doesn't even know about what bit we're referring to
 _and_ they require the feature, then we are incompatible with them. Within the
-network, optional features are signaled using an _odd bit number_ while
-required features are signaled using an _even bit number_. As an example, if a peer signals that they known of a feature that uses bit +15+, then we know that
+network, optional features are signaled using an _odd bit number_, while
+required features are signaled using an _even bit number_. As an example, if a peer signals that they know of a feature that uses bit +15+, then we know that
 this is an optional feature, and we can interact with them or respond to
 their messages even if we don't know about the feature. If
 they instead signaled the feature using bit +16+, then we know this is a
 required feature, and we can't interact with them unless our node also
 understands that feature.
 
-The Lightning developers have come up with an easy to remember phrase that
+The Lightning developers have come up with an easy-to-remember phrase that
 encodes this matrix: "it's OK to be odd." This simple rule  allows for a
 rich set of interactions within the protocol, as a simple bitmask operation
 between two feature bit vectors allows peers to determine if certain
@@ -394,9 +392,9 @@ spontaneous payments called _keysend_ worked by simply placing the preimage of a
 preimage, then use that to settle the payment. Because the entire packet is end-to-end encrypted, this payment type was safe, since none of the intermediate nodes
 are able to fully unwrap the onion to uncover the payment preimage.
 
-==== Channel Construction Level Updates
+==== Channel Construction-Level Updates
 
-((("wire protocol","channel construction level updates")))The final broad category of updates are those that happen at
+((("wire protocol","channel construction-level updates")))The final broad category of updates are those that happen at
 the channel construction level, but which don't modify the structure of the HTLC used widely within the network. When we say channel construction, we mean
 how the channel is funded or created. As an example, the eltoo channel type
 can be rolled out within the network using a new `node_announcement` level
