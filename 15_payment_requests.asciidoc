@@ -1,25 +1,25 @@
 [[invoices]]
 == Lightning Payment Requests
 
-((("Lightning invoices", id="ix_15_payment_requests-asciidoc0", range="startofrange")))In this chapter we will look at _Lightning payment requests_ or as they are more commonly known _Lightning invoices_.
+((("Lightning invoices", id="ix_15_payment_requests-asciidoc0", range="startofrange")))In this chapter we will look at _Lightning payment requests_, or as they are more commonly known, _Lightning invoices_.
 
 === Invoices in the Lightning Protocol Suite
 
-((("Lightning invoices","Lightning Protocol suite and")))((("Lightning Network Protocol","Lightning invoices in")))_Payment requests_, aka _invoices_, are part of the payment layer and are show in the upper left of <<LN_payment_request_highlight>>.
+((("Lightning invoices","Lightning Protocol suite and")))((("Lightning Network Protocol","Lightning invoices in")))_Payment requests_, aka _invoices_, are part of the payment layer and are shown in the upper left of <<LN_payment_request_highlight>>.
 
 [[LN_payment_request_highlight]]
-.The Lightning Network protocol suite
-image::images/mtln_1501.png["The Lightning Network Protocol Suite"]
+.Payment requests in the Lightning protocol suite
+image::images/mtln_1501.png["Payment requests in the Lightning protocol suite"]
 
 === Introduction
 
 As we've learned throughout the book, minimally two pieces of data are required
 to complete a Lightning payment: a payment hash and a destination. As
-`SHA-256` is used in the Lightning Network to implement HTLCs, this information
+SHA-256 is used in the Lightning Network to implement HTLCs, this information
 requires 32 bytes to communicate. Destinations, on the other hand, are
 simply the `secp256k1` public key of the node that wishes to receive a payment.
 The purpose of a payment request in the context of the Lightning Network is to
-communicate these two pieces of information from sender to receiver. The QR-code–friendly format for communicating the information required
+communicate these two pieces of information from sender to receiver. The QR-code-friendly format for communicating the information required
 to complete a payment from receiver to sender is described in https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md[BOLT #11: Invoice Protocol for Lightning Payments]. In practice, more than just the
 payment hash and destination are communicated in a payment request to
 make the encoding more fully featured.
@@ -39,7 +39,7 @@ cryptosystem to "encode" the payment in a manner that only the true "owner" of
 that Bitcoin address can redeem it.
 
 In contrast, to complete a Lightning payment, the recipient must
-reveal a "secret" to the entire payment route including the sender. This can be
+reveal a "secret" to the entire payment route, including the sender. This can be
 interpreted as usage of a kind of domain-specific symmetric cryptography because
 the payment preimage is for practical purposes a nonce (number only used
 once). If the sender attempts to make another payment using that identical
@@ -63,7 +63,7 @@ degree of payment request reuse.
 information required to complete a payment on the Lightning Network. As
 mentioned earlier, the payment hash and destination is the minimum amount of
 information required to complete a payment. However, in practice, more
-information such as time-lock information, payment request expiration, and
+information such as timelock information, payment request expiration, and
 possibly an on-chain fallback address are also communicated. The full specification document is https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md[BOLT #11: Invoice Protocol for Lightning Payments].
 
 ==== Payment Request Encoding in Practice
@@ -82,7 +82,7 @@ eyes, while the rest of it just looks like a random set of strings. The part
 that is somewhat parsable by a human is referred to as the _human-readable prefix_. It allows a human to quickly extract some relevant information from a
 payment request at a glance. In this case, we can see that this payment is for
 the mainnet instance of the Lightning Network (`lnbc`), and is requesting 2,500
-uBTC (microbitcoin), or `25,000,000` satoshis. The latter potion is referred
+uBTC (microbitcoin), or 25,000,000 satoshis. The latter potion is referred
 to as the data portion and uses an extensible format to encode the
 information required to complete a payment.
 
@@ -102,14 +102,13 @@ quickly determine if a payment request can be satisfied by their node or not.
 
 
 The first portion of the human-readable prefix is a _compact_ expression of the
-amount of the payment request. The compact amount is encoded in two parts:
-first, an integer is used as the _base_ amount. This is then followed by a
-`multiplier` that allows us to specify distinct order of magnitude increases
+amount of the payment request. The compact amount is encoded in two parts. First, an integer is used as the _base_ amount. This is then followed by a
+multiplier that allows us to specify distinct order of magnitude increases
 offset by the base amount. If we return to our initial example, then we can
 take the `2500u` portion and decrease it by a factor of 1,000 to instead use
-`2500m` or (2,500 `mBTC`).  As a rule of thumb, to ascertain the amount
+`2500m` or (2,500 mBTC).  As a rule of thumb, to ascertain the amount
 of an invoice at a glance, take the base factor and multiply it by the
-`multiplier`.
+multiplier.
 
 A full list of the currently defined multipliers is given in <<table1502>>.
 
@@ -125,7 +124,7 @@ A full list of the currently defined multipliers is given in <<table1502>>.
 |==============================================
 
 
-==== Bech32 and the Data Segment
+==== bech32 and the Data Segment
 
 ((("bech32, Lightning invoices and")))((("Lightning invoices","bech32 and data segment")))If the "unreadable" portion looks familiar, then that's because it uses the
 very same encoding scheme as SegWit compatible Bitcoin addresses use today,
@@ -171,7 +170,7 @@ utilized, each of these fields are actually in the "base 5" domain.
 A given tag field is comprised of three components:
 
   * The `type` of the field (5 bits)
-  * The `length` of the data of the field (10 bits
+  * The `length` of the data of the field (10 bits)
   * The `data` itself, which is `length * 5 bytes` in size
 
 A full list of all the currently defined tagged fields is given in <<table1503>>.
@@ -181,12 +180,12 @@ A full list of all the currently defined tagged fields is given in <<table1503>>
 [options="header"]
 |===
 |Field tag|Data length|Usage
-|`p`|`52`|The `SHA-256` payment hash.
-|`s`|`52`|A `256-bit` secret that increases the end-to-end privacy of a payment by mitigating probing by intermediate nodes.
+|`p`|`52`|The SHA-256 payment hash.
+|`s`|`52`|A 256-bit secret that increases the end-to-end privacy of a payment by mitigating probing by intermediate nodes.
 |`d`|Variable|The description, a short UTF-8 string of the purpose of the payment.
 |`n`|`53`|The public key of the destination node.
 |`h`|`52`|A hash that represents a description of the payment itself. This can be used to commit to a description that's over 639 bytes in length.
-|`x`|Variable|The expiry time in seconds of the payment. The default is 1 hour (3,600) if not specified.
+|`x`|Variable|The expiry time, in seconds, of the payment. The default is 1 hour (3,600) if not specified.
 |`c`|Variable|The `min_cltv_expiry` to use for the final hop in the route. The default is 9 if not specified.
 |`f`|Variable|A fallback on-chain address to be used to complete the payment if the payment cannot be completed over the Lightning Network.
 |`r`|Variable|One or more entries that allow a receiver to give the sender additional ephemeral edges to complete the payment.
