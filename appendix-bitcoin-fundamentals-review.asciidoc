@@ -4,7 +4,7 @@
 
 ((("Bitcoin (system)","fundamentals", id="ix_appendix-bitcoin-fundamentals-review-asciidoc0", range="startofrange")))The Lightning Network is capable of running above multiple blockchains, but is primarily anchored on Bitcoin. To understand the Lightning Network, you need a fundamental understanding of Bitcoin and its building blocks.
 
-There are many good resources that you can use to learn more about Bitcoin, including the companion book _Mastering Bitcoin_, 2nd Edition, written by Andreas M. Antonopoulos, which you can find on GitHub under https://github.com/bitcoinbook/bitcoinbook[an open source license]. However, you do not need to read a whole other book to be ready for this one!
+There are many good resources that you can use to learn more about Bitcoin, including the companion book _Mastering Bitcoin_, 2nd Edition, by Andreas M. Antonopoulos, which you can find on GitHub under https://github.com/bitcoinbook/bitcoinbook[an open source license]. However, you do not need to read a whole other book to be ready for this one!
 
 In this chapter, we've collected the most important concepts you need to know about Bitcoin and explained them in the context of the Lightning Network. This way you can learn exactly what you need to know to grasp the Lightning Network without any distractions.
 
@@ -38,14 +38,14 @@ A private key is simply a number, picked at random. In practice, and to make man
 ((("Bitcoin (system)","public keys")))((("public keys")))Each private key has a corresponding _public key_, which is calculated from the private key, using scalar multiplication on the elliptic curve. In simple terms, with a private key +k+, we can multiply it with a constant +G+ to produce a public key +K+:
 
 ----
-K = k × G
+K = k*G
 ----
 
-It is impossible to reverse this calculation. Given a public key +K+, one cannot calculate the private key +k+. Division by +G+ is not possible in elliptic curve math. Instead, one would have to try all possible values of +k+ in an exhaustive process called a _brute force attack_. Because +k+ is a 256-bit number, exhausting all possible values with any classical computer would require more time and energy than available in this universe.
+It is impossible to reverse this calculation. Given a public key +K+, one cannot calculate the private key +k+. Division by +G+ is not possible in elliptic curve math. Instead, one would have to try all possible values of +k+ in an exhaustive process called a _brute-force attack_. Because +k+ is a 256-bit number, exhausting all possible values with any classical computer would require more time and energy than available in this universe.
 
 ==== Hashes
 
-((("Bitcoin (system)","hashes", id="ix_appendix-bitcoin-fundamentals-review-asciidoc5", range="startofrange")))((("cryptographic hash functions", id="ix_appendix-bitcoin-fundamentals-review-asciidoc6", range="startofrange")))((("hashes", id="ix_appendix-bitcoin-fundamentals-review-asciidoc7", range="startofrange")))Another important tool used extensively in Bitcoin, and in the Lightning Network, are _cryptographic hash functions_ and specifically the +SHA-256+ hash function.
+((("Bitcoin (system)","hashes", id="ix_appendix-bitcoin-fundamentals-review-asciidoc5", range="startofrange")))((("cryptographic hash functions", id="ix_appendix-bitcoin-fundamentals-review-asciidoc6", range="startofrange")))((("hashes", id="ix_appendix-bitcoin-fundamentals-review-asciidoc7", range="startofrange")))Another important tool used extensively in Bitcoin, and in the Lightning Network, are _cryptographic hash functions_, and specifically the SHA-256 hash function.
 
 ((("digest function")))((("hash function, defined")))A hash function, also known as a _digest function_, is a function that takes arbitrary length data and transforms it into a fixed length result, called the _hash_, _digest_, or _fingerprint_ (see <<SHA256>>). Importantly, hash functions are _one-way_ functions, meaning that you can't reverse them and calculate the input data from the fingerprint.
 
@@ -89,11 +89,11 @@ Deterministic:: The same input always produces the same hash.
 
 Irreversible:: It is not possible to compute the preimage of a hash.
 
-Collision-Proof:: It is computationally infeasible to find two messages that have the same hash.
+Collision-proof:: It is computationally infeasible to find two messages that have the same hash.
 
 Uncorrelated:: A small change in the input produces such a big change in the output that the output seems uncorrelated to the input.
 
-Uniform/Random:: A cryptographic hash function produces hashes that are uniformly distributed across the entire 256-bit space of possible outputs. The output of a hash appears to be random, though it is not truly random.
+Uniform/random:: A cryptographic hash function produces hashes that are uniformly distributed across the entire 256-bit space of possible outputs. The output of a hash appears to be random, though it is not truly random.
 
 Using these features of cryptographic hashes, we can build some interesting applications:
 
@@ -135,7 +135,7 @@ By applying the digital signature on the hash of a transaction, the signature no
 
 ==== Signature Types
 
-((("signature hash type")))Signatures are not always applied to the entire transaction. To provide signing flexibility, a Bitcoin digital signature contains a prefix called the signature hash type, which specifies which part of the transaction data is included in the hash. This allows the signature to commit or "lock" all, or only some of, the data in the transaction. The most common signature hash type is +SIGHASH_ALL+ which locks everything in the transaction, by including all the transaction data in the hash that is signed. By comparison, +SIGHASH_SINGLE+ locks all the transaction inputs, but only one output (more about inputs and outputs in the next section). Different signature hash types can be combined to produce six different "patterns" of transaction data that are locked by the signature.
+((("signature hash type")))Signatures are not always applied to the entire transaction. To provide signing flexibility, a Bitcoin digital signature contains a prefix called the signature hash type, which specifies which part of the transaction data is included in the hash. This allows the signature to commit or "lock" all, or only some of, the data in the transaction. The most common signature hash type is +SIGHASH_ALL+ which locks everything in the transaction by including all the transaction data in the hash that is signed. By comparison, +SIGHASH_SINGLE+ locks all the transaction inputs, but only one output (more about inputs and outputs in the next section). Different signature hash types can be combined to produce six different "patterns" of transaction data that are locked by the signature.
 
 More information about signature hash types can be found in https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc#sighash_types[the section "Signature Hash Types" in Chapter 6 of _Mastering Bitcoin_, Second Edition].(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc4")))(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc3")))(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc2")))(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc1")))
 
@@ -220,7 +220,7 @@ Try to find it by entering this TxID into a block explorer:
 <li><a href="https://blockstream.info/tx/e31e4e214c3f436937c74b8663b3ca58f7ad5b3fce7783eb84fd9a5ee5b9a54c"><em>https://blockstream.info/tx/e31e4e214c3f436937c74b8663b3ca58f7ad5b3fce7783eb84fd9a5ee5b9a54c</em></a></li></ul>
 ++++
 
-or use the short link (case sensitive):
+or use the short link (case-sensitive):
 
 ++++
 <ul class="simplelist">
@@ -279,7 +279,7 @@ image::images/mtln_aa08.png["Example of Bitcoin Script execution"]
 
 ((("Bitcoin script","locking/unlocking")))Bitcoin Script is made up of two parts:
 
-Locking scripts:: ((("locking scripts")))These are embedded in transaction outputs, setting the conditions that must be fulfilled to spend that output. For example, Alice's wallet adds a locking script to the output paying Bob that sets the condition that Bob's signature is required to spend it.
+Locking scripts:: ((("locking scripts")))These are embedded in transaction outputs, setting the conditions that must be fulfilled to spend that output. For example, Alice's wallet adds a locking script to the output paying Bob, that sets the condition that Bob's signature is required to spend it.
 
 Unlocking scripts:: ((("unlocking scripts")))These are embedded in transaction inputs, fulfilling the conditions set by the referenced output's locking script. For example, Bob can unlock the preceding output by providing an unlocking script containing a digital signature.
 
@@ -297,7 +297,7 @@ Obviously, this simplified example would make a very poor choice for locking an 
 <Bob Public Key> CHECKSIG
 ----
 
-The operator CHECKSIG takes two items from the stack: a signature and a public key. As you can see, Bob's public key is in the locking script, so what is missing is the signature corresponding to that public key. This locking script can only be spent by Bob, because only Bob has the corresponding private key needed to produce a digital signature matching the public key.
+The operator `CHECKSIG` takes two items from the stack: a signature and a public key. As you can see, Bob's public key is in the locking script, so what is missing is the signature corresponding to that public key. This locking script can only be spent by Bob, because only Bob has the corresponding private key needed to produce a digital signature matching the public key.
 
 To unlock this locking script, Bob would provide an unlocking script containing only his digital signature:
 
@@ -315,18 +315,18 @@ image::images/mtln_aa09.png["A transaction chain showing the locking script (out
 
 To validate Bob's transaction, a Bitcoin node would do the following:
 
-* Extract the unlocking script from the input (+<Bob Signature>+).
-* Look up the outpoint it is attempting to spend (+a643e37...3213:0+). This is Alice's transaction and would be found on the blockchain.
-* Extract the locking script from that outpoint (+<Bob PubKey> CHECKSIG+).
-* Concatenate into one script, placing the unlocking script in front of the locking script (+<Bob Signature> <Bob PubKey> CHECKSIG+).
-* Execute this script on the Bitcoin Script execution engine to see what result is produced.
-* If the result is +TRUE+, deduce that Bob's transaction is valid because it was able to fulfill the spending condition to spend that outpoint.
+. Extract the unlocking script from the input (+<Bob Signature>+).
+. Look up the outpoint it is attempting to spend (+a643e37...3213:0+). This is Alice's transaction and would be found on the blockchain.
+. Extract the locking script from that outpoint (+<Bob PubKey> CHECKSIG+).
+. Concatenate into one script, placing the unlocking script in front of the locking script (+<Bob Signature> <Bob PubKey> CHECKSIG+).
+. Execute this script on the Bitcoin Script execution engine to see what result is produced.
+. If the result is +TRUE+, deduce that Bob's transaction is valid because it was able to fulfill the spending condition to spend that outpoint.
 
 ==== Locking to a Hash (Secret)
 
 ((("hashlock")))((("locking scripts","locking to a hash (secret)")))Another type of locking script, one that is used in the Lightning Network, is a _hashlock_. To unlock it, you must know the secret _preimage_ to the hash.
 
-To demonstrate this, let's have Bob generate a random number +R+ and keep it secret.
+To demonstrate this, let's have Bob generate a random number +R+ and keep it secret:
 
 ----
 R = 1833462189
@@ -352,11 +352,11 @@ where +H+ is the actual hash value (+0ffd8...036a+) that Bob gave to Alice.
 
 Let's explain this script:
 
-The HASH256 operator pops a value from the stack and calculates the SHA-256 hash of that value. Then it pushes the result onto the stack.
+The +HASH256+ operator pops a value from the stack and calculates the SHA-256 hash of that value. Then it pushes the result onto the stack.
 
 The +H+ value is pushed onto the stack, and then the +EQUAL+ operator checks if the two values are the same and pushes +TRUE+ or +FALSE+ onto the stack accordingly.
 
-Therefore, this locking script will only work if it is combined with an unlocking script that contains +R+, so that when concatenated we have:
+Therefore, this locking script will only work if it is combined with an unlocking script that contains +R+, so that when concatenated, we have:
 
 ----
 R HASH256 H EQUAL
@@ -403,7 +403,7 @@ A multisignature locking script can be represented by a Bitcoin address, encodin
 
 ==== Timelock Scripts
 
-((("Bitcoin script","timelock scripts")))((("timelock scripts")))Another important building block that exists in Bitcoin and is used extensively in the Lightning Network is a _timelock_. A timelock is a restriction on spending that requires that a certain time or block height has elapsed before spending is allowed. It is a bit like a post-dated check drawn from a bank account that can't be cashed before the date on the check.
+((("Bitcoin script","timelock scripts")))((("timelock scripts")))Another important building block that exists in Bitcoin and is used extensively in the Lightning Network is a _timelock_. A timelock is a restriction on spending that requires that a certain time or block height has elapsed before spending is allowed. It is a bit like a postdated check drawn from a bank account that can't be cashed before the date on the check.
 
 Bitcoin has two levels of timelocks: transaction-level timelocks and output-level timelocks.
 
@@ -411,7 +411,7 @@ Bitcoin has two levels of timelocks: transaction-level timelocks and output-leve
 
 ((("output-level timelock")))An _output-level timelock_ is created by a script operator. There are two types of output timelocks: absolute timelocks and relative timelocks.
 
-((("absolute timelock")))Output-level _absolute timelocks_ are implemented by the operator +CHECKLOCKTIMEVERIFY+, which is often shortened in conversation as _CLTV_. Absolute timelocks implement a time-constraint with an abolute timestamp or blockheight, expressing the equivalent of "not spendable before block 800,000."
+((("absolute timelock")))Output-level _absolute timelocks_ are implemented by the operator +CHECKLOCKTIMEVERIFY+, which is often shortened in conversation as _CLTV_. Absolute timelocks implement a time constraint with an absolute timestamp or blockheight, expressing the equivalent of "not spendable before block 800,000."
 
 ((("relative timelock")))Output-level _relative timelocks_ are implemented by the operator +CHECKSEQUENCEVERIFY+, often shortened in conversation as _CSV_. Relative timelocks implement a spending constraint that is relative to the confirmation of the transaction, expressing the equivalent of "can't be spent until 1,024 blocks after confirmation."
 
@@ -492,7 +492,7 @@ Because each of the two conditions also requires a signature, Alice can't use th
 
 Since conditional flows can be nested, so can the +TRUE+ / +FALSE+ values in the unlocking script, to navigate a complex path of conditions.
 
-In <<htlc_script_example>> you can see an example of the kind of complex script that is used in the Lightning Network, with multiple conditions.footnote:[From https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md[BOLT #3].] The scripts used in the Lightning Network are highly optimized and compact, to minimize the on-chain footprint, so they are not easy to read and understand.(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc13"))) Nevertheless, see if you can identify some of the Bitcoin Script concepts we learned about in this chapter(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc12")))(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc11"))):(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc0")))
+In <<htlc_script_example>> you can see an example of the kind of complex script that is used in the Lightning Network, with multiple conditions.footnote:[From https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md[BOLT #3].] The scripts used in the Lightning Network are highly optimized and compact, to minimize the on-chain footprint, so they are not easy to read and understand.(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc13"))) Nevertheless, see if you can identify some of the Bitcoin Script concepts we learned about in this chapter.(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc12")))(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc11")))(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc0")))
 
 [[htlc_script_example]]
 .A complex script used in the Lightning Network
