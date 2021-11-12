@@ -4,22 +4,22 @@
 [[messages]]
 == Wire Protocol Messages
 
-This appendix lists all the currently defined message types used in the Lightning P2P protocol. Additionally, we show the structure of each message, grouping the messages into logical groupings based on the protocol flows.
+((("wire protocol messages", id="ix_appendix_protocol_messages-asciidoc0", range="startofrange")))This appendix lists all the currently defined message types used in the Lightning P2P protocol. Additionally, we show the structure of each message, grouping the messages into logical groupings based on the protocol flows.
 
 [NOTE]
 ====
-Lightning Protocol messages are extensible and their structure may change during network-wide upgrades. For the authoritative information, consult the latest version of the BOLTs found in the https://github.com/lightningnetwork/lightning-rfc[Github - Lightning-RFC] repository.
+Lightning Protocol messages are extensible and their structure may change during network-wide upgrades. For the authoritative information, consult the latest version of the BOLTs found in the https://github.com/lightningnetwork/lightning-rfc[GitHub Lightning-RFC repository].
 ====
 
 === Message Types
 
-Currently defined message types are:
+((("wire protocol messages","message types", id="ix_appendix_protocol_messages-asciidoc1", range="startofrange")))Currently defined message types are listed in <<apdx_message_types>>.
 
 [[apdx_message_types]]
-.Message Types
+.Message types
 [options="header"]
 |===
-| Type Integer | Message Name | Category
+| Type integer | Message name | Category
 | 16  | `init`             |  Connection Establishment
 | 17  | `error`             | Error Communication
 | 18  | `ping`             | Connection Liveness
@@ -52,58 +52,59 @@ Currently defined message types are:
 
 In <<message_types>>, the `Category` field allows us to quickly categorize a
 message based on its functionality within the protocol itself. At a high level,
-we place a message into one of 8 (non exhaustive) buckets including:
+we place a message into one of eight (nonexhaustive) buckets including:
 
- * *Connection Establishment*: Sent when a peer to peer connection is first
-   established. Also used in order to negotiate the set of feature supported
+Connection Establishment:: Sent when a peer-to-peer connection is first
+   established. Also used to negotiate the set of features supported
    by a new connection.
 
- * *Error Communication*: Used by peer to communicate the occurrence of
+Error Communication:: Used by peers to communicate the occurrence of
    protocol level errors to each other.
 
- * *Connection Liveness*: Used by peers to check that a given transport
+Connection Liveness:: Used by peers to check that a given transport
   connection is still live.
 
- * *Channel Funding*: Used by peers to create a new payment channel. This
+Channel Funding:: Used by peers to create a new payment channel. This
    process is also known as the channel funding process.
 
- * *Channel Operation*: The act of updating a given channel off-chain. This
+Channel Operation:: The act of updating a given channel off-chain. This
    includes sending and receiving payments, as well as forwarding payments
    within the network.
 
- * *Channel Announcement*: The process of announcing a new public channel to
+Channel Announcement:: The process of announcing a new public channel to
    the wider network so it can be used for routing purposes.
 
- * *Channel Graph Syncing*: The process of downloading & verifying the channel
+Channel Graph Syncing:: The process of downloading and verifying the channel
   graph.
 
 
 Notice how messages that belong to the same category typically share an
-adjacent _message type_ as well. This is done on purpose in order to group
-semantically similar messages together within the specification itself.
+adjacent _message type_ as well. This is done on purpose to group
+semantically similar messages together within the specification itself.(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc1")))
 
 === Message Structure
 
-We now detail each message category in order to define
+((("wire protocol messages","message structure", id="ix_appendix_protocol_messages-asciidoc2", range="startofrange")))We now detail each message category in order to define
 the precise structure and semantics of all defined messages within the LN
 protocol.
 
 ==== Connection Establishment Messages
 
-Messages in this category are the very first message sent between peers once
-they establish a transport connection. At the time of writing of this chapter,
-there exists only a single messages within this category, the `init` message.
+((("wire protocol messages","connection establishment messages")))Messages in this category are the very first message sent between peers once
+they establish a transport connection. At the time of writing this chapter,
+there exists only a single message within this category, the `init` message.
 The `init` message is sent by _both_ sides of the connection once it has been
 first established. No other messages are to be sent before the `init` message
 has been sent by both parties.
 
-The structure of the `init` message is defined as follows:
 
 [[apdx_init_message]]
 ===== The init message
 
- * type:	*16*
- * fields:
+((("wire protocol messages","init message")))The structure of the `init` message is defined as follows:
+
+ * Type: 16
+ * Fields:
     ** `uint16`: `global_features_len`
     ** `global_features_len*byte`: `global_features`
     ** `uint16`: `features_len`
@@ -111,22 +112,20 @@ The structure of the `init` message is defined as follows:
     ** `tlv_stream_tlvs`
 
 Structurally, the `init` message is composed of two variable size bytes slices
-that each store a set of _feature bits_. As we see in <<feature_bits>>, feature bits are a
-primitive used within the protocol in order to advertise the set of protocol
-features a node either understands (optional features), or demands (required
+that each store a set of _feature bits_. ((("feature bits","defined")))As we see in <<feature_bits>>, feature bits are a
+primitive used within the protocol to advertise the set of protocol
+features a node either understands (optional features) or demands (required
 features).
 
 Note that modern node implementations will only use the `features` field, with
 items residing within the `global_features` vector for primarily _historical_
-purposes (backwards compatibility).
+purposes (backward compatibility).
 
-What follows after the core message is a series of T.L.V, or Type Length Value
-records which can be used to extend the message in a forwards+backwards
-compatible manner in the future. We'll cover what TLV records are and how
-they're used later in the chapter.
+What follows after the core message is a series of Type-Length-Value (TLV) records that can be used to extend the message in a forward- and backward-compatible manner in the future. We'll cover what TLV records are and how
+they're used later in this appendix.
 
-An `init` message is then examined by a peer in order to determine if the
-connection is well defined based on the set of optional and required feature
+An `init` message is then examined by a peer to determine if the
+connection is well-defined based on the set of optional and required feature
 bits advertised by both sides.
 
 An optional feature means that a peer knows about a feature, but they don't
@@ -134,33 +133,33 @@ consider it critical to the operation of a new connection. An example of one
 would be something like the ability to understand the semantics of a newly
 added field to an existing message.
 
-On the other hand, required feature indicate that if the other peer doesn't
+On the other hand, required features indicate that if the other peer doesn't
 know about the feature, then the connection isn't well defined. An example of
 such a feature would be a theoretical new channel type within the protocol: if
-your peer doesn't know of this feature, they you don't want to keep the
-connection as they're unable to open your new preferred channel type.
+your peer doesn't know of this feature, then you don't want to keep the
+connection because they're unable to open your new preferred channel type.
 
 ==== Error Communication Messages
 
-Messages in this category are used to send connection level errors between two
+((("wire protocol messages","error communication messages")))Messages in this category are used to send connection level errors between two
 peers. Another type of error exists in the protocol: an
 HTLC forwarding level error. Connection level errors may signal things like
-feature bit incompatibility, or the intent to force close (unilaterally
-broadcast the latest signed commitment)
+feature bit incompatibility or the intent to _force close_ (unilaterally
+broadcast the latest signed commitment).
 
-The sole message in this category is the `error` message:
+((("wire protocol messages","error message")))The sole message in this category is the `error` message.
 
 [[apdx_error_message]]
 ===== The error message
 
- * type:	*17*
- * fields:
+ * Type: 17
+ * Fields:
   ** `channel_id` : `chan_id`
   ** `uint16` : `data_len`
   ** `data_len*byte` : `data`
 
 An `error` message can be sent within the scope of a particular channel by
-setting the `channel_id`, to the `channel_id` of the channel under going this
+setting the `channel_id` to the `channel_id` of the channel undergoing this
 new error state. Alternatively, if the error applies to the connection in
 general, then the `channel_id` field should be set to all zeroes. This all zero
 `channel_id` is also known as the connection level identifier for an error.
@@ -172,27 +171,27 @@ channel by broadcasting the latest commitment state of the channel.
 
 ==== Connection Liveness
 
-Messages in this section are used to probe to determine if a connection is
-still live or not. As the LN protocol somewhat abstracts over the underlying
-transport being used to transmit the messages, a set of protocol level `ping`
+((("wire protocol messages","connection liveness messages")))Messages in this section are used to probe to determine if a connection is
+still live or not. Because the LN protocol somewhat abstracts over the underlying
+transport being used to transmit the messages, a set of protocol level ((("wire protocol messages","ping message")))((("wire protocol messages","pong message")))`ping`
 and `pong` messages are defined.
 
 [[apdx_ping_message]]
 ===== The ping message
 
- * type:	*18*
- * fields:
+ * Type: 18
+ * Fields:
   ** `uint16` : `num_pong_bytes`
   ** `uint16` : `ping_body_len`
   ** `ping_body_len*bytes` : `ping_body`
 
-Next it's companion, the `pong` message.
+Next its companion, the `pong` message.
 
 [[apdx_pong_message]]
 ===== The pong message
 
- * type:	*19*
- * fields:
+ * Type: 19
+ * Fields:
   ** `uint16` : `pong_body_len`
   ** `ping_body_len*bytes` : `pong_body`
 
@@ -208,32 +207,32 @@ de-anonymization techniques based on packet sizes on the wire.
 A `pong` message should be sent in response to a received `ping` message. The
 receiver should read a set of `num_pong_bytes` random bytes to send back as the
 `pong_body` field. Clever use of these fields/messages may allow a privacy
-concious routing node to attempt to thwart certain classes of network
-de-anonymization attempts, as they can create a "fake" transcript that
-resembles other messages based on the packet sizes set across. Remember that by
-default the LN uses an _encrypted_ transport, so a passive network monitor
-cannot read the plaintext bytes, thus only has timing and packet sizes to go
+conscious routing node to attempt to thwart certain classes of network
+de-anonymization attempts because they can create a "fake" transcript that
+resembles other messages based on the packet sizes sent across. Remember that by
+default the Lightning Network uses an _encrypted_ transport, so a passive network monitor
+cannot read the plain-text bytes and thus only has timing and packet sizes to go
 off of.
 
 ==== Channel Funding
 
-As we go on, we enter into the territory of the core messages that govern the
+((("wire protocol messages","channel funding", id="ix_appendix_protocol_messages-asciidoc3", range="startofrange")))As we go on, we enter into the territory of the core messages that govern the
 functionality and semantics of the Lightning Protocol. In this section, we
 explore the messages sent during the process of creating a new channel. We'll
-only describe the fields used as we leave a in in-depth analysis of the
+only describe the fields used, as we leave an in-depth analysis of the
 funding process to <<payment_channels>>.
 
 Messages that are sent during the channel funding flow belong to the following
-set of 5 messages: `open_channel`, `accept_channel`, `funding_created`,
-`funding_signed`, `funding_locked`.
+set of five messages: `open_channel`, `accept_channel`, `funding_created`,
+`funding_signed`, and `funding_locked`.
 
 The detailed protocol flow using these messages is described in <<payment_channels>>.
 
 [[apdx_open_channel_message]]
 ===== The open_channel message
 
- * type:	*32*
- * fields:
+ * Type: 32
+ * Fields:
   ** `chain_hash` : `chain_hash`
   ** `32*byte` : `temp_chan_id`
   ** `uint64` : `funding_satoshis`
@@ -254,38 +253,36 @@ The detailed protocol flow using these messages is described in <<payment_channe
   ** `byte` : `channel_flags`
   ** `tlv_stream` : `tlvs`
 
-This is the first message sent when a node wishes to execute a new funding flow
+((("open_channel message")))((("wire protocol messages","open_channel message")))This is the first message sent when a node wishes to execute a new funding flow
 with another node. This message contains all the necessary information required
-for both peers to constructs both the funding transaction as well as the
+for both peers to construct both the funding transaction as well as the
 commitment transaction.
 
-At the time of writing of this chapter, a single TLV record is defined within
+At the time of writing this chapter, a single TLV record is defined within
 the set of optional TLV records that may be appended to the end of a defined
 message:
 
- * type:	*0*
- * data:  `upfront_shutdown_script`
+ * Type: 0
+ * Data:  `upfront_shutdown_script`
 
-The `upfront_shutdown_script` is a variable sized byte slice that MUST be a
-valid public key script as accepted by the Bitcoin networks' consensus
+The `upfront_shutdown_script` is a variable-sized byte slice that must be a
+valid public key script as accepted by the Bitcoin network's consensus
 algorithm. By providing such an address, the sending party is able to
 effectively create a "closed loop" for their channel, as neither side will sign
 off an cooperative closure transaction that pays to any other address. In
 practice, this address is usually one derived from a cold storage wallet.
 
-The `channel_flags` field is a bitfield of which at the time of writing, only
-the _first_ bit has any sort of significance. If this bit is set, then this
-denotes that this channel is to be advertised to the public network as a route
-bal channel. Otherwise, the channel is considered to be unadvertised, also
-commonly referred to as a "private" channel.
+The `channel_flags` field is a bitfield of which, at the time of writing, only
+the _first_ bit has any sort of significance. If this bit is set, then this channel is to be advertised to the public network as a routable channel. Otherwise, the channel is considered to be unadvertised, also
+commonly referred to as a private channel.
 
-The `accept_channel` message is the response to the `open_channel` message:
+((("accept_channel message")))((("wire protocol messages","accept_channel message")))The `accept_channel` message is the response to the `open_channel` message.
 
 [[apdx_accept_channel_message]]
 ===== The accept_channel message
 
- * type:	*33*
- * fields:
+ * Type: 33
+ * Fields:
   ** `32*byte` : `temp_chan_id`
   ** `uint64` : `dust_limit_satoshis`
   ** `uint64` : `max_htlc_value_in_flight_msat`
@@ -306,76 +303,76 @@ The `accept_channel` message is the second message sent during the funding flow
 process. It serves to acknowledge an intent to open a channel with a new remote
 peer. The message mostly echoes the set of parameters that the responder wishes
 to apply to their version of the commitment transaction. In <<payment_channels>>,
-when we go into the funding process in details, we do a deep dive to explore
+when we go into the funding process in detail, we explore
 the implications of the various parameters that can be set when opening a new
 channel.
 
-In response, the initiator will send the `funding_created` message.
+((("funding_created message")))((("wire protocol messages","funding_created message")))In response, the initiator will send the `funding_created` message.
 
 [[apdx_funding_created_message]]
 ===== The funding_created message
 
- * type:	*34*
- * fields:
+ * Type: 34
+ * Fields:
   ** `32*byte` : `temp_chan_id`
   ** `32*byte` : `funding_txid`
   ** `uint16` : `funding_output_index`
   ** `sig` : `commit_sig`
 
 Once the initiator of a channel receives the `accept_channel` message from the
-responder, they they have all the materials they need in order to construct the
+responder, they have all the materials they need to construct the
 commitment transaction, as well as the funding transaction. As channels by
 default are single funder (only one side commits funds), only the initiator
-needs to construct the funding transaction. As a result, in order to allow the
+needs to construct the funding transaction. As a result, to allow the
 responder to sign a version of a commitment transaction for the initiator, the
-initiator, only needs to send the funding outpoint of the channel.
+initiator only needs to send the funding outpoint of the channel.
 
-To conclude the responder sends the `funding_signed` message.
+((("funding_signed message")))((("wire protocol messages","funding_signed message")))To conclude, the responder sends the `funding_signed` message.
 
 [[apdx_funding_signed_message]]
 ===== The funding_signed message
 
- * type:	*34*
- * fields:
+ * Type: 34
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `sig` : `signature`
 
-To conclude after the responder receivers the `funding_created` message, they
+To conclude after the responder receives the `funding_created` message, they
 now own a valid signature of the commitment transaction by the initiator. With
 this signature they're able to exit the channel at any time by signing their
-half of the multi-sig funding output, and broadcasting the transaction. This is
-referred to as a force close. In order to give the initiator the ability to do
-so was well, before the channel can be used, the responder then signs the
+half of the multisig funding output and broadcasting the transaction. This is
+referred to as a force close. To give the initiator the ability to do
+so as well, before the channel can be used, and the responder then signs the
 initiator's commitment transaction as well.
 
 Once this message has been received by the initiator, it's safe for them to
-broadcast the funding transaction, as they're now able to exit the channel
+broadcast the funding transaction because they're now able to exit the channel
 agreement unilaterally.
 
-Once the funding transaction has received enough confirmations, the
-`funding_locked` is sent.
+((("funding_locked message")))((("wire protocol messages","funding_locked message")))Once the funding transaction has received enough confirmations, the
+`funding_locked` message is sent.
 
 [[apdx_funding_locked_message]]
 ===== The funding_locked message
 
- * type:	*36*
- * fields:
+ * Type: 36
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `pubkey` : `next_per_commitment_point`
 
 Once the funding transaction obtains a `minimum_depth` number of confirmations,
 then the `funding_locked` message is to be sent by both sides. Only after this
-message has been received, and sent can the channel being to be used.
+message has been received and sent can the channel begin to be used.(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc3")))
 
 ==== Channel Closing
 
-Channel closing is a multi-step process. One node initiates by sending the `shutdown` message. The two channel partners then exchange a series of `channel_closing` messages to negotiate mutually acceptable fees for the closing transaction. The channel funder sends the first `closing_signed` message and the other side can accept by sending a `closing_signed` message with the same fee values.
+((("wire protocol messages","channel closing")))Channel closing is a multistep process. ((("wire protocol messages","shutdown message")))One node initiates by sending the `shutdown` message. The two channel partners then exchange a series of `channel_closing` messages to negotiate mutually acceptable fees for the closing transaction. ((("closing_signed message")))((("wire protocol messages","closing_signed message")))The channel funder sends the first `closing_signed` message, and the other side can accept by sending a `closing_signed` message with the same fee values.
 
 [[apdx_shutdown_message]]
 ===== The shutdown message
 
- * type:	*38*
- * fields:
+ * Type: 38
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `u16` : `len`
   ** `len*byte` : `scriptpubkey`
@@ -383,29 +380,29 @@ Channel closing is a multi-step process. One node initiates by sending the `shut
 [[apdx_closing_signed_message]]
 ===== The closing_signed message
 
- * type:	*39*
- * fields:
+ * Type: 39
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `u64` : `fee_satoshis`
   ** `signature` : `signature`
 
 ==== Channel Operation
 
-In this section, we briefly describe the set of messages used to allow
-nodes to operate a channel. By operation, we mean being able to send receive,
+((("wire protocol messages","channel operation", id="ix_appendix_protocol_messages-asciidoc4", range="startofrange")))In this section, we briefly describe the set of messages used to allow
+nodes to operate a channel. By operation, we mean being able to send, receive,
 and forward payments for a given channel.
 
-In order to send, receive or forward a payment over a channel, an HTLC must
-first be added to both commitment transactions that comprise of a channel link.
+To send, receive, or forward a payment over a channel, an HTLC must
+first be added to both commitment transactions that comprise a channel link.
 
-The `update_add_htlc` message allows either side to add a new HTLC to the
+((("channel operation","update_add_htlc message")))((("update_add_htlc message")))((("wire protocol messages","update_add_htlc message")))The `update_add_htlc` message allows either side to add a new HTLC to the
 opposite commitment transaction.
 
 [[apdx_update_add_htlc_message]]
 ===== The update_add_htlc message
 
- * type:	*128*
- * fields:
+ * Type: 128
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `uint64` : `id`
   ** `uint64` : `amount_msat`
@@ -413,60 +410,60 @@ opposite commitment transaction.
   ** `uint32` : `cltv_expiry`
   ** `1366*byte` : `onion_routing_packet`
 
-Sending this message allows one party to initiate either sending a new payment,
-or forwarding an existing payment that arrived via in incoming channel. The
+Sending this message allows one party to initiate either sending a new payment
+or forwarding an existing payment that arrived via an incoming channel. The
 message specifies the amount (`amount_msat`) along with the payment hash that
 unlocks the payment itself. The set of forwarding instructions of the next hop
 are onion encrypted within the `onion_routing_packet` field. In <<onion_routing>>, on
-multi-hop HTLC forwarding, we detail the onion routing protocol used in the
-Lighting Network in detail.
+multihop HTLC forwarding, we cover the onion routing protocol used in the
+Lightning Network in detail.
 
-Note that each HTLC sent uses an auto incrementing ID which is used by any
+Note that each HTLC sent uses an automatically incrementing ID which is used by any
 message which modifies an HTLC (settle or cancel) to reference the HTLC in a
 unique manner scoped to the channel.
 
-The `update_fulfill_hltc` allow redemption (receipt) of an active HTLC.
+((("channel operation","update_fulfill_hltc message")))((("update_fulfill_hltc message")))The `update_fulfill_hltc` message allows redemption (receipt) of an active HTLC.
 
 [[apdx_update_fulfill_hltc_message]]
 ===== The update_fulfill_hltc message
 
- * type:	*130*
- * fields:
+ * Type: 130
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `uint64` : `id`
   ** `32*byte` : `payment_preimage`
 
-This message is sent by the HTLC receiver to the proposer in order to redeem an
+This message is sent by the HTLC receiver to the proposer to redeem an
 active HTLC. The message references the `id` of the HTLC in question, and also
-provides the pre-image (which unlocks the HLTC) as well.
+provides the preimage (which unlocks the HLTC).
 
-The `update_fail_htlc` is sent to remove an HTLC from a commitment transaction.
+((("channel operation","update_fail_htlc message")))((("update_fail_htlc message")))The `update_fail_htlc` message is sent to remove an HTLC from a commitment transaction.
 
 [[apdx_update_fail_htlc_message]]
 ===== The update_fail_htlc message
 
- * type:	*131*
- * fields:
+ * Type: 131
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `uint64` : `id`
   ** `uint16` : `len`
   ** `len*byte` : `reason`
 
-The `update_fail_htlc` is the opposite of the `update_fulfill_hltc` message as
+The `update_fail_htlc` message is the opposite of the `update_fulfill_hltc` message in that
 it allows the receiver of an HTLC to remove the very same HTLC. This message is
-typically sent when an HTLC cannot be properly routed upstream, and needs to be
-sent back to the sender in order to unravel the HTLC chain. As we explore in
-Chapter XX, the message contains an _encrypted_ failure reason (`reason`) which
-may allow the sender to either adjust their payment route, or terminate if the
+typically sent when an HTLC cannot be properly routed upstream and needs to be
+sent back to the sender to unravel the HTLC chain. As we explore in
+<<failure_messages>>, the message contains an _encrypted_ failure reason (`reason`) which
+may allow the sender to either adjust their payment route or terminate if the
 failure itself is a terminal one.
 
-The `commitment_signed` message is used to stamp the creation of a new commitment transaction
+((("channel operation","commitment_signed message")))((("commitment_signed message")))The `commitment_signed` message is used to stamp the creation of a new commitment transaction.
 
 [[apdx_commitment_signed_message]]
 ===== The commitment_signed message
 
- * type:	*132*
- * fields:
+ * Type: 132
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `sig` : `signature`
   ** `uint16` : `num_htlcs`
@@ -474,80 +471,79 @@ The `commitment_signed` message is used to stamp the creation of a new commitmen
 
 In addition to sending a signature for the next commitment transaction, the
 sender of this message also needs to send a signature for each HTLC that's
-present on the commitment transaction. This is due to the existence of the
+present on the commitment transaction.
 
-
-The `revoke_and_ack` is sent to revoke a dated commitment:
+((("channel operation","revoke_and_ack message")))((("revoke_and_ack message")))The `revoke_and_ack` is sent to revoke a dated commitment.
 
 [[apdx_revoke_and_ack_message]]
 ===== The revoke_and_ack message
 
- * type:	*133*
- * fields:
+ * Type: 133
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `32*byte` : `per_commitment_secret`
   ** `pubkey` : `next_per_commitment_point`
 
-As the Lightning Network uses a replace-by-revoke commitment transaction, after
+Because the Lightning Network uses a replace-by-revoke commitment transaction, after
 receiving a new commitment transaction via the `commit_sig` message, a party
 must revoke their past commitment before they're able to receive another one.
 While revoking a commitment transaction, the revoker then also provides the
 next commitment point that's required to allow the other party to send them a
 new commitment state.
 
-The `update_fee` is sent to update the fee on the current commitment
+((("channel operation","update_fee message")))((("update_fee message")))The `update_fee` is sent to update the fee on the current commitment
 transactions.
 
 [[apdx_update_fee_message]]
 ===== The update_fee message
 
- * type:	*134*
- * fields:
+ * Type: 134
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `uint32` : `feerate_per_kw`
 
-This message can only be sent by the initiator of the channel they're the ones
+This message can only be sent by the initiator of the channel; they're the ones
 that will pay for the commitment fee of the channel as along as it's open.
 
-The `update_fail_malformed_htlc` is sent to remove a corrupted HTLC:
+((("channel operation","update_fail_malformed_htlc message")))((("update_fail_malformed_htlc message")))The `update_fail_malformed_htlc` message is sent to remove a corrupted HTLC.
 
 
 [[apdx_update_fail_malformed_htlc_message]]
 ===== The update_fail_malformed_htlc message
 
- * type:	*135*
- * fields:
+ * Type: 135
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `uint64` : `id`
   ** `sha256` : `sha256_of_onion`
   ** `uint16` : `failure_code`
 
-This message is similar to the `update_fail_htlc` but it's rarely used in
-practice. As mentioned above, each HTLC carries an onion encrypted routing
+This message is similar to the `update_fail_htlc` message, but it's rarely used in
+practice. As mentioned previously, each HTLC carries an onion encrypted routing
 packet that also covers the integrity of portions of the HTLC itself. If a
 party receives an onion packet that has somehow been corrupted along the way,
-then it won't be able to decrypt the packet. As a result it also can't properly
-forward the HTLC, therefore it'll send this message to signify that the HTLC
-has been corrupted somewhere along the route back to the sender.
+then it won't be able to decrypt the packet. As a result, it also can't properly
+forward the HTLC; therefore, it'll send this message to signify that the HTLC
+has been corrupted somewhere along the route back to the sender.(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc4")))
 
 ==== Channel Announcement
 
-Messages in this category are used to announce components of the Channel Graph
-authenticated data structure to the wider network. The Channel Graph has a
+((("channel_announcement message", id="ix_appendix_protocol_messages-asciidoc5", range="startofrange")))((("wire protocol messages","channel announcement", id="ix_appendix_protocol_messages-asciidoc6", range="startofrange")))Messages in this category are used to announce components of the channel graph
+authenticated data structure to the wider network. The channel graph has a
 series of unique properties due to the condition that all data added to the
-channel graph MUST also be anchored in the base Bitcoin blockchain. As a
-result, in order to add a new entry to the channel graph, an agent must be an
-on chain transaction fee. This serves as a natural spam de tenace for the
+channel graph must also be anchored in the base Bitcoin blockchain. As a
+result, to add a new entry to the channel graph, an agent must be an
+on-chain transaction fee. This serves as a natural spam deterrent for the
 Lightning Network.
 
-The `channel_announcement` is used to announce a new channel to the wider
+The `channel_announcement` message is used to announce a new channel to the wider
 network.
 
 [[apdx_channel_announcement_message]]
 ===== The channel_announcement message
 
- * type:	*256*
- * fields:
+ * Type: 256
+ * Fields:
   ** `sig` : `node_signature_1`
   ** `sig` : `node_signature_2`
   ** `sig` : `bitcoin_signature_1`
@@ -564,17 +560,17 @@ network.
 The series of signatures and public keys in the message serves to create a
 _proof_ that the channel actually exists within the base Bitcoin blockchain. As
 we detail in <<scid>>, each channel is uniquely identified by a locator
-that encodes it's _location_ within the blockchain. This locator is called this
+that encodes its _location_ within the blockchain. This locator is called this
 `short_channel_id` and can fit into a 64-bit integer.
 
-The `node_announcement` allows a node to announce/update it's vertex within the
-greater Channel Graph.
+((("channel_announcement message","node_announcement message")))((("node_announcement message")))The `node_announcement` message allows a node to announce/update its vertex within the
+greater channel graph.
 
 [[apdx_node_announcement_message]]
-===== The node_announcemen` message
+===== The node_announcement message
 
- * type:	*257*
- * fields:
+ * Type: 257
+ * Fields:
   ** `sig` : `signature`
   ** `uint64` : `flen`
   ** `flen*byte` : `features`
@@ -585,22 +581,22 @@ greater Channel Graph.
   ** `uint16` : `addrlen`
   ** `addrlen*byte` : `addresses`
 
-Note that if a node doesn't have any advertised channel within the Channel
-Graph, then this message is ignored in order to ensure that adding an item to
-the Channel Graph bares an on-chain cost. In this case, the on-chain cost will
-the cost of creating the channel which this node is connected to.
+Note that if a node doesn't have any advertised channel within the channel
+graph, then this message is ignored to ensure that adding an item to
+the channel graph bears an on-chain cost. In this case, the on-chain cost will be
+the cost of creating the channel to which this node is connected.
 
 In addition to advertising its feature set, this message also allows a node to
-announce/update the set of network `addresses` that it can be reached at.
+announce/update the set of network `addresses` where it can be reached.
 
-The `channel_update` message is sent to update the properties and policies of
-an active channel edge within the Channel graph.
+((("channel_announcement message","channel_update message")))((("channel_update message")))The `channel_update` message is sent to update the properties and policies of
+an active channel edge within the channel graph.
 
 [[apdx_channel_update_message]]
 ===== The channel_update message
 
- * type:	*258*
- * fields:
+ * Type: 258
+ * Fields:
   ** `signature` : `signature`
   ** `chain_hash` : `chain_hash`
   ** `short_channel_id` : `short_channel_id`
@@ -613,19 +609,19 @@ an active channel edge within the Channel graph.
   ** `uint32` : `fee_proportional_millionths`
   ** `uint16` : `htlc_maximum_msat`
 
-In addition to being able to enable/disable a channel this message allows a
-node to update it's routing fees as well as other fields that shape the type of
+In addition to being able to enable/disable a channel, this message allows a
+node to update its routing fees as well as other fields that shape the type of
 payment that is permitted to flow through this channel.
 
-The `announce_signatures` message is exchange by channel peers in order to
+((("announce_signatures message")))((("channel_announcement message","announce_signatures message")))The `announce_signatures` message is exchanged by channel peers to
 assemble the set of signatures required to produce a `channel_announcement`
 message.
 
 [[apdx_announce_signatures_message]]
 ===== The announce_signatures message
 
- * type:	*259*
- * fields:
+ * Type: 259
+ * Fields:
   ** `channel_id` : `channel_id`
   ** `short_channel_id` : `short_channel_id`
   ** `sig` : `node_signature`
@@ -633,50 +629,50 @@ message.
 
 After the `funding_locked` message has been sent, if both sides wish to
 advertise their channel to the network, then they'll each send the
-`announce_signatures` message which allows both sides to emplace the 4
-signatures required to generate a `announce_signatures` message.
+`announce_signatures` message which allows both sides to emplace the four
+signatures required to generate an `announce_signatures` message.(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc6")))(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc5")))
 
 ==== Channel Graph Syncing
 
-The `query_short_chan_ids` allows a peer to obtain the channel information
+((("channel graph syncing messages", id="ix_appendix_protocol_messages-asciidoc7", range="startofrange")))((("wire protocol messages","channel graph syncing", id="ix_appendix_protocol_messages-asciidoc8", range="startofrange")))The ((("channel graph syncing messages","query_short_chan_ids message")))((("query_short_chan_ids message")))`query_short_chan_ids` message allows a peer to obtain the channel information
 related to a series of short channel IDs.
 
 [[apdx_query_short_chan_ids_message]]
 ===== The query_short_chan_ids message
 
- * type:	*261*
- * fields:
+ * Type: 261
+ * Fields:
   ** `chain_hash` : `chain_hash`
   ** `u16` : `len`
   ** `len*byte` : `encoded_short_ids`
   ** `query_short_channel_ids_tlvs` : `tlvs`
 
 As we learn in <<gossip>>, these channel IDs may be a series of channels
-that were new to the sender, or were out of date which allows the sender to
+that were new to the sender or were out-of-date, which allows the sender to
 obtain the latest set of information for a set of channels.
 
-The `reply_short_chan_ids_end` message is sent after a peer finishes responding
+((("channel graph syncing messages","reply_short_chan_ids_end message")))((("reply_short_chan_ids_end message")))The `reply_short_chan_ids_end` message is sent after a peer finishes responding
 to a prior `query_short_chan_ids` message.
 
 [[apdx_reply_short_chan_ids_end_message]]
 ===== The reply_short_chan_ids_end message
 
- * type:	*262*
- * fields:
+ * Type: 262
+ * Fields:
   ** `chain_hash` : `chain_hash`
   ** `byte` : `full_information`
 
 This message signals to the receiving party that if they wish to send another
 query message, they can now do so.
 
-The `query_channel_range` message allows a node to query for the set of channel
+((("channel graph syncing messages","query_channel_range message")))((("query_channel_range message")))The `query_channel_range` message allows a node to query for the set of channels
 opened within a block range.
 
 [[apdx_query_channel_range_message]]
 ===== The query_channel_range message
 
- * type:	*263*
- * fields:
+ * Type: 263
+ * Fields:
   ** `chain_hash` : `chain_hash`
   ** `u32` : `first_blocknum`
   ** `u32` : `number_of_blocks`
@@ -688,14 +684,14 @@ of a channel in the chain, a node on the network can use a block height as a
 sort of _cursor_ to seek through the chain in order to discover a set of newly
 opened channels.
 
-The `reply_channel_range` message is the response to `query_channel_range` and
+((("channel graph syncing messages","reply_channel_range message")))((("reply_channel_range message")))The `reply_channel_range` message is the response to the `query_channel_range` message and
 includes the set of short channel IDs for known channels within that range.
 
 [[apdx_reply_channel_range_message]]
 ===== The reply_channel_range message
 
- * type:	*264*
- * fields:
+ * Type: 264
+ * Fields:
   ** `chain_hash` : `chain_hash`
   ** `u32` : `first_blocknum`
   ** `u32` : `number_of_blocks`
@@ -706,22 +702,22 @@ includes the set of short channel IDs for known channels within that range.
 
 As a response to `query_channel_range`, this message sends back the set of
 channels that were opened within that range. This process can be repeated with
-the requester advancing their cursor further down the chain in order to
-continue syncing the Channel Graph.
+the requester advancing their cursor further down the chain to
+continue syncing the channel graph.
 
-The `gossip_timestamp_range` message allows a peer to start receiving new
+((("channel graph syncing messages","gossip_timestamp_range message")))((("gossip_timestamp_range message")))The `gossip_timestamp_range` message allows a peer to start receiving new
 incoming gossip messages on the network.
 
 [[apdx_gossip_timestamp_range_message]]
 ===== The gossip_timestamp_range message
 
- * type:	*265*
- * fields:
+ * Type: 265
+ * Fields:
   ** `chain_hash` : `chain_hash`
   ** `u32` : `first_timestamp`
   ** `u32` : `timestamp_range`
 
 Once a peer has synced the channel graph, they can send this message if they
-wish to receive real-time updates on changes in the Channel Graph. They can
+wish to receive real-time updates on changes in the channel graph. They can
 also set the `first_timestamp` and `timestamp_range` fields if they wish to
-receive a backlog of updates they may have missed while they were down.
+receive a backlog of updates they may have missed while they were(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc8")))(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc7"))) down(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc2"))).(((range="endofrange", startref="ix_appendix_protocol_messages-asciidoc0")))
