@@ -273,13 +273,9 @@ Where `decrypt` is an evaluation of `ChaCha20-Poly1305` (IETF variant)
 
 `generateKey()`:: Generates and returns a fresh `secp256k1` keypair.
 +
-Where the object returned by `generateKey` has two attributes:
-         ** `.pub`, which returns an abstract object representing the public key
-         ** `.priv`, which represents the private key used to generate the
-           public key
+Where the object returned by `generateKey` has two attributes:`.pub`, which returns an abstract object representing the public key; and `.priv`, which represents the private key used to generate the public key
 +
-Where the object also has a single method:
-         ** `.serializeCompressed()`
+Where the object also has a single method: `.serializeCompressed()`
 
 `a || b`:: This denotes the concatenation of two byte strings `a` and `b`.
 
@@ -381,20 +377,25 @@ Receiver actions:
 3. If `v` is an unrecognized handshake version, then the responder must
     abort the connection attempt.
 4. `h = SHA-256(h || re.serializeCompressed())`
-    * The responder accumulates the initiator's ephemeral key into the authenticating
++
+The responder accumulates the initiator's ephemeral key into the authenticating
       handshake digest.
 5. `es = ECDH(s.priv, re)`
-    * The responder performs an ECDH between its static private key and the
++
+The responder performs an ECDH between its static private key and the
       initiator's ephemeral public key.
 6. `ck, temp_k1 = HKDF(ck, es)`
-    * A new temporary encryption key is generated, which will
++
+A new temporary encryption key is generated, which will
       shortly be used to check the authenticating MAC.
 7. `p = decryptWithAD(temp_k1, 0, h, c)`
-    * If the MAC check in this operation fails, then the initiator does _not_
++
+If the MAC check in this operation fails, then the initiator does _not_
       know the responder's static public key. If this is the case, then the
       responder must terminate the connection without any further messages.
 8. `h = SHA-256(h || c)`
-     * The received ciphertext is mixed into the handshake digest. This step serves
++
+The received ciphertext is mixed into the handshake digest. This step serves
        to ensure the payload wasn't modified by a MITM.
 
 ====== Act Two
