@@ -1,5 +1,5 @@
 [[routing]]
-== Routing on a Network of Payment Channels
+== Routing on a Network of pass:[<span class="keep-together">Payment Channels</span>]
 
 ((("routing", id="ix_08_routing_htlcs-asciidoc0", range="startofrange")))In this chapter we will finally unpack how payment channels can be connected to form a network of payment channels via a process called _routing_. Specifically, we will look at the first part of the routing layer, the "Atomic and trustless multihop contracts" protocol. This is highlighted by an outline in the protocol suite, shown in <<LN_protocol_routing_highlight>>.
 
@@ -416,13 +416,13 @@ The Bitcoin Script engine would evaluate this script as follows:
 
 In <<alice_dina_htlc_1>>, we see the HTLC propagated across the network from Alice to Dina. Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
 
-[[alice_dina_htlc_1]]
-.Propagating the HTLC across the network
-image::images/mtln_0809.png["Propagating the HTLC across the network"]
-
 Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC. This is a really important point because it ensures end-to-end _atomicity_ of the HTLC. To spend the HTLC, one needs to reveal the secret, which then makes it possible for others to spend their HTLC also. Either all the HTLCs are spendable, or none of the HTLCs are spendable: atomicity!
 
 Because Alice's HTLC is 100 satoshi more than the HTLC Bob gave to Chan, Bob will earn 100 satoshi as a routing fee if this payment completes.
+
+[[alice_dina_htlc_1]]
+.Propagating the HTLC across the network
+image::images/mtln_0809.png["Propagating the HTLC across the network"]
 
 Bob isn't taking a risk and isn't trusting Alice or Chan. Instead, Bob is trusting that a signed transaction together with the secret will be redeemable on the Bitcoin blockchain.
 
