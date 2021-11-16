@@ -3,6 +3,7 @@
 
 ((("payment channel", id="ix_07_payment_channels-asciidoc0", range="startofrange")))In this chapter we will dive into payment channels and see how they are constructed. We will start with Alice's node opening a channel to Bob's node, building on the examples presented in the beginning of this book.
 
+[role="pagebreak-after"]
 The messages exchanged by Alice and Bob's nodes are defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md["BOLT #2: Peer Protocol for Channel Management"]. The transactions created by Alice and Bob's nodes are defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md["BOLT #3: Bitcoin Transaction and Script Formats"]. In this chapter we are focusing on the "Channel open and close" and "Channel state machine" parts of the Lightning protocol architecture, highlighted by an outline in the center (peer-to-peer layer) of <<LN_protocol_channel_highlight>>. 
 
 [[LN_protocol_channel_highlight]]
@@ -193,6 +194,7 @@ The structure of the +open_channel+ message (taken from BOLT #2) is shown in <<o
 
 The fields contained in this message specify the channel parameters that Alice wants, as well as various configuration settings from Alice's nodes that reflect the security expectations for the operation of the channel.
 
+[role="pagebreak-before"]
 Some of the channel construction parameters are listed here:
 
 +chain_hash+:: This identifies which blockchain (e.g., Bitcoin mainnet) will be used for this channel. It is usually the hash of the genesis block of that blockchain.
@@ -283,6 +285,7 @@ image::images/mtln_0704.png["Alice constructs the funding transaction"]
 
 Alice _does not broadcast_ this transaction because doing so would put her 140,000 satoshi at risk. Once spent to the 2-of-2 multisig, there is no way for Alice to recover her money without Bob's signature.
 
+[role="pagebreak-before less_space"]
 .Dual-Funded Payment Channels
 ****
 ((("dual-funded payment channels")))((("payment channel","dual-funded")))In the current implementation of Lightning, channels are funded only by the node initiating the channel (Alice in our example). Dual-funded channels have been proposed, but not yet implemented. In a dual-funded channel, both Alice and Bob would contribute inputs to the funding transaction. Dual-funded channels require a slightly more complicated message flow and cryptographic protocol, so they have not been implemented yet but are planned for a future update to the Lightning BOLTs. The `c-lightning` implementation includes an experimental version of a variant on dual-funded channels.
@@ -321,6 +324,7 @@ The refund transaction is not yet a valid transaction. For it to become a valid 
 * The funding transaction must be broadcast to the Bitcoin network. (To ensure the security of the Lightning Network, we will also require it to be confirmed by the Bitcoin blockchain, though this is not strictly necessary to chain transactions.)
 * The refund transaction's input needs Alice's and Bob's signatures. 
 
+[role="pagebreak-before"]
 But even though these two things haven't happened, and even though Alice's node hasn't broadcast the funding transaction, she can still construct the refund transaction. She can do so because she can calculate the funding transaction's hash and reference it as an input in the refund transaction.
 
 Notice how Alice has calculated +6da3c2...387710+ as the funding transaction hash? If and when the funding transaction is broadcast, that hash will be recorded as the transaction ID of the funding transaction. Therefore, the `0` output of the funding transaction (the 2-of-2 address output) will then be referenced as output ID +6da3c2...387710:0+. The refund transaction can be constructed to spend that funding transaction output even though it doesn't exist yet, because Alice knows what its identifier will be once confirmed.
@@ -423,13 +427,13 @@ Alice and Bob operate the payment channel by _advancing the channel state_ throu
 
 In <<competing_commitments_1>> we see several commitment transactions. 
 
-[[competing_commitments_1]]
-.Multiple commitment transactions
-image::images/mtln_0706.png[Multiple commitment transactions]
-
 The first commitment transaction shown in <<competing_commitments_1>> is the refund transaction that Alice constructed before funding the channel. In the diagram, this is Commitment #0. After Alice pays Bob 70,000 satoshis, the new commitment transaction (Commitment #1) has two outputs paying Alice and Bob their respective balances. We have included two subsequent commitment transactions (Commitment #2 and Commitment #3) which represent Alice paying Bob an additional 10,000 satoshis and then 20,000 satoshis, respectively.
 
 Each signed and valid commitment transaction can be used by either channel partner at any time to close the channel by broadcasting it to the Bitcoin network. Since they both have the most recent commitment transaction and can use it at any time, they can also just hold it and not broadcast it. It's their guarantee of a fair exit from the channel.
+
+[[competing_commitments_1]]
+.Multiple commitment transactions
+image::images/mtln_0706.png[Multiple commitment transactions]
 
 ==== Competing Commitments
 
@@ -499,6 +503,7 @@ In the commitment transaction held by Alice, for example, the `to_local` output 
 .Asymmetric and delayed commitment transactions
 image::images/mtln_0709.png[Asymmetric and delayed commitment transactions]
 
+[role="pagebreak-before"]
 That means that if Alice closes the channel by broadcasting and confirming the commitment transaction she holds, she cannot spend her balance for 432 blocks, but Bob can claim his balance immediately. If Bob closes the channel using the commitment transaction he holds, he cannot spend his output for 432 blocks while Alice can immediately spend hers.
 
 The delay is there for one reason: to allow the _remote_ party to exercise a penalty option if an old (revoked) commitment should be broadcast by the other channel partner. Let's look at the revocation keys and penalty option next.

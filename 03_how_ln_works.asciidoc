@@ -101,6 +101,7 @@ As we saw in the previous chapter, Alice used her wallet software to create a pa
 
 * If the channel is open, making a payment does not require the confirmation of Bitcoin blocks. In fact&#x2014;as long as you and your channel partner follow the protocol&#x2014;it does not require any interaction with the Bitcoin network or anyone else other than your channel partner.
 
+[role="pagebreak-before"]
 * The cryptographic protocol is constructed such that there is little to no trust needed between you and your channel partner. If your partner becomes unresponsive or tries to cheat you, you can ask the Bitcoin system to act as a "court," resolving the smart contract you and your partner have previously agreed upon.
 
 * Payments made in a payment channel are only known to you and your partner. In that sense, you gain privacy compared to Bitcoin, where every transaction is public.  Only the final balance, which is the aggregate of all payments in that channel, will become visible on the Bitcoin blockchain.
@@ -120,6 +121,7 @@ In summary, a multisignature address is where bitcoin is locked so that it requi
 
 Multisignature scripts and addresses are explained in more detail in <<multisig>>.
 
+[role="pagebreak-before less_space"]
 ==== Funding Transaction
 
 ((("funding transaction")))((("payment channel","funding transaction")))The fundamental building block of a payment channel is a 2-of-2 multisignature address. One of the two channel partners will fund the payment channel by sending bitcoin to the multisignature address. This transaction is called the _funding transaction_, and is recorded on the Bitcoin blockchain.footnote:[While the original Lightning whitepaper described channels funded by both channel partners, the current specification, as of 2020, assumes that just one partner commits funds to the channel. As of May 2021, dual-funded lightning channels are experimental in the c-lightning LN implementation.]
@@ -697,7 +699,7 @@ Finally, when the channel is closed, a transaction is made on the Bitcoin networ
 
 On the Lightning Network, a user can only send as much bitcoin as currently exists on their side of a particular channel to a channel partner. For instance, if a user owns one channel with 0.4 BTC on their side, and another channel with 0.2 BTC on their side, then the maximum they can send with one payment is 0.4 BTC. This is true regardless of how much bitcoin the user currently has in their Bitcoin wallet.
 
-((("multipart payments (MPP)")))Multipart payments (MPP) is a feature which, in the preceding example, allows the user to combine both their 0.4 BTC and 0.2 BTC channels to send a maximum of 0.6 BTC with one payment. AMPs are currently being tested across the Lightning Network and are expected to be widely available and used by the time this book is completed. For more detail on MPP, see <<mpp>>.
+((("multipart payments (MPP)")))Multipart payments (MPP) is a feature which, in the preceding example, allows the user to combine both their 0.4 BTC and 0.2 BTC channels to send a maximum of 0.6 BTC with one payment. MPPs are currently being tested across the Lightning Network and are expected to be widely available and used by the time this book is completed. For more detail on MPP, see <<mpp>>.
 
 If the payment is routed, every routing node along the routing path must have channels with capacity at least the same as the payment amount being routed. This must hold true for every single channel that the payment is routed through. The capacity of the lowest-capacity channel in a path sets the upper limit for the capacity of the entire path.
 

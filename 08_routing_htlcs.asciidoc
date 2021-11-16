@@ -1,5 +1,5 @@
 [[routing]]
-== Routing on a Network of Payment Channels
+== Routing on a Network of pass:[<span class="keep-together">Payment Channels</span>]
 
 ((("routing", id="ix_08_routing_htlcs-asciidoc0", range="startofrange")))In this chapter we will finally unpack how payment channels can be connected to form a network of payment channels via a process called _routing_. Specifically, we will look at the first part of the routing layer, the "Atomic and trustless multihop contracts" protocol. This is highlighted by an outline in the protocol suite, shown in <<LN_protocol_routing_highlight>>.
 
@@ -342,6 +342,7 @@ ____
 _Alice will reimburse Bob with 12 gold coins if you can show a valid message that hashes to:_ +0575...f6b3+. _Bob has 24 hours to show the secret after the contract was signed. If Bob does not provide the secret by this time, Alice's deposit will be refunded by the escrow service and the contract becomes invalid._
 ____
 
+[role="pagebreak-before"]
 Let's see how we would implement this as an HTLC in Bitcoin Script. In <<received_htlc>> we see an HTLC Bitcoin Script as currently used in the Lightning Network. You can find this definition in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#offered-htlc-outputs[BOLT #3, Transactions].
 
 [[received_htlc]]
@@ -416,15 +417,15 @@ The Bitcoin Script engine would evaluate this script as follows:
 
 In <<alice_dina_htlc_1>>, we see the HTLC propagated across the network from Alice to Dina. Alice has given Bob an HTLC for 50,200 satoshi. Bob can now create an HTLC for 50,100 satoshi and give it to Chan.
 
-[[alice_dina_htlc_1]]
-.Propagating the HTLC across the network
-image::images/mtln_0809.png["Propagating the HTLC across the network"]
-
 Bob knows that Chan can't redeem Bob's HTLC without broadcasting the secret, at which point Bob can also use the secret to redeem Alice's HTLC. This is a really important point because it ensures end-to-end _atomicity_ of the HTLC. To spend the HTLC, one needs to reveal the secret, which then makes it possible for others to spend their HTLC also. Either all the HTLCs are spendable, or none of the HTLCs are spendable: atomicity!
 
 Because Alice's HTLC is 100 satoshi more than the HTLC Bob gave to Chan, Bob will earn 100 satoshi as a routing fee if this payment completes.
 
 Bob isn't taking a risk and isn't trusting Alice or Chan. Instead, Bob is trusting that a signed transaction together with the secret will be redeemable on the Bitcoin blockchain.
+
+[[alice_dina_htlc_1]]
+.Propagating the HTLC across the network
+image::images/mtln_0809.png["Propagating the HTLC across the network"]
 
 Similarly, Chan can extend a 50,000 HTLC to Dina. He isn't risking anything or trusting Bob or Dina. To redeem the HTLC, Dina would have to broadcast the secret, which Chan could use to redeem Bob's HTLC. Chan would also earn 100 satoshis as a routing fee.
 
@@ -452,7 +453,7 @@ Bob now has the secret too. He can use it to spend Alice's HTLC on-chain. Or, he
 .Bob settles Alice's HTLC off-chain
 image::images/mtln_0812.png["Bob settles Alice's HTLC off-chain"]
 
-Bob has recieved 50,200 satoshi from Alice and paid 50,100 satoshi to Chan, so he has an extra 100 satoshi in his channel balances from routing fees.
+Bob has received 50,200 satoshi from Alice and paid 50,100 satoshi to Chan, so he has an extra 100 satoshi in his channel balances from routing fees.
 
 Alice receives the secret and has settled the 50,200  satoshi HTLC. The secret can be used as a _receipt_ to prove that Dina got paid for that specific payment hash.
 
@@ -542,6 +543,7 @@ H160 = 9e017f6767971ed7cea17f98528d5f5c0ccb2c71
 
 Alice can calculate the RIPEMD160 hash of the payment hash that Dina provides and use the shorter hash in her HTLC, as can Bob and Chan!
 
+[role="pagebreak-before"]
 The "optimized" HTLC script would look like this:
 
 ----

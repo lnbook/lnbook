@@ -32,7 +32,8 @@ Let's say Alice wants to send a secret letter to Dina, indirectly via some inter
 There may be many paths that make it possible for Alice to reach Dina. We will explain the process of selecting the _optimum_ path in <<path_finding>>. For now, we'll assume that the path selected by Alice uses Bob and Chan as intermediaries to get to Dina.
 ====
 
-As a reminder, the path selected by Alice is shown in <<alice_dina_path>>, below. 
+[role="pagebreak-before"]
+As a reminder, the path selected by Alice is shown in <<alice_dina_path>>. 
 
 [[alice_dina_path]]
 .Path: Alice to Bob to Chan to Dina
@@ -224,6 +225,7 @@ Alice has now built the three hop payloads that will be wrapped in an onion. A s
 .Hop payloads for all the hops
 image::images/mtln_1013.png[Hop payloads for all the hops]
 
+[role="pagebreak-before less_space"]
 ==== Key Generation
 
 ((("keys","generating for onion routing", id="ix_10_onion_routing-asciidoc7", range="startofrange")))((("keys","onion routing and", id="ix_10_onion_routing-asciidoc8", range="startofrange")))((("onion routing","key generation", id="ix_10_onion_routing-asciidoc9", range="startofrange")))Alice must now generate several keys that will be used to encrypt the various layers in the onion.
@@ -356,7 +358,7 @@ because of associativity, we can move the parentheses
 </ul>
 ++++
 
-because _A_ = _aG_, we can substitute
+and we can substitute _aG_ with _A_.
 
 The result _bA_ can be calculated independently by Bob who knows _b_ (his private key) and _A_ (Alice's public key).
 
@@ -699,19 +701,19 @@ image::images/mtln_1024.png["Bob de-obfuscates the onion, obfuscates the filler"
 ==== Bob Extracts the Outer HMAC for the Next Hop
 
 Remember that an inner HMAC is included for each hop, which will then become the outer HMAC for the _next_ hop.
-In this case, Bob extracts the inner HMAC (he's already verified the integrity of the encrypted packet with the outer HMAC), and puts it aside because he'll append it to the de-obfuscated packet to allow Chan to verify the HMAC of her encrypted packet.
+In this case, Bob extracts the inner HMAC (he's already verified the integrity of the encrypted packet with the outer HMAC), and puts it aside because he'll append it to the de-obfuscated packet to allow Chan to verify the HMAC of his encrypted packet.
 
 ==== Bob Removes His Payload and Left-Shifts the Onion
 
 Now Bob can remove his hop payload from the front of the onion and left-shift the remaining data. An amount of data equal to Bob's hop payload from the second-half 1,300 bytes of filler will now shift into the onion payload space. This is shown in <<bob_removes_shifts>>. 
 
-[[bob_removes_shifts]]
-.Bob removes the hop payload and left-shifts the rest, filling the gap with new filler
-image::images/mtln_1025.png["Bob removes the hop payload and left-shifts the rest, filling the gap with new filler"]
-
 Now Bob can keep the first half 1,300 bytes, and discard the extended (filler) 1,300 bytes.
 
 Bob now has a 1,300-byte onion packet to send to the next hop. It is almost identical to the onion payload that Alice had created for Chan, except that the last 65 or so bytes of filler was put there by Bob and will be different.
+
+[[bob_removes_shifts]]
+.Bob removes the hop payload and left-shifts the rest, filling the gap with new filler
+image::images/mtln_1025.png["Bob removes the hop payload and left-shifts the rest, filling the gap with new filler"]
 
 No one can tell the difference between filler put there by Alice and filler put there by Bob. Filler is filler! It's all random bytes anyway. Note that if Bob (or one of Bob's other aliases) is present in the route in two distinct locations, then they can tell the difference because the base protocol always uses the same payment hash across the entire route. Atomic multipath payments (AMPs) and Point Time-Locked Contracts (PTLCs) eliminate the correlation vector by randomizing the payment identifier across each route/hop.
 
