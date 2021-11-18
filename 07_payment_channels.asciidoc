@@ -260,12 +260,10 @@ The two most important fields in +accept_channel+ that Alice will use to constru
 
 Alice's node constructs a multisignature script as shown here:
 
-
-[[A_B_multisig]]
-.A 2-of-2 multisig script with Alice and Bob's funding_pubkey values
-----
-2 <_`Alice_funding_pubkey`_> <_`Bob_funding_pubkey`_> 2 CHECKMULTISIG
-----
+++++
+<pre data-type="programlisting">2 &lt;<em>Alice_funding_pubkey</em>&gt; &lt;<em>Bob_funding_pubkey</em>&gt; 2 CHECKMULTISIG
+</pre>
+++++
 
 Note that, in practice, the funding keys are deterministically _sorted_ (using lexicographical order of the serialized compressed form of the public keys) before being placed in the witness script. By agreeing to this sorted order ahead of time, we ensure that both parties will construct an identical funding transaction output, which is signed by the exchanged commitment transaction signature.
 
@@ -277,7 +275,7 @@ bc1q89ju02heg32yrqdrnqghe6132wek25p6sv6e564znvrvez7tq5zqt4dn02
 ----
 ==== Constructing the Funding Transaction
 
-((("payment channel","constructing the funding transaction")))Alice's node can now construct a funding transaction, sending the amount agreed on with Bob (`funding_satoshis`) to the 2-of-2 multisig address. Let's assume that funding_satoshis was 140,000 and Alice is spending a 200,000 satoshi output and creating 60,000 satoshi change. The transaction will look something like Figure 7-4. 
+((("payment channel","constructing the funding transaction")))Alice's node can now construct a funding transaction, sending the amount agreed on with Bob (`funding_satoshis`) to the 2-of-2 multisig address. Let's assume that funding_satoshis was 140,000 and Alice is spending a 200,000 satoshi output and creating 60,000 satoshi change. The transaction will look something like <<A_B_funding_Tx>>. 
 
 [[A_B_funding_Tx]]
 .Alice constructs the funding transaction
@@ -305,9 +303,9 @@ We can create a similar agreement in Bitcoin. For example, we can create a refun
 
 ==== Constructing the Presigned Refund Transaction
 
-((("payment channel","constructing the presigned refund transaction")))((("refund transactions")))Alice will construct the refund transaction immediately after constructing (but not broadcasting) the funding transaction. The refund transaction spends the 2-of-2 multisig back to Alice's wallet. ((("commitment transactions","refund transactions and")))We call this refund transaction a _commitment transaction_ because it commits both channel partners to distributing the channel balance fairly. Since Alice funded the channel on her own, she gets the entire balance, and both Alice and Bob commit to refunding Alice  with this transaction.
+((("payment channel","constructing the presigned refund transaction")))((("refund transactions")))Alice will construct the refund transaction immediately after constructing (but not broadcasting) the funding transaction. The refund transaction spends the 2-of-2 pass:[<span class="keep-together">multisig</span>] back to Alice's wallet. ((("commitment transactions","refund transactions and")))We call this refund transaction a _commitment transaction_ because it commits both channel partners to distributing the channel balance fairly. Since Alice funded the channel on her own, she gets the entire balance, and both Alice and Bob commit to refunding Alice  with this transaction.
 
-In practice, it is a bit more complicated as we will see in subsequent chapters, but for now let's keep things simple and assume it looks like Figure 7-5. 
+In practice, it is a bit more complicated as we will see in subsequent chapters, but for now let's keep things simple and assume it looks like <<A_B_fund_refund_Tx>>. 
 
 [[A_B_fund_refund_Tx]]
 .Alice also constructs the refund transaction
@@ -475,7 +473,7 @@ Let's look at these three elements in turn.
 
 ==== Asymmetric Commitment Transactions
 
-((("commitment transactions","asymmetric")))((("payment channel","asymmetric commitment transactions")))Alice and Bob hold slightly different commitment transactions. Let's look specifically at Commitment #2 from <<competing_commitments_1>>, in more detail in Figure 7-7. 
+((("commitment transactions","asymmetric")))((("payment channel","asymmetric commitment transactions")))Alice and Bob hold slightly different commitment transactions. Let's look specifically at Commitment #2 from <<competing_commitments_1>>, in more detail in <<commitment_2>>. 
 
 [[commitment_2]]
 .Commitment transaction #2
@@ -497,7 +495,7 @@ Bob holds the mirror image of that transaction, where the first output is 80,000
 
 ((("payment channel","delayed spending to_self")))Using asymmetric transactions allows the protocol to easily ascribe _blame_ to the cheating party. An invariant that the _broadcasting_ party must always wait ensures that the "honest" party has time to refute the claim and revoke their funds. This asymmetry is manifested in the form of differing outputs for each side: the `to_local` output is always timelocked and can't be spent immediately, whereas the `to_remote` output is not timelocked and can be spent immediately.
 
-In the commitment transaction held by Alice, for example, the `to_local` output that pays her is timelocked for 432 blocks, whereas the `to_remote` output that pays Bob can be spent immediately (see Figure 7-9). Bob's commitment transaction for Commitment #2 is the mirror image: his own (`to_local`) output is timelocked and Alice's `to_remote` output can be spent immediately.
+In the commitment transaction held by Alice, for example, the `to_local` output that pays her is timelocked for 432 blocks, whereas the `to_remote` output that pays Bob can be spent immediately (see <<asymmetric_delayed_1>>). Bob's commitment transaction for Commitment #2 is the mirror image: his own (`to_local`) output is timelocked and Alice's `to_remote` output can be spent immediately.
 
 [[asymmetric_delayed_1]]
 .Asymmetric and delayed commitment transactions
@@ -577,7 +575,7 @@ In other words, the `revocationbase_priv` can only be derived (and used to sign 
 
 [TIP]
 ====
-((("relative timelock")))The timelock used in the commitment transaction with +CHECKSEQUENCEVERIFY+ is a _relative timelock_. It counts elapsed blocks from the confirmation of this output. That means it will not be spendable until the +to_self_delay+ block _after_ this commitment transaction is broadcast and confirmed.
+((("relative timelock")))The timelock used in the commitment transaction with +CHECK&#x200b;SE&#x2060;QUENCEVERIFY+ is a _relative timelock_. It counts elapsed blocks from the confirmation of this output. That means it will not be spendable until the +to_self_delay+ block _after_ this commitment transaction is broadcast and confirmed.
 ====
 
 The second output (to_remote) output of the commitment transaction is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/03-transactions.md#to_remote-output[BOLT #3: Commitment Transaction,  `to_remote` Output], and in the simplest form is a Pay-to-Witness-Public-Key-Hash (P2WPKH) for +<remote_pubkey>+, meaning that it simply pays the owner who can sign for +<remote_pubkey>+.
