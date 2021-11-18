@@ -1,7 +1,7 @@
 [[channel_operation]]
 == Channel Operation and pass:[<span class="keep-together">Payment Forwarding</span>]
 
-((("payment channel","operation", id="ix_09_channel_operation-asciidoc0", range="startofrange")))In this chapter we will bring together payment channels and hash time-locked contracts (HTLCs). In <<payment_channels>> we explained the way Alice and Bob construct a payment channel between their two nodes. We also looked at the commitment and penalty mechanisms that secure the payment channel. In <<routing>> we looked at hash time-locked contracts (HTLCs) and how these can be used to route a payment across a path made of multiple payment channels. In this chapter we bring the two concepts together by looking at how HTLCs are managed on each payment channel, how the HTLCs are committed to the channel state, and how they are settled to update the channel balances.
+((("payment channel","operation", id="ix_09_channel_operation-asciidoc0", range="startofrange")))In this chapter we will bring together payment channels and hash time-locked contracts (HTLCs). In <<payment_channels>>, we explained the way Alice and Bob construct a payment channel between their two nodes. We also looked at the commitment and penalty mechanisms that secure the payment channel. In <<routing>>, we looked at hash time-locked contracts (HTLCs) and how these can be used to route a payment across a path made of multiple payment channels. In this chapter we bring the two concepts together by looking at how HTLCs are managed on each payment channel, how the HTLCs are committed to the channel state, and how they are settled to update the channel balances.
 
 Specifically, we will be discussing "Adding, settling, failing HTLCs" and the "Channel state machine" that form the overlap between the peer-to-peer layer and the routing layer, as highlighted by an outline in <<LN_protocol_channelops_highlight>>. 
 
@@ -137,7 +137,7 @@ image::images/mtln_0905.png["Bob's new commitment with an HTLC output"]
 
 Shortly after sending the +update_add_htlc+ message, she will commit to the new state of the channel, so that the HTLC can be safely added by Bob. Bob has the HTLC information and has constructed a new commitment but does not yet have this new commitment signed by Alice.
 
-Alice sends +commitment_signed+ to Bob, with the signature for the new commitment and for the HTLC within. We saw the +commitment_signed+ message in <<payment_channels>>, but now we can understand the rest of the fields. As a reminder, it is shown in Example 9-3. 
+Alice sends +commitment_signed+ to Bob, with the signature for the new commitment and for the HTLC within. We saw the +commitment_signed+ message in <<payment_channels>>, but now we can understand the rest of the fields. As a reminder, it is shown in <<ops_commitment_signed_message>>. 
 
 [[ops_commitment_signed_message]]
 .The `commitment_signed` message
