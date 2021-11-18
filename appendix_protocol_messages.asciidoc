@@ -179,6 +179,8 @@ and `pong` messages are defined.
 [[apdx_ping_message]]
 ===== The ping message
 
+The `ping` message is used to check whether the other party in a connection is "live." It contains the following fields:
+
  * Type: 18
  * Fields:
   ** `uint16` : `num_pong_bytes`
@@ -189,6 +191,8 @@ Next its companion, the `pong` message.
 
 [[apdx_pong_message]]
 ===== The pong message
+
+The +pong+ message is sent in response to the +ping+ message and contains the following fields:
 
  * Type: 19
  * Fields:
@@ -230,6 +234,8 @@ The detailed protocol flow using these messages is described in <<payment_channe
 
 [[apdx_open_channel_message]]
 ===== The open_channel message
+
+The +open_channel+ message starts the channel funding process and contains the following fields:
 
  * Type: 32
  * Fields:
@@ -364,10 +370,12 @@ message has been received and sent can the channel begin to be used.(((range="en
 
 ==== Channel Closing
 
-((("wire protocol messages","channel closing")))Channel closing is a multistep process. ((("wire protocol messages","shutdown message")))One node initiates by sending the `shutdown` message. The two channel partners then exchange a series of `channel_closing` messages to negotiate mutually acceptable fees for the closing transaction. ((("closing_signed message")))((("wire protocol messages","closing_signed message")))The channel funder sends the first `closing_signed` message, and the other side can accept by sending a `closing_signed` message with the same fee values.
+((("wire protocol messages","channel closing")))Channel closing is a multistep process. ((("wire protocol messages","shutdown message")))One node initiates by sending the `shutdown` message. The two channel partners then exchange a series of `closing_signed` messages to negotiate mutually acceptable fees for the closing transaction. ((("closing_signed message")))((("wire protocol messages","closing_signed message")))The channel funder sends the first `closing_signed` message, and the other side can accept by sending a `closing_signed` message with the same fee values.
 
 [[apdx_shutdown_message]]
 ===== The shutdown message
+
+The +shutdown+ message initiates the process of closing a channel and contains the following fields:
 
  * Type: 38
  * Fields:
@@ -377,6 +385,8 @@ message has been received and sent can the channel begin to be used.(((range="en
 
 [[apdx_closing_signed_message]]
 ===== The closing_signed message
+
+The +closing_signed+ message is sent by each channel partner until they agree on fees. It contains the following fields:
 
  * Type: 39
  * Fields:
@@ -633,11 +643,13 @@ signatures required to generate an `announce_signatures` message.(((range="endof
 
 ==== Channel Graph Syncing
 
-((("channel graph syncing messages", id="ix_appendix_protocol_messages-asciidoc7", range="startofrange")))((("wire protocol messages","channel graph syncing", id="ix_appendix_protocol_messages-asciidoc8", range="startofrange")))The ((("channel graph syncing messages","query_short_chan_ids message")))((("query_short_chan_ids message")))`query_short_chan_ids` message allows a peer to obtain the channel information
-related to a series of short channel IDs.
+Nodes create a local perspective of the channel graph using five messages: +query_short_chan_ids+, +reply_short_chan_ids_end+, +query_channel_range+, +reply_channel_range+, and +gossip_timestamp_range+.
 
 [[apdx_query_short_chan_ids_message]]
 ===== The query_short_chan_ids message
+
+((("channel graph syncing messages", id="ix_appendix_protocol_messages-asciidoc7", range="startofrange")))((("wire protocol messages","channel graph syncing", id="ix_appendix_protocol_messages-asciidoc8", range="startofrange")))The ((("channel graph syncing messages","query_short_chan_ids message")))((("query_short_chan_ids message")))`query_short_chan_ids` message allows a peer to obtain the channel information
+related to a series of short channel IDs.
 
  * Type: 261
  * Fields:
