@@ -179,7 +179,7 @@ In addition to a Bitcoin and Lightning node, myNode can optionally install a var
 
 ==== Umbrel
 
-((("helpers (installation/configuration software)","Umbrel", id="ix_05_node_operations-asciidoc4", range="startofrange")))((("Umbrel", id="ix_05_node_operations-asciidoc5", range="startofrange")))Famous for their UX/UI (shown in <<umbrel>>), _Umbrel_ provides a very easy and accessible way to get your Bitcoin and Lightning node up and running in no time, especially for beginners. A very distinctive feature is that Umbrel utilizes Neutrino/SPV during the initial block download (IBD) so you can instantly start using your node. Once Bitcoin Core is fully synced in the background, it automatically switches over and disables SPV mode. Umbrel OS supports the Raspberry Pi 4 and can also be installed on any Linux-based OS or on a virtual machine on macOS or Windows. You can also connect any wallet that supports Bitcoin Core P2P, Bitcoin Core RPC, the Electrum protocol, or lndconnect.
+((("helpers (installation/configuration software)","Umbrel", id="ix_05_node_operations-asciidoc4", range="startofrange")))((("Umbrel", id="ix_05_node_operations-asciidoc5", range="startofrange")))Famous for their UX/UI (shown in <<umbrel>>), _Umbrel_ provides a very easy and accessible way to get your Bitcoin and Lightning node up and running in no time, especially for beginners. A very distinctive feature is that Umbrel utilizes Neutrino/SPV during the IBD so you can instantly start using your node. Once Bitcoin Core is fully synced in the background, it automatically switches over and disables SPV mode. Umbrel OS supports the Raspberry Pi 4 and can also be installed on any Linux-based OS or on a virtual machine on macOS or Windows. You can also connect any wallet that supports Bitcoin Core P2P, Bitcoin Core RPC, the Electrum protocol, or lndconnect.
 
 There's no need to wait for a rainy day&mdash;you can go right to https://getumbrel.com[Umbrel] to learn more.
 
@@ -572,11 +572,11 @@ You can see that SCBs are not a foolproof safeguard. They are a weak compromise 
 
 Channel backup mechanisms are still a work in progress and a weakness in most Lightning implementations.
 
-((("Lightning Network Daemon (LND) node project","SCBs and")))At the time of writing this book, only LND offers a built-in mechanism for SCBs. Eclair has a similar mechanism deployed for server-side deployments, although Eclair Mobile does offer optional backup to a Google Drive. `c-lightning` recently merged the necessary interfaces for a plug-in to implement channel backups. Unfortunately, there is no consistent, agreed upon backup mechanism across different node implementations.
+((("Lightning Network Daemon (LND) node project","SCBs and")))At the time of writing this book, only LND offers a built-in mechanism for SCBs. Eclair has a similar mechanism deployed for server-side deployments, although Eclair Mobile does offer optional backup to a Google Drive. `c-lightning` recently merged the necessary interfaces for a plug-in to implement channel backups. Unfortunately, there is no consistent, agreed upon backup mechanism across different node pass:[<span class="keep-together">implementations</span>].
 
 File-based backups of the Lightning node databases are at best a partial solution because you run the risk of backing up an inconsistent database state. In addition, you may not reliably catch the latest state commitments. It is much better to have a backup mechanism that is triggered every time there is a state change in a channel, thereby ensuring data consistency.
 
-To set up SCBs in LND, set the +backupfilepath+ parameter either on the command line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to set up a mechanism that monitors this file for changes. Each time the file changes, the backup mechanism must copy this file to another, preferably off-site disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this scenario. Recall, the backup files should be encrypted too.
+To set up SCBs in LND, set the +backupfilepath+ parameter either on the command line or in the configuration file. LND will then save an SCB file in that directory path. Of course, that's only the first step of the solution. Now, you have to set up a mechanism that monitors this file for changes. Each time the file changes, pass:[<span class="keep-together">the backup</span>] mechanism must copy this file to another, preferably off-site disk. Such backup mechanisms are beyond the scope of this book. Nonetheless, any sophisticated backup solution should be able to handle this scenario. Recall, the backup files should be encrypted too.
 
 ==== Hot Wallet Risk
 
@@ -954,7 +954,7 @@ There are a number of competing projects that offer web-based Lightning node man
 <<rtl-web-interface>> shows an example screenshot of RTL's web interface, as provided on the project repository.
 
 [[rtl-web-interface]]
-.Example Ride The Lightning (RTL) web interface
+.Example RTL web interface
 image::images/mtln_0505.png[]
 
 ==== lndmon
