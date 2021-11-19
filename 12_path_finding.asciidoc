@@ -174,7 +174,7 @@ Depending on the algorithm we will use for pathfinding, we may establish a numbe
 
 For now, let's ignore the cost function and simply establish a channel graph showing nodes and channels, using the +node_announcement+ and +channel_announcement+ messages.
 
-In this chapter we will see how Selena attempts to find a path to pay Rashid 1,000,000 (1M) satoshis. To start, Selena is constructing a channel graph using the information from Lightning Network gossip to discover nodes and channels. Selena will then explore her channel graph to find a path to send a payment to Rashid.
+In this chapter we will see how Selena attempts to find a path to pay Rashid one million satoshis. To start, Selena is constructing a channel graph using the information from Lightning Network gossip to discover nodes and channels. Selena will then explore her channel graph to find a path to send a payment to Rashid.
 
 This is _Selena's_ channel graph. There is no such thing as _the_ channel graph, there is only ever _a channel graph_, and it is always from the perspective of the node that has constructed it (see <<map_territory_relation>>).
 
@@ -276,7 +276,7 @@ In other words, "The more channels (hops) you use, the lower the chance of succe
 
 [NOTE]
 ====
-There is a lot of mathematical theory and modeling behind the uncertainty of the liquidity in the channels. Fundamental work about modeling the uncertainty intervals of the channel liquidity can be found in the paper https://arxiv.org/abs/2103.08576["Security and Privacy of Lightning Network Payments with Uncertain Channel Balances"] by (coauthor of this book) Pickhardt et al.
+There is a lot of mathematical theory and modeling behind the uncertainty of the liquidity in the channels. Fundamental work about modeling the uncertainty intervals of the channel liquidity can be found in the paper https://arxiv.org/abs/2103.08576["Security and Privacy of Lightning Network Payments with Uncertain Channel Balances"] by (coauthor of this book) Pickhardt pass:[<span class="keep-together">et al</span>].
 ====
 
 ==== Fees and Other Channel Metrics
@@ -364,7 +364,7 @@ However, this knowledge becomes somewhat "stale" as the other nodes send or rout
 Therefore, Selena's node must consider how long to keep this knowledge before assuming that it is stale and no longer useful(((range="endofrange", startref="ix_12_path_finding-asciidoc9")))(((range="endofrange", startref="ix_12_path_finding-asciidoc8"))).
 
 [[mpp]]
-=== Multipart Payments (MPP)
+=== Multipart Payments 
 
 ((("multipart payments (MPP)", id="ix_12_path_finding-asciidoc10", range="startofrange")))((("payment delivery","multipart payments", id="ix_12_path_finding-asciidoc11", range="startofrange")))_Multipart payments (MPP)_ are a feature that was introduced in the Lightning Network in 2020 and are already very widely available. Multipart payments allow a payment to be split into multiple _parts_ which are sent as HTLCs over several different paths to the intended recipient, preserving the _atomicity_ of the overall payment. In this context, atomicity means that either all the HTLC parts of a payment are eventually fulfilled or the  entire payment fails and all the HTLC parts fail. There is no possibility of a partially successful payment.
 
