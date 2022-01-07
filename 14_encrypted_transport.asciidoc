@@ -132,9 +132,9 @@ hear during a thunderstorm when very far away.
 
 ((("Lightning encrypted transport protocol","elements of", id="ix_14_encrypted_transport-asciidoc1", range="startofrange")))In this section we will break down the Lightning encrypted transport protocol and delve into the details of the cryptographic algorithms and protocol used to establish encrypted, authenticated, and integrity-assured communications between peers. Feel free to skip this section if you find this level of detail daunting.
 
-==== Noise XK: Lightning Network's Noise Handshake
+==== Noise_XK: Lightning Network's Noise Handshake
 
-((("Lightning encrypted transport protocol","Noise XK")))((("Noise Protocol Framework","Noise XK")))((("Noise_XK")))The Noise Protocol is extremely flexible in that it advertises several
+((("Lightning encrypted transport protocol","Noise_XK")))((("Noise Protocol Framework","Noise_XK")))((("Noise_XK")))The Noise Protocol is extremely flexible in that it advertises several
 handshakes, each with different security and privacy properties for a would-be
 protocol implementer to select from. A deep exploration of each of the
 handshakes and their various trade-offs is out of the scope of this chapter.
@@ -168,7 +168,7 @@ between two ephemeral keys.
 ==== High-Level Overview
 
 ((("Lightning encrypted transport protocol","high-level overview")))((("Noise_XK","high-level overview")))Using the notation laid out earlier, we can succinctly describe the `Noise_XK`
-as follows:
+as pass:[<span class="keep-together">follows</span>]:
 ```
     Noise_XK(s, rs):
        <- rs
@@ -599,7 +599,7 @@ Where `len` obtains the length in bytes of the Lightning message.
         * The nonce `sn` must be incremented after this step.
     * A zero-length byte slice is to be passed as the AD (associated data).
 4. Finally, encrypt the message itself (`m`) using the same procedure used to
-    encrypt the length prefix. Let this encrypted ciphertext be known as `c`.
+    encrypt the length prefix. Let this encrypted ciphertext be known pass:[<span class="keep-together">as <code>c</code></span>].
 +
 The nonce `sn` must be incremented after this step.
 5. Send `lc || c` over the network buffer.
@@ -616,7 +616,7 @@ steps are completed:
     * A zero-length byte slice is to be passed as the AD (associated data).
     * The nonce `rn` must be incremented after this step.
 4. Read _exactly_ `l + 16` bytes from the network buffer, and let the bytes be
-    known as `c`.
+    known pass:[<span class="keep-together">as <code>c</code></span>].
 5. Decrypt `c` (using `ChaCha20-Poly1305`, `rn`, and `rk`) to obtain decrypted
     plain-text packet `p`.
 +

@@ -1,7 +1,7 @@
 [[channel_operation]]
 == Channel Operation and pass:[<span class="keep-together">Payment Forwarding</span>]
 
-((("payment channel","operation", id="ix_09_channel_operation-asciidoc0", range="startofrange")))In this chapter we will bring together payment channels and hash time-locked contracts (HTLCs). In <<payment_channels>> we explained the way Alice and Bob construct a payment channel between their two nodes. We also looked at the commitment and penalty mechanisms that secure the payment channel. In <<routing>> we looked at hash time-locked contracts (HTLCs) and how these can be used to route a payment across a path made of multiple payment channels. In this chapter we bring the two concepts together by looking at how HTLCs are managed on each payment channel, how the HTLCs are committed to the channel state, and how they are settled to update the channel balances.
+((("payment channel","operation", id="ix_09_channel_operation-asciidoc0", range="startofrange")))In this chapter we will bring together payment channels and hash time-locked contracts (HTLCs). In <<payment_channels>>, we explained the way Alice and Bob construct a payment channel between their two nodes. We also looked at the commitment and penalty mechanisms that secure the payment channel. In <<routing>>, we looked at HTLCs and how these can be used to route a payment across a path made of multiple payment channels. In this chapter we bring the two concepts together by looking at how HTLCs are managed on each payment channel, how the HTLCs are committed to the channel state, and how they are settled to update the channel balances.
 
 Specifically, we will be discussing "Adding, settling, failing HTLCs" and the "Channel state machine" that form the overlap between the peer-to-peer layer and the routing layer, as highlighted by an outline in <<LN_protocol_channelops_highlight>>. 
 
@@ -10,13 +10,13 @@ Specifically, we will be discussing "Adding, settling, failing HTLCs" and the "C
 image::images/mtln_0901.png["Channel operation and payment forwarding in the Lightning protocol suite"]
 
 
-=== Local (Single Channel) versus Routed (Multiple Channels)
+=== Local (Single Channel) Versus Routed (Multiple Channels)
 
 ((("payment channel","local channel versus routed channels")))Even though it is possible to send payments across a payment channel simply by updating the channel balances and creating new commitment transactions, the Lightning protocol uses HTLCs even for "local" payments across a payment channel. The reason for this is to maintain the same protocol design regardless of whether a payment is only one hop (across a single payment channel) or several hops (routed across multiple payment channels).
 
 By maintaining the same abstraction for both local and remote, we not only simplify the protocol design but also improve privacy. For the recipient of a payment there is no discernible difference between a payment made directly by their channel partner and a payment forwarded by their channel partner on behalf of someone else.
 
-=== Forwarding Payments and Updating Commitments with HTLCs
+=== Forwarding Payments and Updating Commitments pass:[<span class="keep-together">with HTLCs</span>]
 
 ((("commitment transactions","updating commitments with HTLCs", id="ix_09_channel_operation-asciidoc1", range="startofrange")))((("hash time-locked contracts (HTLCs)","updating commitments with", id="ix_09_channel_operation-asciidoc2", range="startofrange")))((("payment channel","updating commitments with HTLCs", id="ix_09_channel_operation-asciidoc3", range="startofrange")))We will revisit our example from <<routing>> to demonstrate how the HTLCs from Alice to Dina get committed to each payment channel. As you recall in our example, Alice is paying Dina 50,000 satoshis by routing an HTLC via Bob and Chan. The network is shown in <<alice_dina_htlc_2>>. 
 
@@ -137,7 +137,7 @@ image::images/mtln_0905.png["Bob's new commitment with an HTLC output"]
 
 Shortly after sending the +update_add_htlc+ message, she will commit to the new state of the channel, so that the HTLC can be safely added by Bob. Bob has the HTLC information and has constructed a new commitment but does not yet have this new commitment signed by Alice.
 
-Alice sends +commitment_signed+ to Bob, with the signature for the new commitment and for the HTLC within. We saw the +commitment_signed+ message in <<payment_channels>>, but now we can understand the rest of the fields. As a reminder, it is shown in Example 9-3. 
+Alice sends +commitment_signed+ to Bob, with the signature for the new commitment and for the HTLC within. We saw the +commitment_signed+ message in <<payment_channels>>, but now we can understand the rest of the fields. As a reminder, it is shown in <<ops_commitment_signed_message>>. 
 
 [[ops_commitment_signed_message]]
 .The `commitment_signed` message
@@ -212,7 +212,7 @@ Bob now sends a +commitment_signed+ back to Alice, with his signatures for Alice
 Now Alice has the signature for the new commitment transaction. The state of the channel is shown in <<signed_commitment_3a>>. 
 
 [[signed_commitment_3a]]
-.Alice has a new *signed* commitment
+.Alice has a new signed commitment
 image::images/mtln_0909.png[Alice has a new signed commitment]
 
 Alice can now acknowledge the new commitment by revoking the old one. Alice sends the +revoke_and_ack+ message containing the necessary +per_commitment_point+ that will allow Bob to construct a revocation key and penalty transaction. Thus, Alice revokes her old commitment.
@@ -235,7 +235,7 @@ As we will see in the next section, the maximum is only for _pending_ HTLCs beca
 
 === HTLC Fulfillment
 
-((("hash time-locked contracts (HTLCs)","fulfillment", id="ix_09_channel_operation-asciidoc9", range="startofrange")))((("payment forwarding","HTLC fulfillment", id="ix_09_channel_operation-asciidoc10", range="startofrange")))Now Bob and Alice both have a new commitment transaction with an additional HTLC output, and we have achieved a major step toward updating a payment channel.
+((("hash time-locked contracts (HTLCs)","fulfillment", id="ix_09_channel_operation-asciidoc9", range="startofrange")))((("payment forwarding","HTLC fulfillment", id="ix_09_channel_operation-asciidoc10", range="startofrange")))Now Bob and Alice both have a new commitment transaction with an additional HTLC output, and we have achieved a major step toward updating a payment pass:[<span class="keep-together">channel</span>].
 
 The new balance of Alice and Bob does not reflect yet that Alice has successfully sent 50,200 satoshis to Bob.
 
@@ -249,7 +249,7 @@ Next, Chan will do the same with Dina: offer a 50,000 satoshi HTLC, commit, and 
 
 ==== Dina Fulfills the HTLC with Chan
 
-Dina can settle the HTLC by sending an +update_fulfill_htlc+ message to Chan. The +update_fulfill_htlc+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#removing-an-htlc-update_fulfill_htlc-update_fail_htlc-and-update_fail_malformed_htlc[BOLT #2: Peer Protocol, `update_fulfill_htlc`] and is shown here:
+Dina can settle the HTLC by sending an +update_ful&#x2060;fill_&#x200b;htlc+ message to Chan. The +update_fulfill_htlc+ message is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/02-peer-protocol.md#removing-an-htlc-update_fulfill_htlc-update_fail_htlc-and-update_fail_malformed_htlc[BOLT #2: Peer Protocol, `update_fulfill_htlc`] and is shown here:
 
 [[update_fulfill_htlc_message]]
 .The +update_fulfill_htlc+ message
@@ -306,6 +306,7 @@ Next, they complete two rounds of commitment and revocation. First, Alice sends 
 .Alice signs Bob's new commitment and Bob revoked the old one
 image::images/mtln_0913.png[Alice signs Bob's new commitment and Bob revoked the old one]
 
+[role="pagebreak-before"]
 Finally, Bob signs Alice's commitment by sending Alice a +commitment_signed+ message. Then Alice acknowledges and revokes her old commitment by sending +revoke_and_ack+ to Bob. The end result is that both Alice and Bob have moved their channel state to Commitment #4, have removed the HTLC, and have updated their balances. Their current channel state is represented by the commitment transactions that are shown in <<alice_bob_htlc_fulfilled>>(((range="endofrange", startref="ix_09_channel_operation-asciidoc12")))(((range="endofrange", startref="ix_09_channel_operation-asciidoc11"))). (((range="endofrange", startref="ix_09_channel_operation-asciidoc10")))(((range="endofrange", startref="ix_09_channel_operation-asciidoc9")))
 
 [[alice_bob_htlc_fulfilled]]
@@ -330,7 +331,7 @@ The +update_fail_htlc+ message is shown in the following:
 [len*byte:reason]
 ----
 
-It's pretty self-explanatory. The multibyte +reason+ field is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#failure-messages[BOLT #4: Onion Routing], which we will describe in more detail in <<onion_routing>>.
+It's pretty self-explanatory. The multibyte +reason+ field is defined in https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md#failure-messages[BOLT #4: Onion Routing], which we will describe in <<onion_routing>>.
 
 If Alice received an +update_fail_htlc+ from Bob, the process would unfold in much the same way: the two channel partners would remove the HTLC, create updated commitment transactions, and go through two rounds of commitment/revocation to move the channel state forward to the next commitment. The only difference: the end balances would revert back to what they were without the HTLC, essentially refunding Alice for the HTLC value.
 
