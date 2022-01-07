@@ -1,7 +1,7 @@
 # Mastering the Lightning Network
 [![Build Status](https://travis-ci.com/lnbook/lnbook.svg?branch=develop)](https://travis-ci.com/lnbook/lnbook)
 
-# STATUS: First Edition published on Dec 21, 2021
+STATUS: First Edition published on Dec 21, 2021
 
 <img src="images/cover_thumb.png" width=200 alt="Mastering Lightning Cover">
 
@@ -61,7 +61,7 @@ The book is suitable for technical readers with an understanding of the fundamen
 
 *  [Author Bios](author_bio.html)
 *  [Colophon](colo.html)
-	
+
 ## Source and license
 
 Mastering the Lightning Network is released under the Creative Commons CC-BY-NC-ND license, which allows sharing the source code for personal use only. You may read this book for free. You may not create derivatives (such as PDF copies), or distribute the book commercially. The full terms of the license can be found here:
