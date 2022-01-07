@@ -6,7 +6,7 @@ STATUS: First Edition published on Dec 21, 2021
 <img src="images/cover_thumb.png" width=200 alt="Mastering Lightning Cover">
 
 ## About
-Mastering the Lightning Network is an O'Reilly Media book, by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)). It was published on Dec 21, 2021, in paperback and e-book, by O'Reilly Media. It is available everywhere that books are sold. This repository contains the manuscript of the book as published by O'Reilly Media, tagged as firstedition_firstprint.
+Mastering the Lightning Network is an O'Reilly Media book, by authors Andreas M. Antonopoulos ([@aantonop](https://twitter.com/aantonop)), Olaoluwa Osuntokun ([@roasbeef](https://twitter.com/roasbeef)), Rene Pickhardt ([@renepickhardt](https://twitter.com/renepickhardt)). It was published on Dec 21, 2021, in paperback and e-book, by O'Reilly Media. It is available everywhere that books are sold. This repository contains the manuscript of the book as published by O'Reilly Media, tagged as [firstedition_firstprint](https://github.com/lnbook/lnbook/releases/tag/firstedition_firstprint).
 
 The book describes the Lightning Network (LN), a Peer-to-Peer protocol running on top of Bitcoin and other blockchains, which provides near-instant, secure, micro-payments.
 
