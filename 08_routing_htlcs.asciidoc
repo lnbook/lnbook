@@ -34,7 +34,7 @@ This process of connecting a series of payment channels with end-to-end security
 
 In this chapter, we'll dive into the mechanism of routing in the Lightning Network, detailing the precise manner in which payments flow through the network. First, we will clarify the concept of routing and compare it to that of pathfinding, because these are often confused and used interchangeably. Next, we will construct the fairness protocol: an atomic, trustless, multihop protocol used to route payments. To demonstrate how this fairness protocol works, we will be using a physical equivalent of transferring gold coins between four people. Finally, we will look at the atomic, trustless, multihop protocol implementation currently used in the Lightning Network, which is called a hash time-locked contract (HTLC).
 
-=== Routing versus Pathfinding
+=== Routing Versus Pathfinding
 
 ((("pathfinding","routing versus")))((("routing","pathfinding versus")))It's important to note that we separate the concept of _routing_ from the concept of _pathfinding_. These two concepts are often confused, and the term _routing_ is often used to describe both concepts. Let's remove the ambiguity before we proceed any further.
 
@@ -64,7 +64,7 @@ Essentially, Alice will pay Bob, who will pay Chan, who will pay Dina. No direct
 
 The main challenge is to do this in a way that prevents Bob and Chan from stealing the money that Alice wants delivered to Dina.
 
-==== A Physical Example of "Routing"
+=== A Physical Example of "Routing"
 
 ((("routing","real-world physical example", id="ix_08_routing_htlcs-asciidoc1", range="startofrange")))To understand how the Lightning Network protects the payment while being routed, we can compare it to an example of routing physical payments with gold coins in the real world.
 
@@ -138,7 +138,11 @@ The secret that "unlocks" the payment is called the _payment secret_.
 
 For now, we keep things simple and assume that Dina's secret is simply the text line: `Dinas secret`. This secret message is called the _payment secret_ or _payment preimage_.
 
-To "commit" to this secret, Dina computes the SHA-256 hash, which when encoded in hexadecimal, can be displayed as follows: `0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3`.
+To "commit" to this secret, Dina computes the SHA-256 hash, which when encoded in hexadecimal, can be displayed as follows:
+
+----
+0575965b3b44be51e8057d551c4016d83cb1fba9ea8d6e986447ba33fe69f6b3
+----
 
 To facilitate Alice's payment, Dina will create the payment secret and the payment hash, and send the payment hash to Alice. In <<alice_dina_routing_3>> we see that Dina sends the payment hash to Alice via some external channel (dashed line), such as an email or text message.
 
@@ -149,7 +153,7 @@ image::images/mtln_0806.png["Dina sends the hashed secret to Alice"]
 Alice doesn't know the secret, but she can rewrite her contract to use the hash of the secret as a proof of payment:
 
 ____
-_I, Alice, will reimburse you, Bob, with 12 gold coins if you can show me a valid message that hashes to:`057596...`.
+_I, Alice, will reimburse you, Bob, with 12 gold coins if you can show me a valid message that hashes to:`057596`....
 You can acquire this message by setting up a similar contract with Chan who has to set up a similar contract with Dina.
 To assure you that you will be reimbursed, I will provide the 12 gold coins to a trusted escrow before you set up your next contract._
 ____
@@ -164,7 +168,7 @@ Similarly, Chan will also demand a fee and will expect to receive 11 gold coins 
 Bob's contract with Chan will read:
 
 ____
-_I, Bob, will reimburse you, Chan, with 11 gold coins if you can show me a valid message that hashes to:`057596...`.
+_I, Bob, will reimburse you, Chan, with 11 gold coins if you can show me a valid message that hashes to:`057596`....
 You can acquire this message by setting up a similar contract with Dina.
 To assure you that you will be reimbursed, I will provide the 11 gold coins to a trusted escrow before you set up your next contract._
 ____
@@ -172,7 +176,7 @@ ____
 Once Chan gets the message from the escrow that Bob has deposited the 11 gold coins, Chan sets up a similar contract with Dina:
 
 ____
-_I, Chan, will reimburse you, Dina, with 10 gold coins if you can show me a valid message that hashes to:`057596...`.
+_I, Chan, will reimburse you, Dina, with 10 gold coins if you can show me a valid message that hashes to:`057596`....
 To assure you that you will be reimbursed after revealing the secret, I will provide the 10 gold coins to a trusted escrow._
 ____
 
@@ -184,7 +188,7 @@ It is now up to Dina to reveal the secret, which is the preimage to the hash she
 
 Dina now sends +Dinas secret+ to Chan.
 
-Chan checks that +Dinas secret+ hashes to +057596...+. Chan now has proof of payment and so instructs the escrow service to release the 10 gold coins to Dina.
+Chan checks that +Dinas secret+ hashes to +057596+.... Chan now has proof of payment and so instructs the escrow service to release the 10 gold coins to Dina.
 
 Chan now provides the secret to Bob. Bob checks it and instructs the escrow service to release the 11 gold coins to Chan.
 
@@ -296,10 +300,10 @@ As we saw in previous examples, we assume that Alice does not have a direct paym
 Remember how Bob and Chan might expect a small compensation for routing the payment through their nodes? Alice wants to pay Dina 50,000 satoshis, but as you will see in the following sections she will send Bob 50,200 satoshis. The extra 200 satoshis will pay Bob and Chan 100 satoshis each, as a routing fee.
 ====
 
-Now, Alice's node can construct a Lightning payment. In the next few sections, we will see how Alice's node constructs a hash time-locked contract (HTLC) to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
+Now, Alice's node can construct a Lightning payment. In the next few sections, we will see how Alice's node constructs an HTLC to pay Dina and how that HTLC is forwarded along the path from Alice to Dina.
 
 
-==== On-Chain versus Off-Chain Settlement of HTLCs
+==== On-Chain Versus Off-Chain Settlement of HTLCs
 
 ((("hash time-locked contracts (HTLCs)","on-chain versus off-chain settlement of")))((("off-chain settlement, on-chain payment versus")))((("on-chain payment","off-chain settlement versus")))((("routing","on-chain versus off-chain settlement of HTLCs")))The purpose of the Lightning Network is to enable _off-chain_ transactions that are trusted just the same as on-chain transactions because no one can cheat. The reason no one can cheat is because at any time, any of the participants can take their off-chain transactions on-chain. Each off-chain transaction is ready to be submitted to the Bitcoin blockchain at any time. Thus, the Bitcoin blockchain acts as a dispute-resolution and final settlement mechanism if necessary.
 

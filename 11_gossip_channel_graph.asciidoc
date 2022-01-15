@@ -61,7 +61,7 @@ Because the Lightning Network is a peer-to-peer network, some initial bootstrapp
 As an initial step, our new node needs to somehow _discover_ at least _one_ peer that is already connected to the network and has a full channel graph (as we'll see later, there's no canonical version of the channel graph). Using one of many initial bootstrapping protocols to find that first peer, after a connection is established, our new
 peer now needs to _download_ and _validate_ the channel graph. Once the channel graph has been fully validated, our new peer is ready to start opening channels and sending payments on the network.
 
-After initial bootstrap, a node on the network needs to continue to maintain its view of the channel graph by processing new channel routing policy updates, discovering and validating new channels, removing channels that have been closed on-chain, and finally pruning channels that fail to send out a proper "heartbeat" every two weeks or so.
+After initial bootstrap, a node on the network needs to continue to maintain its view of the channel graph by processing new channel routing policy updates, discovering and validating new channels, removing channels that have been closed on-chain, and finally pruning channels that fail to send out a proper "heartbeat" every two weeks pass:[<span class="keep-together">or so</span>].
 
 Upon completion of this chapter, you will understand a key component of
 the peer-to-peer Lightning Network: namely, how peers discover each other and maintain a local copy (perspective) of the channel graph. We'll begin by exploring the story of a new node that has just booted up and needs to find other peers to connect to on the network.(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc1")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc0")))
@@ -215,7 +215,7 @@ ln1qfkxfad87fxx7lcwr4hvsalj8vhkwta539nuy4zlyf7hqcmrjh40xx5frs7.test.nodes.lightn
 </dl></div>
 ++++
 
-In the preceding command, we've queried the server so we can obtain an IPv4 (+A+ record) address for our target node (replaced by ++__X.X.X.X__++ in the preceding example). Now that we have the raw public key, IP address, and TCP port, we can connect to the node transport protocol at:
+In the preceding command, we've queried the server so we can obtain an IPv4 pass:[<span class="keep-together">(<code>A</code> record)</span>] address for our target node (replaced by ++__X.X.X.X__++ in the preceding example). Now that we have the raw public key, IP address, and TCP port, we can connect to the node transport protocol at:
 
 ----
 026c64f5a7f24c6f7f0e1d6ec877f23b2f672fb48967c2545f227d70636395eaf3@X.X.X.X:9735
@@ -253,9 +253,9 @@ r0.a2.n10.nodes.lightning.directory
 Breaking down the query one key-value pair at a time, we gain the following
 insights:
 
-  * +r0+: The query targets the Bitcoin realm
-  * +a2+: The query only wants IPv4 addresses to be returned
-  * +n10+: The query requests
++r0+:: The query targets the Bitcoin realm
++a2+:: The query only wants IPv4 addresses to be returned
++n10+:: The query requests
 
 Try some combinations of the various flags using the +dig+ DNS command-line tool yourself(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc3")))(((range="endofrange", startref="ix_11_gossip_channel_graph-asciidoc2"))):
 
@@ -360,7 +360,7 @@ Due to the existence of unadvertised channels, the _true_ size of the channel gr
 ((("blockchain","locating a channel on the Bitcoin blockchain")))((("channel_announcement message","locating a channel on the Bitcoin blockchain")))As mentioned earlier, the channel graph is authenticated due to its usage of public key cryptography, as well as the Bitcoin blockchain as a spam prevention system. To have a node accept a new +channel_announcement+, the advertisement must _prove_ that the channel actually exists in the Bitcoin blockchain. This proof system adds an up-front cost to adding a new entry to the channel graph (the on-chain fees one must pay to create the UTXO of the channel). As a result, we mitigate spam and ensure that a dishonest node on the network can't fill up the memory of an honest node at no cost with bogus channels.
 
 Given that we need to construct a proof of the existence of a channel, a
-natural question that arises is: how do we "point to" or reference a given channel for the verifier? Given that a payment channel is anchored in an unspent transaction output (see <<utxo>>), an initial thought might be to first attempt to advertise the full outpoint (+txid:index+) of the channel. Given the outpoint is globally unique and confirmed in the chain, this sounds like a good idea; however, it has a drawback: the verifier must maintain a full copy of the UTXO set to verify channels. This works fine for Bitcoin full nodes, but clients that rely on lightweight verification don't typically maintain a full UTXO set. Because we want to ensure we can support mobile nodes in the Lightning Network, we're forced to find another solution.
+natural question that arises is: how do we "point to" or reference a given channel for the verifier? Given that a payment channel is anchored in an unspent transaction output (see <<utxo>>), an initial thought might be to first attempt to advertise the full outpoint (+txid:index+) of the channel. Given that the outpoint is globally unique and confirmed in the chain, this sounds like a good idea; however, it has a drawback: the verifier must maintain a full copy of the UTXO set to verify channels. This works fine for Bitcoin full nodes, but clients that rely on lightweight verification don't typically maintain a full UTXO set. Because we want to ensure we can support mobile nodes in the Lightning Network, we're forced to find another solution.
 
 What if rather than referencing a channel by its UTXO, we reference it based on its "location" in the chain? To do this, we'll need a scheme that allows us to reference a given block, then a transaction within that block, and finally a specific output created by that transaction. Such an identifier is described in https://github.com/lightningnetwork/lightning-rfc/blob/master/07-routing-gossip.md[BOLT #7] and is referred to as a _short channel ID_, or +scid+.
 The +scid+ is used in +channel_announcement+ (and +channel_update+) as well as within the onion-encrypted routing packet included within HTLCs, as we learned in <<onion_routing>>.

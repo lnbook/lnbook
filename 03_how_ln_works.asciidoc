@@ -227,7 +227,7 @@ We will examine the revocation mechanism in more detail in <<revocation>>, where
 
 In simple terms, Alice signs Bob's new commitment transaction only if Bob offers his half of the revocation secret for the previous commitment. Bob only signs Alice's new commitment transaction if she gives him her half of the revocation secret from the previous commitment.
 
-With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use old commitments as they sign the new ones. What we mean is that while it is still technically possible to use old commitments, the penalty mechanism makes it economically irrational to do so.
+With each new commitment, they exchange the necessary "punishment" secret that allows them to effectively _revoke_ the prior commitment transaction by making it unprofitable to transmit. Essentially, they destroy the ability to use old commitments as they sign the new ones. What we mean is that while it is still technically possible to use old commitments, the penalty mechanism makes it economically irrational to pass:[<span class="keep-together">do so</span>].
 
 The timelock is set to a number of blocks up to 2,016 (approximately two weeks). If either channel partner publishes a commitment transaction without cooperating with the other partner, they will have to wait for that number of blocks (e.g., two weeks) to claim their balance. The other channel partner can claim their own balance at any time. Furthermore, if the commitment they published was previously revoked, the channel partner can _also_ immediately claim the cheating party's balance, bypassing the timelock and punishing the cheater.
 
@@ -419,7 +419,7 @@ Invoices are usually encoded either as a long __bech32__-encoded string or as a 
 
 [NOTE]
 ====
-The term _preimage_ comes from mathematics. In any function _y = f_(_x_), the set of inputs that produce a certain value _y_ are called the preimage of _y_. In this case, the function is the SHA-256 hash algorithm, and any value _r_ that produces the hash _H_ is called a preimage.
+The term _preimage_ comes from mathematics. In any function pass:[<span class="keep-together"><em>y</em> = <em>f</em>(<em>x</em>)</span>], the set of inputs that produce a certain value _y_ are called the preimage of _y_. In this case, the function is the SHA-256 hash algorithm, and any value _r_ that produces the hash _H_ is called a preimage.
 ====
 
 There is no known way to find the inverse of SHA-256 (i.e., compute a preimage from a hash). Only Bob knows the value _r_, so it is Bob's secret. But once Bob reveals _r_, anyone who has the hash _H_ can check that _r_ is the correct secret, by calculating SHA-256(_r_) and seeing that it matches _H_.
@@ -522,7 +522,7 @@ The user might only realize that probing is taking place if the payment does not
 
 [NOTE]
 ====
-On the internet, we use the Internet Protocol and an IP forwarding algorithm to forward internet packages from the sender to the destination. While these protocols have the nice property of allowing internet hosts to collaboratively find a path for information flow through the internet, we cannot reuse and adopt this protocol for forwarding payments on the Lightning Network. Unlike the internet, Lightning payments have to be _atomic_, and channel balances have to remain _private_. Furthermore, the channel capacity in Lightning changes frequently, unlike the internet where connection capacity is relatively static. These constraints require novel strategies.
+On the internet, we use the Internet Protocol and an IP forwarding algorithm to forward internet packages from the sender to the destination. While these protocols have the nice property of allowing internet hosts to collaboratively find a path for information flow through the internet, we cannot reuse and adopt this protocol for forwarding payments on the Lightning Network. Unlike the internet, Lightning payments have to be _atomic_, and channel balances have to remain _private_. Furthermore, the channel capacity in Lightning changes frequently, unlike the internet where connection capacity is relatively static. These constraints require novel pass:[<span class="keep-together">strategies</span>].
 ====
 
 Of course, pathfinding is trivial if we want to pay our direct channel partner and we have enough balance on our side of the channel to do so. In all other cases, our node uses information from the gossip protocol to do pathfinding. This includes currently known public payment channels, known nodes, known topology (how known nodes are connected), known channel capacities, and known fee policies set by the node owners.
@@ -622,7 +622,7 @@ In contrast, Alice will not open a channel to someone unknown who just uninvited
 
 Some of these differences are differences in terminology. There are also architectural differences and differences in the user experience. In the next few sections, we will examine the differences and similarities, explain the terminology, and adjust our expectations.
 
-==== Addresses versus Invoices, Transactions versus Payments
+==== Addresses Versus Invoices, Transactions Versus Payments
 
 ((("Bitcoin–Lightning Network comparisons","addresses versus invoices")))((("Bitcoin–Lightning Network comparisons","transactions versus payments")))In a typical payment using Bitcoin, a user receives a Bitcoin address (e.g., scanning a QR code on a web page, or receiving it in an instant message or email from a friend). They then use their Bitcoin wallet to create a transaction to send funds to this address.
 
@@ -634,7 +634,7 @@ There are some differences in the user experience, however. A Bitcoin address is
 
 In Lightning, however, each invoice can only be used once for a specific payment amount. You cannot pay more or less, you cannot use an invoice again, and the invoice has an expiry time built in. In Lightning, a recipient has to generate a new invoice for each payment, specifying the payment amount in advance. There is an exception to this, a mechanism called _keysend_, which we will examine in <<keysend>>.
 
-==== Selecting Outputs versus Finding a Path
+==== Selecting Outputs Versus Finding a Path
 
 ((("Bitcoin–Lightning Network comparisons","selecting outputs versus finding a path")))((("unspent transaction outputs (UTXOs)")))((("UTXOs (unspent transaction outputs)")))To make a payment on the Bitcoin network, a sender needs to consume one or more unspent transaction outputs (UTXOs).
 If a user has multiple UTXOs, they (or rather their wallet) will need to select which UTXO(s) to send.
@@ -646,14 +646,14 @@ Because many possible channels and paths can be used to make a payment, the Ligh
 
 With technologies such as atomic multipath payments (AMP) and multipart payments (MPP), which we will review in subsequent chapters, several Lightning paths can be aggregated into a single atomic payment, just like several Bitcoin UTXOs can be aggregated into a single atomic Bitcoin transaction.
 
-==== Change Outputs on Bitcoin versus No Change on Lightning
+==== Change Outputs on Bitcoin Versus No Change on Lightning
 
 ((("Bitcoin–Lightning Network comparisons","change outputs")))To make a payment on the Bitcoin network, the sender needs to consume one or more unspent transaction outputs (UTXOs). UTXOs can only be spent in full; they cannot be divided and partially spent. So if a user wishes to spend 0.8 BTC, but only has a 1 BTC UTXO, they need to spend the entire 1 BTC UTXO by sending 0.8 BTC to the recipient and 0.2 BTC back to themselves as change. The 0.2 BTC change payment creates a new UTXO called a "change output."
 
 On Lightning, the funding transaction spends some Bitcoin UTXO, creating a multisignature UTXO to open the channel. Once the bitcoin is locked within that channel, portions of it can be sent back and forth within the channel, without the need to create any change.
 This is because the channel partners simply update the channel balance and only create a new UTXO when the channel is eventually closed using the channel closing transaction.
 
-==== Mining Fees versus Routing Fees
+==== Mining Fees Versus Routing Fees
 
 ((("Bitcoin–Lightning Network comparisons","mining fees versus routing fees")))On the Bitcoin network, users pay fees to miners to have their transactions included in a block.
 These fees are paid to the miner who mines that particular block.
@@ -663,7 +663,7 @@ Because miners will typically mine the most profitable transactions first, a use
 On the Lightning Network, users pay fees to other (intermediary node) users to route payments through their channels.
 To route a payment, an intermediary node will have to move funds in two or more channels they own, as well as transmit the data for the sender's payment. Typically, the routing user will charge the sender based on the _value_ of the payment, having established a minimum ((("base fee")))_base fee_ (a flat fee for each payment) and a ((("fee rate")))_fee rate_ (a prorated fee proportional to the value of the payment). Higher value payments will thus cost more to route, and a market for liquidity is formed, where different users charge different fees for routing through their channels.
 
-==== Varying Fees Depending on Traffic versus Announced Fees
+==== Varying Fees Depending on Traffic Versus Announced Fees
 
 ((("Bitcoin–Lightning Network comparisons","varying fees versus announced fees")))On the Bitcoin network, miners are profit seeking and will typically include as many transactions in a block as possible, while staying within the block capacity called the ((("block weight")))_block weight_.
 
@@ -671,11 +671,11 @@ To route a payment, an intermediary node will have to move funds in two or more 
 Thus, when there are many transactions in the queue, users have to pay a higher fee to be included in the next block, or they have to wait until there are fewer transactions in the queue.
 This naturally leads to the emergence of a fee market where users pay based on how urgently they need their transaction included in the next block.
 
-The scarce resource on the Bitcoin network is the space in the blocks. Bitcoin users compete for block space, and the Bitcoin fee market is based on available block space. The scarce resources in the Lightning Network are the ((("channel connectivity")))((("channel liquidity")))_channel liquidity_ (capacity of funds available for routing in channels) and _channel connectivity_ (how many well-connected nodes channels can reach). Lightning users compete for capacity and connectivity; therefore, the Lightning fee market is driven by capacity and connectivity.
+The scarce resource on the Bitcoin network is the space in the blocks. Bitcoin users compete for block space, and the Bitcoin fee market is based on available block space. The scarce resources in the Lightning Network are the ((("channel connectivity")))((("channel liquidity")))_channel liquidity_ (capacity of funds available for routing in channels) and _channel connectivity_ (how many well-connected nodes channels can reach). Lightning users compete for capacity pass:[<span class="keep-together">and connectivity</span>]; therefore, the Lightning fee market is driven by capacity and pass:[<span class="keep-together">connectivity</span>].
 
 On the Lightning Network, users are paying fees to the users routing their payments. Routing a payment, in economic terms, is nothing more than providing and assigning capacity to the sender. Naturally, routers who charge lower fees for the same capacity will be more attractive to route through. Thus a fee market exists where routers are in competition with each other over the fees they charge to route payments through their channels.
 
-==== Public Bitcoin Transactions versus Private Lightning Payments
+==== Public Bitcoin Transactions Versus Private Lightning Payments
 
 ((("Bitcoin–Lightning Network comparisons","public Bitcoin transactions versus private Lightning payments")))On the Bitcoin network, every transaction is publicly visible on the Bitcoin blockchain. While the addresses involved are pseudonymous and are not typically tied to an identity, they are still seen and validated by every other user on the network.
 In addition, blockchain surveillance companies collect and analyze this data en masse and sell it to interested parties such as private firms, governments, and intelligence agencies.
@@ -684,7 +684,7 @@ LN payments, on the other hand, are almost completely private. Typically, only t
 
 In summary, Bitcoin transactions are broadcast publicly and stored forever. Lightning payments are executed between a few selected peers, and information about them is privately stored only until the channel is closed. Creating mass surveillance and analysis tools equivalent to those used on Bitcoin will be much harder on Lightning.
 
-==== Waiting for Confirmations versus Instant Settlement
+==== Waiting for Confirmations Versus Instant Settlement
 
 ((("Bitcoin–Lightning Network comparisons","waiting for confirmations versus instant settlement")))On the Bitcoin network, transactions are only settled once they have been included in a block, in which case they are said to be "confirmed" in that block. As more blocks are mined, the transaction acquires more "confirmations" and is considered more secure.
 
@@ -693,7 +693,7 @@ In practical terms, instant settlement means that payments take only a few secon
 
 Finally, when the channel is closed, a transaction is made on the Bitcoin network; once that transaction is confirmed, the channel is considered closed.
 
-==== Sending Arbitrary Amounts versus Capacity Restrictions
+==== Sending Arbitrary Amounts Versus Capacity Restrictions
 
 ((("Bitcoin–Lightning Network comparisons","sending arbitrary amounts versus capacity restrictions")))On the Bitcoin network, a user can send any amount of bitcoin that they own to another user, without capacity restrictions. A single transaction can theoretically send up to 21 million bitcoin as a payment.
 
@@ -705,7 +705,7 @@ If the payment is routed, every routing node along the routing path must have ch
 
 Hence, capacity and connectivity are critical and scarce resources in the Lightning Network.
 
-==== Incentives for Large Value Payment versus Small Value Payments
+==== Incentives for Large Value Payment Versus Small Value Payments
 
 ((("Bitcoin–Lightning Network comparisons","fee structures")))((("fees","Bitcoin–Lightning Network comparisons")))The fee structure in Bitcoin is independent of the transaction value.
 A $1 million transaction has the same fee as a $1 transaction on Bitcoin, assuming a similar transaction size, in bytes (more specifically "virtual" bytes after SegWit [Segregated Witness protocol]).
@@ -714,7 +714,7 @@ Therefore, in Lightning the payment fee increases with payment value.
 These opposing fee structures create different incentives and lead to different usage in regards to transaction value.
 A transaction of greater value will be cheaper on Bitcoin; hence, users will prefer Bitcoin for large value transactions. Similarly, on the other end of the scale, users will prefer Lightning for small value transactions.
 
-==== Using the Blockchain as a Ledger versus as a Court System
+==== Using the Blockchain as a Ledger Versus as a Court System
 
 ((("Bitcoin–Lightning Network comparisons","blockchain: ledger versus court system")))On the Bitcoin network, every transaction is eventually recorded in a block on the blockchain.
 The blockchain thus forms a complete history of every transaction since Bitcoin's creation, and a way to fully audit every bitcoin in existence.
@@ -728,7 +728,7 @@ If Alice tries to cheat by submitting the opening state of the channel to the Bi
 For the Lightning Network, the Bitcoin blockchain acts as a court system.
 Like a robotic judge, Bitcoin records the initial and final balances of each channel and approves penalties if one of the parties tries to cheat.
 
-==== Offline versus Online, Asynchronous versus Synchronous
+==== Offline Versus Online, Asynchronous Versus Synchronous
 
 ((("Bitcoin–Lightning Network comparisons","minimum payment size: satoshi versus millisatoshi")))((("Bitcoin–Lightning Network comparisons","payment activity: asynchronous versus synchronous")))((("millisatoshi")))((("satoshi")))When a Bitcoin user sends funds to a destination address, they do not need to know anything about the recipient. The recipient might be offline or online, and no interaction between sender and recipient is needed. The interaction is between sender and the Bitcoin blockchain. Receiving bitcoin on the Bitcoin blockchain is a _passive_ and _asynchronous_ activity that does not require any interaction by the recipient or for the recipient to be online at any time. Bitcoin addresses can even be generated offline and are never "registered" with the Bitcoin network. Only spending bitcoin requires interaction.
 
@@ -737,7 +737,7 @@ The recipient must run a node or have someone that runs a node on their behalf (
 
 The synchronous and always-online nature of the Lightning Network is probably the biggest difference in the user experience, and this often confounds users who are accustomed to Bitcoin.
 
-==== Satoshis versus Millisatoshis
+==== Satoshis Versus Millisatoshis
 
 On the Bitcoin network, the smallest amount is a _satoshi_, which cannot be divided any further. Lightning is a bit more flexible, and Lightning nodes work with _millisatoshis_ (thousandths of a satoshi). This allows tiny payments to be sent via Lightning. A single millisatoshi payment can be sent across a payment channel, an amount so small it should properly be characterized as a _nanopayment_.
 
