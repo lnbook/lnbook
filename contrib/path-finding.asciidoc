@@ -11,7 +11,7 @@
 ## What are good features
 * fees should be chep
 * success probabilities
-** Why is liquidity a problem? Why do channel balances have to be private and what ist the problem with that? 
+** Why is liquidity a problem? Why do channel balances have to be private and what is the problem with that? 
 *** if balance was not private nodes would have to tell everyone else about every channel update (that happens with payments) --> Scales as poorly as bitcoin
 *** it is also nice for privacy
 ** How to obtain them? 
@@ -20,7 +20,7 @@
 ** CLTV to minimize locked capital in bad cases
 ** provenance scores
 
-## Generating candidate pahts by solving / estimating the optimizaion problem
+## Generating candidate paths by solving / estimating the optimizaion problem
 * Dijkstra for single paths
 * Backward computation because of fees
 
@@ -144,8 +144,8 @@ For simplicity assume that the fee rate of Bob and Chan is expensive with 1% for
 For simplicity furthermore assume neither Bob nor Chan take a base fee.
 When Alice constructs the onion she has to include the routing fees as the difference of the incoming HTLC and the outgoing HTLC.
 Let us assume she computes the routing fees for the onion incorrectly.
-Alice knows that 1% of 100k satoshi is 1k satoshi which she belives she should include in Bob's onion.
-Similarly she knows that 2% of 100k satoshi is 2k satoshi which she belives she should include in Chan's onion.
+Alice knows that 1% of 100k satoshi is 1k satoshi which she believes she should include in Bob's onion.
+Similarly she knows that 2% of 100k satoshi is 2k satoshi which she believes she should include in Chan's onion.
 An inexperienced Alice would incorrectly believe her total fee to be 3k satoshi. But she is wrong.
 Look at the incorrect onion from our naive Alice. Bob would reject this onion. 
 
@@ -179,9 +179,9 @@ Look at the incorrect onion from our naive Alice. Bob would reject this onion.
 ----
 
 The reason for Bob to not forward the onion is that he expects the incoming amount to be 1% larger then the amount he is supposed to forward.
-Thus he would like to receive an incoming ammount of `103020` satoshi (102000 + 1%) which is 20 satoshi more than our uninformed Alice actually sent him.
+Thus he would like to receive an incoming amount of `103020` satoshi (102000 + 1%) which is 20 satoshi more than our uninformed Alice actually sent him.
 According to Bob's fee schedule Bob will reject this onion.
-If Alice constructed the onion from the destinatin towards the source, she would have started with 100k satoshi for Dina. 
+If Alice constructed the onion from the destination towards the source, she would have started with 100k satoshi for Dina. 
 In the next step she would have added Chan's 2% fee to compute 102k for Chan's input. 
 In the last step she would have applied Bob's fee (1%) to 102k to derive 102k + 1020 satoshi. 
 That makes a total of 103,020 satoshi that she needs to send to Bob.
@@ -206,7 +206,7 @@ We now have to solve a pathfinding problem with only partial knowledge.
 For example, we suspect which edges might be able to forward a payment because their capacity seems big enough.
 But we can't be certain unless we try it out or ask the channel owners directly.
 Even if we were able to ask the channel owners directly, their balance might change by the time we have asked others, computed a path, constructed an onion and send it along.
-Not only do we have soley limited information but the information we have is highly dynamic and might change at any point in time without our knowledge.
+Not only do we have solely limited information but the information we have is highly dynamic and might change at any point in time without our knowledge.
 
 One general observation that everyone can easily make is that if every node along a path is able to forward a certain amount of satoshis, these nodes will also be able to forward a lower amount of satoshis.
 This is why many people intuitively believe that multipath payments might be a good strategy.
@@ -233,7 +233,7 @@ Nodes will use various sources of information to improve the selection of a rand
 The main source of information is the gossip protocol.
 From the gossip protocol a node learns which other nodes exist and which channels have been opened.
 This will basically provide a network view that can be used to run graph algorithms that generate plausible paths.
-One fitting algorithm is the breadth-first seach traversal.
+One fitting algorithm is the breadth-first search traversal.
 The graph algorithm will usually be constrained to channels whose capacity exceeds the payment amount.
 In practice, due to channel reserve and the assumption that the capacity in the channel will not be sitting completely on one side, it is smarter to prefer larger channels.
 
@@ -308,7 +308,7 @@ This is the reason why arbitrary probing should be conducted with a fake, i.e. p
 With fake payment hashes the sender can probe concurrently as long as the sender has enough funds to pay for all the HTLCs.
 Successful probing does not guarantee a following successful payment.
 Assume a fake onion returns indicating that the payment hash was unknown to the recipient but otherwise the path has been possible.
-The sender now uses the same path to send the payment with the corrent payment hash.
+The sender now uses the same path to send the payment with the current payment hash.
 In the interim, the balance of a channel along the path changes rendering the path unworkable.
 In this case the sender has to start all over again.
 Admittedly the risk for this to happen is rather small but the possibility exists.
@@ -368,7 +368,7 @@ The recipient will only release the preimage if the sum of all incoming HTLCs is
 The protocol specification uses the abbrivation _MPP_ for _multipart payments_.
 Multipath is just a special case of multipart. 
 Multipart covers all the cases of multipath plus the unusual case where multiple parts use the same path. 
-For simplicity we take the liberty to also abbriviate multipath payments with MPP.
+For simplicity we take the liberty to also abbreviate multipath payments with MPP.
 ====
 
 It is important to recognize that a node that forwards HTLCs does not have to distinguish a single full payment from a partial multipart payment.
@@ -382,7 +382,7 @@ Besides the potentially better chances to find smaller routes the sender might w
 If the channel had enough capacity this could be resolved with a circular rebalancing - which we will discuss in the next section.
 However if the payment amount is bigger than the largest capacity of a channel that the sender has the sender can only pay the invoice if the recipient allows and supports multipart payments.
 Similarly a recipient might not be able to receive a single payment of the requested amount and would have the interest of signaling multi part payments.
-Luckily nodes will do this automatically and practially always signal the support for multi part payments if the implementation supports this feature.
+Luckily nodes will do this automatically and practically always signal the support for multi part payments if the implementation supports this feature.
 The standard Lightning Network implementations which follow BOLT 1.1 all support this feature.
 
 Multipart payments will almost always be more expensive than a single payment.
@@ -392,7 +392,7 @@ However the base fee is added independent of the amount making multipart payment
 As the sender pays the fees the sender will not necessarily have the interest of splitting the payment in too many parts.
 Thus implementations usually integrate multi part payments into the probing based approach.
 For example after a single payment would not got through the node might split the amount into two payments and try a multipart payment with smaller amounts.
-Those mulitpart payments could again be split down if they are not successfull along a route.
+Those multipart payments could again be split down if they are not successful along a route.
 
 The advantages of multi part payments are quite obvious:
 
@@ -445,7 +445,7 @@ The other 2 channels however styed with 50/50.
 Chan decides that he wants to have a 50/50 channel with Bob.
 There are 3 ways of how he can achieve this.
 
-. He can send back 1 milion satoshi to Bob
+. He can send back 1 million satoshi to Bob
 . He can use an onchain swapping service
 . He can send a circular onion
 
@@ -495,7 +495,7 @@ We hope that you have seen from this example a few things:
 . Off-chain rebalancing does not change the fact how much money can flow from sender to receiver.
 . Making payments changes how much money sender and receiver can send or receive. This is similar to the physical world where you also can only spend the cash that you have received first.
 . The goal to have channels in a 50/50 state is not possible for all the nodes all the time and thus probably not a good one.
-. Rebalancing in combination with payments changes the way money flew from the sender to the recipient. In particular it shifts can shift the responsability to find a path from the sender to several nodes on the network - even they don't know which path they are trying to find.
+. Rebalancing in combination with payments changes the way money flew from the sender to the recipient. In particular it shifts can shift the responsibility to find a path from the sender to several nodes on the network - even they don't know which path they are trying to find.
 . Thus rebalancing can be a nice tool to support path finding.
 
 With these conclusings let us look more precisely what would be good rebalancing strategies for nodes.
@@ -512,9 +512,9 @@ A node can easily compute the channel balance coefficient for all its channels.
 By the way in the case of the 50/50 rebalancing the coefficients would all have the value of 0.5.
 
 Researchers demonstrated that the overall likelihood to find a path increases if nodes aim to rebalance their channels in a way that their local channel balance coefficients all take the same value.
-This target value can easily be computed as the amount of total funds that a node owns on the network devided by the sum of all capacities of channels that the node maintains.
+This target value can easily be computed as the amount of total funds that a node owns on the network divided by the sum of all capacities of channels that the node maintains.
 We call this target value the node balance coefficient \nu.
-Nodes can check wich channels have channel balance coefficient that is bigger than \nu and which have a channel balance coeffcient that is smaller than \nu.
+Nodes can check which channels have channel balance coefficient that is bigger than \nu and which have a channel balance coefficient that is smaller than \nu.
 after identifying such channels it makes sense to make circular self payments from the channels with too mcuh liquidity to the channels with too little liquidity.
 
 This approach has an economical drawback.
@@ -528,11 +528,11 @@ Not only would you have paid routing fees for a rebalancing operation you would 
 
 We hope that you are not discouraged at this moment.
 Rebalancing is still a viable thing.
-While proactive rebalancing increases the reliablity of the network it is currently economically not viable.
+While proactive rebalancing increases the reliability of the network it is currently economically not viable.
 However you could rebalance reactively or Just in Time at the moment when necessary.
 Imagine you have a an incoming HTLCs and the onion says you are supposed to forward the payment along a channel where you lack sufficient balance.
 The standard case of the protocol would be to return the onion with an onion and remove the incoming HTLC.
-However noone stops your node from shortly interrupting the routing process and conduct a rebalancing operation to provide yourself with sufficient liquidity on the channel in question.
+However no one stops your node from shortly interrupting the routing process and conduct a rebalancing operation to provide yourself with sufficient liquidity on the channel in question.
 This method is called JIT-Routing as it helps nodes to reactively provide themselves with enough liquidity just in time.
 
 The just in time Routing scheme has 2 major advantages over source based routing.
@@ -546,7 +546,7 @@ One part flows directly to Chan and the other part takes the path over Erica to 
 It is obvious that splitting a payment at the node that can't forward the entire payment is much more reliable and effective than letting the sender decide how to split a payment and into which amounts.
 
 We thus can see that with the help of JIT-Routing rebalancing and multipart payments are actually not so different concepts and ideas.
-There is another way how mutlipart payments and rebalancing can be combined.
+There is another way how multipart payments and rebalancing can be combined.
 Let us recall that nodes should always aim to have similar channel balance coefficients.
 So if a node wants to make a multipart payment it could split the payment in such a way that it rebalances its channels.
 Meaning it would only pay from channels on which it currently has too much liquidity.
