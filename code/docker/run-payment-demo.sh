@@ -10,7 +10,7 @@ function run-in-node () {
 	docker exec "$1" /bin/bash -c "${@:2}"
 }
 
-# wait-for-cmd: Run a command repeatedly until it completes/exits successfuly
+# wait-for-cmd: Run a command repeatedly until it completes/exits successfully
 function wait-for-cmd () {
 		until "${@}" > /dev/null 2>&1
 		do
