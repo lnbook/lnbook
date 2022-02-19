@@ -1,6 +1,6 @@
 ARG OS=ubuntu
 ARG OS_VER=focal
-ARG GO_VER=1.13
+ARG GO_VER=1.17
 # Define base images with ARG versions
 FROM ${OS}:${OS_VER} as os
 FROM golang:${GO_VER} as go
@@ -20,14 +20,13 @@ ENV GO_VER=${GO_VER}
 ENV GOPATH=/go
 
 # Build LND
-ARG LND_VER=v0.13.1-beta
+ARG LND_VER=v0.14.2-beta
 ENV LND_VER=${LND_VER}
-RUN	mkdir -p ${GOPATH}/src && \
+RUN	mkdir -p ${GOPATH}/src/lnd && \
 	cd ${GOPATH}/src && \
-	go get -v -d github.com/lightningnetwork/lnd && \
-	cd ${GOPATH}/src/github.com/lightningnetwork/lnd && \
-	git checkout tags/${LND_VER} && \
-	make clean && make && make install
+	git clone https://github.com/lightningnetwork/lnd.git ${GOPATH}/src/lnd  --depth 1 -b ${LND_VER}
+WORKDIR ${GOPATH}/src/lnd
+RUN	make clean && make && make install
 
 # Runtime image for running LND
 FROM os-base as lnd-run
