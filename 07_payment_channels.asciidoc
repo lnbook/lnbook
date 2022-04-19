@@ -566,8 +566,8 @@ revocation_priv = (revocationbase_priv * sha256(revocation_basepoint || per_comm
 
 To see why this works in practice, notice that we can _reorder_ (commute) and expand the public key computation of the original formula for `revocationpubkey`:
 ```
-revocationpubkey = G*(revocationbase_priv * sha256(revocation_basepoint || per_commitment_point) + G*(per_commitment_secret * sha256(per_commitment_point || revocation_basepoint))
-                 = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint))
+revocationpubkey = G*(revocationbase_priv * sha256(revocation_basepoint || per_commitment_point)) + G*(per_commitment_secret * sha256(per_commitment_point || revocation_basepoint))
+                 = revocation_basepoint * sha256(revocation_basepoint || per_commitment_point) + per_commitment_point * sha256(per_commitment_point || revocation_basepoint)
 ```
 
 In other words, the `revocationbase_priv` can only be derived (and used to sign for the `revocationpubkey`) by the party that knows _both_ the `revocationbase_priv` _and_ the `per_commitment_secret`. This little trick is what makes the public-key-based revocation system used in the Lightning Network secure.
