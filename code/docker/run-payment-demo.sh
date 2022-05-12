@@ -59,7 +59,7 @@ dina_address=$(run-in-node Dina "cli getinfo | jq -r .identity_pubkey")
 echo "- Alice:  ${alice_address}"
 echo "- Bob:    ${bob_address}"
 echo "- Chan:   ${chan_address}"
-echo "- Dina:	${dina_address}"
+echo "- Dina:   ${dina_address}"
 
 echo "======================================================"
 echo
@@ -77,7 +77,7 @@ echo "All nodes synched to chain"
 echo "======================================================"
 echo
 echo "Setting up connections and channels"
-echo "- Alice to Bob"
+echo "Alice to Bob"
 
 # Connect only if not already connected
 run-in-node Alice "cli listpeers | jq -e '.peers[] | select(.pub_key == \"${bob_address}\")' > /dev/null" \
