@@ -32,7 +32,7 @@ Lightning Protocol messages are extensible and their structure may change during
 | 38  | `shutdown`             | Channel Closing
 | 39  | `closing_signed`             |         Channel Closing
 | 128 | `update_add_htlc`             |          Channel Operation
-| 130 | `update_fulfill_hltc`             |          Channel Operation
+| 130 | `update_fulfill_htlc`             |          Channel Operation
 | 131 | `update_fail_htlc`             |          Channel Operation
 | 132 | `commit_sig`             |          Channel Operation
 | 133 | `revoke_and_ack`             |          Channel Operation
@@ -432,10 +432,10 @@ Note that each HTLC sent uses an automatically incrementing ID which is used by 
 message which modifies an HTLC (settle or cancel) to reference the HTLC in a
 unique manner scoped to the channel.
 
-[[apdx_update_fulfill_hltc_message]]
-===== The update_fulfill_hltc message
+[[apdx_update_fulfill_htlc_message]]
+===== The update_fulfill_htlc message
 
-((("channel operation","update_fulfill_hltc message")))((("update_fulfill_hltc message")))The `update_fulfill_hltc` message allows redemption (receipt) of an active HTLC.
+((("channel operation","update_fulfill_htlc message")))((("update_fulfill_htlc message")))The `update_fulfill_htlc` message allows redemption (receipt) of an active HTLC.
 
  * Type: 130
  * Fields:
@@ -445,7 +445,7 @@ unique manner scoped to the channel.
 
 This message is sent by the HTLC receiver to the proposer to redeem an
 active HTLC. The message references the `id` of the HTLC in question, and also
-provides the preimage (which unlocks the HLTC).
+provides the preimage (which unlocks the HTLC).
 
 [[apdx_update_fail_htlc_message]]
 ===== The update_fail_htlc message
@@ -459,7 +459,7 @@ provides the preimage (which unlocks the HLTC).
   ** `uint16` : `len`
   ** `len*byte` : `reason`
 
-The `update_fail_htlc` message is the opposite of the `update_fulfill_hltc` message in that
+The `update_fail_htlc` message is the opposite of the `update_fulfill_htlc` message in that
 it allows the receiver of an HTLC to remove the very same HTLC. This message is
 typically sent when an HTLC cannot be properly routed upstream and needs to be
 sent back to the sender to unravel the HTLC chain. As we explore in
