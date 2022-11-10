@@ -1,4 +1,4 @@
-# Mastering the Lightning Network
+# Dominando Lightning Network
 [![Build Status](https://travis-ci.com/lnbook/lnbook.svg?branch=develop)](https://travis-ci.com/lnbook/lnbook)
 
 STATUS: First Edition published on Dec 21, 2021
