@@ -1,6 +1,6 @@
 ARG OS=ubuntu
 ARG OS_VER=focal
-ARG GO_VER=1.13
+ARG GO_VER=1.19.5
 # Define base images with ARG versions
 FROM ${OS}:${OS_VER} as os
 FROM golang:${GO_VER} as go
@@ -11,7 +11,7 @@ FROM os AS os-base
 # Install dependencies
 RUN DEBIAN_FRONTEND=noninteractive \
     apt-get update -qq && apt-get install -yqq \
-		curl unzip jq bash-completion
+    curl unzip jq bash-completion
 
 # Go image for building LND
 FROM go as lnd-build
@@ -20,14 +20,15 @@ ENV GO_VER=${GO_VER}
 ENV GOPATH=/go
 
 # Build LND
-ARG LND_VER=v0.13.1-beta
+ARG LND_VER=v0.15.5-beta
 ENV LND_VER=${LND_VER}
-RUN	mkdir -p ${GOPATH}/src && \
-	cd ${GOPATH}/src && \
-	go get -v -d github.com/lightningnetwork/lnd && \
-	cd ${GOPATH}/src/github.com/lightningnetwork/lnd && \
-	git checkout tags/${LND_VER} && \
-	make clean && make && make install
+RUN mkdir -p ${GOPATH}/src
+RUN git clone https://github.com/lightningnetwork/lnd.git ${GOPATH}/src/github.com/lightningnetwork/lnd
+WORKDIR  ${GOPATH}/src/github.com/lightningnetwork/lnd
+RUN git checkout tags/${LND_VER}
+RUN make clean
+RUN make
+RUN make install
 
 # Runtime image for running LND
 FROM os-base as lnd-run
@@ -36,7 +37,7 @@ FROM os-base as lnd-run
 COPY --from=lnd-build /go/bin /go/bin
 
 ADD https://raw.githubusercontent.com/lightningnetwork/lnd/master/contrib/lncli.bash-completion \
-	   /usr/share/bash-completion/completions/lncli
+    /usr/share/bash-completion/completions/lncli
 
 ENV GOPATH /go
 ENV PATH $PATH:$GOPATH/bin
