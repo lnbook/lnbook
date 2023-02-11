@@ -10,7 +10,7 @@ Volunteers can contribute to different translations on an ad-hoc basis. Contribu
 
 ## Translating ASCIIDOC markup
 
-The book's source files use the ASCIIDOC markup language with a few specialized extensions and stylesheet for the print edition by O'Reilly.
+The book's source files use the ASCIIDOC markup language with a few specialized extensions and stylesheets for the print edition by O'Reilly.
 
 If you are translating the book, you must translate all content _without_ translating markup symbols, variable names, file names, anchors, references, command-line commands, and other markup related entries.
 
