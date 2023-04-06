@@ -248,15 +248,15 @@ Output identifiers (outpoints) are the mechanisms that link transactions togethe
 .Transaction inputs refer to outpoints forming a chain
 image::images/mtln_aa07.png["Transaction inputs refer to outpoints forming a chain"]
 
-The input in Bob's transaction references Alice's transaction (by TxID) and the 0 indexed output.
+The input in Bob's transaction references Alice's transaction (by TxID) and the 0-indexed output.
 
-The input in Chan's transaction references Bob's transaction's TxID and the first indexed output, because the payment to Chan is output #1. In Bob's payment to Chan, Bob's change is output #0.footnote:[Recall that change doesn't have to be the last output in a transaction and is in fact indistinguishable from other outputs.]
+The input in Chan's transaction references Bob's transaction's TxID and the 1-indexed output, because the payment to Chan is output #1. In Bob's payment to Chan, Bob's change is output #0.footnote:[Recall that change doesn't have to be the last output in a transaction and is in fact indistinguishable from other outputs.]
 
 Now, if we look at Alice's payment to Bob, we can see that Alice is spending an outpoint that was the third (output index #2) output in a transaction whose ID is 6a5f1b3[...]. We don't see that referenced transaction in the diagram, but we can deduce these details from the outpoint.(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc9")))(((range="endofrange", startref="ix_appendix-bitcoin-fundamentals-review-asciidoc8")))
 
 === Bitcoin Script
 
-((("Bitcoin (system)","script", id="ix_appendix-bitcoin-fundamentals-review-asciidoc11", range="startofrange")))((("Bitcoin script", id="ix_appendix-bitcoin-fundamentals-review-asciidoc12", range="startofrange")))The final element of Bitcoin that is needed to complete our understanding is the scripting language that controls access to outpoints. So far, we've simplified the description by saying "Alice signs the transaction to pay Bob." Behind the scenes, however, there is some hidden complexity that makes it possible to implement more complex spending conditions. The simplest and most common spending condition is "present a signature matching the following public key." A spending condition like this is recorded in each output as _locking script_ written in a scripting language called _Bitcoin Script_.
+((("Bitcoin (system)","script", id="ix_appendix-bitcoin-fundamentals-review-asciidoc11", range="startofrange")))((("Bitcoin script", id="ix_appendix-bitcoin-fundamentals-review-asciidoc12", range="startofrange")))The final element of Bitcoin that is needed to complete our understanding is the scripting language that controls access to outpoints. So far, we've simplified the description by saying "Alice signs the transaction to pay Bob." Behind the scenes, however, there is some hidden complexity that makes it possible to implement more complex spending conditions. The simplest and most common spending condition is "present a signature matching the following public key." A spending condition like this is recorded in each output as the _locking script_ written in a scripting language called _Bitcoin Script_.
 
 Bitcoin Script is an extremely simple stack-based scripting language. It does not contain loops or recursion and therefore is _Turing incomplete_ (meaning it cannot express arbitrary complexity and has predictable execution). Those familiar with the (now ancient) programming language FORTH will recognize the syntax and style.
 
@@ -318,7 +318,7 @@ image::images/mtln_aa09.png["A transaction chain showing the locking script (out
 To validate Bob's transaction, a Bitcoin node would do the following:
 
 . Extract the unlocking script from the input (+<Bob Signature>+).
-. Look up the outpoint it is attempting to spend (+a643e37...3213:0+). This is Alice's transaction and would be found on the blockchain.
+. Look up the outpoint it is attempting to spend (+a643e37...3212:0+). This is Alice's transaction and would be found on the blockchain.
 . Extract the locking script from that outpoint (+<Bob PubKey> CHECKSIG+).
 . Concatenate into one script, placing the unlocking script in front of the locking script (+<Bob Signature> <Bob PubKey> CHECKSIG+).
 . Execute this script on the Bitcoin Script execution engine to see what result is produced.
@@ -378,7 +378,7 @@ Interestingly, Bob can give the +R+ value to anyone else, who can then spend tha
 * _K_ is the _quorum_ or _threshold_: the minimum number of signatures to authorize spending.
 
 [role="pagebreak-before"]
-The script for an __K__-of-__N__ multisignature is:
+The script for a __K__-of-__N__ multisignature is:
 
 ----
 K <PubKey1> <PubKey2> ... <PubKeyN> N CHECKMULTISIG
@@ -411,11 +411,11 @@ A multisignature locking script can be represented by a Bitcoin address, encodin
 
 Bitcoin has two levels of timelocks: transaction-level timelocks and output-level timelocks.
 
-((("transaction-level timelock")))A _transaction-level timelock_ is recorded in the transaction `nLockTime` field of the transaction and prevents the entire transaction from being accepted before the timelock has passed. Transaction-level timelocks are the most commonly used timelock mechanism in Bitcoin today.
+((("transaction-level timelock")))A _transaction-level timelock_ is recorded in the `nLockTime` field of the transaction and prevents the entire transaction from being accepted before the timelock has passed. Transaction-level timelocks are the most commonly used timelock mechanism in Bitcoin today.
 
 ((("output-level timelock")))An _output-level timelock_ is created by a script operator. There are two types of output timelocks: absolute timelocks and relative timelocks.
 
-((("absolute timelock")))Output-level _absolute timelocks_ are implemented by the operator +CHECKLOCKTIMEVERIFY+, which is often shortened in conversation as _CLTV_. Absolute timelocks implement a time constraint with an absolute timestamp or blockheight, expressing the equivalent of "not spendable before block 800,000."
+((("absolute timelock")))Output-level _absolute timelocks_ are implemented by the operator +CHECKLOCKTIMEVERIFY+, which is often shortened in conversation as _CLTV_. Absolute timelocks implement a time constraint with an absolute timestamp or block height, expressing the equivalent of "not spendable before block 800,000."
 
 ((("relative timelock")))Output-level _relative timelocks_ are implemented by the operator +CHECKSEQUENCEVERIFY+, often shortened in conversation as _CSV_. Relative timelocks implement a spending constraint that is relative to the confirmation of the transaction, expressing the equivalent of "can't be spent until 1,024 blocks after confirmation."
 
