@@ -193,7 +193,7 @@ The structure of the +open_channel+ message (taken from BOLT #2) is shown in <<o
 ----
 ====
 
-The fields contained in this message specify the channel parameters that Alice wants, as well as various configuration settings from Alice's nodes that reflect the security expectations for the operation of the channel.
+The fields contained in this message specify the channel parameters that Alice wants, as well as various configuration settings from Alice's node that reflect the security expectations for the operation of the channel.
 
 [role="pagebreak-before"]
 Some of the channel construction parameters are listed here:
@@ -206,7 +206,7 @@ Some of the channel construction parameters are listed here:
 
 +push_msat+:: An optional amount that Alice will immediately "push" to Bob as a payment upon channel funding. _Setting this value to anything but 0 means effectively gifting money to your channel partner and should be used with caution._
 
-+to_self_delay+:: A very important security parameter for the protocol. The value in the `open_channel` message is used in the responder's commitment transaction, and the `accept_channel` in the initiator's. This asymmetry exists to allow each side to express how long the other side needs to wait to unilaterally claim the funds in a commitment transaction. If Bob at any time unilaterally closes the channel against the will of Alice, he commits to not accessing his own funds for the delay defined here. The higher this value, the more security Alice has, but the longer Bob might have his funds locked.
++to_self_delay+:: A very important security parameter for the protocol. This value in the `open_channel` message is used in the responder's commitment transaction, and the `accept_channel` in the initiator's. This asymmetry exists to allow each side to express how long the other side needs to wait to unilaterally claim the funds in a commitment transaction. If Bob at any time unilaterally closes the channel against the will of Alice, he commits to not accessing his own funds for the delay defined here. The higher this value, the more security Alice has, but the longer Bob might have his funds locked.
 
 +funding_pubkey+:: The public key that Alice will contribute to the 2-of-2 multisig that anchors this channel.
 
@@ -300,7 +300,7 @@ Alice _does not broadcast_ this transaction because doing so would put her 140,0
 
 Consider the legal construct of a prenuptial agreement, also known as a "prenup." When two people enter into a marriage their money is bound together by law (depending on jurisdiction). Prior to entering into the marriage, they can sign an agreement that specifies how to separate their assets if they dissolve their marriage through divorce.
 
-We can create a similar agreement in Bitcoin. For example, we can create a refund transaction, which functions like a prenup, allowing the parties decide how the funds in their channel will be divided before their funds are actually locked into the multisignature funding address.
+We can create a similar agreement in Bitcoin. For example, we can create a refund transaction, which functions like a prenup, allowing the parties to decide how the funds in their channel will be divided before their funds are actually locked into the multisignature funding address.
 
 ==== Constructing the Presigned Refund Transaction
 
@@ -362,7 +362,7 @@ With this message, Alice gives Bob the important information about the funding t
 
 +funding_output_index+:: This is the output index, so Bob knows which output of the transaction (e.g., output `0`) is the 2-of-2 multisig output funded by Alice. This is also used to form the channel ID.
 
-Finally, Alice also sends the +signature+ corresponding to Alice's `funding_pubkey` and used to spend from the 2-of-2 multisig. This is needed by Bob because he will also need to create his own version of a commitment transaction. That commitment transaction needs a signature from Alice, which she provides to him. Note that the commitment transactions of Alice and Bob look slightly different, thus the signatures will be different. Knowing what the commitment transaction of the other party looks like is crucial and part of the protocol to provide the valid signature.
+Finally, Alice also sends the +signature+ corresponding to Alice's `funding_pubkey` that's used to spend from the 2-of-2 multisig. This is needed by Bob because he will also need to create his own version of a commitment transaction. That commitment transaction needs a signature from Alice, which she provides to him. Note that the commitment transactions of Alice and Bob look slightly different, thus the signatures will be different. Knowing what the commitment transaction of the other party looks like is crucial and part of the protocol to provide the valid signature.
 
 [TIP]
 ====
