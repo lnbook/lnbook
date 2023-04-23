@@ -348,21 +348,21 @@ Now, Bob gives the hash +H+ we calculated previously to Alice, but keeps the num
 Alice creates an output paying 50,000 satoshi with the locking script:
 
 ----
-HASH256 H EQUAL
+SHA256 H EQUAL
 ----
 
 where +H+ is the actual hash value (+0ffd8...036a+) that Bob gave to Alice.
 
 Let's explain this script:
 
-The +HASH256+ operator pops a value from the stack and calculates the SHA-256 hash of that value. Then it pushes the result onto the stack.
+The +SHA256+ operator pops a value from the stack and calculates the SHA-256 hash of that value. Then it pushes the result onto the stack.
 
 The +H+ value is pushed onto the stack, and then the +EQUAL+ operator checks if the two values are the same and pushes +TRUE+ or +FALSE+ onto the stack accordingly.
 
 Therefore, this locking script will only work if it is combined with an unlocking script that contains +R+, so that when concatenated, we have:
 
 ----
-R HASH256 H EQUAL
+R SHA256 H EQUAL
 ----
 
 Only Bob knows +R+, so only Bob can produce a transaction with an unlocking script revealing the secret value +R+.
